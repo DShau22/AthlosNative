@@ -1,0 +1,57 @@
+.settings-container {
+  width: 100%;
+}
+.settings-container .settings-header {
+  border-bottom: 2px solid #a8a8a8;
+}
+.settings-container .settings-list {
+  width: 100%;
+  height: 500px;
+  list-style: none;
+}
+.settings-container .settings-list #save-settings-list-item {
+  border-bottom: none;
+}
+.settings-container .settings-list .settings-list-item {
+  padding-bottom: 25px;
+  border-bottom: 1px solid #dfdfdf;
+  display: flex;
+  align-items: center;
+  margin-top: 25px;
+  width: 100%;
+}
+.settings-container .settings-list .settings-list-item .help-icon {
+  width: 50px;
+}
+.settings-container .settings-list .settings-list-item .setting-text {
+  width: 60%;
+  display: flex;
+}
+.settings-container .settings-list .settings-list-item .settings-dropdown, .settings-container .settings-list .settings-list-item .save-settings {
+  width: 20%;
+}
+.settings-container .msg-container {
+  width: 80%;
+  margin-left: 20px;
+}
+.settings-container .popup-modal {
+  color: black;
+  font-size: 12px;
+}
+.settings-container .popup-modal .popup-header {
+  width: 100%;
+  border-bottom: 1px solid gray;
+  font-size: 18px;
+  text-align: center;
+  padding: 5px;
+}
+.settings-container .popup-modal .unit-select {
+  height: 100%;
+}
+.settings-container .popup-modal .save-custom-swim-container {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/*# sourceMappingURL=settings.css.map */

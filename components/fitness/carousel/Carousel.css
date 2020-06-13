@@ -1,0 +1,67 @@
+@import '../../App.css';
+.carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.carousel .activities-dropdown {
+  height: auto;
+  max-height: 250px;
+  overflow-x: hidden;
+}
+.carousel #details.routeButton {
+  margin-top: 20px;
+}
+.carousel .date-display {
+  margin-top: 10px;
+}
+.carousel .slideShow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.carousel .slideShow .imageSlide {
+  height: 200px;
+  margin-top: 15px;
+  width: 200px;
+  border: solid;
+  border-radius: 50%;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.carousel .slideShow .imageSlide.run {
+  border-color: #9cf0b1;
+}
+.carousel .slideShow .imageSlide.swim {
+  border-color: #9cbcf0;
+}
+.carousel .slideShow .imageSlide.jump {
+  border-color: #f39ef3;
+}
+.carousel .slideShow .slide-arrow {
+  cursor: pointer;
+  font-size: 3rem;
+  margin-left: 8px;
+}
+.carousel .slideShow .slide-arrow.right {
+  margin-left: 8px;
+}
+.carousel .slideShow .slide-arrow.left {
+  margin-right: 8px;
+}
+.carousel .slideShow .slide-arrow.run {
+  color: #9cf0b1;
+}
+.carousel .slideShow .slide-arrow.swim {
+  color: #9cbcf0;
+}
+.carousel .slideShow .slide-arrow.jump {
+  color: #f39ef3;
+}
+
+/*# sourceMappingURL=Carousel.css.map */

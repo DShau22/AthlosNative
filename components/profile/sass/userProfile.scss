@@ -1,0 +1,94 @@
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+
+  .bot-half {
+    width: 90%;
+    height: 90%;
+  }
+
+  .popup-content {
+    width: 80% !important;
+    max-width: 600px;
+    max-height: 95vh;
+    overflow: scroll;
+  }
+  .popup-header {
+    margin: 10px 0;
+  }
+  .popup-close {
+    margin-right: 15px;
+    position: absolute;
+    right: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #000;
+    text-shadow: 0 1px 0 #fff;
+    opacity: 0.5;
+    cursor: pointer;
+  }
+}
+
+.top-half {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 90%;
+  height: 90%;
+
+  .edit-btn-container {
+    position: absolute;
+    top: 10%;
+    right: 0;
+    background-color: rgb(124, 153, 248);
+    padding: 8px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    i {
+      color: white;
+      margin-right: 2px;
+      font-size: 2vw;
+    }
+    .edit-btn {
+      color: white;
+      font-size: 2vw;
+    }
+  }
+
+  .img-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40vw;
+    height: 40vw;
+    .profile-pic {
+      border-radius: 50%;
+    }
+  }
+
+  .info-container {
+    width: 100%;
+  }
+
+  .name-container {
+    .fname, .lname {
+      font-size: 24pt;
+    }
+    .fname {
+      margin-right: 7px;
+    }
+    .lname {
+      margin-left: 7px;
+    }
+  }
+}

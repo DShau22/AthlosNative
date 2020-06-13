@@ -1,0 +1,40 @@
+.comFooter {
+  position: fixed;
+  bottom: 0pt;
+  left: 0pt;
+  right: 0pt;
+  width: 100%;
+}
+
+ul.friendsList {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+ul.friendsList li {
+  display: inline;
+  border: solid;
+  border-color: black;
+}
+
+ul.comFooterList {
+  margin-top: 5px;
+  margin-left: 5px;
+  margin-right: 5px;
+  background-color: red;
+  padding: 0px;
+  display: flex;
+  align-items: flex-start;
+}
+
+ul.comFooterList li {
+  display: inline;
+  list-style-type: none;
+  margin: 0;
+  border: solid;
+  border-color: black;
+  height: 50px;
+  width: 34%;
+}
+
+/*# sourceMappingURL=Community.css.map */

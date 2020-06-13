@@ -1,0 +1,90 @@
+.edit-profile-container {
+  padding: 8px;
+}
+.edit-profile-container form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+.edit-profile-container form .field-container, .edit-profile-container form .height-wrapper {
+  float: left;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+}
+.edit-profile-container form .field-container label, .edit-profile-container form .height-wrapper label {
+  text-align: left;
+  margin-left: 3px;
+  margin-bottom: 2px;
+}
+.edit-profile-container form .prof-pic-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+.edit-profile-container form .prof-pic-container img {
+  border-radius: 50%;
+  height: 80%;
+  width: 80%;
+}
+.edit-profile-container form input[type=email],
+.edit-profile-container form input[type=text],
+.edit-profile-container form textarea,
+.edit-profile-container form input[type=number] {
+  color: black;
+  padding: 0.5em;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+}
+.edit-profile-container form input[type=file] {
+  display: none;
+}
+.edit-profile-container form .custom-file-upload {
+  border: 1px solid #ccc;
+  display: inline-block;
+  border-radius: 5px;
+  margin-top: 10px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.edit-profile-container form .submit-container {
+  width: 90%;
+  display: flex;
+  flex-direction: row-reverse;
+}
+.edit-profile-container form .submit-container input[type=submit] {
+  cursor: pointer;
+  margin-top: 14px;
+  margin-bottom: 10px;
+  color: white;
+  background-color: #3b48ff;
+  border: 1px solid #eee;
+  border-radius: 5px;
+  padding: 5px 10px;
+}
+.edit-profile-container form .submit-container .cancel {
+  cursor: pointer;
+  margin-right: 8px;
+  margin-top: 14px;
+  margin-bottom: 10px;
+  color: black;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px 10px;
+}
+.edit-profile-container form .weight-container, .edit-profile-container form .height-container {
+  display: flex;
+  flex-direction: row;
+}
+.edit-profile-container form .weight-container .weight-units, .edit-profile-container form .weight-container .height-units, .edit-profile-container form .height-container .weight-units, .edit-profile-container form .height-container .height-units {
+  display: flex;
+  align-items: center;
+  margin-left: 5px;
+}
+
+/*# sourceMappingURL=editProfile.css.map */

@@ -1,0 +1,7 @@
+Runnning on iOS:
+  Just run npx react-native run-ios
+  If you wanna install a native library cd into ios folder and run pod install
+
+Running on Android:
+  Open Android studio, go to AVD manager, and launch a device emulator
+  Run npx react-native run-android

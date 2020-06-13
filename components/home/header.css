@@ -1,0 +1,28 @@
+.home-container {
+  width: 100%;
+}
+
+.header {
+  background-image: linear-gradient(to bottom right, #6f9dfa, #e6e6ff);
+  color: white;
+  font-size: 20pt;
+  height: 85px;
+  text-align: center;
+}
+
+.header-content {
+  height: 100%;
+}
+
+.content {
+  height: 80%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.navbar-container, .sideMenu-container {
+  z-index: 1;
+}
+
+/*# sourceMappingURL=header.css.map */

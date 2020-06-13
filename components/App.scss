@@ -1,0 +1,107 @@
+// customized boostrap override stuff here
+
+// customized boostrap override stuff here
+
+@import '../node_modules/bootstrap/scss/bootstrap.scss';
+
+
+// .App {
+//   text-align: center;
+//   background-color: rgb(206, 213, 223);
+//   min-height: 100vh;
+//   display: flex;
+//   flex-direction: column;
+//   align-items: center;
+//   justify-content: flex-start;
+//   font-size: calc(10px + 2vmin);
+// }
+
+// all of this is so heights in children can be used
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: Helvetica;
+  #root {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.App {
+  background-color: white;
+  width: 100%;
+  height: 100%;
+  .home-container {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+@mixin buttonTheme {
+  font-family: 'Roboto medium', sans-serif;
+  font-size: 14px;
+  display: inline-block;
+  height: 36px;
+  min-width: 88px;
+  padding: 6px 16px;
+  line-height: 1.42857143;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  border: 0;
+  border-radius: 2px;
+  background: rgba(103, 58, 183, 1);
+  color: #fff;
+  outline: 0;
+}
+
+.routeButton {
+  @include buttonTheme;
+  margin-right: 20px;
+}
+
+ul.header {
+  margin-top: 5px;
+  margin-left: 5px;
+  margin-right: 5px;
+  background-color: #111;
+  padding: 0px;
+  display: flex
+}
+
+ul.header li {
+  display: inline;
+  list-style-type: none;
+  margin: 0;
+}
+
+ul.header li a {
+  color: #FFF;
+  font-weight: bold;
+  text-decoration: none;
+  font-size: 10pt;
+  padding: 20px;
+  display: inline-block;
+  border: solid;
+  border-radius: 1px;
+  border-color: gray
+}
+
+.card {
+  // background-color: white;
+  // padding: 32px;
+  // width: 90%;
+  // height: 750px;
+  // display: flex;
+  // align-items: flex-start;
+  // justify-content: center;
+  box-shadow: 0 15px 30px 0 rgba(0, 0, 0, 0.11), 0 5px 15px 0 rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}

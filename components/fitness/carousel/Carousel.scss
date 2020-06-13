@@ -1,0 +1,80 @@
+@import '../../App.css';
+
+$theme-blue: rgb(147, 220, 233);
+
+$run-theme: #9cf0b1;
+$swim-theme: #9cbcf0;
+$jump-theme: #f39ef3;
+
+.carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  .activities-dropdown {
+    height: auto;
+    max-height: 250px;
+    overflow-x: hidden;
+  }
+
+  #details.routeButton {
+    margin-top: 20px;
+  }
+
+  .date-display {
+    margin-top: 10px;
+  }
+
+  .slideShow {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+
+    .imageSlide {
+      height: 200px;
+      margin-top: 15px;
+      width: 200px;
+      border: solid;
+      border-radius: 50%;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+
+      &.run {
+        border-color: $run-theme;
+      }
+      &.swim {
+        border-color: $swim-theme;
+      }
+      &.jump {
+        border-color: $jump-theme;
+      }
+    }
+
+    .slide-arrow {
+      cursor: pointer;
+      font-size: 3rem;
+      margin-left: 8px;
+      &.right {
+        margin-left: 8px;
+      }
+      &.left {
+        margin-right: 8px;
+      }
+      &.run {
+        color: $run-theme;
+      }
+      &.swim {
+        color: $swim-theme;
+      }
+      &.jump {
+        color: $jump-theme;
+      }
+    }
+  }
+
+}
