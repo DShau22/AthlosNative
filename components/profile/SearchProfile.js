@@ -7,9 +7,9 @@ import React, { Component } from 'react'
 // } from "react-router-dom";
 // import { englishHeight }from "../utils/unitConverter"
 import SpaContext from '../Context';
-import { withRouter } from 'react-router-dom';
+// import { withRouter } from 'react-router-dom';
 import ErrorAlert from "../messages/Error"
-import './css/userProfile.css'
+// import './css/userProfile.css'
 import { getToken } from "../utils/storage"
 import ENDPOINTS from '../endpoints'
 const getSearchUserUrl = ENDPOINTS.getSearchUser
@@ -212,4 +212,5 @@ class SearchProfile extends Component {
 }
 SearchProfile.contextType = SpaContext
 
-export default withRouter(SearchProfile)
+// export default withRouter(SearchProfile)
+export default SearchProfile

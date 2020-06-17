@@ -3,7 +3,7 @@ import SpaContext from "../Context"
 import { getToken } from '../utils/storage'
 import { Formik, Form } from 'formik'
 import * as Yup from 'yup';
-import "./css/editProfile.css"
+// import "./css/editProfile.css"
 import { weightConvert, heightConvert, englishHeight } from "../utils/unitConverter"
 import { textField, textArea, weightDisplay, heightDisplay } from '../generic/fieldComponents'
 import ENDPOINTS from "../endpoints"

@@ -1,5 +1,5 @@
 import ImageSlide from "./ImageSlide"
-import "./Carousel.css"
+// import "./Carousel.css"
 import Arrow from "./Arrow"
 import React from 'react'
 import { parseDate } from "../../utils/unitConverter"

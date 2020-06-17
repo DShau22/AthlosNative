@@ -1,6 +1,47 @@
 // save tokens to the browser storage to remember if user signed in or not
-const storageKey =  "the_main_app"
+const storageKey =  "token_key"
 const socketStorageKey = "socket"
+import AsyncStorage from '@react-native-community/async-storage';
+
+const storeData = async (value) => {
+  try {
+    await AsyncStorage.setItem(storageKey, value)
+  } catch (e) {
+    // saving error
+    console.log("something went wrong with async setItem")
+  }
+}
+
+const storeDataObj = async (value) => {
+  try {
+    const jsonValue = JSON.stringify(value)
+    await AsyncStorage.setItem(storageKey, jsonValue)
+  } catch (e) {
+    // saving error
+    console.log("something went wrong with async setItem")
+  }
+}
+
+const getData = async () => {
+  try {
+    const value = await AsyncStorage.getItem(storageKey)
+    return value
+  } catch(e) {
+    // error reading value
+    console.log("something went wrong with async getItem")
+  }
+}
+
+const getDataObj = async () => {
+  try {
+    const jsonValue = await AsyncStorage.getItem(storageKey)
+    return jsonValue != null ? JSON.parse(jsonValue) : null;
+  } catch(e) {
+    // error reading value
+    console.log("something went wrong with async getItem")
+  }
+}
+
 function getFromLocalStorage(key) {
   if (!key) {
     return null;
@@ -83,4 +124,8 @@ module.exports = {
   getToken,
   storageKey,
   socketStorageKey,
+  storeData,
+  storeDataObj,
+  getData,
+  getDataObj
 }

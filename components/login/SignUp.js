@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 // const regexWhitelist = '^[a-zA-Z0-9]'
-import 'react-inputs-validation/lib/react-inputs-validation.min.css';
+// import 'react-inputs-validation/lib/react-inputs-validation.min.css';
 import { Textbox } from 'react-inputs-validation';
 import validator from 'validator';
 var passwordValidator = require('password-validator');

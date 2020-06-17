@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import Alert from "react-bootstrap/Alert"
+// import Alert from "react-bootstrap/Alert"
 function Success(props) {
   const [show, setShow] = useState(true);
   if (show) {
     return (
-      <Alert
-        variant="success"
-        onClose={() => {setShow(false); props.onClose();}}
-        dismissible
-      >
-        <p>
-          {props.msg}
-        </p>
-      </Alert>
+      // <Alert
+      //   variant="success"
+      //   onClose={() => {setShow(false); props.onClose();}}
+      //   dismissible
+      // >
+      //   <p>
+      //     {props.msg}
+      //   </p>
+      // </Alert>
+      <View>success placeholder</View>
     );
   } else {
     return null

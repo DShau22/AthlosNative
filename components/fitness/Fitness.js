@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
-import Run from "./run/Run"
-import Jump from "./jump/Jump"
-import Swim from "./swim/Swim"
-import "./Fitness.css"
+// import Run from "./run/Run"
+// import Jump from "./jump/Jump"
+// import Swim from "./swim/Swim"
+// import "./Fitness.css"
 import SpaContext from "../Context"
 // import { CSSTransition, TransitionGroup } from 'react-transition-group'
-import './fitnessTransitions.css'
+// import './fitnessTransitions.css'
 
 class Fitness extends Component {
   constructor(props) {
@@ -22,15 +22,15 @@ class Fitness extends Component {
   renderActivity() {
     var { activityDisplay } = this.state
     var { runJson, jumpJson, swimJson } = this.context
-    if (activityDisplay === "run") {
-      return ( <Run id='run' activityJson={runJson}/> )
-    } else if (activityDisplay === "jump") {
-      return ( <Jump id='jump' activityJson={jumpJson}/> )
-    } else if (activityDisplay === "swim") {
-      return ( <Swim id='swim' activityJson={swimJson}/> )
-    } else {
-      return ( <div className='no-activity-container'> <span>pick an activity</span> </div>)
-    }
+    // if (activityDisplay === "run") {
+    //   return ( <Run id='run' activityJson={runJson}/> )
+    // } else if (activityDisplay === "jump") {
+    //   return ( <Jump id='jump' activityJson={jumpJson}/> )
+    // } else if (activityDisplay === "swim") {
+    //   return ( <Swim id='swim' activityJson={swimJson}/> )
+    // } else {
+    //   return ( <div className='no-activity-container'> <span>pick an activity</span> </div>)
+    // }
   }
 
   changeActivityDisplay(activity) {

@@ -1,14 +1,14 @@
 // Displays the profile of the user who is logged in on the browser
 // They should be able to see everything
 import React, { Component } from 'react'
-import {
-  withRouter,
-} from "react-router-dom";
+// import {
+//   withRouter,
+// } from "react-router-dom";
 import ShowMoreText from 'react-show-more-text';
 
 import SpaContext from '../Context';
 import { weightConvert, heightConvert } from "../utils/unitConverter"
-import "./css/userProfile.css"
+// import "./css/userProfile.css"
 import Popup from "reactjs-popup";
 import EditProfileFunc from "./EditProfileFunc"
 // replace with default avatar link
@@ -202,4 +202,5 @@ class UserProfile extends Component {
   }
 }
 UserProfile.contextType = SpaContext
-export default withRouter(UserProfile)
+// export default withRouter(UserProfile)
+export default UserProfile

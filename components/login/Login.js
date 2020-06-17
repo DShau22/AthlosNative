@@ -5,24 +5,30 @@ import {
   getFromLocalStorage,
   setInLocalStorage,
   setInSessionStorage,
-  storageKey
+  storageKey,
+  getData,
+  storeData
 } from '../utils/storage';
+import { Text, TextInput, View, Button } from 'react-native';
 
-import { Redirect } from 'react-router';
+
+// import { Redirect } from 'react-router';
 
 import LoadingScreen from "../generic/LoadingScreen"
 import FormCard from "./FormCard"
-import "./style.css"
+// import "./style.css"
 import ErrorAlert from "../messages/Error"
 import Success from "../messages/Success"
 
-import 'react-inputs-validation/lib/react-inputs-validation.min.css';
+// import 'react-inputs-validation/lib/react-inputs-validation.min.css';
 
 import ENDPOINTS from '../endpoints'
 
 const verifyURL = ENDPOINTS.emailVerify
 const signUpURL = ENDPOINTS.signUp
 const signInURL = ENDPOINTS.signIn
+
+// React-Native stuff
 
 // stores token in localstorage if user clicked remember me
 // else stores it in session storage
@@ -66,11 +72,12 @@ class Login extends Component {
   componentDidMount() {
     console.log("mounting...")
     // get the localstorage object which may contain the _id token
-    const obj = getFromLocalStorage(storageKey)
+    // const obj = getFromLocalStorage(storageKey)
+    const token = await getData()
     // there was a token in local storage
-    if (obj && obj.token) {
+    if (token) {
       try {
-        this.tokenLogin(obj.token)
+        this.tokenLogin(token)
       } catch(err) {
         throw err
       }
@@ -187,7 +194,8 @@ class Login extends Component {
       remember
     } = values;
     console.log("signing in...")
-    const stored = getFromLocalStorage(storageKey)
+    // const stored = getFromLocalStorage(storageKey)
+    const stored = await getData()
 
     if (signInEmail === "test") {
       this.setState({isLoading: false})
@@ -222,7 +230,8 @@ class Login extends Component {
     if (json.success) {
       // store the token in localstorage
       // should overwrite any existing expired tokens
-      storeToken(remember, json.token);
+      // storeToken(remember, json.token);
+      await storeData(json.token)
 
       this.setState({
         isLoading: false,
@@ -294,51 +303,34 @@ class Login extends Component {
     } = this.state;
 
     if (isLoading) {
-      return (<div><p>Loading...</p></div>);
+      return (<View><Text>Loading...</Text></View>);
     }
+    return (
+      <View className="body">
+        <View className="login-wrap">
+          <View className="login-html">
+            <View className="errors-container">
+              {this.displayErrors()}
+            </View>
+            <View className="success-container">
+              {this.showSuccesses()}
+            </View>
+            <LoadingScreen />
+            {/* <FormCard
+              renderSignIn={this.state.renderSignIn}
+              onSignInClick={this.switchToSignIn}
+              onSignUpClick={this.switchToSignUp}
 
-    if (!getToken()) {
-      return (
-        <div className="body">
-          <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:600"></link>
+              signUpValid={this.signUpValid}
+              signInValid={this.signInValid}
 
-          <div className="login-wrap">
-            <div className="login-html">
-              <div className="errors-container">
-                {this.displayErrors()}
-              </div>
-              <div className="success-container">
-                {this.showSuccesses()}
-              </div>
-              <LoadingScreen />
-              <FormCard
-                renderSignIn={this.state.renderSignIn}
-                onSignInClick={this.switchToSignIn}
-                onSignUpClick={this.switchToSignUp}
-
-                signUpValid={this.signUpValid}
-                signInValid={this.signInValid}
-
-                onSignIn={this.onSignIn}
-                onSignUp={this.onSignUp}
-              />
-            </div>
-          </div>
-        </div>
-      );
-    } else {
-      // token is in the state and user has logged in!
-      return (
-        <div>
-          <Redirect
-            to={{
-              pathname: "/app",
-              state: { token: this.state.token }
-            }}
-          />
-        </div>
-      );
-    }
+              onSignIn={this.onSignIn}
+              onSignUp={this.onSignUp}
+            /> */}
+          </View>
+        </View>
+      </View>
+    );
   }
 }
 
