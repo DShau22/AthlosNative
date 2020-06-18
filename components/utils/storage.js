@@ -22,10 +22,11 @@ const storeDataObj = async (value) => {
   }
 }
 
+// gets an item that's stored as a string. If it doesn't exist, return empty string
 const getData = async () => {
   try {
     const value = await AsyncStorage.getItem(storageKey)
-    return value
+    return value ? value : ''
   } catch(e) {
     // error reading value
     console.log("something went wrong with async getItem")

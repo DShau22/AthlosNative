@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React from 'react'
 import {
   View, 
   Text, 
@@ -6,31 +6,18 @@ import {
   Dimensions,
   StyleSheet,
   StatusBar,
-  Image
 } from 'react-native';
 
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTheme } from '@react-navigation/native';
 
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 MaterialIcons.loadFont();
 Ionicons.loadFont();
 
-
-import Profile from "./profile/Profile"
-import Home from "./home/Home"
-import Fitness from "./fitness/Fitness"
-
-// server url
-const root = "/app"
-const Tab = createBottomTabNavigator()
-
-const Athlos = ({ navigation }) => {
+const Background = ({ navigation }) => {
   console.log("rendering spa...")
   const { colors } = useTheme();
   return (
@@ -40,7 +27,7 @@ const Athlos = ({ navigation }) => {
         <Animatable.Image 
           animation="bounceIn"
           duraton="1500"
-          source={require('./assets/logo.png')}
+          source={require('../assets/logo.png')}
           style={styles.logo}
           resizeMode="stretch"
         />
@@ -127,4 +114,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default Athlos
+export default Background

@@ -1,8 +1,8 @@
 
-const devServerURL = "http://localhost:8080"
+const devServerURL = "https://localhost:8080"
 const prodServerURL = "https://us-central1-athlos-live-beta.cloudfunctions.net/athlos-server"
 // toggle on/off for if working with dev env or prod
-const dev = true
+const dev = false
 const serverURL = dev ? devServerURL : prodServerURL
 const ENDPOINTS = {
     server: `${serverURL}`,

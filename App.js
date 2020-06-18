@@ -9,8 +9,18 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 Ionicons.loadFont();
 
-import Athlos from "./components/Athlos"
+import Background from "./components/nativeLogin/Background"
 import RootStackScreen from './components/nativeLogin/RootStackScreen';
+
+import {
+  getData,
+  storeData
+} from './components/utils/storage';
+import LoadingScreen from './components/generic/LoadingScreen';
+import Athlos from "./components/home/Athlos"
+import AsyncStorage from '@react-native-community/async-storage';
+
+import { AppContext } from "./Context"
 
 function HomeScreen({ navigation, route }) {
   React.useEffect(() => {
@@ -74,16 +84,34 @@ function StackScreen() {
 
 // const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
- 
+
 function App() {
-  // in reality have a conditional
-  // if user has logged in, show login page, else show application
+  
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [token, setToken] = React.useState('');
+
+  React.useEffect(() => {
+    console.log('using effect for app.js')
+    const getToken = async () => {
+      await AsyncStorage.clear();
+      const userToken = await getData();
+      setToken(userToken);
+      setIsLoading(false);
+    }
+    getToken();
+  }, []);
+
+  console.log("token: ", token);
   console.log("rendering app...")
+  if (isLoading) {
+    return ( <LoadingScreen />)
+  }
   return (
-    <NavigationContainer>
-      <RootStackScreen />
-      {/* <Athlos /> */}
-    </NavigationContainer>
+    <AppContext.Provider value={setToken}>
+      <NavigationContainer>
+        { token ? <Athlos /> : <RootStackScreen /> }
+      </NavigationContainer>
+    </AppContext.Provider>
   );
 }
 
