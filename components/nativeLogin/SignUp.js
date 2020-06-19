@@ -3,7 +3,6 @@ import {
     View, 
     Text, 
     TouchableOpacity, 
-    TextInput,
     Platform,
     StyleSheet,
     ScrollView,
@@ -13,9 +12,11 @@ import {
 import Textbox from "./Textbox"
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
-import Feather from 'react-native-vector-icons/Feather';
-import { signUpValidationSchema } from "./validationSchema";
+import Spinner from 'react-native-loading-spinner-overlay';
 import * as Yup from 'yup';
+
+import { signUpValidationSchema } from "./validationSchema";
+import ENDPOINTS from "../endpoints"
 
 const SignUp = ({navigation}) => {
 
@@ -27,6 +28,8 @@ const SignUp = ({navigation}) => {
   // username: signUpUsername
 
   const [data, setData] = React.useState({
+    isLoading: false,
+
     email: '',
     password: '',
     passwordConf: '',
@@ -51,6 +54,88 @@ const SignUp = ({navigation}) => {
     secureTextEntry: true,
     confirm_secureTextEntry: true,
   });
+
+  const handleSignUp = async () => {
+    // set isLoading to true for the spinner
+    setData({
+      ...data,
+      isLoading: true
+    })
+    // 1. Make sure all inputs are valid
+    // 2. typical fetch stuff
+    // 3. alert user at the end
+
+    // 1. input validation
+    let {
+      usernameMsg,
+      lastNameMsg,
+      firstNameMsg,
+      emailMsg,
+      passwordMsg,
+      passwordConfMsg,
+
+      password,
+      passwordConf,
+      email,
+      firstName,
+      lastName,
+      username
+    } = data
+    if (usernameMsg || !username) {
+      Alert.alert(`Oops!`, "The username you entered is empty or isn't valid :(", [{ text: "Okay" }]);
+      setData({ ...data, isLoading: false });
+      return;
+    }
+    if (lastNameMsg || !lastName) {
+      Alert.alert(`Oops!`, "The last name you entered is empty or isn't valid :(", [{ text: "Okay" }]);
+      setData({ ...data, isLoading: false });
+      return;
+    }
+    if (firstNameMsg || !firstName) {
+      Alert.alert(`Oops!`, "The first name you entered is empty or isn't valid :(", [{ text: "Okay" }]);
+      setData({ ...data, isLoading: false });
+      return;
+    }
+    if (emailMsg || !email) {
+      Alert.alert(`Oops!`, "The email you entered is empty or isn't valid :(", [{ text: "Okay" }]);
+      setData({ ...data, isLoading: false });
+      return;
+    }
+    if (passwordMsg || passwordConfMsg || !password || !passwordConf) {
+      Alert.alert(`Oops!`, "The password or confirmation password you entered is empty or isn't valid :(", [{ text: "Okay" }]);
+      setData({ ...data, isLoading: false });
+      return;
+    }
+    // inputs are ok. Go to step 2 (fetch)
+    try {
+      var res = await fetch(ENDPOINTS.signUp, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password,
+          passwordConf,
+          email,
+          firstName,
+          lastName,
+          username
+        }),
+      })
+      var json = await res.json();
+      console.log('json', json);
+      if (json.success) {
+        Alert.alert(`Welcome ${firstName}!`, "You're almost there! Just check your inbox for a confirmation email.", [{ text: "Okay" }]);
+        setData({ ...data, isLoading: false });
+      } else {
+        // change later to show all error messages probably
+        Alert.alert("Oh No :(", json.mesages[0]);
+        setData({ ...data, isLoading: false });
+      }
+    } catch(e) {
+      console.log(e);
+      Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please try again later.", [{ text: "Okay" }]);
+      setData({ ...data, isLoading: false });
+    }
+  }
 
   const handleEmailChange = (val) => {
     console.log(val);
@@ -150,22 +235,26 @@ const SignUp = ({navigation}) => {
   }
 
   const handleConfirmPasswordChange = (val) => {
-    Yup.reach(signUpValidationSchema, "signUpPasswordConf").validate(val)
-    .then(function(isValid) {
-      setData({
-        ...data,
-        passwordConf: val,
-        passwordConfChange: val.length !== 0,
-        passwordConfMsg: ''
-      });
+    console.log(val);
+    signUpValidationSchema.validateAt("signUpPasswordConf", { 
+      signUpPassword: data.password,
+      signUpPasswordConf: val
     })
-    .catch(function(e) {
-      console.log(e);
-      setData({
-        ...data,
-        passwordConfMsg: e.errors[0]
+      .then(function(isValid) {
+        setData({
+          ...data,
+          passwordConf: val,
+          passwordConfChange: val.length !== 0,
+          passwordConfMsg: ''
+        });
+      })
+      .catch(function(e) {
+        console.log(e);
+        setData({
+          ...data,
+          passwordConfMsg: e.errors[0]
+        });
       });
-    })
   }
 
   const updateSecureTextEntry = () => {
@@ -182,14 +271,13 @@ const SignUp = ({navigation}) => {
     });
   }
 
-  const handleSignUp = async () => {
-    // 1. typical fetch stuff
-    // 2. alert user at the end
-    Alert.alert(`Welcome ${data.firstName}!`, "Check your email for a confirmation", [{ text: "Okay" }]);
-  }
-
   return (
     <View style={styles.container}>
+      <Spinner
+        visible={data.isLoading}
+        textContent={'Loading...'}
+        textStyle={styles.spinnerTextStyle}
+      />
       <StatusBar backgroundColor='#009387' barStyle="light-content"/>
       <View style={styles.header}>
         <Text style={styles.text_header}>Register Now!</Text>
@@ -369,4 +457,7 @@ const styles = StyleSheet.create({
     color: '#FF0000',
     fontSize: 14,
   },
+  spinnerTextStyle: {
+    color: "black"
+  }
 });
