@@ -93,13 +93,13 @@ function App() {
   React.useEffect(() => {
     console.log('using effect for app.js')
     const getToken = async () => {
-      await AsyncStorage.clear();
+      // await AsyncStorage.clear();
       const userToken = await getData();
       setToken(userToken);
       setIsLoading(false);
     }
     getToken();
-  }, []);
+  }, [token]);
 
   console.log("token: ", token);
   console.log("rendering app...")
@@ -109,7 +109,7 @@ function App() {
   return (
     <AppContext.Provider value={setToken}>
       <NavigationContainer>
-        { token ? <Athlos /> : <RootStackScreen /> }
+        { token ? <Athlos token={token} /> : <RootStackScreen /> }
       </NavigationContainer>
     </AppContext.Provider>
   );

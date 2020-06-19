@@ -1,9 +1,17 @@
 import * as React from 'react';
-import { Text, TextInput, View, StyleSheet } from 'react-native';
-
+import { Text, TextInput, View, StyleSheet, Alert } from 'react-native';
+import {
+  getData,
+  storeData
+} from '../utils/storage';
 import ENDPOINTS from "../endpoints"
+import FriendDisplay from "../community/friends/FriendDisplay"
+import {
+  getBests,
+  getProfile,
+  getUsername
+} from "../utils/userInfo"
 // server url
-const getUserInfoURL = ENDPOINTS.getUserInfo
 const defaultProfile = "./profile/default_profile.png"
 const root = "/app"
 
@@ -11,7 +19,118 @@ const imgAlt = "../profile/default_profile.png"
 
 const dataURL = ENDPOINTS.getData
 
-function Athlos() {
+function Athlos(props) {
+  const [state, setState] = React.useState({
+    friends: [],
+    friendRequests: [],
+    friendsPending: [],
+    firstName: "",
+    lastName: "",
+    username: "",
+    gender: "",
+    bio: "",
+    height: "",
+    weight: "",
+    age: "",
+    profilePicture: "",
+    settings: {},
+    isLoading: false,
+    logout: false,
+    // socket: null,
+    notification: null,
+    mounted: false,
+    friendTableRows: [],
+    numFriendsDisplay: 25,
+    jumpJson: {
+      activityData: [],
+      action: "jump",
+      imageUrl: "https://img.icons8.com/ios/50/000000/trampoline-park-filled.png"
+    },
+    runJson: {
+      activityData: [],
+      action: "run",
+      imageUrl: "https://img.icons8.com/nolan/64/000000/running.png",
+    },
+    swimJson: {
+      activityData: [],
+      action: "swim",
+      imageUrl: "https://img.icons8.com/nolan/64/000000/swimming.png"
+    },
+  });
+  
+  React.useEffect(() => {
+    const prepareData = async () => {
+      // set up the web socket connection to server
+      // var socket = await this.setUpSocket()
+
+      // get the user's information here from database
+      // make request to server to user information and set state
+      var headers = new Headers();
+      headers.append("authorization", `Bearer ${props.token}`);
+      try {
+        var res = await fetch(ENDPOINTS.getUserInfo, { method: "GET", headers });
+        var userJson = await res.json();
+      } catch(e) {
+        console.error(e);
+        Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
+      }
+      console.log(userJson);
+
+      var { numFriendsDisplay } = state;
+      try {
+        var friendTableRows = await addFriendRows(userJson.friends, numFriendsDisplay)
+      } catch(e) {
+        console.error(e)
+      }
+
+      // get user's fitness data for jumps, runs, swims
+      // MAKE AWAIT PROMISES.ALL LATER
+      try {
+        var [jumpsTracked, swimsTracked, runsTracked] = await Promise.all([
+          getActivityJson("jump"),
+          getActivityJson("swim"),
+          getActivityJson("run")
+        ]);
+      } catch(e) {
+        console.error(e)
+        Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
+      }
+      var gotAllInfo = userJson.success && jumpsTracked.success && swimsTracked.success && runsTracked.success
+      if (gotAllInfo) {
+        console.log("successfully got all user info");
+        // one bug that could come up is if another setState occurred outside this function before
+        // the fetch response finished running. This delayed setState would then
+        // run after the other setState which could cause some mixups in which state is correct
+        // Shouldn't be a problem thoughsince the socket field is only updated here and users can't see it.
+        setState({
+          ...state,
+          ...userJson,
+          mounted: true,
+          friendTableRows,
+          jumpJson: {
+            ...state.jumpJson,
+            activityData: jumpsTracked.activityData 
+          },
+          runJson: {
+            ...state.runJson,
+            activityData: runsTracked.activityData 
+          },
+          swimJson: {
+            ...state.swimJson,
+            activityData: swimsTracked.activityData 
+          }
+        });
+      } else {
+        console.log("one of the requests to get fitness data or user info didn't work");
+        console.log("user: ", userJson);
+        console.log("jumps: ", jumpsTracked);
+        console.log("swims: ", swimsTracked);
+        console.log("runs: ", runsTracked);
+        Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
+      }
+    }
+    prepareData();
+  }, [])
   // constructor(props) {
   //   super(props)
   //   this.state = {
@@ -122,51 +241,51 @@ function Athlos() {
   //   return prom
   // }
 
-  // async getActivityJson(activity) {
-  //   // CHANGE TO GET THE FIRST 10-50 ENTRIES MAYBE
-  //   var headers = new Headers()
-  //   var token = getToken()
-  //   headers.append("authorization", `Bearer ${token}`)
-  //   headers.append("activity", activity)
+  const getActivityJson = async (activity) => {
+    // CHANGE TO GET THE FIRST 10-50 ENTRIES MAYBE
+    var headers = new Headers()
+    var token = await getData()
+    headers.append("authorization", `Bearer ${token}`)
+    headers.append("activity", activity)
 
-  //   var res = await fetch(dataURL, {
-  //     method: "GET",
-  //     headers: headers,
-  //   })
-  //   var trackedFitness = await res.json()
-  //   return trackedFitness
-  // }
+    var res = await fetch(dataURL, {
+      method: "GET",
+      headers: headers,
+    })
+    var trackedFitness = await res.json()
+    return trackedFitness
+  }
 
   // /**
   //  * for each friend in the friend array, return
   //  * a table row to show in the friends table
   //  */  
-  // async addFriendRows(friends, numFriendsDisplay) {
-  //   var tableRows = []
+  const addFriendRows = async (friends, numFriendsDisplay) => {
+    var tableRows = []
 
-  //   // DONT FORGET TO SORT FRIENDS
-  //   for (let i = 0; i < friends.length; i++) {
-  //     if (i === numFriendsDisplay - 1) { break }
-  //     let { id, firstName, lastName } = friends[i]
-  //     let [bests, profileUrl, username] = await Promise.all([getBests(id), getProfile(id), getUsername(id)])
-  //     tableRows.push(
-  //       <FriendDisplay 
-  //         key={id}
-  //         isFriend={true}
-  //         isFriendRequest={false}
-  //         rank={i + 1}
-  //         onClick={() => {this.props.history.push(`/app/profile/${username}`)}}
-  //         profileUrl={profileUrl}
-  //         defaultProfile={defaultProfile}
-  //         imgAlt={imgAlt}
-  //         firstName={firstName}
-  //         lastName={lastName}
-  //         bests={bests}
-  //       />
-  //     )
-  //   }
-  //   return tableRows
-  // }
+    // DONT FORGET TO SORT FRIENDS
+    for (let i = 0; i < friends.length; i++) {
+      if (i === numFriendsDisplay - 1) { break }
+      let { id, firstName, lastName } = friends[i]
+      let [bests, profileUrl, username] = await Promise.all([getBests(id), getProfile(id), getUsername(id)])
+      tableRows.push(
+        <FriendDisplay 
+          key={id}
+          isFriend={true}
+          isFriendRequest={false}
+          rank={i + 1}
+          onClick={() => {this.props.history.push(`/app/profile/${username}`)}}
+          profileUrl={profileUrl}
+          defaultProfile={defaultProfile}
+          imgAlt={imgAlt}
+          firstName={firstName}
+          lastName={lastName}
+          bests={bests}
+        />
+      )
+    }
+    return tableRows
+  }
 
   // async componentDidMount() {
   //   this._isMounted = true

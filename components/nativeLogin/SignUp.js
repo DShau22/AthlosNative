@@ -20,13 +20,6 @@ import ENDPOINTS from "../endpoints"
 
 const SignUp = ({navigation}) => {
 
-  // password: signUpPassword,
-  // passwordConf: signUpPasswordConf,
-  // email: signUpEmail,
-  // firstName: signUpFirstName,
-  // lastName: signUpLastName,
-  // username: signUpUsername
-
   const [data, setData] = React.useState({
     isLoading: false,
 

@@ -143,9 +143,7 @@ const SignIn = ({ navigation }) => {
           // navigate away to the main Athlos app
           setToken(json.token);
         } else {
-          Alert.alert('Login Failed :(', 'Username or password is incorrect.', [
-            { text: 'Okay' }
-          ]);
+          Alert.alert('Login Failed :(', json.messages[0], [{ text: 'Okay' }]);
           setData({
             ...data,
             isSignInLoading: false,
