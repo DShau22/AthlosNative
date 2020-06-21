@@ -1,5 +1,7 @@
 import { StyleSheet, View, Text, TouchableOpacity, Button, ScrollView } from "react-native"
-
+import {
+  Dropdown
+} from 'react-native-material-dropdown';
 import ImageSlide from "./ImageSlide"
 // import "./Carousel.css"
 import Arrow from "./Arrow"
@@ -11,15 +13,15 @@ import { parseDate } from "../../utils/unitConverter"
 // const swimActivity = "swim"
 
 const Carousel = (props) => {
-  const getDropdownDates = (stats) => {
-    var { dropdownItemClick } = props
+  const getDropdownDates = () => {
+    var { dropdownItemClick, stats } = props
     var dropdownItems = []
     stats.activityData.forEach((session, idx) => {
       var parsed = parseDate(new Date(session.uploadDate))
       var dayMonth = parsed[0] + ", " + parsed[1] + " " + parsed[2]
       dropdownItems.push(
         <TouchableOpacity
-          onPress={dropdownItemClick}
+          onPress={() => dropdownItemClick(idx)}
           className="dropdown-item"
           key={"dropdown_" + idx}
           id={idx}
@@ -31,20 +33,27 @@ const Carousel = (props) => {
     return dropdownItems
   }
 
-  var { stats, previousSlide, nextSlide, activityIndex, displayDate, renderSecondary } = props
+  var { stats, previousSlide, nextSlide, activityIndex, displayDate, renderSecondary, dropdownItemClick } = props
+  var dates = []
+  stats.activityData.forEach((session, idx) => {
+    var parsed = parseDate(new Date(session.uploadDate))
+    var dayMonth = parsed[0] + ", " + parsed[1] + " " + parsed[2]
+    dates.push({
+      value: dayMonth,
+    })
+  })
+  console.log(dates);
   return (
     <View styles={styles.carousel}>
       <View className="btn-group dropdown">
-        <Button
-          title={displayDate()}
-          className="btn btn-secondary btn-sm mt-3 dropdown-toggle"
-          data-toggle="dropdown"
-          aria-haspopup="true"
-          aria-expanded="false"
+        <Dropdown
+          label={displayDate()}
+          data={dates}
+          onChangeText={(value, idx, data) => {
+            console.log("idx: ", idx)
+            dropdownItemClick(idx)
+          }}
         />
-        <ScrollView styles={styles.activitiesDropdown}>
-          {getDropdownDates(stats)}
-        </ScrollView>
       </View>
 
       <View styles={styles.slideShow}>

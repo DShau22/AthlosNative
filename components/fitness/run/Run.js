@@ -114,8 +114,9 @@ class Run extends Component {
     } = this.props
 
     var currentStatDisplay = runJson.activityData[activityIndex]
+
     return (
-      <View className="run-container">
+      <>
         <Carousel
           stats={runJson}
           previousSlide={previousSlide}
@@ -210,7 +211,7 @@ class Run extends Component {
             </View>
           </View>
         </View>
-      </View>
+      </>
     )
   }
 }

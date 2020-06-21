@@ -103,10 +103,10 @@ export default function withFitnessPage( WrappedComponent ) {
       return date
     }
 
-    dropdownItemClick(e) {
+    dropdownItemClick(activityIndex) {
       // on dropdown date click, display that date on the dropdown,
       // and switch the image slider to display that date
-      this.setState({ activityIndex: parseInt(e.target.id) })
+      this.setState({ activityIndex: activityIndex })
     }
 
     calcAvgNum() {
@@ -149,7 +149,6 @@ export default function withFitnessPage( WrappedComponent ) {
 
     render() {
       var { activityIndex, pastGraphData, pastGraphLabels } = this.state
-      console.log("withFitnessPage props: ", this.props.route.params)
       return (
         <View>
           <WrappedComponent

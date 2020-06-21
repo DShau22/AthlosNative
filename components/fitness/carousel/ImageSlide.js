@@ -41,7 +41,6 @@ const ImageSlide = (props) => {
     </View>
   )
 }
-ImageSlide.contextType = UserDataContext
 const styles = StyleSheet.create({
   imageSlide: {
     height: 200,
