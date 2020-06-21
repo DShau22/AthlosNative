@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
-import SpaContext from "../Context"
+import { View, StyleSheet, Text } from 'react-native'
+import { UserDataContext } from "../../Context"
 import { parseDate } from "../utils/unitConverter"
 
 // HOC for run, swim, jump fitness pages.
@@ -48,7 +49,6 @@ export default function withFitnessPage( WrappedComponent ) {
     }
 
     componentDidMount() {
-      console.log('mounted')
       this.makePastGraphLabels()
       this.makePastGraphData()
     }
@@ -65,7 +65,7 @@ export default function withFitnessPage( WrappedComponent ) {
     makePastGraphLabels() {
       var pastGraphLabels = []
       // can be either run, jump or swimming json
-      var { activityJson } = this.props
+      var { activityJson } = this.props.route.params
       activityJson.activityData.forEach((session, idx) => {
         var { uploadDate } = session
         var stringToDate = new Date(uploadDate)
@@ -79,7 +79,7 @@ export default function withFitnessPage( WrappedComponent ) {
 
     makePastGraphData() {
       var pastGraphData = []
-      var { activityJson } = this.props
+      var { activityJson } = this.props.route.params
       activityJson.activityData.forEach((session, idx) => {
         var { num } = session
         pastGraphData.push(num)
@@ -92,7 +92,7 @@ export default function withFitnessPage( WrappedComponent ) {
     // returns Day of week, month day (num) in a string format
     // i.e Sat, Jul 20
     displayDate() {
-      var { activityJson } = this.props
+      var { activityJson } = this.props.route.params
       var { activityIndex } = this.state
       if (activityJson.activityData.length === 0) {
         return "No uploads yet"
@@ -113,7 +113,7 @@ export default function withFitnessPage( WrappedComponent ) {
       // Activity json contains all the queried activity data
       // NOTE THIS IS NOT THE TRUE AVG SINCE THE QUERY IS AT MAX
       // (50) DOCUMENTS OF ACTIVITY DATA
-      var { activityData } = this.props.activityJson
+      var { activityData } = this.props.route.params.activityJson
       var avg = 0
       var count = 0
       activityData.forEach((session, idx) => {
@@ -124,7 +124,7 @@ export default function withFitnessPage( WrappedComponent ) {
     }
 
     calcAvgCals() {
-      var { activityData } = this.props.activityJson
+      var { activityData } = this.props.route.params.activityJson
       var avg = 0
       var count = 0
       activityData.forEach((session, idx) => {
@@ -136,7 +136,7 @@ export default function withFitnessPage( WrappedComponent ) {
 
     previousSlide() {
       //debugger
-      var { activityData } = this.props.activityJson
+      var { activityData } = this.props.route.params.activityJson
       var nextIndex = Math.min((this.state.activityIndex + 1), activityData.length - 1)
       this.setState({ activityIndex: nextIndex })
     }
@@ -149,8 +149,9 @@ export default function withFitnessPage( WrappedComponent ) {
 
     render() {
       var { activityIndex, pastGraphData, pastGraphLabels } = this.state
+      console.log("withFitnessPage props: ", this.props.route.params)
       return (
-        <div>
+        <View>
           <WrappedComponent
             pastGraphData={pastGraphData}
             pastGraphLabels={pastGraphLabels}
@@ -163,13 +164,14 @@ export default function withFitnessPage( WrappedComponent ) {
             calcAvgCals={this.calcAvgCals}
             isNullOrUndefined={this.isNullOrUndefined}
             roundToNDecimals={this.roundToNDecimals}
-            {...this.props}
+            // {...this.props}
+            {...this.props.route.params}
           />
-        </div>
+        </View>
       )
     }
   }
-  WithFitnessPage.contextType = SpaContext
+  WithFitnessPage.contextType = UserDataContext
   
   return WithFitnessPage
 }

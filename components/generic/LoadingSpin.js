@@ -4,6 +4,7 @@ import { ActivityIndicator, StyleSheet, Text, View, TouchableWithoutFeedback } f
 export default function LoadingSpin() {
   return (
     <View styles={[styles.container, styles.horizontal]}>
+      <Text>Later add a logo here!</Text>
       <ActivityIndicator size="large" color="#00ff00" />
     </View>
   )

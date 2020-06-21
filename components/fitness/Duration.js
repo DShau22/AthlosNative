@@ -1,11 +1,13 @@
 import React from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { View, Text } from 'react-native'
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+FontAwesome.loadFont();
 
 export default function Duration( props ) {
   return (
-    <div className="duration-circle">
-      <FontAwesomeIcon icon="clock"/>
-      <span>{props.duration / 10}</span>
-    </div>
+    <View className="duration-circle">
+      <FontAwesome icon="clock"/>
+      <Text>{props.duration / 10}</Text>
+    </View>
   )
 }

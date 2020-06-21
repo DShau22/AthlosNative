@@ -1,54 +1,23 @@
-import React, { Component } from 'react'
-import SpaContext from '../Context'
-import Particles from 'react-particles-js';
-class Home extends Component {
-  constructor(props) {
-    super(props)
-  
-    this.state = {
-       
-    }
-  }
-  render() {
-    var { context } = this
-    return (
-      <div className='homepage'>
-        <h1>Welcome, {context.firstName}</h1>
-        <Particles
-          className='particles-container'
-          params={{
-            "particles": {
-              "number": {
-                "value": 50
-              },
-              "size": {
-                "value": 3
-              },
-              'line_linked': {
-                opacity: .6
-              }
-            },
-            "interactivity": {
-              "events": {
-                "onhover": {
-                  "enable": true,
-                  "mode": "grab"
-                },
-              },
-              'modes': {
-                'grab': {
-                  'line_linked': {
-                    opacity: .9,
-                  },
-                  'distance': 200,
-                }
-              }
-            }
-          }}
-        />
-      </div>
-    )
-  }
+import React from 'react'
+import { View, Text, StyleSheet, Dimensions } from 'react-native'
+import { UserDataContext } from "../../Context"
+const Home = () => {
+  const context = React.useContext(UserDataContext);
+  return (
+    <View style={styles.container}>
+      <Text>Welcome, {context.firstName}</Text>
+    </View>
+  )
 }
-Home.contextType = SpaContext
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    height: Dimensions.get("window").height,
+    width: Dimensions.get("window").width,
+    alignItems: 'center',
+    color: 'white',
+    justifyContent: 'center',
+  }
+});
 export default Home
+

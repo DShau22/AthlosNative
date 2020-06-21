@@ -1,16 +1,10 @@
-import React, {Component} from 'react'
-import SpaContext from "../../Context"
-
-class ImageSlide extends Component {
-  constructor(props) {
-    super(props)
-    this.getLabels = this.getLabels.bind(this)
-    this.renderNum = this.renderNum.bind(this)
-    // this.renderSecondary = this.renderSecondary.bind(this)
-  }
-
-  getLabels(action) {
-    var { unitSystem } = this.context.settings
+import React from 'react'
+import { View, StyleSheet, Text } from "react-native"
+import { UserDataContext } from "../../../Context"
+import { runTheme, jumpTheme, swimTheme } from "../../Constants"
+const ImageSlide = (props) => {
+  const getLabels = (action) => {
+    var { unitSystem } = React.useContext(UserDataContext).settings
     if (action === "run") {
       return {
         numLabel: "steps",
@@ -30,23 +24,43 @@ class ImageSlide extends Component {
     }
   }
 
-  renderNum(stats, indexDisplay) {
+  const renderNum = (stats, indexDisplay) => {
     var { activityData } = stats
-    var labels = this.getLabels(stats.action)
+    var labels = getLabels(stats.action)
     var num = activityData.length === 0 ? 0 : activityData[indexDisplay].num
-    return ( <span> {`${num} ${labels.numLabel}`} </span> )
+    return ( <Text> {`${num} ${labels.numLabel}`} </Text> )
   }
 
-  render() {
-    var { stats, indexDisplay, renderSecondary } = this.props
-    return (
-      <div className={`imageSlide ${stats.action}`}> 
-        <img src={stats.imageUrl} alt="loading..."/>
-        {this.renderNum(stats, indexDisplay)}
-        {renderSecondary()}
-      </div>
-    )
-  }
+  var { stats, indexDisplay, renderSecondary } = props
+  return (
+    <View styles={[styles.imageSlide, styles[stats.action]]}> 
+      <Text>Img should go here!</Text>
+      {/* <img src={stats.imageUrl} alt="loading..."/> */}
+      {renderNum(stats, indexDisplay)}
+      {renderSecondary()}
+    </View>
+  )
 }
-ImageSlide.contextType = SpaContext
+ImageSlide.contextType = UserDataContext
+const styles = StyleSheet.create({
+  imageSlide: {
+    height: 200,
+    marginTop: 15,
+    width: 200,
+    borderRadius: 50,
+    backgroundColor: 'white',
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  run: {
+    borderColor: runTheme
+  },
+  swim: {
+    borderColor: swimTheme
+  },
+  jump: {
+    borderColor: jumpTheme
+  }
+})
 export default ImageSlide

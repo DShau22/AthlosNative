@@ -1,5 +1,7 @@
 import * as React from 'react';
-import { Text, TextInput, View, StyleSheet, Alert } from 'react-native';
+import { Text, View, StyleSheet, Alert } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
 import {
   getData,
   storeData
@@ -11,9 +13,12 @@ import {
   getProfile,
   getUsername
 } from "../utils/userInfo"
+import LoadingSpin from '../generic/LoadingSpin';
+import Fitness from "../fitness/Fitness"
+import { UserDataContext } from "../../Context"
+import Home from "./Home"
 // server url
 const defaultProfile = "./profile/default_profile.png"
-const root = "/app"
 
 const imgAlt = "../profile/default_profile.png"
 
@@ -60,6 +65,7 @@ function Athlos(props) {
   
   React.useEffect(() => {
     const prepareData = async () => {
+      setState({ ...state, isLoading: true });
       // set up the web socket connection to server
       // var socket = await this.setUpSocket()
 
@@ -73,6 +79,7 @@ function Athlos(props) {
       } catch(e) {
         console.error(e);
         Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
+        setState({ ...state, isLoading: false });
       }
       console.log(userJson);
 
@@ -81,6 +88,7 @@ function Athlos(props) {
         var friendTableRows = await addFriendRows(userJson.friends, numFriendsDisplay)
       } catch(e) {
         console.error(e)
+        setState({ ...state, isLoading: false });
       }
 
       // get user's fitness data for jumps, runs, swims
@@ -94,6 +102,7 @@ function Athlos(props) {
       } catch(e) {
         console.error(e)
         Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
+        setState({ ...state, isLoading: false });
       }
       var gotAllInfo = userJson.success && jumpsTracked.success && swimsTracked.success && runsTracked.success
       if (gotAllInfo) {
@@ -118,7 +127,8 @@ function Athlos(props) {
           swimJson: {
             ...state.swimJson,
             activityData: swimsTracked.activityData 
-          }
+          },
+          isLoading: false
         });
       } else {
         console.log("one of the requests to get fitness data or user info didn't work");
@@ -127,57 +137,11 @@ function Athlos(props) {
         console.log("swims: ", swimsTracked);
         console.log("runs: ", runsTracked);
         Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
+        setState({ ...state, isLoading: true });
       }
     }
     prepareData();
-  }, [])
-  // constructor(props) {
-  //   super(props)
-  //   this.state = {
-  //     friends: [],
-  //     friendRequests: [],
-  //     friendsPending: [],
-  //     firstName: "",
-  //     lastName: "",
-  //     username: "",
-  //     gender: "",
-  //     bio: "",
-  //     height: "",
-  //     weight: "",
-  //     age: "",
-  //     profilePicture: "",
-  //     settings: {},
-  //     isLoading: false,
-  //     logout: false,
-  //     // socket: null,
-  //     notification: null,
-  //     mounted: false,
-  //     rootURL: this.props.match.url,
-  //     friendTableRows: [],
-  //     numFriendsDisplay: 25,
-  //     jumpJson: {
-  //       activityData: [],
-  //       action: "jump",
-  //       imageUrl: "https://img.icons8.com/ios/50/000000/trampoline-park-filled.png"
-  //     },
-  //     runJson: {
-  //       activityData: [],
-  //       action: "run",
-  //       imageUrl: "https://img.icons8.com/nolan/64/000000/running.png",
-  //     },
-  //     swimJson: {
-  //       activityData: [],
-  //       action: "swim",
-  //       imageUrl: "https://img.icons8.com/nolan/64/000000/swimming.png"
-  //     },
-  //   }
-  //   this.logout = this.logout.bind(this);
-  //   // this.setUpSocket = this.setUpSocket.bind(this)
-  //   this.getActivityJson = this.getActivityJson.bind(this)
-  //   this.addFriendRows = this.addFriendRows.bind(this)
-  //   this.renderHeader = this.renderHeader.bind(this)
-  //   this.updateUserInfo = this.updateUserInfo.bind(this)
-  // }
+  }, []);
 
   // setUpSocket() {
   //   var prom = new Promise(async (resolve, reject) => {
@@ -506,10 +470,23 @@ function Athlos(props) {
   //     </div>
   //   )
   // }
+  const BottomTab = createBottomTabNavigator();
   return (
-    <View style={styles.container}>
-      <Text>Hello Athlos</Text>
-    </View>
+    <UserDataContext.Provider value={state}>
+      { state.isLoading ? <View style={styles.container}><LoadingSpin/></View> : 
+        <BottomTab.Navigator>
+          <BottomTab.Screen
+            name="Home"
+            component={Home}
+            options={{
+              title: "Home",
+            }}
+          />
+          <BottomTab.Screen name="Fitness" component={Fitness}/>
+          {/* <BottomTab.Screen name="Community" component={}/> */}
+        </BottomTab.Navigator>
+      }
+    </UserDataContext.Provider>
   )
 }
 

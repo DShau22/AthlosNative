@@ -136,13 +136,14 @@ const SignIn = ({ navigation }) => {
         if (json.success) {
           console.log("login succeeded");
           await storeData(json.token);
+          // navigate away to the main Athlos app
+          setToken(json.token);
           setData({
             ...data,
             isSignInLoading: false,
           });
-          // navigate away to the main Athlos app
-          setToken(json.token);
         } else {
+          console.log("alerting!")
           Alert.alert('Login Failed :(', json.messages[0], [{ text: 'Okay' }]);
           setData({
             ...data,

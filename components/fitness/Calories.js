@@ -1,11 +1,14 @@
 import React from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { View, Text } from 'react-native'
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+FontAwesome.loadFont();
 
 export default function Calories( props ) {
   return (
-    <div className="calories-circle">
-      <FontAwesomeIcon icon="fire-alt"/>
-      <span>{props.cals}</span>
-    </div>
+    <View className="calories-circle">
+      <FontAwesome icon="fire-alt"/>
+      <Text>{props.cals}</Text>
+    </View>
   )
 }
+

@@ -1,12 +1,13 @@
 import React, { Component } from 'react'
+import { View, Text, StyleSheet } from 'react-native'
 import Carousel from "../carousel/Carousel"
 import Calories from "../Calories"
 import Duration from "../Duration"
-import SpaContext from '../../Context'
-import Past from "../charts/Past"
-import RunDoughnut from "./RunDoughnut"
+// import Past from "../charts/Past"
+// import RunDoughnut from "./RunDoughnut"
 import withFitnessPage from "../withFitnessPage"
-import PaceLineProgression from "../charts/PaceLineProgression"
+import { UserDataContext } from "../../../Context"
+// import PaceLineProgression from "../charts/PaceLineProgression"
 
 // btw restPaceMin and walkPaceMax is walking
 // greater that walkPaceMax is running
@@ -78,7 +79,7 @@ class Run extends Component {
     } else {
       // person's height in inches, display miles
     }
-    return "estimated dist"
+    return (<Text>estimated dist</Text>)
   }
 
   // returns an array of time labels for a given paces array
@@ -114,7 +115,7 @@ class Run extends Component {
 
     var currentStatDisplay = runJson.activityData[activityIndex]
     return (
-      <div className="run-container">
+      <View className="run-container">
         <Carousel
           stats={runJson}
           previousSlide={previousSlide}
@@ -124,25 +125,25 @@ class Run extends Component {
           dropdownItemClick={dropdownItemClick}
           renderSecondary={this.estimateDistanceRun}
         />
-        <div className="row">
-          <div className="col-4" align="center">
+        <View className="row">
+          <View className="col-4" align="center">
             <Calories 
               cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
             />
-          </div>
-          <div className="col-4" align="center">
+          </View>
+          <View className="col-4" align="center">
             
-          </div>
-          <div className="col-4" align="center">
+          </View>
+          <View className="col-4" align="center">
             <Duration 
               duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
             />
-          </div>
-        </div>
-        <div className="row">
+          </View>
+        </View>
+        <View className="row">
           {/* eventually configure the min and max of y axis */}
-          <div className="col">
-            <Past
+          <View className="col">
+            {/* <Past
               chartTitle="Previous Runs"
               labels={pastGraphLabels}
               data={pastGraphData}
@@ -150,12 +151,12 @@ class Run extends Component {
               activity="Runs"
               yAxisMin={0}
               yAxisMax={Math.max(...pastGraphData)}
-            />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col">
-            <PaceLineProgression
+            /> */}
+          </View>
+        </View>
+        <View className="row">
+          <View className="col">
+            {/* <PaceLineProgression
               activity="Pace Progression"
               displayDate={displayDate}
               data={[0, ...currentStatDisplay.paces]} // add 0 to beginning of paces array to indicate 0 pace at time 0
@@ -163,40 +164,40 @@ class Run extends Component {
               hoverLabel="Pace"
               yAxisMin={0}
               yAxisMax={Math.max(...currentStatDisplay.paces) + 2}
-            />
-          </div>
-        </div>
-        <div className="row mt-3">
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <h5 className="card-title">Avg Steps per Session</h5>
-                {calcAvgNum()}
-              </div>
-            </div>
-          </div>
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <h5 className="card-title">Avg Pace per Session</h5>
-                {this.calcAvgPace()}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="row mt-3">
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <h5 className="card-title">Avg Cals per Session</h5>
-                {calcAvgCals()}
-              </div>
-            </div>
-          </div>
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <RunDoughnut
+            /> */}
+          </View>
+        </View>
+        <View className="row mt-3">
+          <View className="col-6">
+            <View className="card text-center">
+              <View className="card-body">
+                <Text className="card-title">Avg Steps per Session</Text>
+                <Text>{calcAvgNum()}</Text>
+              </View>
+            </View>
+          </View>
+          <View className="col-6">
+            <View className="card text-center">
+              <View className="card-body">
+                <Text className="card-title">Avg Pace per Session</Text>
+                <Text>{this.calcAvgPace()}</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View className="row mt-3">
+          <View className="col-6">
+            <View className="card text-center">
+              <View className="card-body">
+                <Text className="card-title">Avg Cals per Session</Text>
+                <Text>{calcAvgCals()}</Text>
+              </View>
+            </View>
+          </View>
+          <View className="col-6">
+            <View className="card text-center">
+              <View className="card-body">
+                {/* <RunDoughnut
                   labels={['% run', '% walk', '% rest']}
                   data={this.makeDoughnutData()}
                   colors={[
@@ -204,15 +205,15 @@ class Run extends Component {
                     'rgba(255, 255, 0, 0.4)',
                     'rgba(255, 51, 0, 0.4)',
                   ]}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+                /> */}
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
     )
   }
 }
 
-Run.contextType = SpaContext
+Run.contextType = UserDataContext
 export default withFitnessPage(Run)

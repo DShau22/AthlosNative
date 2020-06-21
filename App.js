@@ -4,7 +4,6 @@ import 'react-native-gesture-handler';
 import * as React from 'react';
 import { Text, TextInput, View, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 Ionicons.loadFont();
@@ -81,9 +80,6 @@ function StackScreen() {
     </Stack.Navigator>
   );
 }
-
-// const Stack = createStackNavigator();
-const Tab = createBottomTabNavigator();
 
 function App() {
   
