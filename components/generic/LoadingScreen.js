@@ -4,7 +4,7 @@ import { Text, View } from 'react-native';
 class LoadingScreen extends Component {
   render() {
     return (
-      <View className="loading-screen" style={styles}>
+      <View style={styles}>
         <Text>Loading...</Text>
       </View>
     )

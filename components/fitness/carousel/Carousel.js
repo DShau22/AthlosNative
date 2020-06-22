@@ -7,6 +7,7 @@ import ImageSlide from "./ImageSlide"
 import Arrow from "./Arrow"
 import React from 'react'
 import { parseDate } from "../../utils/unitConverter"
+import { ProgressCircle } from 'react-native-svg-charts'
 
 // const jumpActivity = "jump"
 // const runActivity = "run"
@@ -44,19 +45,17 @@ const Carousel = (props) => {
   })
   console.log(dates);
   return (
-    <View styles={styles.carousel}>
-      <View className="btn-group dropdown">
-        <Dropdown
-          label={displayDate()}
-          data={dates}
-          onChangeText={(value, idx, data) => {
-            console.log("idx: ", idx)
-            dropdownItemClick(idx)
-          }}
-        />
-      </View>
-
-      <View styles={styles.slideShow}>
+    <View style={styles.carousel}>
+      <Dropdown
+        label={displayDate()}
+        data={dates}
+        onChangeText={(value, idx, data) => {
+          console.log("idx: ", idx)
+          dropdownItemClick(idx)
+        }}
+        containerStyle={{ width: '80%' }}
+      />
+      <View style={styles.slideShow}>
         <Arrow
           direction="left"
           clickFunction={ previousSlide }
@@ -82,16 +81,16 @@ const Carousel = (props) => {
 }
 const styles = StyleSheet.create({
   carousel: {
-    flex: 1,
+    // flex: 1,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    width: '100%',
   },
   activitiesDropdown: {
     height: 'auto',
     maxHeight: 250,
   },
   slideShow: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center'

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, FlatList } from 'react-native'
 import Carousel from "../carousel/Carousel"
 import Calories from "../Calories"
 import Duration from "../Duration"
@@ -70,7 +70,7 @@ class Run extends Component {
     return (count === 0) ? 0 : avg / count
   }
 
-  estimateDistanceRun() {
+  estimateDistanceRun(style) {
     var { settings } = this.context
     var { unitSystem } = settings
     // this means the person's height is in cm, display km
@@ -79,7 +79,7 @@ class Run extends Component {
     } else {
       // person's height in inches, display miles
     }
-    return (<Text>estimated dist</Text>)
+    return (<Text style={style}>estimated dist</Text>)
   }
 
   // returns an array of time labels for a given paces array
@@ -114,9 +114,8 @@ class Run extends Component {
     } = this.props
 
     var currentStatDisplay = runJson.activityData[activityIndex]
-
     return (
-      <>
+      <View style={styles.container}>
         <Carousel
           stats={runJson}
           previousSlide={previousSlide}
@@ -211,10 +210,41 @@ class Run extends Component {
             </View>
           </View>
         </View>
-      </>
+      </View>
     )
   }
 }
-
 Run.contextType = UserDataContext
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    // justifyContent: 'center',
+    height: '50%',
+    width: '100%'
+  },
+  circle: {
+    flex: 1,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: 'black',
+    // minWidth: 80,
+    // alignItems: 'center',
+    marginBottom: 10
+  },
+  text1: {
+    flex: 1,
+    // fontSize: 14,
+    color: '#2f354b',
+    // textAlign: 'center',
+    backgroundColor: 'black',
+  },
+  text2: {
+    flex: 2,
+    // fontSize: 14,
+    color: '#2f354b',
+    // textAlign: 'center',
+    backgroundColor: 'red',
+  }
+})
 export default withFitnessPage(Run)

@@ -2,6 +2,8 @@ import React from 'react'
 import { View, StyleSheet, Text } from "react-native"
 import { UserDataContext } from "../../../Context"
 import { runTheme, jumpTheme, swimTheme } from "../../Constants"
+import { ProgressCircle } from 'react-native-svg-charts'
+
 const ImageSlide = (props) => {
   const getLabels = (action) => {
     var { unitSystem } = React.useContext(UserDataContext).settings
@@ -24,42 +26,49 @@ const ImageSlide = (props) => {
     }
   }
 
-  const renderNum = (stats, indexDisplay) => {
+  const renderNum = (stats, indexDisplay, style) => {
     var { activityData } = stats
     var labels = getLabels(stats.action)
     var num = activityData.length === 0 ? 0 : activityData[indexDisplay].num
-    return ( <Text> {`${num} ${labels.numLabel}`} </Text> )
+    return ( <Text style={style}> {`${num} ${labels.numLabel}`} </Text> )
   }
 
   var { stats, indexDisplay, renderSecondary } = props
   return (
-    <View styles={[styles.imageSlide, styles[stats.action]]}> 
-      <Text>Img should go here!</Text>
+    <View style={[styles.imageSlide, styles[stats.action]]}> 
+      <ProgressCircle style={{ height: 200, width: 200 }} progress={0.7} progressColor={'rgb(134, 65, 244)'} />
+      <Text style={{ position: 'absolute', top: '35%'}}>Img should go here!</Text>
+      {/* add data through props */}
       {/* <img src={stats.imageUrl} alt="loading..."/> */}
-      {renderNum(stats, indexDisplay)}
-      {renderSecondary()}
+      {renderNum(stats, indexDisplay, styles.number)}
+      {renderSecondary(styles.estimatedDistance)}
     </View>
   )
 }
 const styles = StyleSheet.create({
   imageSlide: {
-    height: 200,
+    height: 300,
+    width: '80%',
     marginTop: 15,
-    width: 200,
+    borderWidth: 2,
     borderRadius: 50,
-    backgroundColor: 'white',
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  run: {
-    borderColor: runTheme
+  activityIcon: {
+    position: 'absolute',
+    top: '35%',
   },
-  swim: {
-    borderColor: swimTheme
+  estimatedDistance: {
+    position: 'absolute',
+    top: '55%'
   },
-  jump: {
-    borderColor: jumpTheme
-  }
+  number: {
+    position: 'absolute',
+    top: '65%'
+  },
+  run:  { borderColor: runTheme },
+  swim: { borderColor: swimTheme },
+  jump: { borderColor: jumpTheme }
 })
 export default ImageSlide

@@ -150,23 +150,21 @@ export default function withFitnessPage( WrappedComponent ) {
     render() {
       var { activityIndex, pastGraphData, pastGraphLabels } = this.state
       return (
-        <View>
-          <WrappedComponent
-            pastGraphData={pastGraphData}
-            pastGraphLabels={pastGraphLabels}
-            activityIndex={activityIndex}
-            dropdownItemClick={this.dropdownItemClick}
-            displayDate={this.displayDate}
-            nextSlide={this.nextSlide}
-            previousSlide={this.previousSlide}
-            calcAvgNum={this.calcAvgNum}
-            calcAvgCals={this.calcAvgCals}
-            isNullOrUndefined={this.isNullOrUndefined}
-            roundToNDecimals={this.roundToNDecimals}
-            // {...this.props}
-            {...this.props.route.params}
-          />
-        </View>
+        <WrappedComponent
+          pastGraphData={pastGraphData}
+          pastGraphLabels={pastGraphLabels}
+          activityIndex={activityIndex}
+          dropdownItemClick={this.dropdownItemClick}
+          displayDate={this.displayDate}
+          nextSlide={this.nextSlide}
+          previousSlide={this.previousSlide}
+          calcAvgNum={this.calcAvgNum}
+          calcAvgCals={this.calcAvgCals}
+          isNullOrUndefined={this.isNullOrUndefined}
+          roundToNDecimals={this.roundToNDecimals}
+          // {...this.props}
+          {...this.props.route.params}
+        />
       )
     }
   }

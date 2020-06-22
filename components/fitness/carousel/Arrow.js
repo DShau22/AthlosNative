@@ -1,18 +1,21 @@
 import React from 'react'
-import { View, StyleSheet, Text } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native'
 import { runTheme, jumpTheme, swimTheme } from "../../Constants"
 const Arrow = ({ direction, clickFunction, glyph, activity }) => (
-  <View
-    styles={[styles.slideArray, styles[direction], styles[activity]]}
-    onClick={ clickFunction }
+  <TouchableOpacity
+    style={[styles.slideArray, styles[direction], styles[activity]]}
+    onPress={ clickFunction }
   >
-    <Text>{ glyph }</Text>
-  </View>
+    <Text style={[styles.glyphStyle, styles[activity]]}>{ glyph }</Text>
+  </TouchableOpacity>
 );
 const styles = StyleSheet.create({
   slideArrow: {
     fontSize: 3,
     marginLeft: 8,
+  },
+  glyphStyle: {
+    fontSize: 50,
   },
   right: {
     marginLeft: 8
@@ -20,14 +23,8 @@ const styles = StyleSheet.create({
   left: {
     marginRight: 8
   },
-  run: {
-    color: runTheme
-  },
-  swim: {
-    color: swimTheme
-  },
-  jump: {
-    color: jumpTheme
-  }
+  run:  { color: runTheme },
+  swim: { color: swimTheme },
+  jump: { color: jumpTheme }
 });
 export default Arrow
