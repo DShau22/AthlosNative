@@ -1,78 +1,78 @@
 import React, { Component } from 'react'
-import { Chart, Bar } from 'react-chartjs-2';
-// import Hammer from "hammerjs";
-import zoom from 'chartjs-plugin-zoom'
-class Past extends Component {
-  componentWillMount(){
-    Chart.pluginService.register(zoom)
-  }
+import { Dimensions, View, Text, StyleSheet } from "react-native";
+import {
+  LineChart,
+  BarChart,
+} from "react-native-chart-kit";
+const screenWidth = Dimensions.get("window").width;
 
-  render() {
-    var { labels, data, hoverLabel, yAxisMin, yAxisMax, chartTitle } = this.props
-    return (
-      <div>
-        <Bar
-          data={{
-            labels: labels,
-            datasets: [{
-                label: hoverLabel,
-                data: data,
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1
-            }]
-          }}
-          options={{
-            maintainAspectRatio: true,
-            plugins: {
-              zoom: false,
-              // zoom: {
-              //   zoom: {
-              //     enable: false,
-              //   },
-              //   pan: {
-              //     // Boolean to enable panning
-              //     enabled: true,
+const Past = (props) => {
+  const { labels, data, hoverLabel, yAxisMin, yAxisMax, chartTitle } = props
+  const chartData = {
+    labels,
+    datasets: [
+      {
+        data,
+      }
+    ]
+  };
+  chartConfig={
+    backgroundColor: "#e26a00",
+    backgroundGradientFrom: "#fb8c00",
+    backgroundGradientTo: "#ffa726",
+    decimalPlaces: 2, // optional, defaults to 2dp
+    color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+    labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+    style: {
+      borderRadius: 16
+    },
+    propsForDots: {
+      r: "6",
+      strokeWidth: "2",
+      stroke: "#ffa726"
+    }
+  };
+  const graphStyle = {
+    backgroundGradientFrom: "#1E2923",
+    backgroundGradientFromOpacity: 0,
+    backgroundGradientTo: "#08130D",
+    backgroundGradientToOpacity: 0.5,
+    color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
+    strokeWidth: 2, // optional, default 3
+    barPercentage: 0.5,
+    useShadowColorFromDataset: false // optional
+  };
+  return (
+    <BarChart
+      style={graphStyle}
+      data={chartData}
+      width={screenWidth}
+      height={300}
+      yAxisLabel="$"
+      chartConfig={chartConfig}
+      verticalLabelRotation={25}
+      fromZero
+    />
+  )
+  // const chartData = {
+  //   labels,
+  //   datasets: [
+  //     {
+  //       data,
+  //       color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // optional
+  //       strokeWidth: 2 // optional
+  //     }
+  //   ],
+  // };
 
-              //     // Panning directions. Remove the appropriate direction to disable
-              //     // Eg. 'y' would only allow panning in the y direction
-              //     // A function that is called as the user is panning and returns the
-              //     // available directions can also be used:
-              //     //   mode: function({ chart }) {
-              //     //     return 'xy';
-              //     //   },
-              //     mode: 'x',
-
-              //     // Function called while the user is panning
-              //     onPan: function({chart}) { console.log(`I'm panning!!!`); },
-              //     // Function called once panning is completed
-              //     onPanComplete: function({chart}) { console.log(`I was panned!!!`); }
-              //   }
-              // }
-            },
-            title: {
-              text: chartTitle,
-              display: true,
-              fontSize: 16
-            },
-            legend: {
-              display: false,
-              position: 'right'
-            },
-            scales: {
-              yAxes: [{
-                ticks: {
-                  min: yAxisMin,
-                  max: yAxisMax
-                }
-              }]
-            },
-            responsive: true
-          }}
-        />
-      </div>
-    )
-  }
+  // return (
+  //   <LineChart
+  //     data={chartData}
+  //     width={screenWidth}
+  //     height={220}
+  //     chartConfig={chartConfig}
+  //   />
+  // )
 }
 
 export default Past

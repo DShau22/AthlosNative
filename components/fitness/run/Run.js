@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, FlatList } from 'react-native'
 import Carousel from "../carousel/Carousel"
 import Calories from "../Calories"
 import Duration from "../Duration"
-// import Past from "../charts/Past"
+import Past from "../charts/Past"
 // import RunDoughnut from "./RunDoughnut"
 import withFitnessPage from "../withFitnessPage"
 import { UserDataContext } from "../../../Context"
@@ -112,7 +112,7 @@ class Run extends Component {
       calcAvgCals,
       isNullOrUndefined
     } = this.props
-
+    console.log("run props: ", this.props)  
     var currentStatDisplay = runJson.activityData[activityIndex]
     return (
       <View style={styles.container}>
@@ -125,35 +125,21 @@ class Run extends Component {
           dropdownItemClick={dropdownItemClick}
           renderSecondary={this.estimateDistanceRun}
         />
-        <View className="row">
-          <View className="col-4" align="center">
-            <Calories 
-              cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
-            />
-          </View>
-          <View className="col-4" align="center">
-            
-          </View>
-          <View className="col-4" align="center">
-            <Duration 
-              duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
-            />
-          </View>
-        </View>
-        <View className="row">
-          {/* eventually configure the min and max of y axis */}
-          <View className="col">
-            {/* <Past
-              chartTitle="Previous Runs"
-              labels={pastGraphLabels}
-              data={pastGraphData}
-              hoverLabel="Steps"
-              activity="Runs"
-              yAxisMin={0}
-              yAxisMax={Math.max(...pastGraphData)}
-            /> */}
-          </View>
-        </View>
+        {/* <Calories 
+          cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
+        />
+        <Duration 
+          duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
+        /> */}
+        <Past
+          chartTitle="Previous Runs"
+          labels={pastGraphLabels}
+          data={pastGraphData}
+          hoverLabel="Steps"
+          activity="Runs"
+          yAxisMin={0}
+          yAxisMax={Math.max(...pastGraphData)}
+        />
         <View className="row">
           <View className="col">
             {/* <PaceLineProgression
