@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { View, Text, StyleSheet, ScrollView, FlatList } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, FlatList, Dimensions, SafeAreaView } from 'react-native'
 import Carousel from "../carousel/Carousel"
 import Calories from "../Calories"
 import Duration from "../Duration"
@@ -112,10 +112,12 @@ class Run extends Component {
       calcAvgCals,
       isNullOrUndefined
     } = this.props
-    console.log("run props: ", this.props)  
     var currentStatDisplay = runJson.activityData[activityIndex]
     return (
-      <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContents}
+        style={styles.container}
+      >
         <Carousel
           stats={runJson}
           previousSlide={previousSlide}
@@ -125,12 +127,14 @@ class Run extends Component {
           dropdownItemClick={dropdownItemClick}
           renderSecondary={this.estimateDistanceRun}
         />
-        {/* <Calories 
-          cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
-        />
-        <Duration 
-          duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
-        /> */}
+        <View style={styles.calsAndTimeContainer}>
+          <Calories 
+            cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
+          />
+          <Duration 
+            duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
+          />
+        </View>
         <Past
           chartTitle="Previous Runs"
           labels={pastGraphLabels}
@@ -196,7 +200,7 @@ class Run extends Component {
             </View>
           </View>
         </View>
-      </View>
+      </ScrollView>
     )
   }
 }
@@ -204,10 +208,19 @@ Run.contextType = UserDataContext
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    // justifyContent: 'center',
-    height: '50%',
+    height: '100%',
     width: '100%'
+  },
+  scrollContents: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calsAndTimeContainer: {
+    marginTop: 10,
+    marginBottom: 10,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
   circle: {
     flex: 1,

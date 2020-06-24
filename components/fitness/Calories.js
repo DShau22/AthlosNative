@@ -1,11 +1,14 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
-// import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+MaterialCommunityIcons.loadFont()
 export default function Calories( props ) {
   return (
     <View style={styles.caloriesCircle}>
-      {/* <Icon name="fire" style={styles.fire}/> */}
+      <MaterialCommunityIcons
+        name='fire'
+        style={styles.fire}
+      />
       <Text>{props.cals}</Text>
     </View>
   )

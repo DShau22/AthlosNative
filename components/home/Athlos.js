@@ -4,7 +4,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import {
   getData,
-  storeData
+  storeData,
+  storeDataObj,
+  getDataObj
 } from '../utils/storage';
 import ENDPOINTS from "../endpoints"
 import FriendDisplay from "../community/friends/FriendDisplay"
@@ -69,6 +71,17 @@ function Athlos(props) {
       // set up the web socket connection to server
       // var socket = await this.setUpSocket()
 
+      // first check if info is in Async storage
+      const token = await getData();
+      const userData = await getDataObj()
+      if (!token) {
+        console.log("This is weird. Somehow log them out and redirect to login page")
+      }
+      if (userData) {
+        setState({ ...userData, isLoading: false});
+        return;
+      }
+
       // get the user's information here from database
       // make request to server to user information and set state
       var headers = new Headers();
@@ -81,7 +94,7 @@ function Athlos(props) {
         Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
         setState({ ...state, isLoading: false });
       }
-      console.log(userJson);
+      console.log('user json: ', userJson);
 
       var { numFriendsDisplay } = state;
       try {
@@ -130,6 +143,10 @@ function Athlos(props) {
           },
           isLoading: false
         });
+        // store in Async storage so no need to request every time
+        // probably change this later so this refreshes every now and then?
+        // adding a service worker or background process would be good
+        await storeDataObj(state);
       } else {
         console.log("one of the requests to get fitness data or user info didn't work");
         console.log("user: ", userJson);

@@ -33,10 +33,21 @@ const ImageSlide = (props) => {
     return ( <Text style={style}> {`${num} ${labels.numLabel}`} </Text> )
   }
 
+  const getActivityColor = () => {
+    switch (props.stats.action) {
+      case 'run':
+        return runTheme;
+      case 'swim':
+        return swimTheme;
+      default:
+        return jumpTheme
+    }
+  }
+
   var { stats, indexDisplay, renderSecondary } = props
   return (
-    <View style={[styles.imageSlide, styles[stats.action]]}> 
-      <ProgressCircle style={{ height: 200, width: 200 }} progress={0.7} progressColor={'rgb(134, 65, 244)'} />
+    <View style={styles.imageSlide}> 
+      <ProgressCircle style={{ height: '100%', width: '100%' }} progress={0.7} progressColor={getActivityColor()} />
       <Text style={{ position: 'absolute', top: '35%'}}>Img should go here!</Text>
       {/* add data through props */}
       {/* <img src={stats.imageUrl} alt="loading..."/> */}
@@ -47,11 +58,9 @@ const ImageSlide = (props) => {
 }
 const styles = StyleSheet.create({
   imageSlide: {
-    height: 300,
-    width: '80%',
-    marginTop: 15,
-    borderWidth: 2,
-    borderRadius: 50,
+    height: 280,
+    width: '65%',
+    marginTop: 10,
     alignItems: 'center',
     justifyContent: 'center'
   },

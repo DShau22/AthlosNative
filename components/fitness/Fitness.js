@@ -37,10 +37,6 @@ const Fitness = () => {
   }
   const TopTab = createMaterialTopTabNavigator();
   // BELOW IS HOW YOU PASS PROPS
-  // <Stack.Screen name="Home">
-  //   {props => <HomeScreen {...props} extraData={someData} />}
-  // </Stack.Screen>
-  console.log(context.runJson);
   return (
     <TopTab.Navigator style={{marginTop: 50}}>
       <TopTab.Screen
