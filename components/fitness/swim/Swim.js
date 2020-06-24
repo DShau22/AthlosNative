@@ -2,30 +2,26 @@ import React, { Component } from 'react'
 import Carousel from "../carousel/Carousel"
 import Calories from "../Calories"
 import Duration from "../Duration"
+
 import Details from "../Details"
-import SpaContext from '../../Context'
+import SwimDoughnut from "./SwimDoughnut"
+import PieChartWithDynamicSlices from "./PieChartWithDynamicSlices"
+
+import { UserDataContext } from '../../../Context'
 import Past from "../charts/Past"
 import withFitnessPage from "../withFitnessPage"
-import SwimDoughnut from "./SwimDoughnut"
+import { View, StyleSheet, Text, ScrollView } from 'react-native'
 
 const metersToYards = 1.0 / 1.09361
 const yardsToMeters = 1.0 / 0.9144
 const swimLink = "/app/swimDetails"
 
-class Swim extends Component {
-  constructor(props) {
-    super(props)
-  
-    this.state = {
-       
-    }
-    this.calculateDistance = this.calculateDistance.bind(this)
-    this.calcAvgSpeed = this.calcAvgSpeed.bind(this)
-  }
+const Swim = (props) => {
+  const context = React.useContext(UserDataContext);
 
-  calculateDistance(currentStatDisplay) {
-    var { swimLap, unitSystem } = this.context.settings
-    const { roundToNDecimals, isNullOrUndefined } = this.props
+  const calculateDistance = (currentStatDisplay) => {
+    var { swimLap, unitSystem } = context.settings
+    const { roundToNDecimals, isNullOrUndefined } = props
     unitSystem = unitSystem.toLowerCase()
     if (isNullOrUndefined(currentStatDisplay)) {
       return 0
@@ -34,26 +30,26 @@ class Swim extends Component {
     if (swimLap === "50 m") {
       let distanceInMeters = 50 * num
       return (unitSystem === "metric" ? 
-              distanceInMeters : 
-              roundToNDecimals(distanceInMeters * metersToYards, 2))
+              <Text>{distanceInMeters}</Text> : 
+              <Text>{roundToNDecimals(distanceInMeters * metersToYards, 2)}</Text>)
     } else if (swimLap === "25 m") {
       let distanceInMeters = 25 * num
       return (unitSystem === "metric" ? 
-              distanceInMeters : 
-              roundToNDecimals(distanceInMeters * metersToYards, 2))
+              <Text>{distanceInMeters}</Text> : 
+              <Text>{roundToNDecimals(distanceInMeters * metersToYards, 2)}</Text>)
     } else {
       // 25yd
       let distanceInYards = 25 * num
       return (unitSystem === "english" ? 
-              distanceInYards : 
-              roundToNDecimals(distanceInYards * yardsToMeters, 2))
+              <Text>{distanceInYards}</Text> : 
+              <Text>{roundToNDecimals(distanceInYards * yardsToMeters, 2)}</Text>)
     }
   }
 
-  calcAvgSpeed() {
-    var { activityData } = this.props.activityJson
-    var { swimLap, unitSystem } = this.context.settings
-    const { roundToNDecimals, isNullOrUndefined } = this.props
+  const calcAvgSpeed = () => {
+    var { activityData } = props.activityJson
+    var { swimLap, unitSystem } = context.settings
+    const { roundToNDecimals, isNullOrUndefined } = props
     if (isNullOrUndefined(activityData)) {
       return 0
     }
@@ -86,9 +82,9 @@ class Swim extends Component {
     }
   }
 
-  calcAvgTimePerLap() {
-    var { activityData } = this.props.activityJson
-    const { roundToNDecimals, isNullOrUndefined } = this.props
+  const calcAvgTimePerLap = () => {
+    var { activityData } = props.activityJson
+    const { roundToNDecimals, isNullOrUndefined } = props
     if (isNullOrUndefined(activityData)) {
       return 0
     }
@@ -100,9 +96,9 @@ class Swim extends Component {
     return roundToNDecimals(totalTime / totalNumLaps, 2)
   }
 
-  makeDoughnutData() {
-    var { activityData } = this.props.activityJson
-    const { isNullOrUndefined } = this.props
+  const makeDoughnutData = () => {
+    var { activityData } = props.activityJson
+    const { isNullOrUndefined } = props
     if (isNullOrUndefined(activityData)) {
       return 0
     }
@@ -127,135 +123,117 @@ class Swim extends Component {
     return [flyCount, backCount, breastCount, freeCount]     
   }
   
-  render() {
-    var { settings, swimJson } = this.context
-    var { unitSystem } = settings
-    var {
-      activityIndex,
-      pastGraphData,
-      pastGraphLabels,
-      dropdownItemClick,
-      displayDate,
-      nextSlide,
-      previousSlide,
-      calcAvgNum,
-      calcAvgCals,
-      isNullOrUndefined,
-    } = this.props
-    // this could be undefined if user has no recorded data
-    var currentStatDisplay = swimJson.activityData[activityIndex]
-    // 50m, 25yd, or 25m
-    return (
-      <div className="swim-container">
-        <div className="row">
-          <div className="col">
-            <Carousel
-              stats={swimJson}
-              previousSlide={previousSlide}
-              nextSlide={nextSlide}
-              activityIndex={activityIndex}
-              displayDate={displayDate}
-              dropdownItemClick={dropdownItemClick}
-              renderSecondary={this.calculateDistance}
-            />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-4" align="center">
-            <Calories 
-              cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
-            />
-          </div>
-          <div className="col-4" align="center">
-            <Details detailsLink={swimLink}/>
-          </div>
-          <div className="col-4" align="center">
-            <Duration 
-              duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
-            />
-          </div>
-        </div>
-        <div className="row">
-          {/* eventually configure the min and max of y axis */}
-          <div className="col">
-            <Past
-              chartTitle="Previous Swims"
-              labels={pastGraphLabels}
-              data={pastGraphData}
-              hoverLabel="Laps"
-              activity="Swims"
-              yAxisMin={0}
-              yAxisMax={50}
-            />
-          </div>
-        </div>
-        <div className="row mt-3">
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <h5 className="card-title">Avg Laps per Session</h5>
-                {calcAvgNum()}
-              </div>
-            </div>
-          </div>
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <h5 className="card-title">Avg Speed per Lap</h5>
-                {this.calcAvgSpeed() + " " + (unitSystem === "metric" ? "m/s" : "yd/s")}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="row mt-3">
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <h5 className="card-title">Avg Time per Lap</h5>
-                {this.calcAvgTimePerLap() + " seconds"}
-              </div>
-            </div>
-          </div>
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <h5 className="card-title">Avg Strokes per Lap</h5>
-                avg strokes
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="row mt-3">
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <h5 className="card-title">Avg Cals per Session</h5>
-                {calcAvgCals()}
-              </div>
-            </div>
-          </div>
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <h5 className="card-title">Stroke Distribution</h5>
-                <SwimDoughnut
-                  data={this.makeDoughnutData()}
-                  labels={["laps fly", "laps back", "laps breast", "laps free"]}
-                  colors={[
-                    'rgba(102, 255, 102, 0.4)',
-                    'rgba(255, 255, 0, 0.4)',
-                    'rgba(255, 51, 0, 0.4)',
-                    'rgba(255, 153, 0, 0.4)',
-                  ]}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  var { settings, swimJson } = context
+  var { unitSystem } = settings
+  var {
+    activityIndex,
+    pastGraphData,
+    pastGraphLabels,
+    dropdownItemClick,
+    displayDate,
+    nextSlide,
+    previousSlide,
+    calcAvgNum,
+    calcAvgCals,
+    isNullOrUndefined,
+  } = props
+  // this could be undefined if user has no recorded data
+  var currentStatDisplay = swimJson.activityData[activityIndex]
+  // 50m, 25yd, or 25m
+  return (
+    <ScrollView
+      contentContainerStyle={styles.scrollContents}
+      style={styles.container}
+    >
+      <Carousel
+        stats={swimJson}
+        previousSlide={previousSlide}
+        nextSlide={nextSlide}
+        activityIndex={activityIndex}
+        displayDate={displayDate}
+        dropdownItemClick={dropdownItemClick}
+        renderSecondary={calculateDistance}
+      />
+      <View>
+        <Calories 
+          cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
+        />
+        <Details detailsLink={swimLink}/>
+        <Duration 
+          duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
+        />
+      </View>
+      <Past
+        chartTitle="Previous Swims"
+        labels={pastGraphLabels}
+        data={pastGraphData}
+        hoverLabel="Laps"
+        activity="Swims"
+        yAxisMin={0}
+        yAxisMax={50}
+      />
+      <View>
+        <Text>Avg Laps per Session</Text>
+        <Text>{calcAvgNum()}</Text>
+      </View>
+      <View>
+        <Text>Avg Speed per Lap</Text>
+        <Text>{calcAvgSpeed() + " " + (unitSystem === "metric" ? "m/s" : "yd/s")}</Text>
+      </View>
+      <View>
+        <Text>Avg Time per Lap</Text>
+        <Text>{calcAvgTimePerLap() + " seconds"}</Text>
+      </View>
+      <View>
+        <Text>Avg Strokes per Lap</Text>
+        <Text>avg strokes</Text>
+      </View>
+      <View>
+        <Text>Avg Cals per Session</Text>
+        <Text>{calcAvgCals()}</Text>
+      </View>
+      <View>
+        <Text>Avg Cals per Session</Text>
+        <Text>{calcAvgCals()}</Text>
+      </View>
+      <View style={styles.strokeDistribution}>
+        <Text>Stroke Distribution</Text>
+        <SwimDoughnut
+          data={makeDoughnutData()}
+          labels={["laps fly", "laps back", "laps breast", "laps free"]}
+          colors={[
+            'rgba(102, 255, 102, 0.4)',
+            'rgba(255, 255, 0, 0.4)',
+            'rgba(255, 51, 0, 0.4)',
+            'rgba(255, 153, 0, 0.4)',
+          ]}
+        />
+      </View>
+    </ScrollView>
+  )
 }
 
-Swim.contextType = SpaContext
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    height: '100%',
+    width: '100%'
+  },
+  scrollContents: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calsAndTimeContainer: {
+    marginTop: 10,
+    marginBottom: 10,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  strokeDistribution: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
+})
+
 export default withFitnessPage(Swim)

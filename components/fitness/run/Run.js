@@ -15,25 +15,13 @@ const walkPaceMax = 2.314 // 130 steps per minute is a fast walk, which is 2.16 
 // anything above restPaceMax is resting
 const restPaceMin = 5 // say 60 steps per minute is basically resting. 1 step/sec, 5 (.2sec) / step
 
-class Run extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      paceLabels: [],
-      paceDate: [], 
-    }
-    this.estimateDistanceRun = this.estimateDistanceRun.bind(this)
-  }
-
-  componentDidMount() {
-    console.log('mounted')
-  }
-
-  makeDoughnutData() {
+const Run = (props) => {
+  const context = React.useContext(UserDataContext)
+  const makeDoughnutData = () => {
     var runCount = 0
     var walkCount = 0
     var count = 0
-    var { activityData } = this.context.runJson
+    var { activityData } = context.runJson
     activityData.forEach((session, i) => {
       session.paces.forEach((pace, j) => {
         // if pace is somehow undefined or NaN or null then skip
@@ -57,8 +45,8 @@ class Run extends Component {
     return [runPercent, walkPercent, 1 - (runPercent + walkPercent)]
   }
 
-  calcAvgPace() {
-    var { activityData } = this.context.runJson
+  const calcAvgPace = () => {
+    var { activityData } = context.runJson
     var avg = 0
     var count = 0
     activityData.forEach((session, i) => {
@@ -70,8 +58,8 @@ class Run extends Component {
     return (count === 0) ? 0 : avg / count
   }
 
-  estimateDistanceRun(style) {
-    var { settings } = this.context
+  const estimateDistanceRun = (style) => {
+    var { settings } = context
     var { unitSystem } = settings
     // this means the person's height is in cm, display km
     if (unitSystem === "metric") {
@@ -84,7 +72,7 @@ class Run extends Component {
 
   // returns an array of time labels for a given paces array
   // and the total time the user spent on running mode
-  makePaceLabels(paces, totalTime) {
+  const makePaceLabels = (paces, totalTime) => {
     let timeInterval = Math.floor(totalTime / paces.length)
     let timeSeries = Array(paces.length)
 
@@ -96,115 +84,113 @@ class Run extends Component {
     return timeSeries
   }
 
-  render() {
-    var { runJson } = this.context
+  var { runJson } = context
 
-    // from withFitnessPage
-    var {
-      activityIndex,
-      pastGraphData,
-      pastGraphLabels,
-      dropdownItemClick,
-      displayDate,
-      nextSlide,
-      previousSlide,
-      calcAvgNum,
-      calcAvgCals,
-      isNullOrUndefined
-    } = this.props
-    var currentStatDisplay = runJson.activityData[activityIndex]
-    return (
-      <ScrollView
-        contentContainerStyle={styles.scrollContents}
-        style={styles.container}
-      >
-        <Carousel
-          stats={runJson}
-          previousSlide={previousSlide}
-          nextSlide={nextSlide}
-          activityIndex={activityIndex}
-          displayDate={displayDate}
-          dropdownItemClick={dropdownItemClick}
-          renderSecondary={this.estimateDistanceRun}
+  // from withFitnessPage
+  var {
+    activityIndex,
+    pastGraphData,
+    pastGraphLabels,
+    dropdownItemClick,
+    displayDate,
+    nextSlide,
+    previousSlide,
+    calcAvgNum,
+    calcAvgCals,
+    isNullOrUndefined
+  } = props
+  var currentStatDisplay = runJson.activityData[activityIndex]
+
+  return (
+    <ScrollView
+      contentContainerStyle={styles.scrollContents}
+      style={styles.container}
+    >
+      <Carousel
+        stats={runJson}
+        previousSlide={previousSlide}
+        nextSlide={nextSlide}
+        activityIndex={activityIndex}
+        displayDate={displayDate}
+        dropdownItemClick={dropdownItemClick}
+        renderSecondary={estimateDistanceRun}
+      />
+      <View style={styles.calsAndTimeContainer}>
+        <Calories 
+          cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
         />
-        <View style={styles.calsAndTimeContainer}>
-          <Calories 
-            cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
-          />
-          <Duration 
-            duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
-          />
-        </View>
-        <Past
-          chartTitle="Previous Runs"
-          labels={pastGraphLabels}
-          data={pastGraphData}
-          hoverLabel="Steps"
-          activity="Runs"
-          yAxisMin={0}
-          yAxisMax={Math.max(...pastGraphData)}
+        <Duration 
+          duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
         />
-        <View className="row">
-          <View className="col">
-            {/* <PaceLineProgression
-              activity="Pace Progression"
-              displayDate={displayDate}
-              data={[0, ...currentStatDisplay.paces]} // add 0 to beginning of paces array to indicate 0 pace at time 0
-              labels={this.makePaceLabels(currentStatDisplay.paces, currentStatDisplay.time)}
-              hoverLabel="Pace"
-              yAxisMin={0}
-              yAxisMax={Math.max(...currentStatDisplay.paces) + 2}
-            /> */}
-          </View>
+      </View>
+      <Past
+        chartTitle="Previous Runs"
+        labels={pastGraphLabels}
+        data={pastGraphData}
+        hoverLabel="Steps"
+        activity="Runs"
+        yAxisMin={0}
+        yAxisMax={Math.max(...pastGraphData)}
+      />
+      <View className="row">
+        <View className="col">
+          {/* <PaceLineProgression
+            activity="Pace Progression"
+            displayDate={displayDate}
+            data={[0, ...currentStatDisplay.paces]} // add 0 to beginning of paces array to indicate 0 pace at time 0
+            labels={makePaceLabels(currentStatDisplay.paces, currentStatDisplay.time)}
+            hoverLabel="Pace"
+            yAxisMin={0}
+            yAxisMax={Math.max(...currentStatDisplay.paces) + 2}
+          /> */}
         </View>
-        <View className="row mt-3">
-          <View className="col-6">
-            <View className="card text-center">
-              <View className="card-body">
-                <Text className="card-title">Avg Steps per Session</Text>
-                <Text>{calcAvgNum()}</Text>
-              </View>
-            </View>
-          </View>
-          <View className="col-6">
-            <View className="card text-center">
-              <View className="card-body">
-                <Text className="card-title">Avg Pace per Session</Text>
-                <Text>{this.calcAvgPace()}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-        <View className="row mt-3">
-          <View className="col-6">
-            <View className="card text-center">
-              <View className="card-body">
-                <Text className="card-title">Avg Cals per Session</Text>
-                <Text>{calcAvgCals()}</Text>
-              </View>
-            </View>
-          </View>
-          <View className="col-6">
-            <View className="card text-center">
-              <View className="card-body">
-                {/* <RunDoughnut
-                  labels={['% run', '% walk', '% rest']}
-                  data={this.makeDoughnutData()}
-                  colors={[
-                    'rgba(102, 255, 102, 0.4)',
-                    'rgba(255, 255, 0, 0.4)',
-                    'rgba(255, 51, 0, 0.4)',
-                  ]}
-                /> */}
-              </View>
+      </View>
+      <View className="row mt-3">
+        <View className="col-6">
+          <View className="card text-center">
+            <View className="card-body">
+              <Text className="card-title">Avg Steps per Session</Text>
+              <Text>{calcAvgNum()}</Text>
             </View>
           </View>
         </View>
-      </ScrollView>
-    )
-  }
+        <View className="col-6">
+          <View className="card text-center">
+            <View className="card-body">
+              <Text className="card-title">Avg Pace per Session</Text>
+              <Text>{calcAvgPace()}</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+      <View className="row mt-3">
+        <View className="col-6">
+          <View className="card text-center">
+            <View className="card-body">
+              <Text className="card-title">Avg Cals per Session</Text>
+              <Text>{calcAvgCals()}</Text>
+            </View>
+          </View>
+        </View>
+        <View className="col-6">
+          <View className="card text-center">
+            <View className="card-body">
+              {/* <RunDoughnut
+                labels={['% run', '% walk', '% rest']}
+                data={makeDoughnutData()}
+                colors={[
+                  'rgba(102, 255, 102, 0.4)',
+                  'rgba(255, 255, 0, 0.4)',
+                  'rgba(255, 51, 0, 0.4)',
+                ]}
+              /> */}
+            </View>
+          </View>
+        </View>
+      </View>
+    </ScrollView>
+  )
 }
-Run.contextType = UserDataContext
 const styles = StyleSheet.create({
   container: {
     flex: 1,

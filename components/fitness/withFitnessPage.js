@@ -27,45 +27,34 @@ function reverse(array) {
 }
 
 export default function withFitnessPage( WrappedComponent ) {  
-  class WithFitnessPage extends Component {
-    constructor(props) {
-      super(props)
-    
-      this.state = {
-        activityIndex: 0,
-        pastGraphLabels: [],
-        pastGraphData: [],
-        progressionLabels: [],
-        progressionDate: [], 
-      }
-      this.nextSlide = this.nextSlide.bind(this);
-      this.previousSlide = this.previousSlide.bind(this);
-      this.makePastGraphLabels = this.makePastGraphLabels.bind(this)
-      this.makePastGraphData = this.makePastGraphData.bind(this)
-      this.dropdownItemClick = this.dropdownItemClick.bind(this)
-      this.displayDate = this.displayDate.bind(this)
-      this.calcAvgNum = this.calcAvgNum.bind(this)
-      this.calcAvgCals = this.calcAvgCals.bind(this)
-    }
+  const WithFitnessPage = (props) => {
+    const context = React.useContext(UserDataContext);
+    const [state, setState] = React.useState({
+      activityIndex: 0,
+      pastGraphLabels: [],
+      pastGraphData: [],
+      progressionLabels: [],
+      progressionDate: [], 
+    })
 
-    componentDidMount() {
-      this.makePastGraphLabels()
-      this.makePastGraphData()
-    }
+    React.useEffect(() => {
+      makePastGraphLabels()
+      makePastGraphData()
+    }, [])
 
-    roundToNDecimals(num, decimals) {
+    const roundToNDecimals = (num, decimals) => {
       return parseFloat(num).toFixed(decimals)
     }
 
-    isNullOrUndefined(input) {
+    const isNullOrUndefined = (input) => {
       return (input == null)
     }
 
     // gets the labels for the graph that displays num field over past upload dates
-    makePastGraphLabels() {
+    const makePastGraphLabels = () => {
       var pastGraphLabels = []
       // can be either run, jump or swimming json
-      var { activityJson } = this.props.route.params
+      var { activityJson } = props.route.params
       activityJson.activityData.forEach((session, idx) => {
         var { uploadDate } = session
         var stringToDate = new Date(uploadDate)
@@ -74,26 +63,25 @@ export default function withFitnessPage( WrappedComponent ) {
         pastGraphLabels.push(dateInfo[0] + ", " + dateInfo[1] + " " + dateInfo[2])
       })
       reverse(pastGraphLabels)
-      this.setState({ pastGraphLabels })
+      setState({ ...state, pastGraphLabels })
     }
 
-    makePastGraphData() {
+    const makePastGraphData = () => {
       var pastGraphData = []
-      var { activityJson } = this.props.route.params
+      var { activityJson } = props.route.params
       activityJson.activityData.forEach((session, idx) => {
         var { num } = session
         pastGraphData.push(num)
       })
       reverse(pastGraphData)
-      this.setState({ pastGraphData })
-      //debugger
+      setState({ ...state, pastGraphData })
     }
 
     // returns Day of week, month day (num) in a string format
     // i.e Sat, Jul 20
-    displayDate() {
-      var { activityJson } = this.props.route.params
-      var { activityIndex } = this.state
+    const displayDate = () => {
+      var { activityJson } = props.route.params
+      var { activityIndex } = state
       if (activityJson.activityData.length === 0) {
         return "No uploads yet"
       }
@@ -103,17 +91,17 @@ export default function withFitnessPage( WrappedComponent ) {
       return date
     }
 
-    dropdownItemClick(activityIndex) {
+    const dropdownItemClick = (activityIndex) => {
       // on dropdown date click, display that date on the dropdown,
       // and switch the image slider to display that date
-      this.setState({ activityIndex: activityIndex })
+      setState({ ...state, activityIndex })
     }
 
-    calcAvgNum() {
+    const calcAvgNum = () => {
       // Activity json contains all the queried activity data
       // NOTE THIS IS NOT THE TRUE AVG SINCE THE QUERY IS AT MAX
       // (50) DOCUMENTS OF ACTIVITY DATA
-      var { activityData } = this.props.route.params.activityJson
+      var { activityData } = props.route.params.activityJson
       var avg = 0
       var count = 0
       activityData.forEach((session, idx) => {
@@ -123,8 +111,8 @@ export default function withFitnessPage( WrappedComponent ) {
       return (count === 0) ? 0 : Math.round(avg / count)
     }
 
-    calcAvgCals() {
-      var { activityData } = this.props.route.params.activityJson
+    const calcAvgCals = () => {
+      var { activityData } = props.route.params.activityJson
       var avg = 0
       var count = 0
       activityData.forEach((session, idx) => {
@@ -134,42 +122,36 @@ export default function withFitnessPage( WrappedComponent ) {
       return (count === 0) ? 0 : Math.round(avg / count)
     }
 
-    previousSlide() {
-      //debugger
-      var { activityData } = this.props.route.params.activityJson
-      var nextIndex = Math.min((this.state.activityIndex + 1), activityData.length - 1)
-      this.setState({ activityIndex: nextIndex })
+    const previousSlide = () => {
+      var { activityData } = props.route.params.activityJson
+      var nextIndex = Math.min((state.activityIndex + 1), activityData.length - 1)
+      setState({ ...state, activityIndex: nextIndex })
     }
   
-    nextSlide() {
+    const nextSlide = () => {
       // 0 represents the most recent upload date
-      var nextIndex = Math.max((this.state.activityIndex - 1), 0)
-      this.setState({ activityIndex: nextIndex })
+      var nextIndex = Math.max((state.activityIndex - 1), 0)
+      setState({ ...state, activityIndex: nextIndex })
     }
 
-    render() {
-      var { activityIndex, pastGraphData, pastGraphLabels } = this.state
-      return (
-        <WrappedComponent
-          pastGraphData={pastGraphData}
-          pastGraphLabels={pastGraphLabels}
-          activityIndex={activityIndex}
-          dropdownItemClick={this.dropdownItemClick}
-          displayDate={this.displayDate}
-          nextSlide={this.nextSlide}
-          previousSlide={this.previousSlide}
-          calcAvgNum={this.calcAvgNum}
-          calcAvgCals={this.calcAvgCals}
-          isNullOrUndefined={this.isNullOrUndefined}
-          roundToNDecimals={this.roundToNDecimals}
-          // {...this.props}
-          {...this.props.route.params}
-        />
-      )
-    }
+    var { activityIndex, pastGraphData, pastGraphLabels } = state
+    return (
+      <WrappedComponent
+        pastGraphData={pastGraphData}
+        pastGraphLabels={pastGraphLabels}
+        activityIndex={activityIndex}
+        dropdownItemClick={dropdownItemClick}
+        displayDate={displayDate}
+        nextSlide={nextSlide}
+        previousSlide={previousSlide}
+        calcAvgNum={calcAvgNum}
+        calcAvgCals={calcAvgCals}
+        isNullOrUndefined={isNullOrUndefined}
+        roundToNDecimals={roundToNDecimals}
+        {...props.route.params}
+      />
+    )
   }
-  WithFitnessPage.contextType = UserDataContext
-  
   return WithFitnessPage
 }
 

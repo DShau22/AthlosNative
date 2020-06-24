@@ -1,8 +1,15 @@
 import React from 'react'
 import { View, Text, StyleSheet, Dimensions } from 'react-native'
 import { UserDataContext } from "../../Context"
-const Home = () => {
+import { useFocusEffect } from '@react-navigation/native';
+
+const Home = (props) => {
   const context = React.useContext(UserDataContext);
+  useFocusEffect(
+    React.useCallback(() => {
+      context.renderHeaderText("Home")
+    }, [])
+  );
   return (
     <View style={styles.container}>
       <Text>Welcome, {context.firstName}</Text>

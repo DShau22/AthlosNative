@@ -1,13 +1,15 @@
 import React from 'react'
 import Run from "./run/Run"
-// import Jump from "./jump/Jump"
-// import Swim from "./swim/Swim"
+import Jump from "./jump/Jump"
+import Swim from "./swim/Swim"
 import { UserDataContext } from "../../Context"
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import LoadingScreen from '../generic/LoadingScreen';
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 
-const Fitness = () => {
+
+const Fitness = (props) => {
   // constructor(props) {
   //   super(props)
 
@@ -21,7 +23,11 @@ const Fitness = () => {
   var [display, setDisplay] = React.useState(true);
   var [activityDisplay, setActivityDisplay] = React.useState('');
   const context = React.useContext(UserDataContext);
-
+  useFocusEffect(
+    React.useCallback(() => {
+      context.renderHeaderText("My Fitness")
+    }, [])
+  );
   const renderActivity = () => {
     var { runJson, jumpJson, swimJson } = context;
     return ( <Text>RUNN BOI</Text> );
@@ -36,9 +42,8 @@ const Fitness = () => {
     // }
   }
   const TopTab = createMaterialTopTabNavigator();
-  // BELOW IS HOW YOU PASS PROPS
   return (
-    <TopTab.Navigator style={{marginTop: 50}}>
+    <TopTab.Navigator style={styles.topTab}>
       <TopTab.Screen
         name="Run"
         component={Run}
@@ -47,8 +52,22 @@ const Fitness = () => {
           activityJson: context.runJson
         }}
       />
-      <TopTab.Screen name="Swim" component={LoadingScreen}/>
-      <TopTab.Screen name="Jump" component={LoadingScreen}/>
+      <TopTab.Screen
+        name="Swim"
+        component={Swim}
+        initialParams={{
+          id: "swim",
+          activityJson: context.swimJson
+        }}
+      />
+      <TopTab.Screen
+        name="Jump"
+        component={Jump}
+        initialParams={{
+          id: "jump",
+          activityJson: context.jumpJson
+        }}
+      />
     </TopTab.Navigator>
   )
   // return (
@@ -86,5 +105,11 @@ const Fitness = () => {
   //   </div>
   // )
 }
+
+const styles = StyleSheet.create({
+  topTab: {
+
+  }
+})
 
 export default Fitness;

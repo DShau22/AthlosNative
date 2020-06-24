@@ -2,19 +2,15 @@ import React, { Component } from 'react'
 import Carousel from "../carousel/Carousel"
 import Calories from "../Calories"
 import Duration from "../Duration"
-import SpaContext from '../../Context'
+import { UserDataContext } from '../../../Context'
 import Past from "../charts/Past"
 import withFitnessPage from "../withFitnessPage"
 import { rawHeightConvert } from "../../utils/unitConverter" 
-
-class Jump extends Component {
-  constructor(props) {
-    super(props)
-    this.getCurrentBestHeight = this.getCurrentBestHeight.bind(this)
-  }
-
-  calcAvgHeight() {
-    var { activityData } = this.context.jumpJson
+import { View, StyleSheet, Text, ScrollView } from 'react-native'
+const Jump = (props) => {
+  const context = React.useContext(UserDataContext);
+  const calcAvgHeight = () => {
+    var { activityData } = context.jumpJson
     var avg = 0
     var count = 0
     activityData.forEach((session, i) => {
@@ -26,10 +22,10 @@ class Jump extends Component {
     return (count === 0) ? 0 : parseFloat(avg / count).toFixed(2)
   }
 
-  getCurrentBestHeight() {
-    var { unitSystem } = this.context.settings
-    var { activityData } = this.context.jumpJson
-    var { activityIndex } = this.props
+  const getCurrentBestHeight = () => {
+    var { unitSystem } = context.settings
+    var { activityData } = context.jumpJson
+    var { activityIndex } = props
     if (activityData.length === 0) { return null }
     var session = activityData[activityIndex]
     var best = Math.max(...session.heights)
@@ -41,108 +37,111 @@ class Jump extends Component {
     )
   }
 
-  render() {
-    var { jumpJson, settings, bests } = this.context
-    var { unitSystem } = settings
-    var {
-      activityIndex,
-      pastGraphData,
-      pastGraphLabels,
-      dropdownItemClick,
-      displayDate,
-      nextSlide,
-      previousSlide,
-      calcAvgNum,
-      calcAvgCals,
-      isNullOrUndefined
-    } = this.props
-    var currentStatDisplay = jumpJson.activityData[activityIndex]
-    console.log(pastGraphData)
-    return (
-      <div className="jump-container">
-        <div className="row">
-          <div className="col">
-            <Carousel
-              stats={jumpJson}
-              previousSlide={previousSlide}
-              nextSlide={nextSlide}
-              activityIndex={activityIndex}
-              displayDate={displayDate}
-              dropdownItemClick={dropdownItemClick}
-              renderSecondary={this.getCurrentBestHeight}
-            />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-4" align="center">
-            <Calories 
-              cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
-            />
-          </div>
-          <div className="col-4" align="center">
-            {/* don't need details from jump rn
-            <Details detailsLink={jumpLink}/> */}
-          </div>
-          <div className="col-4" align="center">
-            <Duration 
-              duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
-            />
-          </div>
-        </div>
-        <div className="row">
-          {/* eventually configure the min and max of y axis */}
-          <div className="col">
-            <Past
-              chartTitle="Previous Sessions"
-              labels={pastGraphLabels}
-              data={pastGraphData}
-              hoverLabel="Jumps"
-              activity="Jumps"
-              yAxisMin={0}
-              yAxisMax={20}
-            />
-          </div>
-        </div>
-        <div className="row mt-3">
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <h5 className="card-title">Avg Jumps per Session</h5>
-                {calcAvgNum()}
-              </div>
-            </div>
-          </div>
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <h5 className="card-title">Avg height per Session</h5>
-                {this.calcAvgHeight() + " " + (unitSystem === "metric" ? "cm" : "in")}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="row mt-3">
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <h5 className="card-title">Avg Cals per Session</h5>
-                {calcAvgCals()}
-              </div>
-            </div>
-          </div>
-          <div className="col-6">
-            <div className="card text-center">
-              <div className="card-body">
-                <h5 className="card-title">Overall Best</h5>
-                {bests.jump}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  var { jumpJson, settings, bests } = context
+  var { unitSystem } = settings
+  var {
+    activityIndex,
+    pastGraphData,
+    pastGraphLabels,
+    dropdownItemClick,
+    displayDate,
+    nextSlide,
+    previousSlide,
+    calcAvgNum,
+    calcAvgCals,
+    isNullOrUndefined
+  } = props
+  var currentStatDisplay = jumpJson.activityData[activityIndex]
+  return (
+    <ScrollView
+      contentContainerStyle={styles.scrollContents}
+      style={styles.container}
+    >
+      <Carousel
+        stats={jumpJson}
+        previousSlide={previousSlide}
+        nextSlide={nextSlide}
+        activityIndex={activityIndex}
+        displayDate={displayDate}
+        dropdownItemClick={dropdownItemClick}
+        renderSecondary={getCurrentBestHeight}
+      />
+      <View>
+        <Calories 
+          cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
+        />
+        <Duration 
+          duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
+        />
+      </View>
+      <Past
+        chartTitle="Previous Sessions"
+        labels={pastGraphLabels}
+        data={pastGraphData}
+        hoverLabel="Jumps"
+        activity="Jumps"
+        yAxisMin={0}
+        yAxisMax={20}
+      />
+      <View className="card text-center">
+        <Text className="card-title">Avg Jumps per Session</Text>
+        <Text>{calcAvgNum()}</Text>
+      </View>
+      <View className="card text-center">
+        <Text className="card-title">Avg height per Session</Text>
+        <Text>{calcAvgHeight() + " " + (unitSystem === "metric" ? "cm" : "in")}</Text>
+      </View>
+      <View className="card text-center">
+        <Text className="card-title">Avg Cals per Session</Text>
+        <Text>{calcAvgCals()}</Text>
+      </View>
+      <View className="card text-center">
+        <Text className="card-title">Overall Best</Text>
+        <Text>{bests.jump}</Text>
+      </View>
+    </ScrollView>
+  )
 }
 
-Jump.contextType = SpaContext
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    height: '100%',
+    width: '100%'
+  },
+  scrollContents: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calsAndTimeContainer: {
+    marginTop: 10,
+    marginBottom: 10,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  circle: {
+    flex: 1,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: 'black',
+    // minWidth: 80,
+    // alignItems: 'center',
+    marginBottom: 10
+  },
+  text1: {
+    flex: 1,
+    // fontSize: 14,
+    color: '#2f354b',
+    // textAlign: 'center',
+    backgroundColor: 'black',
+  },
+  text2: {
+    flex: 2,
+    // fontSize: 14,
+    color: '#2f354b',
+    // textAlign: 'center',
+    backgroundColor: 'red',
+  }
+})
 export default withFitnessPage(Jump)

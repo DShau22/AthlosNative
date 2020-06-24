@@ -43,10 +43,9 @@ const Carousel = (props) => {
       value: dayMonth,
     })
   })
-  console.log(dates);
   return (
     <View style={styles.carousel}>
-      <Dropdown
+      {/* <Dropdown
         label={displayDate()}
         data={dates}
         onChangeText={(value, idx, data) => {
@@ -54,7 +53,7 @@ const Carousel = (props) => {
           dropdownItemClick(idx)
         }}
         containerStyle={{ width: '80%' }}
-      />
+      /> */}
       <View style={styles.slideShow}>
         <Arrow
           direction="left"

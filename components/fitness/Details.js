@@ -1,11 +1,14 @@
 import React from 'react'
+import {
+  View, Text, StyleSheet
+} from 'react-native'
 // import {
 //   NavLink,
 // } from "react-router-dom"
 
 export default function Details( props ) {
   return (
-    <div className="mt-3">
+    <View>
       {/* <NavLink
         className="btn btn-primary"
         id="details"
@@ -13,7 +16,7 @@ export default function Details( props ) {
       >
         details
       </NavLink> */}
-      SOME DETAILS OHOHO
-    </div>
+      <Text>SOME DETAILS OHOHO</Text>
+    </View>
   )
 }

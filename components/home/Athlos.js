@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Text, View, StyleSheet, Alert } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Header } from 'react-native-elements';
 
 import {
   getData,
@@ -28,6 +29,7 @@ const dataURL = ENDPOINTS.getData
 
 function Athlos(props) {
   const [state, setState] = React.useState({
+    headerText: 'Home',
     friends: [],
     friendRequests: [],
     friendsPending: [],
@@ -489,19 +491,33 @@ function Athlos(props) {
   // }
   const BottomTab = createBottomTabNavigator();
   return (
-    <UserDataContext.Provider value={state}>
+    <UserDataContext.Provider
+      value={{
+        ...state,
+        renderHeaderText: (page) => {
+          setState({...state, headerText: page})
+        }
+      }}
+    >
       { state.isLoading ? <View style={styles.container}><LoadingSpin/></View> : 
-        <BottomTab.Navigator>
-          <BottomTab.Screen
-            name="Home"
-            component={Home}
-            options={{
-              title: "Home",
-            }}
+        <>
+          <Header
+            leftComponent={{ icon: 'menu', color: '#fff' }}
+            centerComponent={{ text: state.headerText, style: { color: '#fff' } }}
+            rightComponent={{ icon: 'home', color: '#fff' }}
           />
-          <BottomTab.Screen name="Fitness" component={Fitness}/>
-          {/* <BottomTab.Screen name="Community" component={}/> */}
-        </BottomTab.Navigator>
+          <BottomTab.Navigator>
+            <BottomTab.Screen
+              name="Home"
+              component={Home}
+            />
+            <BottomTab.Screen
+              name="Fitness"
+              component={Fitness}
+            />
+            {/* <BottomTab.Screen name="Community" component={}/> */}
+          </BottomTab.Navigator>
+        </>
       }
     </UserDataContext.Provider>
   )
