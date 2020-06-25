@@ -1,102 +1,71 @@
 import React, { Component } from 'react'
-import SpaContext from "../Context"
+import { View, ScrollView, StyleSheet, Alert, FlatList } from 'react-native'
+import { Tooltip, Text, ListItem } from 'react-native-elements';
+import { UserDataContext, SettingsContext, AppFunctionsContext } from "../../Context"
 import LoadingScreen from "../generic/LoadingScreen"
-import {
-  withRouter
-} from "react-router-dom";
-import {
-  getToken,
-  storageKey
-} from '../utils/storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
-import './settings.css'
-import $ from 'jquery';
+
+import Spinner from 'react-native-loading-spinner-overlay';
+import {
+  getData,
+  storeDataObj,
+} from '../utils/storage';
 
 import UnitSystemMenu from "./dropdown-menus/UnitSystemMenu"
 import PoolLengthMenu from "./dropdown-menus/PoolLengthMenu"
 import PrivacyMenu from "./dropdown-menus/PrivacyMenu"
 import PoolLengthPopup from "./PoolLengthPopup"
 
+import SettingsMenu from "./settingScreens/SettingsMenu"
+import FriendSettings from "./settingScreens/FriendSettings"
+
 import Success from "../messages/Success"
 import ErrorAlert from "../messages/Error"
 import ENDPOINTS from '../endpoints'
+import PrivacySetting from './settingScreens/PrivacySetting';
 
-const friendsListHelpMsg = 'Set who can see your friends list on you profile'
-const fitnessHelpMsg = 'Set who can see your fitness stats such as average number of steps taken per day, calories burned, etc.'
-const basicInfoHelpMsg = 'Set who can see descriptions about you such as your bio, height, weight, etc.'
-const unitSystemHelpMsg = 'Set what unit system you would prefer to view measurements in'
-const lapSwimHelpMsg = 'Set the default length of your lap swim pool. You can change this individually for each workout'
-// vars for checking which dropdown menu to display
-const friendsListID = 'friends list'
-const fitnessID = 'fitness'
-const basicInfoID = 'info'
-const swimLapID = 'swim lap'
-const unitSystemID = 'unit system'
-const settingsURL = ENDPOINTS.updateSettings
+const Settings = (props) => {
+  const [state, setState] = React.useState({
+    isLoading: false,
+    // show the custom swim popup or not
+    showCustomSwimSettings: false,
+    // display either yards or meters in custom swim popup by default
+    customSwimUnits: "Yards",
+    // user inputted swimming length
+    currCustomSwimLength: 25,
+    // custom swimming length to save in the format of: distance units
+    customSwimLength: "",
 
-class Settings extends Component {
-  constructor(props) {
-    super(props)
-  
-    this.state = {
-      // show the custom swim popup or not
-      showCustomSwimSettings: false,
-      // display either yards or meters in custom swim popup by default
-      customSwimUnits: "Yards",
-      // user inputted swimming length
-      currCustomSwimLength: 25,
-      // custom swimming length to save in the format of: distance units
-      customSwimLength: "",
+    friendsListChoice: "",
+    fitnessChoice: "",
+    basicInfoChoice: "",
+    unitDisplayChoice: "",
+    swimLengthChoice: "",
+  })
+  const context = React.useContext(UserDataContext);
+  const { setAppState } = React.useContext(AppFunctionsContext); 
+  console.log("settings: ", context.settings)
+  useFocusEffect(
+    React.useCallback(() => {
 
-      friendsListChoice: "",
-      fitnessChoice: "",
-      basicInfoChoice: "",
-      unitDisplayChoice: "",
-      swimLengthChoice: "",
-
-      //errors
-      errorMsgs: "",
-      successMsgs: "",
-    }
-    this.saveSettings = this.saveSettings.bind(this)
-    this.openCustomSwimSettings = this.openCustomSwimSettings.bind(this)
-    this.closeCustomSwimSettings = this.closeCustomSwimSettings.bind(this)
-    this.onCustomSwimClick = this.onCustomSwimClick.bind(this)
-
-    this.setFriendsListChoice = this.setFriendsListChoice.bind(this)
-    this.setFitnessChoice = this.setFitnessChoice.bind(this)
-    this.setBasicInfoChoice = this.setBasicInfoChoice.bind(this)
-    this.setUnitDisplayChoice = this.setUnitDisplayChoice.bind(this)
-    this.setSwimLengthChoice = this.setSwimLengthChoice.bind(this)
-    this.setCustomSwimUnits = this.setCustomSwimUnits.bind(this)
-    this.onCustomSwimLengthChange = this.onCustomSwimLengthChange.bind(this)
-    this.setCustomSwimLength = this.setCustomSwimLength.bind(this)
-
-    // errors
-    this.displayErrors = this.displayErrors.bind(this)
-    this.displaySuccesses = this.displaySuccesses.bind(this)
-  }
-  
-  // below is for initalizing tooltips
-  componentDidMount() {
-    $('[data-toggle="tooltip"]').tooltip();
-    // debugger;
-  }
-  
-  componentDidUpdate() {
-    $('[data-toggle="tooltip"]').tooltip();
-  }
-
-  async saveSettings() {
+    }, [])
+  );
+  const saveSettings = async () => {
     console.log('saving settings...')
+    setState({
+      ...state,
+      isLoading: true,
+    })
     var {
       friendsListChoice,
       fitnessChoice,
       basicInfoChoice,
       unitDisplayChoice,
       swimLengthChoice,
-    } = this.state
-    var { settings } = this.context
+    } = state
+    var { settings } = context
     // replace with what's already in the context if it's empty
     friendsListChoice = friendsListChoice ? friendsListChoice : settings.seeFriendsList
     fitnessChoice = fitnessChoice ? fitnessChoice : settings.seeFitness
@@ -106,14 +75,37 @@ class Settings extends Component {
 
     console.log(friendsListChoice, fitnessChoice, basicInfoChoice, unitDisplayChoice, swimLengthChoice)
     // get user token
-    const token = getToken(storageKey)
+    const token = await getData()
     if (!token) {
       // send them back to the login page
-      alert("Your session has expired. Please login again.")
-      this.props.history.push("/")
+      console.log("WOT they have no token hmmmm")
       return
+      // return
     } 
 
+    // update Athlos state
+    setAppState({
+      ...context,
+      settings: {
+        seeBasicInfo: basicInfoChoice,
+        seeFitness: fitnessChoice,
+        seeFriendsList: friendsListChoice,
+        swimLap: swimLengthChoice,
+        unitSystem: unitDisplayChoice
+      }
+    })
+    console.log("app state updated")
+
+    // update async storage
+    try {
+      await storeDataObj(context)
+    } catch(e) {
+      console.error(e)
+      Alert.alert('Oh No :(', "Something went wrong with trying to save your settings. Please try again.", [{ text: "Okay" }]);
+    }
+    console.log("async storage updated")
+
+    // update settings with the backend
     try {
       var res = await fetch(settingsURL, {
         method: "POST",
@@ -131,86 +123,88 @@ class Settings extends Component {
       })
       var json = await res.json()
       if (json.success) {
-        this.props.updateUserInfo()
-        this.setState({
-          successMsgs: "Successfully saved your new settings"
+        // props.updateUserInfo()
+        Alert.alert('All Done!', "Your settings have been successfully updated :)", [{ text: "Okay" }]);
+        setState({
+          ...state,
+          isLoading: false,
         })
       } else {
-        throw Error(json.messages.msg)
+        Alert.alert('Oh No :(', "Something went wrong with the response from the server. Please try again.", [{ text: "Okay" }]);
+        setState({
+          ...state,
+          isLoading: false,
+        })
       }
     } catch(e) {
       console.error(e)
-      this.setState({
-        errorMsgs: "Something went wrong when trying to save your settings. Please try again later."
+      Alert.alert('Oh No :(', "Something went wrong with the connection to the server. Please try again.", [{ text: "Okay" }]);
+      setState({
+        ...state,
+        isLoading: false,
       })
     }
   }
 
-  setFriendsListChoice(e) {
-    this.setState({
+  const setFriendsListChoice = (e) => {
+    setState({
       friendsListChoice: e.currentTarget.textContent,
     })
   }
 
-  setFitnessChoice(e) {
-    this.setState({
+  const setFitnessChoice = (e) => {
+    setState({
       fitnessChoice: e.currentTarget.textContent,
     })
   }
 
-  setBasicInfoChoice(e) {
-    this.setState({
+  const setBasicInfoChoice = (e) => {
+    setState({
       basicInfoChoice: e.currentTarget.textContent,
     })
   }
 
-  setUnitDisplayChoice(e) {
-    this.setState({
+  const setUnitDisplayChoice = (e) => {
+    setState({
       unitDisplayChoice: e.currentTarget.textContent,
     })
   }
 
-  openCustomSwimSettings() {
-    this.setState({
-      showCustomSwimSettings: true
-    })
-  }
-
-  closeCustomSwimSettings() {
-    this.setState({
+  const closeCustomSwimSettings = () => {
+    setState({
       showCustomSwimSettings: false
     })
   }
 
   // causes the popup for entering custom swimming lap distance to open
-  onCustomSwimClick() {
-    this.setState({
+  const onCustomSwimClick = () => {
+    setState({
       showCustomSwimSettings: true
     })
   }
 
-  setSwimLengthChoice(e) {
-    this.setState({
+  const setSwimLengthChoice = (e) => {
+    setState({
       swimLengthChoice: e.currentTarget.textContent,
     })
   }
 
-  setCustomSwimUnits(e) {
-    this.setState({
+  const setCustomSwimUnits = (e) => {
+    setState({
       customSwimUnits: e.currentTarget.textContent,
     })
   }
 
-  onCustomSwimLengthChange(e) {
-    this.setState({
+  const onCustomSwimLengthChange = (e) => {
+    setState({
       currCustomSwimLength: e.target.value
     })
   }
 
   // saves the custom entered swimming pool length the user put in to the state 
   // in the format: "distance units"
-  setCustomSwimLength() {
-    var { customSwimUnits, currCustomSwimLength } = this.state
+  const setCustomSwimLength = () => {
+    var { customSwimUnits, currCustomSwimLength } = state
     // user must have entered a swimming length
     if (!currCustomSwimLength) {
 
@@ -223,39 +217,39 @@ class Settings extends Component {
     }
     // set the custom swim length that can be uploaded to database, and also
     // close the modal
-    this.setState({
+    setState({
       swimLengthChoice: `${currCustomSwimLength} ${customSwimUnits}`,
       showCustomSwimSettings: false
     })
   }
 
-  renderDropDown(menuType, dropdownText) {
+  const renderDropDown = (menuType, dropdownText) => {
     let {
       friendsListChoice,
       fitnessChoice,
       basicInfoChoice,
       unitDisplayChoice,
       swimLengthChoice
-    } = this.state
+    } = state
     if (menuType === friendsListID) {
       return ( 
         <PrivacyMenu
           dropdownText={friendsListChoice ? friendsListChoice : dropdownText}
-          onSelect={this.setFriendsListChoice}
+          onSelect={setFriendsListChoice}
         />
       )
     } else if (menuType === fitnessID) {
-      return (<PrivacyMenu dropdownText={fitnessChoice ? fitnessChoice : dropdownText} onSelect={this.setFitnessChoice}/>)
+      return (<PrivacyMenu dropdownText={fitnessChoice ? fitnessChoice : dropdownText} onSelect={setFitnessChoice}/>)
     } else if (menuType === basicInfoID) {
-      return (<PrivacyMenu dropdownText={basicInfoChoice ? basicInfoChoice : dropdownText} onSelect={this.setBasicInfoChoice}/>)
+      return (<PrivacyMenu dropdownText={basicInfoChoice ? basicInfoChoice : dropdownText} onSelect={setBasicInfoChoice}/>)
     } else if (menuType === unitSystemID) {
-      return (<UnitSystemMenu dropdownText={unitDisplayChoice ? unitDisplayChoice : dropdownText} onSelect={this.setUnitDisplayChoice}/>)
+      return (<UnitSystemMenu dropdownText={unitDisplayChoice ? unitDisplayChoice : dropdownText} onSelect={setUnitDisplayChoice}/>)
     } else if (menuType === swimLapID) {
       return (
         <PoolLengthMenu
           dropdownText={swimLengthChoice ? swimLengthChoice : dropdownText}
-          onCustomSwimClick={this.onCustomSwimClick}
-          onSelect={this.setSwimLengthChoice}
+          onCustomSwimClick={onCustomSwimClick}
+          onSelect={setSwimLengthChoice}
         />
       )
     } else {
@@ -263,17 +257,17 @@ class Settings extends Component {
     }
   }
 
-  displayErrors() {
+  const displayErrors = () => {
     const clearErrors = () => {
       console.log("clearing errors...")
-      this.setState({
+      setState({
         errorMsgs: ""
       })
     }
-    if (this.state.errorMsgs) {
+    if (state.errorMsgs) {
       return (
         <div className="msg-container">
-          <ErrorAlert msg={this.state.errorMsgs} onClose={clearErrors}/>
+          <ErrorAlert msg={state.errorMsgs} onClose={clearErrors}/>
         </div>
       )
     } else {
@@ -281,16 +275,16 @@ class Settings extends Component {
     }
   }
   
-  displaySuccesses() {
+  const displaySuccesses = () => {
     const clearSuccesses = () => {
-      this.setState({
+      setState({
         successMsgs: ""
       })
     }
-    if (this.state.successMsgs) {
+    if (state.successMsgs) {
       return (
         <div className="msg-container">
-          <Success msg={this.state.successMsgs} onClose={clearSuccesses}/>
+          <Success msg={state.successMsgs} onClose={clearSuccesses}/>
         </div>
       )
     } else {
@@ -298,104 +292,159 @@ class Settings extends Component {
     }
   }
 
-  render() {
-    let { settings } = this.context
-    // if the firstname in the context is blank then it hasnt finished populating yet
-    console.log("rendering settings")
-    if (!this.context.firstName) {
-      return ( <LoadingScreen/>)
-    } else {
-      return (
-        <div className='settings-container'>
-          <h3 className='settings-header mt-3 pb-3'>Settings</h3>
-          <PoolLengthPopup 
-            showCustomSwimSettings={this.state.showCustomSwimSettings}
-            closeCustomSwimSettings={this.closeCustomSwimSettings}
-            onCustomSwimLengthChange={this.onCustomSwimLengthChange}
-            setCustomSwimUnits={this.setCustomSwimUnits}
-            setCustomSwimLength={this.setCustomSwimLength}
-            customSwimUnits={this.state.customSwimUnits}
+  // for navigating to each setting page
+  const Stack = createStackNavigator();
+  let { settings } = context;
+  // if the firstname in the context is blank then it hasnt finished populating yet
+  if (!context.firstName) {
+    return ( <LoadingScreen/>)
+  } else {
+    return (
+      <SettingsContext.Provider value={{ saveSettings, state, setState }}>
+        <Spinner
+          visible={state.isLoading}
+          textContent={'Saving...'}
+          textStyle={styles.spinnerTextStyle}
+        />
+        <Stack.Navigator>
+          <Stack.Screen
+            name={SETTINGS_MENU}
+            component={SettingsMenu}
           />
-          <ul className='settings-list'>
-            <li className='settings-list-item'>
-              <i
-                className="fa help-icon"
-                data-toggle="tooltip"
-                data-placement="top"
-                title={friendsListHelpMsg}
-              >
-                &#xf059;
-              </i>
-              <span className='setting-text'>Who can see your friends list?</span>
-              {this.renderDropDown(friendsListID, settings.seeFriendsList)}
-            </li>
-            <li className='settings-list-item'>
-              <i
-                className="fa help-icon"
-                data-toggle="tooltip"
-                data-placement="top"
-                title={fitnessHelpMsg}
-              >
-                &#xf059;
-              </i>
-              <span className='setting-text'>Who can see your fitness?</span>
-              {this.renderDropDown(fitnessID, settings.seeFitness)}
-            </li>
-            <li className='settings-list-item'>
-              <i
-                className="fa help-icon"
-                data-toggle="tooltip"
-                data-placement="top"
-                title={basicInfoHelpMsg}
-              >
-                &#xf059;
-              </i>
-              <span className='setting-text'>Who can see your basic info?</span>
-              {this.renderDropDown(basicInfoID, settings.seeBasicInfo)}
-            </li>
-            <li className='settings-list-item'>
-              <i
-                className="fa help-icon"
-                data-toggle="tooltip"
-                data-placement="top"
-                title={unitSystemHelpMsg}
-              >
-                &#xf059;
-              </i>
-              <span className='setting-text'>Unit system to display</span>
-              {this.renderDropDown(unitSystemID, settings.unitSystem)}
-            </li>
-            <li className='settings-list-item'>
-              <i
-                className="fa help-icon"
-                data-toggle="tooltip"
-                data-placement="top"
-                title={lapSwimHelpMsg}
-              >
-                &#xf059;
-              </i>
-              <span className='setting-text'>Default swimming pool length</span>
-              {this.renderDropDown(swimLapID, settings.swimLap)}
-            </li>
-            <li className='settings-list-item' id='save-settings-list-item'>
-              <div className='help-icon empty-space'></div>
-              <div className='setting-text empty-space'></div>
-              <div className='save-settings'>
-                <button 
-                  className='save-settings-btn btn btn-primary'
-                  onClick={this.saveSettings}
-                >
-                  Save
-                </button>
-              </div>
-            </li>
-          </ul>
-          {this.displayErrors()}
-          {this.displaySuccesses()}
-        </div>
-      )
-    }
+          <Stack.Screen
+            name={FRIENDS_SETTINGS}
+            component={PrivacySetting}
+            initialParams={{settingsList: FRIENDS_SETTINGS_LIST}}
+          />
+          <Stack.Screen
+            name={FITNESS_SETTINGS}
+            component={PrivacySetting}
+            initialParams={{settingsList: FITNESS_SETTINGS_LIST}}
+          />
+          <Stack.Screen
+            name={BASIC_INFO_SETTINGS}
+            component={PrivacySetting}
+            initialParams={{settingsList: BASIC_INFO_SETTINGS_LIST}}
+          />
+          <Stack.Screen
+            name={UNIT_SYSTEM_SETTINGS}
+            component={PrivacySetting}
+            initialParams={{settingsList: UNIT_SYSTEM_SETTINGS_LIST}}
+          />
+          <Stack.Screen
+            name={SWIM_SETTINGS}
+            component={PrivacySetting}
+            initialParams={{settingsList: SWIM_SETTINGS_LIST}}
+          />
+        </Stack.Navigator>
+      </SettingsContext.Provider>
+    )
   }
 }
-Settings.contextType = SpaContext
-export default withRouter(Settings)
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    height: '100%',
+    width: '100%'
+  },
+  scrollContents: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+})
+// vars for checking which dropdown menu to display
+const friendsListID = 'friends list'
+const fitnessID = 'fitness'
+const basicInfoID = 'info'
+const swimLapID = 'swim lap'
+const unitSystemID = 'unit system'
+const settingsURL = ENDPOINTS.updateSettings
+
+const SETTINGS_MENU = ' '
+const FRIENDS_SETTINGS = 'Friends Settings'
+const FITNESS_SETTINGS = 'Fitness Settings'
+const BASIC_INFO_SETTINGS = 'Basic Info Settings'
+const UNIT_SYSTEM_SETTINGS = 'Unit System Settings'
+const SWIM_SETTINGS = 'Swimming Settings'
+
+const ONLY_ME = 'Only Me'
+const FRIENDS = 'Only Friends'
+const EVERYONE = 'Everyone'
+
+const FRIENDS_SETTINGS_LIST = [
+  {
+    title: EVERYONE,
+    subtitle: 'FRIENDS_SETTINGS_LIST',  
+  },
+  {
+    title: FRIENDS,
+    subtitle: 'FRIENDS_SETTINGS_LIST',
+  },
+  {
+    title: ONLY_ME,
+    subtitle: 'FRIENDS_SETTINGS_LIST', 
+  },
+]
+
+const FITNESS_SETTINGS_LIST = [
+  {
+    title: EVERYONE,
+    subtitle: 'FITNESS_SETTINGS_LIST',  
+  },
+  {
+    title: FRIENDS,
+    subtitle: 'FITNESS_SETTINGS_LIST',
+  },
+  {
+    title: ONLY_ME,
+    subtitle: 'FITNESS_SETTINGS_LIST', 
+  },
+]
+
+const BASIC_INFO_SETTINGS_LIST = [
+  {
+    title: EVERYONE,
+    subtitle: 'BASIC_INFO_SETTINGS_LIST',  
+  },
+  {
+    title: FRIENDS,
+    subtitle: 'BASIC_INFO_SETTINGS_LIST',
+  },
+  {
+    title: ONLY_ME,
+    subtitle: 'BASIC_INFO_SETTINGS_LIST', 
+  },
+]
+
+const UNIT_SYSTEM_SETTINGS_LIST = [
+  {
+    title: EVERYONE,
+    subtitle: 'UNIT_SYSTEM_SETTINGS_LIST',  
+  },
+  {
+    title: FRIENDS,
+    subtitle: 'UNIT_SYSTEM_SETTINGS_LIST',
+  },
+  {
+    title: ONLY_ME,
+    subtitle: 'UNIT_SYSTEM_SETTINGS_LIST', 
+  },
+]
+
+const SWIM_SETTINGS_LIST = [
+  {
+    title: EVERYONE,
+    subtitle: 'SWIM_SETTINGS_LIST',  
+  },
+  {
+    title: FRIENDS,
+    subtitle: 'SWIM_SETTINGS_LIST',
+  },
+  {
+    title: ONLY_ME,
+    subtitle: 'SWIM_SETTINGS_LIST', 
+  },
+]
+
+export default Settings

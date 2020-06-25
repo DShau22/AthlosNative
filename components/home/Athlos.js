@@ -18,8 +18,9 @@ import {
 } from "../utils/userInfo"
 import LoadingSpin from '../generic/LoadingSpin';
 import Fitness from "../fitness/Fitness"
-import { UserDataContext } from "../../Context"
+import { UserDataContext, AppFunctionsContext } from "../../Context"
 import Home from "./Home"
+import Settings from "../settings/Settings"
 // server url
 const defaultProfile = "./profile/default_profile.png"
 
@@ -427,28 +428,34 @@ function Athlos(props) {
   //   )
   // }
 
-  // // updates the state and therefore the context if the user info is suspected
-  // // to change. For example if the user changes their settings we want the new
-  // // settings to be applied automatically. For now only used for settings.
-  // async updateUserInfo() {
-  //   // get the user's information here from database
-  //   // make request to server to user information and set state
-  //   var userToken = getToken()
-  //   var headers = new Headers()
-  //   headers.append("authorization", `Bearer ${userToken}`)
+  // updates the state and therefore the context if the user info is suspected
+  // to change. For example if the user changes their settings we want the new
+  // settings to be applied automatically. For now only used for settings.
 
-  //   var res = await fetch(getUserInfoURL, { method: "GET", headers })
-  //   var userJson = await res.json()
-  //   this.setState(prevState => ({
-  //     ...userJson,
-  //     // socket: prevState.socket,
-  //     mounted: true,
-  //     friendTableRows: prevState.friendTableRows,
-  //     jumpJson: prevState.jumpJson,
-  //     runJson: prevState.runJson,
-  //     swimJson: prevState.swimJson,
-  //   }))
-  // }
+  // RUN THIS EVERY NOW AND THEN. PROBABLY SHOULD UPDATE STATE/CONTEXT
+  // LOCALL, SAVE TO ASYNC STORAGE, AND THEN USE THIS TO SEND TO DATABASE
+
+  // HAVE A METHOD THAT RUNS AND JUST UPDATES DATABASE AFTER USER SAVES
+  // ANYTHING SUBSTANTIAL LIKE SETTINGS OR THEY SYNC WITH EARBUDS
+  const updateUserInfo = async () => {
+    // get the user's information here from database
+    // make request to server to user information and set state
+    var userToken = getToken()
+    var headers = new Headers()
+    headers.append("authorization", `Bearer ${userToken}`)
+
+    var res = await fetch(getUserInfoURL, { method: "GET", headers })
+    var userJson = await res.json()
+    this.setState(prevState => ({
+      ...userJson,
+      // socket: prevState.socket,
+      mounted: true,
+      friendTableRows: prevState.friendTableRows,
+      jumpJson: prevState.jumpJson,
+      runJson: prevState.runJson,
+      swimJson: prevState.swimJson,
+    }))
+  }
 
   // render() {
   //   console.log("rendering header...")
@@ -491,19 +498,16 @@ function Athlos(props) {
   // }
   const BottomTab = createBottomTabNavigator();
   return (
-    <UserDataContext.Provider
-      value={{
-        ...state,
-        renderHeaderText: (page) => {
-          setState({...state, headerText: page})
-        }
-      }}
-    >
+    <UserDataContext.Provider value={state}>
+      <AppFunctionsContext.Provider
+        value={{
+          setAppState: setState
+        }}
+      >
       { state.isLoading ? <View style={styles.container}><LoadingSpin/></View> : 
         <>
           <Header
             leftComponent={{ icon: 'menu', color: '#fff' }}
-            centerComponent={{ text: state.headerText, style: { color: '#fff' } }}
             rightComponent={{ icon: 'home', color: '#fff' }}
           />
           <BottomTab.Navigator>
@@ -515,10 +519,15 @@ function Athlos(props) {
               name="Fitness"
               component={Fitness}
             />
+            <BottomTab.Screen
+              name="Settings"
+              component={Settings}
+            />
             {/* <BottomTab.Screen name="Community" component={}/> */}
           </BottomTab.Navigator>
         </>
       }
+      </AppFunctionsContext.Provider>
     </UserDataContext.Provider>
   )
 }

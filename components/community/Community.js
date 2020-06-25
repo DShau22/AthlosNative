@@ -5,6 +5,28 @@ import {
   NavLink,
 } from "react-router-dom";
 
+
+// USE THIS FOR FREINDS LIST
+/* <FlatList
+renderItem={renderListItem}
+data={settingsList}
+keyExtractor={item => item.title}
+/> */
+
+// const renderListItem = ({ item }) => (
+//   <ListItem
+//     title={item.title}
+//     subtitle={item.subtitle}
+//     // leftAvatar={{ source: { uri: item.avatar_url } }}
+//     bottomDivider
+//     chevron
+//     onPress={() => {
+//       console.log("pressed")
+//       navigation.navigate(item.title)
+//     }}
+//   />
+// )
+
 import React, { Component } from 'react'
 import Searchbar from "./Searchbar"
 import FriendRequests from "./friends/FriendRequests"

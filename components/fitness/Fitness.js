@@ -25,7 +25,7 @@ const Fitness = (props) => {
   const context = React.useContext(UserDataContext);
   useFocusEffect(
     React.useCallback(() => {
-      context.renderHeaderText("My Fitness")
+
     }, [])
   );
   const renderActivity = () => {

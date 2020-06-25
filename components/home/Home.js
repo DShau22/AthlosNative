@@ -7,7 +7,7 @@ const Home = (props) => {
   const context = React.useContext(UserDataContext);
   useFocusEffect(
     React.useCallback(() => {
-      context.renderHeaderText("Home")
+      
     }, [])
   );
   return (

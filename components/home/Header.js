@@ -369,6 +369,9 @@ class Header extends Component {
   // updates the state and therefore the context if the user info is suspected
   // to change. For example if the user changes their settings we want the new
   // settings to be applied automatically. For now only used for settings.
+
+  // RUN THIS EVERY NOW AND THEN. PROBABLY SHOULD UPDATE STATE/CONTEXT
+  // LOCALL, SAVE TO ASYNC STORAGE, AND THEN USE THIS TO SEND TO DATABASE
   async updateUserInfo() {
     // get the user's information here from database
     // make request to server to user information and set state
