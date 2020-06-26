@@ -126,12 +126,14 @@ export default function withFitnessPage( WrappedComponent ) {
       var { activityData } = props.route.params.activityJson
       var nextIndex = Math.min((state.activityIndex + 1), activityData.length - 1)
       setState({ ...state, activityIndex: nextIndex })
+      console.log("previous pressed! ", state.activityIndex)
     }
   
     const nextSlide = () => {
       // 0 represents the most recent upload date
       var nextIndex = Math.max((state.activityIndex - 1), 0)
       setState({ ...state, activityIndex: nextIndex })
+      console.log("next pressed! ", state.activityIndex)
     }
 
     var { activityIndex, pastGraphData, pastGraphLabels } = state

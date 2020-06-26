@@ -81,6 +81,7 @@ function Athlos(props) {
         console.log("This is weird. Somehow log them out and redirect to login page")
       }
       if (userData) {
+        console.log("there is data is async storage")
         setState({ ...userData, isLoading: false});
         return;
       }
@@ -149,7 +150,8 @@ function Athlos(props) {
         // store in Async storage so no need to request every time
         // probably change this later so this refreshes every now and then?
         // adding a service worker or background process would be good
-        await storeDataObj(state);
+        console.log("storing state: ", state)
+        // await storeDataObj(state);
       } else {
         console.log("one of the requests to get fitness data or user info didn't work");
         console.log("user: ", userJson);

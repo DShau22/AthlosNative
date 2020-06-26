@@ -73,6 +73,7 @@ const Settings = (props) => {
   
       // update async storage
       try {
+        console.log("storing data object")
         await storeDataObj(context)
       } catch(e) {
         console.error(e)

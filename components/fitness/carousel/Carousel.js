@@ -1,7 +1,5 @@
 import { StyleSheet, View, Text, TouchableOpacity, Button, ScrollView } from "react-native"
-import {
-  Dropdown
-} from 'react-native-material-dropdown';
+import DropDownPicker from 'react-native-dropdown-picker';
 import ImageSlide from "./ImageSlide"
 // import "./Carousel.css"
 import Arrow from "./Arrow"
@@ -35,16 +33,34 @@ const Carousel = (props) => {
   }
 
   var { stats, previousSlide, nextSlide, activityIndex, displayDate, renderSecondary, dropdownItemClick } = props
-  var dates = []
-  stats.activityData.forEach((session, idx) => {
-    var parsed = parseDate(new Date(session.uploadDate))
-    var dayMonth = parsed[0] + ", " + parsed[1] + " " + parsed[2]
-    dates.push({
-      value: dayMonth,
+
+  const createDropdownItems = () => {
+    let result = []
+    stats.activityData.forEach((session, idx) => {
+      var parsed = parseDate(new Date(session.uploadDate))
+      var dayMonth = parsed[0] + ", " + parsed[1] + " " + parsed[2]
+      result.push({
+        label: dayMonth,
+        value: idx
+      })
     })
-  })
+    return result
+  }
+  console.log(createDropdownItems())
+
   return (
     <View style={styles.carousel}>
+      <DropDownPicker
+        items={createDropdownItems()}
+        defaultValue={stats.activityData[activityIndex].uploadDate}
+        containerStyle={{height: 40}}
+        style={{backgroundColor: '#fafafa'}}
+        dropDownStyle={{backgroundColor: '#fafafa'}}
+        onChangeItem={item => {
+          // set the activity index to what it should be (item.value)
+          dropdownItemClick(item.value)
+        }}
+      />
       {/* <Dropdown
         label={displayDate()}
         data={dates}
