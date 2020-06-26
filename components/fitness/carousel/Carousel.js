@@ -1,7 +1,5 @@
 import { StyleSheet, View, Text, TouchableOpacity, Button, ScrollView } from "react-native"
-import {
-  Dropdown
-} from 'react-native-material-dropdown';
+import DropDownPicker from 'react-native-dropdown-picker';
 import ImageSlide from "./ImageSlide"
 // import "./Carousel.css"
 import Arrow from "./Arrow"
@@ -35,16 +33,38 @@ const Carousel = (props) => {
   }
 
   var { stats, previousSlide, nextSlide, activityIndex, displayDate, renderSecondary, dropdownItemClick } = props
-  var dates = []
-  stats.activityData.forEach((session, idx) => {
-    var parsed = parseDate(new Date(session.uploadDate))
-    var dayMonth = parsed[0] + ", " + parsed[1] + " " + parsed[2]
-    dates.push({
-      value: dayMonth,
+  const makeDropdownItems = () => {
+    let dates = [];
+    stats.activityData.forEach((session, idx) => {
+      var parsed = parseDate(new Date(session.uploadDate))
+      var dayMonth = parsed[0] + ", " + parsed[1] + " " + parsed[2]
+      dates.push({
+        label: dayMonth,
+        value: idx,
+      })
     })
-  })
+    if (dates === undefined || dates.length === 0) {
+      dates.push({
+        label: "You have no records yet :(",
+        value: 0
+      })
+    }
+    return dates
+  }
+  console.log("dropdown items: ", makeDropdownItems())
+  const items = makeDropdownItems();
   return (
     <View style={styles.carousel}>
+      <DropDownPicker
+        items={items}
+        defaultValue={items[0].value}
+        containerStyle={{height: 40}}
+        style={{backgroundColor: '#fafafa'}}
+        dropDownStyle={{backgroundColor: '#fafafa'}}
+        onChangeItem={(item) => {
+          dropdownItemClick(item.value);
+        }}
+      />
       {/* <Dropdown
         label={displayDate()}
         data={dates}
