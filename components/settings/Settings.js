@@ -16,10 +16,8 @@ import {
 import UnitSystemMenu from "./dropdown-menus/UnitSystemMenu"
 import PoolLengthMenu from "./dropdown-menus/PoolLengthMenu"
 import PrivacyMenu from "./dropdown-menus/PrivacyMenu"
-import PoolLengthPopup from "./PoolLengthPopup"
 
 import SettingsMenu from "./settingScreens/SettingsMenu"
-import FriendSettings from "./settingScreens/FriendSettings"
 
 import Success from "../messages/Success"
 import ErrorAlert from "../messages/Error"
@@ -27,201 +25,115 @@ import ENDPOINTS from '../endpoints'
 import PrivacySetting from './settingScreens/PrivacySetting';
 
 const Settings = (props) => {
-  const [state, setState] = React.useState({
-    isLoading: false,
-    // show the custom swim popup or not
-    showCustomSwimSettings: false,
-    // display either yards or meters in custom swim popup by default
-    customSwimUnits: "Yards",
-    // user inputted swimming length
-    currCustomSwimLength: 25,
-    // custom swimming length to save in the format of: distance units
-    customSwimLength: "",
-
-    friendsListChoice: "",
-    fitnessChoice: "",
-    basicInfoChoice: "",
-    unitDisplayChoice: "",
-    swimLengthChoice: "",
-  })
   const context = React.useContext(UserDataContext);
+  let { settings } = context;
   const { setAppState } = React.useContext(AppFunctionsContext); 
-  console.log("settings: ", context.settings)
+
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [customSwimUnits, setCustomSwimUnits] = React.useState('Yards');
+  const [currCustomSwimLength, setCurrCustomSwimLength] = React.useState('');
+  const [customSwimLength, setCustomSwimLength] = React.useState(0);
+  const [friendsListChoice, setFriendsListChoice] = React.useState(settings.seeFriendsList);
+  const [fitnessChoice, setFitnessChoice] = React.useState(settings.seeFitness);
+  const [basicInfoChoice, setBasicInfoChoice] = React.useState(settings.seeBasicInfo);
+  const [unitDisplayChoice, setUnitDisplayChoice] = React.useState(settings.unitSystem);
+  const [swimLengthChoice, setSwimLengthChoice] = React.useState(settings.swimLap);
+
   useFocusEffect(
     React.useCallback(() => {
 
     }, [])
   );
-  const saveSettings = async () => {
-    console.log('saving settings...')
-    setState({
-      ...state,
-      isLoading: true,
-    })
-    var {
-      friendsListChoice,
-      fitnessChoice,
-      basicInfoChoice,
-      unitDisplayChoice,
-      swimLengthChoice,
-    } = state
-    var { settings } = context
-    // replace with what's already in the context if it's empty
-    friendsListChoice = friendsListChoice ? friendsListChoice : settings.seeFriendsList
-    fitnessChoice = fitnessChoice ? fitnessChoice : settings.seeFitness
-    basicInfoChoice = basicInfoChoice ? basicInfoChoice : settings.seeBasicInfo
-    unitDisplayChoice = unitDisplayChoice ? unitDisplayChoice : settings.unitSystem
-    swimLengthChoice = swimLengthChoice ? swimLengthChoice : settings.swimLap
-
-    console.log(friendsListChoice, fitnessChoice, basicInfoChoice, unitDisplayChoice, swimLengthChoice)
-    // get user token
-    const token = await getData()
-    if (!token) {
-      // send them back to the login page
-      console.log("WOT they have no token hmmmm")
-      return
-      // return
-    } 
-
-    // update Athlos state
-    setAppState({
-      ...context,
-      settings: {
-        seeBasicInfo: basicInfoChoice,
-        seeFitness: fitnessChoice,
-        seeFriendsList: friendsListChoice,
-        swimLap: swimLengthChoice,
-        unitSystem: unitDisplayChoice
-      }
-    })
-    console.log("app state updated")
-
-    // update async storage
-    try {
-      await storeDataObj(context)
-    } catch(e) {
-      console.error(e)
-      Alert.alert('Oh No :(', "Something went wrong with trying to save your settings. Please try again.", [{ text: "Okay" }]);
-    }
-    console.log("async storage updated")
-
-    // update settings with the backend
-    try {
-      var res = await fetch(settingsURL, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userToken: token,
-          seeFriendsList: friendsListChoice,
-          seeFitness: fitnessChoice,
+  const saveSettings = () => {
+    const asyncSaveSettings = async () => {
+      console.log('saving settings...')
+      setIsLoading(true);
+      console.log(friendsListChoice, fitnessChoice, basicInfoChoice, unitDisplayChoice, swimLengthChoice)
+      // get user token
+      const token = await getData()
+      if (!token) {
+        // send them back to the login page
+        console.log("WOT they have no token hmmmm")
+        return
+        // return
+      } 
+  
+      // update Athlos state
+      setAppState({
+        ...context,
+        settings: {
           seeBasicInfo: basicInfoChoice,
-          unitSystem: unitDisplayChoice,
-          swimLap: swimLengthChoice
-        })
+          seeFitness: fitnessChoice,
+          seeFriendsList: friendsListChoice,
+          swimLap: swimLengthChoice,
+          unitSystem: unitDisplayChoice
+        }
       })
-      var json = await res.json()
-      if (json.success) {
-        // props.updateUserInfo()
-        Alert.alert('All Done!', "Your settings have been successfully updated :)", [{ text: "Okay" }]);
-        setState({
-          ...state,
-          isLoading: false,
-        })
-      } else {
-        Alert.alert('Oh No :(', "Something went wrong with the response from the server. Please try again.", [{ text: "Okay" }]);
-        setState({
-          ...state,
-          isLoading: false,
-        })
+      console.log("app state updated")
+  
+      // update async storage
+      try {
+        await storeDataObj(context)
+      } catch(e) {
+        console.error(e)
+        Alert.alert('Oh No :(', "Something went wrong with trying to save your settings. Please try again.", [{ text: "Okay" }]);
       }
-    } catch(e) {
-      console.error(e)
-      Alert.alert('Oh No :(', "Something went wrong with the connection to the server. Please try again.", [{ text: "Okay" }]);
-      setState({
-        ...state,
-        isLoading: false,
-      })
+      console.log("async storage updated")
+  
+      // update settings with the backend
+      try {
+        var res = await fetch(settingsURL, {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userToken: token,
+            seeFriendsList: friendsListChoice,
+            seeFitness: fitnessChoice,
+            seeBasicInfo: basicInfoChoice,
+            unitSystem: unitDisplayChoice,
+            swimLap: swimLengthChoice
+          })
+        })
+        var json = await res.json()
+        if (json.success) {
+          // props.updateUserInfo()
+          Alert.alert('All Done!', "Your settings have been successfully updated :)", [{ text: "Okay" }]);
+          setIsLoading(false);
+        } else {
+          Alert.alert('Oh No :(', "Something went wrong with the response from the server. Please try again.", [{ text: "Okay" }]);
+          setIsLoading(false);
+        }
+      } catch(e) {
+        console.error(e)
+        Alert.alert('Oh No :(', "Something went wrong with the connection to the server. Please try again.", [{ text: "Okay" }]);
+        setIsLoading(false);
+      }
     }
+    asyncSaveSettings();
   }
+  // // saves the custom entered swimming pool length the user put in to the state 
+  // // in the format: "distance units"
+  // const setCustomSwimLength = () => {
+  //   var { customSwimUnits, currCustomSwimLength } = state
+  //   // user must have entered a swimming length
+  //   if (!currCustomSwimLength) {
 
-  const setFriendsListChoice = (e) => {
-    setState({
-      friendsListChoice: e.currentTarget.textContent,
-    })
-  }
-
-  const setFitnessChoice = (e) => {
-    setState({
-      fitnessChoice: e.currentTarget.textContent,
-    })
-  }
-
-  const setBasicInfoChoice = (e) => {
-    setState({
-      basicInfoChoice: e.currentTarget.textContent,
-    })
-  }
-
-  const setUnitDisplayChoice = (e) => {
-    setState({
-      unitDisplayChoice: e.currentTarget.textContent,
-    })
-  }
-
-  const closeCustomSwimSettings = () => {
-    setState({
-      showCustomSwimSettings: false
-    })
-  }
-
-  // causes the popup for entering custom swimming lap distance to open
-  const onCustomSwimClick = () => {
-    setState({
-      showCustomSwimSettings: true
-    })
-  }
-
-  const setSwimLengthChoice = (e) => {
-    setState({
-      swimLengthChoice: e.currentTarget.textContent,
-    })
-  }
-
-  const setCustomSwimUnits = (e) => {
-    setState({
-      customSwimUnits: e.currentTarget.textContent,
-    })
-  }
-
-  const onCustomSwimLengthChange = (e) => {
-    setState({
-      currCustomSwimLength: e.target.value
-    })
-  }
-
-  // saves the custom entered swimming pool length the user put in to the state 
-  // in the format: "distance units"
-  const setCustomSwimLength = () => {
-    var { customSwimUnits, currCustomSwimLength } = state
-    // user must have entered a swimming length
-    if (!currCustomSwimLength) {
-
-    }
-    // standardize for database
-    if (customSwimUnits === "Meters") {
-      customSwimUnits = "m"
-    } else {
-      customSwimUnits = 'yds'
-    }
-    // set the custom swim length that can be uploaded to database, and also
-    // close the modal
-    setState({
-      swimLengthChoice: `${currCustomSwimLength} ${customSwimUnits}`,
-      showCustomSwimSettings: false
-    })
-  }
+  //   }
+  //   // standardize for database
+  //   if (customSwimUnits === "Meters") {
+  //     customSwimUnits = "m"
+  //   } else {
+  //     customSwimUnits = 'yds'
+  //   }
+  //   // set the custom swim length that can be uploaded to database, and also
+  //   // close the modal
+  //   setState({
+  //     swimLengthChoice: `${currCustomSwimLength} ${customSwimUnits}`,
+  //     showCustomSwimSettings: false
+  //   })
+  // }
 
   const renderDropDown = (menuType, dropdownText) => {
     let {
@@ -294,48 +206,69 @@ const Settings = (props) => {
 
   // for navigating to each setting page
   const Stack = createStackNavigator();
-  let { settings } = context;
   // if the firstname in the context is blank then it hasnt finished populating yet
   if (!context.firstName) {
     return ( <LoadingScreen/>)
   } else {
     return (
-      <SettingsContext.Provider value={{ saveSettings, state, setState }}>
+      <SettingsContext.Provider value={{
+        saveSettings,
+      }}>
         <Spinner
-          visible={state.isLoading}
+          visible={isLoading}
           textContent={'Saving...'}
           textStyle={styles.spinnerTextStyle}
         />
         <Stack.Navigator>
-          <Stack.Screen
-            name={SETTINGS_MENU}
-            component={SettingsMenu}
-          />
-          <Stack.Screen
-            name={FRIENDS_SETTINGS}
-            component={PrivacySetting}
-            initialParams={{settingsList: FRIENDS_SETTINGS_LIST}}
-          />
-          <Stack.Screen
-            name={FITNESS_SETTINGS}
-            component={PrivacySetting}
-            initialParams={{settingsList: FITNESS_SETTINGS_LIST}}
-          />
-          <Stack.Screen
-            name={BASIC_INFO_SETTINGS}
-            component={PrivacySetting}
-            initialParams={{settingsList: BASIC_INFO_SETTINGS_LIST}}
-          />
-          <Stack.Screen
-            name={UNIT_SYSTEM_SETTINGS}
-            component={PrivacySetting}
-            initialParams={{settingsList: UNIT_SYSTEM_SETTINGS_LIST}}
-          />
-          <Stack.Screen
-            name={SWIM_SETTINGS}
-            component={PrivacySetting}
-            initialParams={{settingsList: SWIM_SETTINGS_LIST}}
-          />
+          <Stack.Screen name={SETTINGS_MENU}>
+            {(props) => <SettingsMenu {...props} saveSettings={saveSettings}/>}
+          </Stack.Screen>
+          <Stack.Screen name={FRIENDS_SETTINGS}>
+            {(props) => (
+              <PrivacySetting
+                settingsList={FRIENDS_SETTINGS_LIST}
+                updateSettings={setFriendsListChoice}
+                defaultOption={friendsListChoice}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name={FITNESS_SETTINGS}>
+            {(props) => (
+              <PrivacySetting
+                settingsList={FITNESS_SETTINGS_LIST}
+                updateSettings={setFitnessChoice}
+                defaultOption={fitnessChoice}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name={BASIC_INFO_SETTINGS}>
+            {(props) => (
+              <PrivacySetting
+                settingsList={BASIC_INFO_SETTINGS_LIST}
+                updateSettings={setBasicInfoChoice}
+                defaultOption={basicInfoChoice}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name={UNIT_SYSTEM_SETTINGS}>
+            {(props) => (
+              <PrivacySetting
+                settingsList={UNIT_SYSTEM_SETTINGS_LIST}
+                updateSettings={setUnitDisplayChoice}
+                defaultOption={unitDisplayChoice}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name={SWIM_SETTINGS}>
+            {(props) => (
+              <PrivacySetting
+                {...props}
+                settingsList={SWIM_SETTINGS_LIST}
+                updateSettings={setSwimLengthChoice}
+                defaultOption={swimLengthChoice}
+              />
+            )}
+          </Stack.Screen>
         </Stack.Navigator>
       </SettingsContext.Provider>
     )

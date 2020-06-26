@@ -7,11 +7,16 @@ const FRIENDS = 'Only Friends'
 const EVERYONE = 'Everyone'
 
 export default function PrivacySetting(props) {
-  const [buttonPressed, setButtonPressed] = React.useState(ONLY_ME)
+  let { defaultOption, settingsList, updateSettings } = props;
+  let initialChoice = defaultOption;
+  // this is just in case the backend names don't line up with the frontend
+  if (defaultOption !== ONLY_ME && defaultOption !== FRIENDS && defaultOption !== EVERYONE) initialChoice = ONLY_ME;
+
+  const [buttonPressed, setButtonPressed] = React.useState(initialChoice);
   return (
     <FlatList
       style={styles.container}
-      data={props.route.params.settingsList}
+      data={props.settingsList}
       keyExtractor={(obj, idx) => obj.title}
       renderItem={({ item }) => (
         <ListItem
@@ -24,12 +29,15 @@ export default function PrivacySetting(props) {
             <RadioButton
               value={item.title}
               status={buttonPressed === item.title ? 'checked' : 'unchecked'}
-              onPress={() => setButtonPressed(item.title)}
+              onPress={() => {
+                setButtonPressed(item.title);
+                props.updateSettings(item.title);
+              }}
             />
           )}
           onPress={() => {
-            setButtonPressed(item.title)
-            // props.navigation.navigate(item.title)
+            setButtonPressed(item.title);
+            props.updateSettings(item.title);
           }}
         />
       )}

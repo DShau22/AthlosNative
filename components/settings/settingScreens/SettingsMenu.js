@@ -54,7 +54,7 @@ const SettingsMenu = (props) => {
       <Button
         style={styles.saveButton}
         mode="contained"
-        onPress={settingsContext.saveSettings}
+        onPress={props.saveSettings}
       >
         Save Settings
       </Button>
