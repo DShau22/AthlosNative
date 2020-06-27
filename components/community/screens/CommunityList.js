@@ -42,7 +42,7 @@ const CommunityList = (props) => {
             onPress={() => {
               console.log("friend pressed")
               // get the user's profile and display based on their settings
-              onItemPress(item.id)
+              onItemPress(item)
             }}
           />
         )}

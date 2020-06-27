@@ -15,10 +15,7 @@ const Discover = (props) => {
         subtitle='some subtitle?'
         bottomDivider
         chevron
-        onPress={() => {
-          console.log("search pressed!")
-          // get the user's profile and display based on their settings
-        }}
+        onPress={() => props.onItemPress(item)}
       />
     )
   }
