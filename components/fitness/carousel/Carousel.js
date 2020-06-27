@@ -59,21 +59,12 @@ const Carousel = (props) => {
         items={items}
         defaultValue={items[0].value}
         containerStyle={{height: 40}}
-        style={{backgroundColor: '#fafafa'}}
+        style={styles.dropdownStyle}
         dropDownStyle={{backgroundColor: '#fafafa'}}
         onChangeItem={(item) => {
           dropdownItemClick(item.value);
         }}
       />
-      {/* <Dropdown
-        label={displayDate()}
-        data={dates}
-        onChangeText={(value, idx, data) => {
-          console.log("idx: ", idx)
-          dropdownItemClick(idx)
-        }}
-        containerStyle={{ width: '80%' }}
-      /> */}
       <View style={styles.slideShow}>
         <Arrow
           direction="left"
@@ -104,6 +95,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+  },
+  dropdownStyle: {
+    backgroundColor: '#fafafa',
+    width: '100%',
+    height: 100,
   },
   activitiesDropdown: {
     height: 'auto',
