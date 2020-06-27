@@ -13,11 +13,6 @@ import {
   getData,
 } from '../../utils/storage';
 
-import UnitSystemMenu from "../dropdown-menus/UnitSystemMenu"
-import PoolLengthMenu from "../dropdown-menus/PoolLengthMenu"
-import PrivacyMenu from "../dropdown-menus/PrivacyMenu"
-import PoolLengthPopup from "../PoolLengthPopup"
-
 import ENDPOINTS from '../../endpoints'
 
 const SettingsMenu = (props) => {

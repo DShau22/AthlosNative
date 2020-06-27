@@ -33,7 +33,6 @@ const Carousel = (props) => {
   }
 
   var { stats, previousSlide, nextSlide, activityIndex, displayDate, renderSecondary, dropdownItemClick } = props
-<<<<<<< HEAD
 
   const createDropdownItems = () => {
     let result = []
@@ -47,59 +46,18 @@ const Carousel = (props) => {
     })
     return result
   }
-  console.log(createDropdownItems())
 
   return (
     <View style={styles.carousel}>
       <DropDownPicker
         items={createDropdownItems()}
-        defaultValue={stats.activityData[activityIndex].uploadDate}
+        defaultValue={activityIndex}
         containerStyle={{height: 40}}
-        style={{backgroundColor: '#fafafa'}}
+        style={styles.dropdownStyle}
         dropDownStyle={{backgroundColor: '#fafafa'}}
         onChangeItem={item => {
           // set the activity index to what it should be (item.value)
           dropdownItemClick(item.value)
-        }}
-      />
-      {/* <Dropdown
-        label={displayDate()}
-        data={dates}
-        onChangeText={(value, idx, data) => {
-          console.log("idx: ", idx)
-          dropdownItemClick(idx)
-=======
-  const makeDropdownItems = () => {
-    let dates = [];
-    stats.activityData.forEach((session, idx) => {
-      var parsed = parseDate(new Date(session.uploadDate))
-      var dayMonth = parsed[0] + ", " + parsed[1] + " " + parsed[2]
-      dates.push({
-        label: dayMonth,
-        value: idx,
-      })
-    })
-    if (dates === undefined || dates.length === 0) {
-      dates.push({
-        label: "You have no records yet :(",
-        value: 0
-      })
-    }
-    return dates
-  }
-  console.log("dropdown items: ", makeDropdownItems())
-  const items = makeDropdownItems();
-  return (
-    <View style={styles.carousel}>
-      <DropDownPicker
-        items={items}
-        defaultValue={items[0].value}
-        containerStyle={{height: 40}}
-        style={styles.dropdownStyle}
-        dropDownStyle={{backgroundColor: '#fafafa'}}
-        onChangeItem={(item) => {
-          dropdownItemClick(item.value);
->>>>>>> dropdown
         }}
       />
       <View style={styles.slideShow}>
