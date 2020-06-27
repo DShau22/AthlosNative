@@ -61,7 +61,6 @@ const SettingsMenu = (props) => {
             key={item.title}
             title={item.title}
             subtitle={item.subtitle}
-            // leftAvatar={{ source: { uri: item.avatar_url } }}
             bottomDivider
             onPress={() => {
               console.log("pressed")
@@ -74,110 +73,6 @@ const SettingsMenu = (props) => {
         )}
       />
     </View>
-    // <ScrollView
-    //   contentContainerStyle={styles.scrollContents}
-    //   style={styles.container}
-    // >
-    //   {settingsList.map((item, idx) => (
-    //     <ListItem
-    //       key={idx}
-    //       title={item.title}
-    //       subtitle={item.subtitle}
-    //       // leftAvatar={{ source: { uri: item.avatar_url } }}
-    //       bottomDivider
-    //       chevron
-    //       onPress={() => {
-    //         console.log("pressed")
-    //         props.navigation.navigate(item.title)
-    //       }}
-    //     />
-    //   ))}
-
-    //   {/* <PoolLengthPopup 
-    //     showCustomSwimSettings={state.showCustomSwimSettings}
-    //     closeCustomSwimSettings={closeCustomSwimSettings}
-    //     onCustomSwimLengthChange={onCustomSwimLengthChange}
-    //     setCustomSwimUnits={setCustomSwimUnits}
-    //     setCustomSwimLength={setCustomSwimLength}
-    //     customSwimUnits={state.customSwimUnits}
-    //   />
-    //   <ul className='settings-list'>
-    //     <li className='settings-list-item'>
-    //       <i
-    //         className="fa help-icon"
-    //         data-toggle="tooltip"
-    //         data-placement="top"
-    //         title={friendsListHelpMsg}
-    //       >
-    //         &#xf059;
-    //       </i>
-    //       <span className='setting-text'>Who can see your friends list?</span>
-    //       {renderDropDown(friendsListID, settings.seeFriendsList)}
-    //     </li>
-    //     <li className='settings-list-item'>
-    //       <i
-    //         className="fa help-icon"
-    //         data-toggle="tooltip"
-    //         data-placement="top"
-    //         title={fitnessHelpMsg}
-    //       >
-    //         &#xf059;
-    //       </i>
-    //       <span className='setting-text'>Who can see your fitness?</span>
-    //       {renderDropDown(fitnessID, settings.seeFitness)}
-    //     </li>
-    //     <li className='settings-list-item'>
-    //       <i
-    //         className="fa help-icon"
-    //         data-toggle="tooltip"
-    //         data-placement="top"
-    //         title={basicInfoHelpMsg}
-    //       >
-    //         &#xf059;
-    //       </i>
-    //       <span className='setting-text'>Who can see your basic info?</span>
-    //       {renderDropDown(basicInfoID, settings.seeBasicInfo)}
-    //     </li>
-    //     <li className='settings-list-item'>
-    //       <i
-    //         className="fa help-icon"
-    //         data-toggle="tooltip"
-    //         data-placement="top"
-    //         title={unitSystemHelpMsg}
-    //       >
-    //         &#xf059;
-    //       </i>
-    //       <span className='setting-text'>Unit system to display</span>
-    //       {renderDropDown(unitSystemID, settings.unitSystem)}
-    //     </li>
-    //     <li className='settings-list-item'>
-    //       <i
-    //         className="fa help-icon"
-    //         data-toggle="tooltip"
-    //         data-placement="top"
-    //         title={lapSwimHelpMsg}
-    //       >
-    //         &#xf059;
-    //       </i>
-    //       <span className='setting-text'>Default swimming pool length</span>
-    //       {renderDropDown(swimLapID, settings.swimLap)}
-    //     </li>
-    //     <li className='settings-list-item' id='save-settings-list-item'>
-    //       <div className='help-icon empty-space'></div>
-    //       <div className='setting-text empty-space'></div>
-    //       <div className='save-settings'>
-    //         <button 
-    //           className='save-settings-btn btn btn-primary'
-    //           onClick={saveSettings}
-    //         >
-    //           Save
-    //         </button>
-    //       </div>
-    //     </li>
-    //   </ul>
-    //   {displayErrors()}
-    //   {displaySuccesses()} */}
-    // </ScrollView>
   )
 }
 

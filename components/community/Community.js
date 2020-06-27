@@ -1,165 +1,100 @@
 import {
-  getToken,
+  getData,
 } from '../utils/storage';
-import {
-  NavLink,
-} from "react-router-dom";
 
+import React from 'react'
+// import FriendRequests from "./friends/FriendRequests"
+// import Friends from "./friends/Friends"
+import { View, Alert, StyleSheet, SectionList, Dimensions, PixelRatio } from 'react-native'
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 
-// USE THIS FOR FREINDS LIST
-/* <FlatList
-renderItem={renderListItem}
-data={settingsList}
-keyExtractor={item => item.title}
-/> */
+import Discover from './screens/Discover'
 
-// const renderListItem = ({ item }) => (
-//   <ListItem
-//     title={item.title}
-//     subtitle={item.subtitle}
-//     // leftAvatar={{ source: { uri: item.avatar_url } }}
-//     bottomDivider
-//     chevron
-//     onPress={() => {
-//       console.log("pressed")
-//       navigation.navigate(item.title)
-//     }}
-//   />
-// )
-
-import React, { Component } from 'react'
-import Searchbar from "./Searchbar"
-import FriendRequests from "./friends/FriendRequests"
-import CommunityHeader from "./header/CommunityHeader"
-import Friends from "./friends/Friends"
-
-import SpaContext from '../Context'
-import "./style/css/Community.css"
+import { UserDataContext } from '../../Context'
 import ENDPOINTS from "../endpoints"
+import CommunityList from './screens/CommunityList';
 const searchURL = ENDPOINTS.searchUser
 const friendReqURL = ENDPOINTS.sendFriendReq
 // const getUserInfoURL = "https://us-central1-athlos-live.cloudfunctions.net/athlos-server/getUserInfo"
 const tokenToID = ENDPOINTS.tokenToID
 const acceptFriendURL = ENDPOINTS.acceptFriendReq
 const imgAlt = "default"
-class Community extends Component {
-  // used to keep track of mounting lifecycle
-  // sometimes components in the router get
-  // mounted, the unmounted right away, still dont know why
-  _isMounted = false
+const Community = (props) => {
+  const [stateFriends, setStateFriends] = React.useState([]);
+  const [display, setDisplay] = React.useState('friends');
+  const [searches, setSearches] = React.useState([]);
+  const [searchText, setSearchText] = React.useState('');
+  const [showQueries, setShowQueries] = React.useState(false);
+  const [emptySearch, setEmptySearch] = React.useState(false);
+  const [numFriendsDisplay, setNumFriendsDisplay] = React.useState(25);
 
-  constructor(props) {
-    super(props)
-    this.state = {
-      display: 'friends',
-      searches: [],
-      searchText: "",
-      showQueries: false,
-      emptySearch: false,
-      numFriendsDisplay: 25,
-    }
-    this.renderSearch = this.renderSearch.bind(this)
-    this.search = this.search.bind(this)
-    this.onSearchTextChange = this.onSearchTextChange.bind(this)
-    this.mouseLeave = this.mouseLeave.bind(this)
-    this.sendReq = this.sendReq.bind(this)
-    this.addFriendToState = this.addFriendToState.bind(this)
-    this.removeFriendReq = this.removeFriendReq.bind(this)
-    this.acceptRequest = this.acceptRequest.bind(this)
-    this.clearSearch = this.clearSearch.bind(this)
-    this.setDisplay = this.setDisplay.bind(this)
-    this.renderDisplay = this.renderDisplay.bind(this)
-  }
+  const context = React.useContext(UserDataContext);
 
-  componentWillUnmount() {
-    this._isMounted = false
-    console.log('community has unmounted')
-  }
-
-  componentDidMount() {
-    console.log("community has mounted")
-    this._isMounted = true
-  }
-
-  setDisplay(newDisplay) {
-    this.setState({ display: newDisplay })
-  }
-
-  removeFriendReq(id) {
+  const removeFriendReq = (id) => {
     console.log("removing friend with id: ", id)
-    var { friendRequests } = this.context
+    var { friendRequests } = context
     // remove friend object from requests with id
     var removed = friendRequests.filter((friend) => {
       return friend.senderID !== id
     })
     console.log("removed", removed)
-    this.setState({
+    setState({
       friendRequests: removed,
     })
   }
 
-  addFriendToState(id, firstName, lastName) {
-    var { friends } = this.context
+  const addFriendToState = (id, firstName, lastName) => {
+    var { friends } = context
     var friendObject = { id, firstName, lastName }
-    this.setState({
-      friends: [...friends, friendObject]
-    })
+    setFriends([...friends, friendObject])
   }
 
-  onSearchTextChange(e) {
-    this.setState({
-      searchText: e.target.value
-    })
-  }
-
-  async search(e) {
-    e.preventDefault()
-    var { searchText } = this.state
-    var userToken = getToken()
-
-    var reqBody = {
-      searchText,
-      userToken,
-    }
-
-    if (this.state.searchText) {
-      var res = await fetch(searchURL, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(reqBody),
-      })
-      var json = await res.json()
-      if (!json.success) {
-        // DISPLAY SOME SORT OF ERROR
-        alert(json.message)
+  const search = (searchText, setIsLoading) => {
+    const asyncSearch = async () => {
+      if (!searchText) return;
+      // first clear the current searches
+      setSearches([]);
+      setIsLoading(true);
+      var userToken = await getData();
+      var reqBody = {
+        searchText,
+        userToken,
       }
-      var { users } = json
-      if (users === undefined || users.length === 0) {
-        this.setState({
-          emptySearch: true,
+      try {
+        var res = await fetch(searchURL, {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(reqBody),
         })
-      } else {
-        console.log(users)
-        this.setState({
-          searches: users,
-          showQueries: true,
-          emptySearch: false
-        })
+        var json = await res.json()
+        if (!json.success) {
+          // DISPLAY SOME SORT OF ERROR
+          console.log("json.success is false: ", json)
+          Alert.alert(`Oh No :(`, "Something went wrong with the server. Please try again.", [{ text: "Okay" }]);
+          setIsLoading(false);
+        }
+        var { users } = json
+        if (users === undefined || users.length === 0) {
+          setEmptySearch(true);
+        } else {
+          setSearches(users);
+          setShowQueries(true);
+          setEmptySearch(false);
+        }
+        setIsLoading(false);
+      } catch(e) {
+        Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please try again.", [{ text: "Okay" }]);
+        setIsLoading(false);
       }
     }
+    asyncSearch();
   }
 
-  mouseLeave() {
-    this.setState({
-      searchText: ""
-    })
-  }
-
-  async decodeToken() {
+  const decodeToken = async () => {
     // send request to server to decode stored token into the user id
-    var userToken = getToken()
+    var userToken = await getData();
     var headers = new Headers()
     headers.append("authorization", `Bearer ${userToken}`)
     var res = await fetch(tokenToID, {method: "GET", headers})
@@ -168,13 +103,13 @@ class Community extends Component {
     return userID
   }
 
-  async sendReq(_id, receiverFirstName, receiverLastName, receiverUsername) {
+  const sendReq = async (_id, receiverFirstName, receiverLastName, receiverUsername) => {
     // emit event using web socket to server
-    var { socket } = this.context
-    var { firstName, lastName, username } = this.context
+    var { socket } = context
+    var { firstName, lastName, username } = context
 
     // get decoded userID
-    var userID = await this.decodeToken()
+    var userID = await decodeToken()
     var userToken = getToken()
     console.log("sending request", userID)
     socket.emit("sendFriendRequest", {
@@ -210,13 +145,13 @@ class Community extends Component {
     .catch((err) => {throw err})
   }
 
-  async acceptRequest(senderID, senderFirstName, senderLastName) {
+  const acceptRequest = async (senderID, senderFirstName, senderLastName) => {
     // SENDER refers to the FRIEND REQUEST SENDER
     var userToken = getToken()
-    var { firstName, lastName } = this.context
+    var { firstName, lastName } = context
     // send notification to server
-    var { socket } = this.context
-    var userID = this.decodeToken()
+    var { socket } = context
+    var userID = decodeToken()
     socket.emit("acceptFriendRequest", { userID, receiverFirstName: firstName, receiverLastName: lastName, otherFriendID: senderID })
 
     var reqBody = {
@@ -239,169 +174,230 @@ class Community extends Component {
     console.log("json message: ", json.message)
   }
 
-  clearSearch() {
+  const clearSearch = () => {
     // set search state data to inital state
-    this.setState({
-      searchText: "",
-      searches: [],
-      showQueries: false,
-      emptySearch: false,
-    })
+    setSearchText('');
+    setSearches([]);
+    setShowQueries(false);
+    setEmptySearch(false);
   }
 
-  renderSearch() {
-    var liTags = []
-    var { searches, emptySearch } = this.state
-    var { friends, friendRequests, friendsPending, rootURL } = this.context
+  // const renderSearch = () => {
+  //   var liTags = []
+  //   var { searches, emptySearch } = state
+  //   var { friends, friendRequests, friendsPending, rootURL } = context
 
-    // put the user ids into a set for easy lookup
-    // apparently these constructors don't work on IE 11
-    var friendSet = new Set(friends.map(user => user.id))
-    var requestSet = new Set(friendRequests.map(user => user.id))
-    var pendingSet = new Set(friendsPending.map(user => user.id))
+  //   // put the user ids into a set for easy lookup
+  //   // apparently these constructors don't work on IE 11
+  //   var friendSet = new Set(friends.map(user => user.id))
+  //   var requestSet = new Set(friendRequests.map(user => user.id))
+  //   var pendingSet = new Set(friendsPending.map(user => user.id))
 
-    // if user just searched name not in database
-    if (emptySearch) {
-      liTags.push(
-        <div className="empty-search-container" key="empty-key">
-          <span>No search results :( try being more specific</span>
-        </div>
-      )
-    }
+  //   // if user just searched name not in database
+  //   if (emptySearch) {
+  //     liTags.push(
+  //       <div className="empty-search-container" key="empty-key">
+  //         <span>No search results :( try being more specific</span>
+  //       </div>
+  //     )
+  //   }
 
-    var displayButton = (user, friendSet, requestSet, pendingSet) => {
-      // console.log(user, friendSet, requestSet, pendingSet)
-      var { firstName, lastName, _id, username} = user
-      if (friendSet.has(_id)) {
-        return (
-          <React.Fragment>
-            <i className="fas fa-check ml-1 mr-1"></i>
-            <span className='mr-1'>Friends</span>
-          </React.Fragment>
-        )
-      } else if (requestSet.has(_id)) {
-        return (
-          <div
-            className='rel-wrapper'              
-            onClick={() => {
-              this.acceptRequest(_id, firstName, lastName)
-              this.removeFriendReq(_id)
-              this.addFriendToState(_id, firstName, lastName)
-            }}
-          >
-            <i className="fas fa-user-plu req-sent ml-1 mr-1"></i>
-            <span className='accept-req-btn'>
-              accept
-            </span>
-          </div>
-        )
-      } else if (pendingSet.has(_id)) {
-        return (
-          <React.Fragment>
-            <i className="fas fa-user-plu req-sent ml-1 mr-1"></i>
-            <span className=''>Request Sent</span>
-          </React.Fragment>
-        )
-      } else {
-        return (
-            <div
-              className='rel-wrapper'
-              onClick={() => {this.sendReq(_id, firstName, lastName, username)}}
-            >
-              <i className="fas fa-user-plu req-sent ml-1 mr-1"></i>
-              <span className='add-friend-btn ml-1'>Add</span> 
-            </div>
-        )
-      }
-    }
+  //   var displayButton = (user, friendSet, requestSet, pendingSet) => {
+  //     // console.log(user, friendSet, requestSet, pendingSet)
+  //     var { firstName, lastName, _id, username} = user
+  //     if (friendSet.has(_id)) {
+  //       return (
+  //         <React.Fragment>
+  //           <i className="fas fa-check ml-1 mr-1"></i>
+  //           <span className='mr-1'>Friends</span>
+  //         </React.Fragment>
+  //       )
+  //     } else if (requestSet.has(_id)) {
+  //       return (
+  //         <div
+  //           className='rel-wrapper'              
+  //           onClick={() => {
+  //             acceptRequest(_id, firstName, lastName)
+  //             removeFriendReq(_id)
+  //             addFriendToState(_id, firstName, lastName)
+  //           }}
+  //         >
+  //           <i className="fas fa-user-plu req-sent ml-1 mr-1"></i>
+  //           <span className='accept-req-btn'>
+  //             accept
+  //           </span>
+  //         </div>
+  //       )
+  //     } else if (pendingSet.has(_id)) {
+  //       return (
+  //         <React.Fragment>
+  //           <i className="fas fa-user-plu req-sent ml-1 mr-1"></i>
+  //           <span className=''>Request Sent</span>
+  //         </React.Fragment>
+  //       )
+  //     } else {
+  //       return (
+  //           <div
+  //             className='rel-wrapper'
+  //             onClick={() => {sendReq(_id, firstName, lastName, username)}}
+  //           >
+  //             <i className="fas fa-user-plu req-sent ml-1 mr-1"></i>
+  //             <span className='add-friend-btn ml-1'>Add</span> 
+  //           </div>
+  //       )
+  //     }
+  //   }
 
-    searches.forEach((user, i) => {
-      var { firstName, lastName, _id, username, profilePicture } = user
-      // capitalize first and last name before displaying
-      firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1)
-      lastName  = lastName.charAt(0).toUpperCase() + lastName.slice(1)
-      liTags.push(
-        <div key={_id + "_search"} className="user-container">
-          <img
-            src={profilePicture.profileURL}
-            alt={imgAlt}
-          ></img>
-          <NavLink
-            to={{pathname: `${rootURL}/profile/${username}`}}
-            className='search-name ml-3'
-          >
-            {firstName}, {lastName}
-          </NavLink>
-          <div className='search-relationship'>
-            {displayButton(user, friendSet, requestSet, pendingSet)}
-          </div>
-        </div>
-      )
-    })
+  //   searches.forEach((user, i) => {
+  //     var { firstName, lastName, _id, username, profilePicture } = user
+  //     // capitalize first and last name before displaying
+  //     firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1)
+  //     lastName  = lastName.charAt(0).toUpperCase() + lastName.slice(1)
+  //     liTags.push(
+  //       <div key={_id + "_search"} className="user-container">
+  //         <img
+  //           src={profilePicture.profileURL}
+  //           alt={imgAlt}
+  //         ></img>
+  //         <NavLink
+  //           to={{pathname: `${rootURL}/profile/${username}`}}
+  //           className='search-name ml-3'
+  //         >
+  //           {firstName}, {lastName}
+  //         </NavLink>
+  //         <div className='search-relationship'>
+  //           {displayButton(user, friendSet, requestSet, pendingSet)}
+  //         </div>
+  //       </div>
+  //     )
+  //   })
 
-    liTags.push(
-      <div className="clear-search-container mt-3" key="clear-search-container">
-        <span onClick={this.clearSearch}>Clear Search</span>
-      </div>
-    )
-    return liTags
-  }
+  //   liTags.push(
+  //     <div className="clear-search-container mt-3" key="clear-search-container">
+  //       <span onClick={clearSearch}>Clear Search</span>
+  //     </div>
+  //   )
+  //   return liTags
+  // }
 
-  renderDisplay() {
-    var { display } = this.state
-    var { context } = this
-    display = display.toLowerCase()
-    if (display === 'friends') {
-      return <Friends />
-    } else if (display === 'requests') {
-      return (
-        <FriendRequests
-          userToken={getToken()}
-          userFirstName={context.userFirstName}
-          userLastName={context.userLastName}
-          addFriendToState={this.addFriendToState}
-          removeFriendReq={this.removeFriendReq}
-          friendRequests={context.friendRequests}
-          friendsPending={context.friendsPending}
-          friends={context.friends}
-          numRequests={context.numRequests}
-          acceptRequest={this.acceptRequest}
-        />
-      )     
-    } else if (display === 'search') {
-      return (
-        <div className='search-wrapper'>
-          <h4>Search for users</h4>
-          <Searchbar
-            search={this.search}
-            onSearchTextChange={this.onSearchTextChange}
-            mouseLeave={this.mouseLeave}
-            searchText={this.state.searchText}
+  // const renderDisplay = () => {
+  //   var { display } = state
+  //   var { context } = this
+  //   display = display.toLowerCase()
+  //   if (display === 'friends') {
+  //     return <Friends />
+  //   } else if (display === 'requests') {
+  //     return (
+  //       <FriendRequests
+  //         userToken={getToken()}
+  //         userFirstName={context.userFirstName}
+  //         userLastName={context.userLastName}
+  //         addFriendToState={addFriendToState}
+  //         removeFriendReq={removeFriendReq}
+  //         friendRequests={context.friendRequests}
+  //         friendsPending={context.friendsPending}
+  //         friends={context.friends}
+  //         numRequests={context.numRequests}
+  //         acceptRequest={acceptRequest}
+  //       />
+  //     )     
+  //   } else if (display === 'search') {
+  //     return (
+  //       <div className='search-wrapper'>
+  //         <h4>Search for users</h4>
+  //         <Searchbar
+  //           search={search}
+  //           onSearchTextChange={onSearchTextChange}
+  //           mouseLeave={mouseLeave}
+  //           searchText={state.searchText}
+  //         />
+  //         <div className={"queries" + (state.showQueries ? " expand" : " collapsed")}>
+  //           {renderSearch()}
+  //         </div>
+  //       </div>
+  //     )
+  //   } else {
+  //     console.log('display is not friends, requests, or search')
+  //     return null
+  //   }
+  // }
+
+  const TopTab = createMaterialTopTabNavigator();
+  const { friends, friendRequests, friendsPending } = context;
+  return (
+    <TopTab.Navigator
+      tabBarOptions={{
+        labelStyle: { fontSize: 11 },
+        style: { backgroundColor: 'powderblue' },
+      }}
+    >
+      <TopTab.Screen
+        name="Discover"
+      >
+        {(props) => (
+          <Discover
+            {...props}
+            search={search}
+            users={searches}
           />
-          <div className={"queries" + (this.state.showQueries ? " expand" : " collapsed")}>
-            {this.renderSearch()}
-          </div>
-        </div>
-      )
-    } else {
-      console.log('display is not friends, requests, or search')
-      return null
-    }
-  }
-
-  render() {
-    return (
-      //<Header />
-      <div className="community-container">
-        <CommunityHeader 
-          setDisplay={this.setDisplay}
-        />
-        {this.renderDisplay()}
-      </div>
-    )
-  }
+        )}
+      </TopTab.Screen>
+      <TopTab.Screen
+        name="Following"
+      >
+        {(props) => (
+          <CommunityList
+            {...props}
+            peopleTitle="Following"
+            peopleSubtitle="you're following"
+            pendingTitle="Requests"
+            pendingSubtitle="you've sent a request"
+            pendingList={friendsPending}
+            itemList={friends}
+            onItemPress={() => {}}
+          />
+        )}
+      </TopTab.Screen>
+      <TopTab.Screen
+        name="Followers"
+      >
+        {(props) => (
+          <CommunityList
+            {...props}
+            peopleTitle="Followers"
+            peopleSubtitle="is following you"
+            pendingTitle="Requests"
+            pendingSubtitle="wants to follow you!"
+            pendingList={friendRequests}
+            itemList={friends}
+            onItemPress={() => {}}
+          />
+        )}
+      </TopTab.Screen>
+      <TopTab.Screen
+        name="Rivals"
+        style={styles.tabHeaders}
+      >
+        {(props) => (
+          <CommunityList 
+            {...props}
+            peopleTitle="Rivals"
+            peopleSubtitle="thinks they're better than you >:("
+            pendingTitle="Pending"
+            pendingSubtitle="wants to challenge you!"
+            pendingList={friendsPending}
+            itemList={friends}
+            onItemPress={() => {}}
+          />
+        )}
+      </TopTab.Screen>
+    </TopTab.Navigator>
+  )
 }
-
-Community.contextType = SpaContext
-
+const styles = StyleSheet.create({
+  tabHeaders: {
+    fontSize: 10,
+    backgroundColor: 'black'
+  }
+})
 export default Community

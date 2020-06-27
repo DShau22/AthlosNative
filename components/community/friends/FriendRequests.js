@@ -6,7 +6,6 @@ import {
   getUsername
 } from "../../utils/userInfo"
 import FriendDisplay from "./FriendDisplay"
-import { withRouter } from 'react-router-dom'
 const defaultProfile = 'default'
 const imgAlt = 'alt'
 

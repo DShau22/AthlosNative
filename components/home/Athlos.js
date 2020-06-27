@@ -21,6 +21,7 @@ import Fitness from "../fitness/Fitness"
 import { UserDataContext, AppFunctionsContext } from "../../Context"
 import Home from "./Home"
 import Settings from "../settings/Settings"
+import Community from "../community/Community"
 // server url
 const defaultProfile = "./profile/default_profile.png"
 
@@ -525,7 +526,7 @@ function Athlos(props) {
               name="Settings"
               component={Settings}
             />
-            {/* <BottomTab.Screen name="Community" component={}/> */}
+            <BottomTab.Screen name="Community" component={Community}/>
           </BottomTab.Navigator>
         </>
       }
