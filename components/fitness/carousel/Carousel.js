@@ -33,6 +33,7 @@ const Carousel = (props) => {
   }
 
   var { stats, previousSlide, nextSlide, activityIndex, displayDate, renderSecondary, dropdownItemClick } = props
+<<<<<<< HEAD
 
   const createDropdownItems = () => {
     let result = []
@@ -67,9 +68,40 @@ const Carousel = (props) => {
         onChangeText={(value, idx, data) => {
           console.log("idx: ", idx)
           dropdownItemClick(idx)
+=======
+  const makeDropdownItems = () => {
+    let dates = [];
+    stats.activityData.forEach((session, idx) => {
+      var parsed = parseDate(new Date(session.uploadDate))
+      var dayMonth = parsed[0] + ", " + parsed[1] + " " + parsed[2]
+      dates.push({
+        label: dayMonth,
+        value: idx,
+      })
+    })
+    if (dates === undefined || dates.length === 0) {
+      dates.push({
+        label: "You have no records yet :(",
+        value: 0
+      })
+    }
+    return dates
+  }
+  console.log("dropdown items: ", makeDropdownItems())
+  const items = makeDropdownItems();
+  return (
+    <View style={styles.carousel}>
+      <DropDownPicker
+        items={items}
+        defaultValue={items[0].value}
+        containerStyle={{height: 40}}
+        style={styles.dropdownStyle}
+        dropDownStyle={{backgroundColor: '#fafafa'}}
+        onChangeItem={(item) => {
+          dropdownItemClick(item.value);
+>>>>>>> dropdown
         }}
-        containerStyle={{ width: '80%' }}
-      /> */}
+      />
       <View style={styles.slideShow}>
         <Arrow
           direction="left"
@@ -100,6 +132,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+  },
+  dropdownStyle: {
+    backgroundColor: '#fafafa',
+    width: '100%',
+    height: 100,
   },
   activitiesDropdown: {
     height: 'auto',
