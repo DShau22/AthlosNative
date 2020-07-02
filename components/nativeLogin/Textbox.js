@@ -25,6 +25,8 @@ export default function Textbox(props) {
         <TextInput 
           placeholder={props.placeholder}
           style={styles.textInput}
+          keyboardType={props.keyboardType !== undefined ? props.keyboardType : 'default'}
+          defaultValue={props.defaultValue !== undefined ? props.defaultValue : ''}
           secureTextEntry={props.secureTextEntry}
           autoCapitalize="none"
           onChangeText={(val) => props.handleChange(val)}

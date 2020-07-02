@@ -1,41 +1,30 @@
 // Displays the profile of the user who is logged in on the browser
 // They should be able to see everything
 import React, { Component } from 'react'
+import { View, Image, StyleSheet } from 'react-native'
+import { Text, Button } from 'react-native-elements'
 // import {
 //   withRouter,
 // } from "react-router-dom";
-import ShowMoreText from 'react-show-more-text';
+// import ShowMoreText from 'react-show-more-text';
 
-import SpaContext from '../Context';
+import { UserDataContext } from '../../Context';
 import { weightConvert, heightConvert } from "../utils/unitConverter"
+import PROFILE_CONSTANTS from "./ProfileConstants"
 // import "./css/userProfile.css"
-import Popup from "reactjs-popup";
+// import Popup from "reactjs-popup";
 import EditProfileFunc from "./EditProfileFunc"
 // replace with default avatar link
 const imgAlt = "./default_profile.png"
 
-class UserProfile extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      bestJump: "",
-      bestSwim: "",
-      bestRun: "",
-      editProfile: false,
-      expandBio: false,
-    }
-  }
+const UserProfile = (props) => {
+  const context = React.useContext(UserDataContext);
+  const [expandBio, setExpandBio] = React.useState(false);
 
-  componentDidMount() {
-    console.log("profile mounted")
-    // make a fetch request to get the bests of each user,
-    // as well as the units they wanna display
-  }
-
-  renderBio() {
-    var { bio } = this.context
+  const renderBio = () => {
+    var { bio } = context
     const onClick = () => {
-      this.setState({ expandBio: true })
+      expandBio(true);
     }
     if (!bio) {
       return (
@@ -43,24 +32,25 @@ class UserProfile extends Component {
       )
     }
     return (
-      <ShowMoreText
-        /* Default options */
-        lines={3}
-        more='Show more'
-        less='Show less'
-        anchorClass=''
-        onClick={onClick}
-        expanded={this.state.expandBio}
-      >
-        {bio}
-      </ShowMoreText>
+      <Text>{bio}</Text>
+      // <ShowMoreText
+      //   /* Default options */
+      //   lines={3}
+      //   more='Show more'
+      //   less='Show less'
+      //   anchorClass=''
+      //   onClick={onClick}
+      //   expanded={state.expandBio}
+      // >
+      //   {bio}
+      // </ShowMoreText>
     )
   }
 
-  renderHeight() {
+  const renderHeight = () => {
     // HEIGHT IS IN FORMAT (num) (units in in/cm). Can flat out display it if they 
     // want metric, else convert to __ ft __ in for english system 
-    var { height, settings } = this.context
+    var { height, settings } = context
     var { unitSystem } = settings
     unitSystem = unitSystem.toLowerCase()
     if (!height) {
@@ -78,9 +68,9 @@ class UserProfile extends Component {
     return displayHeight
   }
 
-  renderWeight() {
+  const renderWeight = () => {
     // weight has format (num) (units in kg/lbs)
-    var { weight, settings } = this.context
+    var { weight, settings } = context
     var { unitSystem } = settings
     unitSystem = unitSystem.toLowerCase()
     var displayWeight = weight
@@ -95,112 +85,131 @@ class UserProfile extends Component {
     return displayWeight
   }
 
-  renderBests() {
+  const renderBests = () => {
     // calculate bests based off of state and settings
   }
 
-  renderNumFriends() {
-    var { friends } = this.context
+  const renderNumFriends = () => {
+    var { friends } = context
     return (
       <p>{"friends: " + friends.length}</p>
     )
   }
 
-  renderPopup() {
+  const renderPopup = () => {
     const editBtn = (
-      <div className='edit-btn-container'>
+      <View className='edit-btn-container'>
         <i className='far'>&#xf044;</i>
         <span className="edit-btn">Edit Profile</span>
-      </div>
+      </View>
     )
     return (
-      <Popup trigger={editBtn} modal>
-        {close => (
-          <div className="popup-modal">
-            <div className="popup-close" onClick={close}>
-              &times;
-            </div>
-            <h4 className="popup-header"> Edit your profile </h4>
-            <div className="content">
-              <EditProfileFunc closePopup={close}/>
-            </div>
-          </div>
-        )}
-      </Popup>
+      <Text>popup should be here</Text>
+      // <Popup trigger={editBtn} modal>
+      //   {close => (
+      //     <View className="popup-modal">
+      //       <View className="popup-close" onClick={close}>
+      //         &times;
+      //       </View>
+      //       <h4 className="popup-header"> Edit your profile </h4>
+      //       <View className="content">
+      //         <EditProfileFunc closePopup={close}/>
+      //       </View>
+      //     </View>
+      //   )}
+      // </Popup>
     )
   }
 
-  render() {
-    var { context } = this
-    // if user clicked the button to go to the edit profile page
-    if (context.mounted) {
-      return (
-        <div className="profile-container">
-          <div className='top-half'>
-            {this.renderPopup()}
-            <div className='img-container mt-2'>
-              <img 
-                className='profile-pic'
-                src={context.profilePicture.profileURL}
-                height="75%"
-                width="75%"
-                alt={imgAlt}
-              />
-            </div>
-            <div className="name-container">
-              <span className='fname'>{context.firstName}</span>
-              <span className='lname'>{context.lastName}</span>
-            </div>
-            <div className='info-container m-3'>
-              <div className='row'>
-                <div className='col-4'>
-                  <h5>Age</h5>
-                  <span>{context.age}</span>
-                </div>
-                <div className='col-4'>
-                  <h5>Height</h5>
-                  <span>{this.renderHeight()}</span>
-                </div>
-                <div className='col-4'>
-                  <h5>Weight</h5>
-                  <span>{this.renderWeight()}</span>
-                </div>
-              </div>
-            </div>
-            <div className='bio-container m-3'>
-              <span>{this.renderBio()}</span>
-            </div>
-          </div>
-          <div className='bot-half'>
-            <div className='row'>
-              <div className='col-6'>
-                total steps
-              </div>
-              <div className='col-6'>
-                total mins
-              </div>
-            </div>
-            <div className='row'>
-              <div className='col-6'>
-                total laps
-              </div>
-              <div className='col-6'>
-                hightest jump
-              </div>
-            </div>
-          </div>
-        </div>
-      )
-    } else {
-      // spa hasn't mounted and established context yet
-      return (
-        <div className="profile-loading-container">
-          <span>loading...</span>
-        </div>
-      )
-    }
+  // if user clicked the button to go to the edit profile page
+  if (context.mounted) {
+    return (
+      <View className="profile-container">
+        <View className='top-half'>
+          <Button
+            buttonStyle={styles.editButton}
+            title="Edit Profile"
+            onPress={() => {
+              props.navigation.navigate(PROFILE_CONSTANTS.EDIT_PROFILE)
+            }}
+          />
+          <View className='img-container mt-2'>
+            <Text>Should contain image</Text>
+            <Image 
+              style={styles.tinyLogo}
+              source={{uri: context.profilePicture.profileURL}}
+              // defaultSource={{uri: imgAlt}}
+            />
+          </View>
+          <View className="name-container">
+            <Text className='fname'>{context.firstName}</Text>
+            <Text className='lname'>{context.lastName}</Text>
+          </View>
+          <View className='info-container m-3'>
+            <View className='row'>
+              <View className='col-4'>
+                <Text h4>Age</Text>
+                <Text>{context.age}</Text>
+              </View>
+              <View className='col-4'>
+                <Text h4>Height</Text>
+                <Text>{renderHeight()}</Text>
+              </View>
+              <View className='col-4'>
+                <Text h4>Weight</Text>
+                <Text>{renderWeight()}</Text>
+              </View>
+            </View>
+          </View>
+          <View className='bio-container m-3'>
+            <Text>{renderBio()}</Text>
+          </View>
+        </View>
+        <View className='bot-half'>
+          <View className='row'>
+            <Text className='col-6'>
+              total steps
+            </Text>
+            <Text className='col-6'>
+              total mins
+            </Text>
+          </View>
+          <View className='row'>
+            <Text className='col-6'>
+              total laps
+            </Text>
+            <Text className='col-6'>
+              hightest jump
+            </Text>
+          </View>
+        </View>
+      </View>
+    )
+  } else {
+    // spa hasn't mounted and established context yet
+    return (
+      <View className="profile-loading-container">
+        <Text>Athlos context mounted value should be false?</Text>
+      </View>
+    )
   }
 }
-UserProfile.contextType = SpaContext
-// export default withRouter(UserProfile)
+const styles = StyleSheet.create({
+  container: {
+    paddingTop: 50,
+  },
+  tinyLogo: {
+    width: 50,
+    height: 50,
+  },
+  logo: {
+    width: 66,
+    height: 58,
+  },
+  editButton: {
+    backgroundColor: 'red',
+    width: '80%'
+  }
+});
+
 export default UserProfile

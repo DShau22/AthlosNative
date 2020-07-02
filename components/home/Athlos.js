@@ -22,6 +22,7 @@ import { UserDataContext, AppFunctionsContext } from "../../Context"
 import Home from "./Home"
 import Settings from "../settings/Settings"
 import Community from "../community/Community"
+import Profile from '../profile/Profile'
 // server url
 const defaultProfile = "./profile/default_profile.png"
 
@@ -129,30 +130,30 @@ function Athlos(props) {
         // the fetch response finished running. This delayed setState would then
         // run after the other setState which could cause some mixups in which state is correct
         // Shouldn't be a problem thoughsince the socket field is only updated here and users can't see it.
-        setState({
-          ...state,
+        setState(prevState => ({
+          ...prevState,
           ...userJson,
           mounted: true,
           friendTableRows,
           jumpJson: {
-            ...state.jumpJson,
+            ...prevState.jumpJson,
             activityData: jumpsTracked.activityData 
           },
           runJson: {
-            ...state.runJson,
+            ...prevState.runJson,
             activityData: runsTracked.activityData 
           },
           swimJson: {
-            ...state.swimJson,
+            ...prevState.swimJson,
             activityData: swimsTracked.activityData 
           },
           isLoading: false
-        });
+        }));
         // store in Async storage so no need to request every time
         // probably change this later so this refreshes every now and then?
         // adding a service worker or background process would be good
         console.log("storing state: ", state)
-        // await storeDataObj(state);
+        await storeDataObj(state);
       } else {
         console.log("one of the requests to get fitness data or user info didn't work");
         console.log("user: ", userJson);
@@ -500,6 +501,7 @@ function Athlos(props) {
   //   )
   // }
   const BottomTab = createBottomTabNavigator();
+  console.log("Athlose context: ", state)
   return (
     <UserDataContext.Provider value={state}>
       <AppFunctionsContext.Provider
@@ -521,6 +523,10 @@ function Athlos(props) {
             <BottomTab.Screen
               name="Fitness"
               component={Fitness}
+            />
+            <BottomTab.Screen
+              name="Profile"
+              component={Profile}
             />
             <BottomTab.Screen
               name="Settings"

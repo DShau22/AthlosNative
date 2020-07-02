@@ -211,6 +211,7 @@ const Settings = (props) => {
       <SettingsContext.Provider value={{
         saveSettings,
       }}>
+        <Text>CHANGE IT SO UNIT SYSTEM AND SWIM LAP WORK LATER DONT HIT SAVE SETTINGS</Text>
         <Spinner
           visible={isLoading}
           textContent={'Saving...'}
@@ -349,16 +350,12 @@ const BASIC_INFO_SETTINGS_LIST = [
 
 const UNIT_SYSTEM_SETTINGS_LIST = [
   {
-    title: EVERYONE,
-    subtitle: 'UNIT_SYSTEM_SETTINGS_LIST',  
+    title: 'English',
+    subtitle: 'yards, feet, inches, etc...',  
   },
   {
-    title: FRIENDS,
-    subtitle: 'UNIT_SYSTEM_SETTINGS_LIST',
-  },
-  {
-    title: ONLY_ME,
-    subtitle: 'UNIT_SYSTEM_SETTINGS_LIST', 
+    title: 'Metric',
+    subtitle: 'meters, centimeters, kilometers, etc...',
   },
 ]
 

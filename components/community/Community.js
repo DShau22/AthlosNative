@@ -14,6 +14,7 @@ import Discover from './screens/Discover'
 import { UserDataContext } from '../../Context'
 import ENDPOINTS from "../endpoints"
 import CommunityList from './screens/CommunityList';
+// import UserProfile from '../profile/UserProfile'
 import CommunityNav from './CommunityNav';
 const searchURL = ENDPOINTS.searchUser
 const friendReqURL = ENDPOINTS.sendFriendReq
@@ -33,6 +34,7 @@ const Community = (props) => {
       </Stack.Screen>
       <Stack.Screen name={USER_PROFILE}>
         {(props) => (
+          // THIS SHOULD BE THE PROFILE COMPONENT INSTEAD
           <Text>Nother user :0</Text>
         )}
       </Stack.Screen>
