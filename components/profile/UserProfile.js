@@ -9,8 +9,10 @@ import { Text, Button } from 'react-native-elements'
 // import ShowMoreText from 'react-show-more-text';
 
 import { UserDataContext } from '../../Context';
-import { weightConvert, heightConvert } from "../utils/unitConverter"
+import { poundsToKg, inchesToCm } from "../utils/unitConverter"
 import PROFILE_CONSTANTS from "./ProfileConstants"
+import GLOBAL_CONSTANTS from '../GlobalConstants'
+const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 // import "./css/userProfile.css"
 // import Popup from "reactjs-popup";
 import EditProfileFunc from "./EditProfileFunc"
@@ -48,41 +50,17 @@ const UserProfile = (props) => {
   }
 
   const renderHeight = () => {
-    // HEIGHT IS IN FORMAT (num) (units in in/cm). Can flat out display it if they 
-    // want metric, else convert to __ ft __ in for english system 
     var { height, settings } = context
     var { unitSystem } = settings
     unitSystem = unitSystem.toLowerCase()
-    if (!height) {
-      return ( <p>set height</p> )
-    }
-    var displayHeight = height
-    if (unitSystem === "english") {
-      // convert to english system if database stores it in cm else just display it in __ ft __ in
-      displayHeight = heightConvert("english", height)
-    } else if (unitSystem === "metric") {
-      displayHeight = heightConvert('metric', height)
-    } else {
-      console.error(new Error("unitsystem is not 'english' or 'metric'..."))
-    }
-    return displayHeight
+    return unitSystem === METRIC ? `${inchesToCm(height)} cm` : `${Math.floor(height / 12)} ft ${height % 12} in`
   }
 
   const renderWeight = () => {
-    // weight has format (num) (units in kg/lbs)
     var { weight, settings } = context
     var { unitSystem } = settings
     unitSystem = unitSystem.toLowerCase()
-    var displayWeight = weight
-    if (unitSystem === "english") {
-      // convert to english system if database stores it in cm else just display it in __ ft __ in
-      displayWeight = weightConvert("english", weight)
-    } else if (unitSystem === "metric") {
-      displayWeight = weightConvert('metric', weight)
-    } else {
-      console.error(new Error("unitsystem is not 'english' or 'metric'..."))
-    }
-    return displayWeight
+    return unitSystem === METRIC ? `${poundsToKg(weight)} kg` : `${weight} lbs`
   }
 
   const renderBests = () => {

@@ -81,7 +81,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#f2f2f2',
-    paddingBottom: 5
+    paddingBottom: 5,
+    // width: '50%'
   },
   textInput: {
     flex: 1,

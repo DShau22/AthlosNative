@@ -1,10 +1,10 @@
 import React from 'react'
 import { UserDataContext } from "../../Context"
-import { View, StyleSheet, Alert } from 'react-native'
+import { View, StyleSheet, Alert, ScrollView, SafeAreaView } from 'react-native'
 import { Button } from 'react-native-elements'
 import { Text } from 'react-native-elements'
 import { getData } from '../utils/storage'
-
+import GLOBAL_CONSTANTS from '../GlobalConstants'
 import * as Yup from 'yup';
 import ImagePicker from 'react-native-image-picker';
 const imagePickerOptions = {
@@ -16,8 +16,14 @@ const imagePickerOptions = {
   },
 };
 
-import { weightConvert, heightConvert, englishHeight } from "../utils/unitConverter"
-import { textField, textArea, weightDisplay, heightDisplay } from '../generic/fieldComponents'
+import {
+  toEnglishWeight,
+  toEnglishHeight,
+  toFtAndInchest,
+  toInches,
+  poundsToKg,
+  inchesToCm
+} from "../utils/unitConverter"
 import ENDPOINTS from "../endpoints"
 import editProfileSchema from "./EditProfileSchema"
 import Textbox from "../nativeLogin/Textbox"
@@ -27,24 +33,27 @@ const updateProfileURL = ENDPOINTS.updateProfile
 const checkDuplicateURL = ENDPOINTS.checkDuplicatePic
 const uploadPicURL = ENDPOINTS.uploadProfilePic
 const imgAlt = "./default_profile.png"
+const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 
 export default function EditProfileFunc(props) {
   const context = React.useContext(UserDataContext);
+  const { unitSystem } = context.settings
   const [isLoading, setIsLoading] = React.useState(false);
+
   const [state, setState] = React.useState({
     updateFirstName: context.firstName,
     updateLastName: context.lastName,
     updateBio: context.bio,
     updateAge: context.age,
     updateGender: context.gender,
-    updateHeight: context.height,
     updateLocation: context.location,
+    updateWeight: context.weight,
     updateProfilePic: {},
 
-    // for the sake of now, will change later maybe
-    updateHeightFt: '',
-    updateHeightCm: '',
-    updateHeightIn: '',
+    // for the sake of now, will change to respond to context and unit system
+    updateHeightFt: Math.floor(context.height / 12),
+    updateHeightIn: context.height % 12,
+    updateHeightCm: Math.round(inchesToCm(context.height)),
 
     firstNameChange: false,
     lastNameChange: false,
@@ -53,7 +62,12 @@ export default function EditProfileFunc(props) {
     genderChange: false,
     heightChange: false,
     locationChange: false,
-    profilePicChagne: false,
+    profilePicChange: false,
+    weightChange: false,
+
+    heightFtChange: false,
+    heightCmChange: false,
+    heightInChange: false,
 
     firstNameMsg: '',
     lastNameMsg: '',
@@ -63,6 +77,11 @@ export default function EditProfileFunc(props) {
     heightMsg: '',
     locationMsg: '',
     profilePicMsg: '',
+    weightMsg: '',
+
+    heightFtMsg: '',
+    heightCmMsg: '',
+    heightInMsg: '',
   });
 
   const handleFirstNameChange = (val) => {
@@ -187,25 +206,132 @@ export default function EditProfileFunc(props) {
   }
 
   // FIGURE OUT HOW TO HANDLE THIS EXACTLY
-  // const handleHeightChange = (val) => {
-  //   console.log(val);
-  //   Yup.reach(editProfileSchema, "updateHeightCm").validate(val)
-  //     .then(function(isValid) {
-  //       setState(prevState => ({
-  //         ...prevState,
-  //         updateLastName: val,
-  //         lastNameChange: val.length !== 0,
-  //         lastNameMsg: ''
-  //       }));
-  //     })
-  //     .catch(function(e) {
-  //       console.log(e);
-  //       setState(prevState => ({
-  //         ...prevState,
-  //         lastNameMsg: e.errors[0],
-  //       }));
-  //     })
-  // }
+  const handleHeightCmChange = (val) => {
+    console.log(val);
+    Yup.reach(editProfileSchema, "updateHeightCm").validate(val)
+      .then(function(isValid) {
+        setState(prevState => ({
+          ...prevState,
+          updateHeightCm: val,
+          heightCmChange: val.length !== 0,
+          heightCmMsg: ''
+        }));
+      })
+      .catch(function(e) {
+        console.log(e);
+        setState(prevState => ({
+          ...prevState,
+          heightCmMsg: e.errors[0],
+        }));
+      })
+  }
+
+  const handleHeightFtChange = (val) => {
+    console.log(val);
+    Yup.reach(editProfileSchema, "updateHeightFt").validate(val)
+      .then(function(isValid) {
+        setState(prevState => ({
+          ...prevState,
+          updateHeightFt: val,
+          heightFtChange: val.length !== 0,
+          heightFtMsg: ''
+        }));
+      })
+      .catch(function(e) {
+        console.log(e);
+        setState(prevState => ({
+          ...prevState,
+          heightFtMsg: e.errors[0],
+        }));
+      })
+  }
+
+  const handleHeightInChange = (val) => {
+    console.log(val);
+    Yup.reach(editProfileSchema, "updateHeightIn").validate(val)
+      .then(function(isValid) {
+        setState(prevState => ({
+          ...prevState,
+          updateHeightIn: val,
+          heightInChange: val.length !== 0,
+          heightInMsg: ''
+        }));
+      })
+      .catch(function(e) {
+        console.log(e);
+        setState(prevState => ({
+          ...prevState,
+          heightInMsg: e.errors[0],
+        }));
+      })
+  }
+
+  const handleWeightChange = (val) => {
+    console.log(val);
+    Yup.reach(editProfileSchema, "updateWeight").validate(val)
+      .then(function(isValid) {
+        setState(prevState => ({
+          ...prevState,
+          updateWeight: val,
+          weightChange: val.length !== 0,
+          weightMsg: ''
+        }));
+      })
+      .catch(function(e) {
+        console.log(e);
+        setState(prevState => ({
+          ...prevState,
+          weightMsg: e.errors[0],
+        }));
+      })
+  }
+
+  const renderHeightInput = () => {
+    const { unitSystem } = context.settings;
+    if (unitSystem === METRIC) {
+      // single textbox for cm
+      return (
+        <Textbox 
+          headerText="Height (Cm)"
+          placeholder="Your height in cm..."
+          icon="user"
+          keyboardType='numeric'
+          defaultValue={state.heightCm.toString(10)}
+          handleChange={handleHeightCmChange}
+          didChange={state.heightCmChange}
+          errMsg={state.heightCmMsg}
+        />
+      )
+    } else if (unitSystem === ENGLISH) {
+      // text boxes for ft and in
+      return (
+        <View style={styles.englishHeightContainer}>
+          <Textbox 
+            headerText="Height (Ft)"
+            placeholder="Ft..."
+            icon="user"
+            keyboardType='numeric'
+            defaultValue={state.updateHeightFt.toString(10)}
+            handleChange={handleHeightFtChange}
+            didChange={state.heightFtChange}
+            errMsg={state.heightFtMsg}
+          />
+          <Textbox 
+            headerText="Height (In)"
+            placeholder="Inches..."
+            icon="user"
+            keyboardType='numeric'
+            defaultValue={state.updateHeightIn.toString(10)}
+            handleChange={handleHeightInChange}
+            didChange={state.heightInChange}
+            errMsg={state.heightInMsg}
+          />
+        </View>
+      )
+    } else {
+      return <Text>unit system isn't english or metric...</Text>
+    }
+  }
 
   const updateProfile = () => {
     const asyncUpdateProfile = async () => {
@@ -226,19 +352,20 @@ export default function EditProfileFunc(props) {
       // check out what this logs in the backend...
       if (updateProfilePic) formData.append("product[images_attributes[0][file]]", updateProfilePic);
 
-      // check to see if file was already uploaded in the past
       // turn this into a function that returns a promise later and await/.then it
       try {
         if (updateProfilePic) {
-          var verifyRes = await fetch(checkDuplicateURL, {
-            method: "POST",
-            body: formData,
-          })
-          var verifyJson = await verifyRes.json()
-          if (!verifyJson.success) {
-            Alert.alert(`Oh No :(`, verifyJson.message, [{ text: "Okay" }]);
-            return
-          }
+          // check for duplicate pic upload
+          // var verifyRes = await fetch(checkDuplicateURL, {
+          //   method: "POST",
+          //   body: formData,
+          // })
+          // var verifyJson = await verifyRes.json()
+          // if (!verifyJson.success) {
+          //   Alert.alert(`Oh No :(`, verifyJson.message, [{ text: "Okay" }]);
+          //   setIsLoading(false);
+          //   return
+          // }
           var headers = new Headers()
           headers.append("authorization", `Bearer ${userToken}`)
           var uploadPicRes = await fetch(uploadPicURL, {
@@ -256,9 +383,11 @@ export default function EditProfileFunc(props) {
         setIsLoading(false);
       }
 
-      // if unit system is English, convert ft and in into 1 number in inches
-      var weight = unitSystem === 'metric' ? `${updateWeight} kg` : `${updateWeight} lbs`
-      var height = unitSystem === 'metric' ? `${updateHeightCm} cm` : `${updateHeightFt} ft ${updateHeightIn} in`
+      // convert height to pure inches
+      var height = unitSystem === METRIC ? toEnglishHeight(updateHeightCm) : toInches(updateHeightFt, updateHeightIn)
+      // if unit system is metric, convert weight to lbs
+      var weight = unitSystem === METRIC ? toEnglishWeight(updateWeight) : updateWeight
+
       var reqBody = {
         firstName: updateFirstName,
         lastName: updateLastName,
@@ -299,162 +428,110 @@ export default function EditProfileFunc(props) {
     asyncUpdateProfile();
   }
 
-  var { firstName, lastName, bio, age, location, gender, height, weight } = context
-  const { unitSystem } = context.settings
-  weight = weightConvert(unitSystem, weight)
-  height = heightConvert(unitSystem, height)
   if (context.mounted) {
     return (
-      <>
-        <Spinner
-          visible={isLoading}
-          textContent={'Loading...'}
-          textStyle={styles.spinnerTextStyle}
-        />
-        <Textbox 
-          headerText={"First Name"}
-          placeholder="Your first name..."
-          icon="user"
-          defaultValue={state.updateFirstName}
-          handleChange={handleFirstNameChange}
-          didChange={state.firstNameChange}
-          errMsg={state.firstNameMsg}
-        />
-        <Textbox 
-          headerText={"Last Name"}
-          placeholder="Your last name..."
-          icon="user"
-          defaultValue={state.updateLastName}
-          handleChange={handleLastNameChange}
-          didChange={state.lastNameChange}
-          errMsg={state.lastNameMsg}
-        />
-        <Textbox 
-          headerText={"Bio"}
-          placeholder="Your first name..."
-          icon="user"
-          defaultValue={state.updateBio}
-          handleChange={handleBioChange}
-          didChange={state.bioChange}
-          errMsg={state.bioMsg}
-        />
-        <Textbox 
-          headerText={"Age"}
-          placeholder="Your age..."
-          icon="user"
-          keyboardType='numeric'
-          defaultValue={state.updateAge.toString(10)}
-          handleChange={handleAgeChange}
-          didChange={state.ageChange}
-          errMsg={state.ageMsg}
-        />
-        <Textbox 
-          headerText={"Location"}
-          placeholder="Your city..."
-          icon="user"
-          defaultValue={state.updateLocation}
-          handleChange={handleLocationChange}
-          didChange={state.locationChange}
-          errMsg={state.locationMsg}
-        />
-        <Textbox 
-          headerText={"Gender"}
-          placeholder="Your gender..."
-          icon="user"
-          defaultValue={state.updateGender}
-          handleChange={handleGenderChange}
-          didChange={state.genderChange}
-          errMsg={state.genderMsg}
-        />
-        <Text>ADD SOMETHING FOR HEIGHT</Text>
-        {/* <Textbox
-          headerText={"Height (conditional on unit system)"}
-          placeholder="Your gender..."
-          icon="user"
-          handleChange={handleFirstNameChange}
-          didChange={data.firstNameChange}
-          errMsg={data.firstNameMsg}
-        /> */}
-        <Text>IMAGE PICKERS</Text>
-        <Button 
-          title="upload an image"
-          onPress={() => {
-            ImagePicker.showImagePicker(imagePickerOptions, (response) => {
-              if (response.didCancel) {
-                console.log('User cancelled image picker');
-              } else if (response.error) {
-                console.log('ImagePicker Error: ', response.error);
-              } else if (response.customButton) {
-                console.log('User tapped custom button: ', response.customButton);
-              } else {
-                const photo = { uri: response.uri, name: 'image.jpg', type: 'image/jpeg' };
-                console.log('uploaded photo: ', photo)
-                setState(prevState => ({
-                  ...prevState,
-                  profilePicture: photo
-                }))
-                // You can also display the image using data:
-                // const source = { uri: 'data:image/jpeg;base64,' + response.data };
-              }
-            });
-          }}
-        />
-        <Button
-          title="Save changes"
-          onPress={updateProfile}
-        />
-        {/* <Formik
-          initialValues={{
-            updateFirstName: firstName,
-            updateLastName: lastName,
-            updateBio: bio,
-            updateAge: age,
-            updateLocation: location,
-            updateGender: gender,
-            updateHeightCm: unitSystem === 'metric' ? height.split(' ')[0] : '',
-            updateHeightIn: unitSystem === 'english' ? englishHeight(height).split(' ')[0] : '', // num ft num in
-            updateHeightFt: unitSystem === 'english' ? englishHeight(height).split(' ')[2] : '', // num ft num in
-            updateWeight: weight ? weight.split(' ')[0] : '' // weight format is 'weight units'
-          }}
-          validationSchema={validationSchema}
-          onSubmit={(values, { setSubmitting }) => {
-            console.log(values)
-            updateProfile(values)
-            setSubmitting(false)
-          }}
-        >
-          {({ errors, touched, setFieldValue }) => (
-            <Form>
-              <View className='prof-pic-container'>
-                <Image style={styles.image} source={{uri: context.profilePicture.profileURL}}/>
-                  <TextInput
-                    type="file"
-                    onChange={(event) => {
-                      setFieldValue("file", event.currentTarget.files[0]);
-                    }}
-                    accept="image/x-png,image/jpeg"
-                  />
-              </View>
-              {textField('First Name', 'text', 'updateFirstName', 'field', errors.updateFirstName, touched.updateFirstName)}
-              {textField('Last Name', 'text', 'updateLastName', 'field', errors.updateLastName, touched.updateLastName)}
-              {textArea('Bio', 'updateBio', 'field', errors.updateBio, touched.updateBio)}
-              {textField('Gender', 'text', 'updateGender', 'field', errors.updateGender, touched.updateGender)}
-              {textField('Age', 'text', 'updateAge', 'field', errors.updateAge, touched.updateAge)}
-              {textField('Location', 'text', 'updateLocation', 'field', errors.updateLocation, touched.updateLocation)}
-              {weightDisplay('updateWeight', 'field', unitSystem, errors)}
-              {heightDisplay(
-                'updateHeight', //revisit how this is implemented cuz there could be 3 different things
-                'field',
-                unitSystem,
-                errors,
-              )}
-              <View className='submit-container'>
-                <Text className='cancel' onClick={props.closePopup}>Cancel</Text>
-              </View>
-            </Form>
-          )}
-        </Formik> */}
-      </>
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollView}>
+          <Spinner
+            visible={isLoading}
+            textContent={'Loading...'}
+            textStyle={styles.spinnerTextStyle}
+          />
+          <Textbox 
+            headerText={"First Name"}
+            placeholder="Your first name..."
+            icon="user"
+            defaultValue={state.updateFirstName}
+            handleChange={handleFirstNameChange}
+            didChange={state.firstNameChange}
+            errMsg={state.firstNameMsg}
+          />
+          <Textbox 
+            headerText={"Last Name"}
+            placeholder="Your last name..."
+            icon="user"
+            defaultValue={state.updateLastName}
+            handleChange={handleLastNameChange}
+            didChange={state.lastNameChange}
+            errMsg={state.lastNameMsg}
+          />
+          <Textbox 
+            headerText={"Bio"}
+            placeholder="Your first name..."
+            icon="user"
+            defaultValue={state.updateBio}
+            handleChange={handleBioChange}
+            didChange={state.bioChange}
+            errMsg={state.bioMsg}
+          />
+          <Textbox 
+            headerText={"Age"}
+            placeholder="Your age..."
+            icon="user"
+            keyboardType='numeric'
+            defaultValue={state.updateAge.toString(10)}
+            handleChange={handleAgeChange}
+            didChange={state.ageChange}
+            errMsg={state.ageMsg}
+          />
+          <Textbox 
+            headerText={"Location"}
+            placeholder="Your city..."
+            icon="user"
+            defaultValue={state.updateLocation}
+            handleChange={handleLocationChange}
+            didChange={state.locationChange}
+            errMsg={state.locationMsg}
+          />
+          <Textbox 
+            headerText={"Gender"}
+            placeholder="Your gender..."
+            icon="user"
+            defaultValue={state.updateGender}
+            handleChange={handleGenderChange}
+            didChange={state.genderChange}
+            errMsg={state.genderMsg}
+          />
+          {renderHeightInput()}
+          <Textbox 
+            headerText={'Weight'}
+            placeholder={`Your weight in ${unitSystem === METRIC ? 'kg' : 'lbs'}`}
+            icon="user"
+            keyboardType='numeric'
+            defaultValue={state.updateWeight.toString(10)}
+            handleChange={handleWeightChange}
+            didChange={state.weightChange}
+            errMsg={state.weightMsg}
+          />
+          <Button 
+            title="upload an image"
+            onPress={() => {
+              ImagePicker.showImagePicker(imagePickerOptions, (response) => {
+                if (response.didCancel) {
+                  console.log('User cancelled image picker');
+                } else if (response.error) {
+                  console.log('ImagePicker Error: ', response.error);
+                } else if (response.customButton) {
+                  console.log('User tapped custom button: ', response.customButton);
+                } else {
+                  const photo = { uri: response.uri, name: 'image.jpg', type: 'image/jpeg' };
+                  console.log('uploaded photo: ', photo)
+                  setState(prevState => ({
+                    ...prevState,
+                    profilePicture: photo
+                  }))
+                  // You can also display the image using data:
+                  // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+                }
+              });
+            }}
+          />
+          <Button
+            title="Save changes"
+            onPress={updateProfile}
+          />
+        </ScrollView>
+      </SafeAreaView>
     )
   } else {
     // spa hasn't mounted and established context yet
@@ -466,11 +543,24 @@ export default function EditProfileFunc(props) {
   }
 }
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    height: '100%',
+  },
+  scrollView: {
+    marginHorizontal: 20,
+  },
   image: {
     width: 50,
     height: 50,
   },
   spinnerTextStyle: {
     color: "black"
+  },
+  englishHeightContainer: {
+    flexDirection: 'column',
+    // alignItems: 'center',
   }
 })

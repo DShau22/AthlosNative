@@ -6,6 +6,36 @@ const inToCm = (2.54 / 1.0)
 const cmToIn = (1.0 / 2.54)
 const ftToCm = (30.48 / 1.0)
 
+// converts from metric to english weight (kg to lbs)
+const toEnglishWeight = (weightInKg) => {
+  return weightInKg * kgToLbs
+}
+
+// converts from metric to english height (cm to in)
+const toEnglishHeight = (heightInCm) => {
+  return heightInCm * cmToIn
+}
+
+// returns array [ft, in] given height in inches
+const toFtAndInches = (inches) => {
+  return [Math.floor(inches / 12), inches % 12]
+}
+
+// returns inches given height in ft, inches
+const toInches = (ft, inches) => {
+  return 12 * ft + inches
+}
+
+// converts inches to centimeters
+const inchesToCm = (inches) => {
+  return inches * inToCm
+}
+
+// converts pounds to kilograms
+const poundsToKg = (lbs) => {
+  return lbs * lbsToKg
+}
+
 // system is the system you wanna display in
 // returns 'num kg' or 'num lbs'
 function weightConvert(system, weight) {
@@ -70,4 +100,16 @@ function parseDate(date) {
   return parsed
 }
 
-export { weightConvert, heightConvert, englishHeight, parseDate, rawHeightConvert }
+export { 
+  weightConvert,
+  heightConvert,
+  englishHeight,
+  parseDate,
+  rawHeightConvert,
+  toEnglishWeight,
+  toEnglishHeight,
+  toFtAndInches,
+  toInches,
+  inchesToCm,
+  poundsToKg,
+}

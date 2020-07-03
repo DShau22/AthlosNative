@@ -72,6 +72,7 @@ function Athlos(props) {
   
   React.useEffect(() => {
     const prepareData = async () => {
+      console.log("Athlos component using effect")
       setState({ ...state, isLoading: true });
       // set up the web socket connection to server
       // var socket = await this.setUpSocket()
@@ -102,13 +103,13 @@ function Athlos(props) {
       }
       console.log('user json: ', userJson);
 
-      var { numFriendsDisplay } = state;
-      try {
-        var friendTableRows = await addFriendRows(userJson.friends, numFriendsDisplay)
-      } catch(e) {
-        console.error(e)
-        setState({ ...state, isLoading: false });
-      }
+      // var { numFriendsDisplay } = state;
+      // try {
+      //   var friendTableRows = await addFriendRows(userJson.friends, numFriendsDisplay)
+      // } catch(e) {
+      //   console.error(e)
+      //   setState({ ...state, isLoading: false });
+      // }
 
       // get user's fitness data for jumps, runs, swims
       // MAKE AWAIT PROMISES.ALL LATER
@@ -126,34 +127,34 @@ function Athlos(props) {
       var gotAllInfo = userJson.success && jumpsTracked.success && swimsTracked.success && runsTracked.success
       if (gotAllInfo) {
         console.log("successfully got all user info");
+        const userData = {
+          ...state,
+          ...userJson,
+          mounted: true,
+          // friendTableRows,
+          jumpJson: {
+            ...state.jumpJson,
+            activityData: jumpsTracked.activityData 
+          },
+          runJson: {
+            ...state.runJson,
+            activityData: runsTracked.activityData 
+          },
+          swimJson: {
+            ...state.swimJson,
+            activityData: swimsTracked.activityData 
+          },
+          isLoading: false
+        }
         // one bug that could come up is if another setState occurred outside this function before
         // the fetch response finished running. This delayed setState would then
         // run after the other setState which could cause some mixups in which state is correct
         // Shouldn't be a problem thoughsince the socket field is only updated here and users can't see it.
-        setState(prevState => ({
-          ...prevState,
-          ...userJson,
-          mounted: true,
-          friendTableRows,
-          jumpJson: {
-            ...prevState.jumpJson,
-            activityData: jumpsTracked.activityData 
-          },
-          runJson: {
-            ...prevState.runJson,
-            activityData: runsTracked.activityData 
-          },
-          swimJson: {
-            ...prevState.swimJson,
-            activityData: swimsTracked.activityData 
-          },
-          isLoading: false
-        }));
+        setState(userData);
         // store in Async storage so no need to request every time
         // probably change this later so this refreshes every now and then?
         // adding a service worker or background process would be good
-        console.log("storing state: ", state)
-        await storeDataObj(state);
+        storeDataObj(userData);        
       } else {
         console.log("one of the requests to get fitness data or user info didn't work");
         console.log("user: ", userJson);
@@ -248,32 +249,32 @@ function Athlos(props) {
   //  * for each friend in the friend array, return
   //  * a table row to show in the friends table
   //  */  
-  const addFriendRows = async (friends, numFriendsDisplay) => {
-    var tableRows = []
+  // const addFriendRows = async (friends, numFriendsDisplay) => {
+  //   var tableRows = []
 
-    // DONT FORGET TO SORT FRIENDS
-    for (let i = 0; i < friends.length; i++) {
-      if (i === numFriendsDisplay - 1) { break }
-      let { id, firstName, lastName } = friends[i]
-      let [bests, profileUrl, username] = await Promise.all([getBests(id), getProfile(id), getUsername(id)])
-      tableRows.push(
-        <FriendDisplay 
-          key={id}
-          isFriend={true}
-          isFriendRequest={false}
-          rank={i + 1}
-          onClick={() => {this.props.history.push(`/app/profile/${username}`)}}
-          profileUrl={profileUrl}
-          defaultProfile={defaultProfile}
-          imgAlt={imgAlt}
-          firstName={firstName}
-          lastName={lastName}
-          bests={bests}
-        />
-      )
-    }
-    return tableRows
-  }
+  //   // DONT FORGET TO SORT FRIENDS
+  //   for (let i = 0; i < friends.length; i++) {
+  //     if (i === numFriendsDisplay - 1) { break }
+  //     let { id, firstName, lastName } = friends[i]
+  //     let [bests, profileUrl, username] = await Promise.all([getBests(id), getProfile(id), getUsername(id)])
+  //     tableRows.push(
+  //       <FriendDisplay 
+  //         key={id}
+  //         isFriend={true}
+  //         isFriendRequest={false}
+  //         rank={i + 1}
+  //         onClick={() => {this.props.history.push(`/app/profile/${username}`)}}
+  //         profileUrl={profileUrl}
+  //         defaultProfile={defaultProfile}
+  //         imgAlt={imgAlt}
+  //         firstName={firstName}
+  //         lastName={lastName}
+  //         bests={bests}
+  //       />
+  //     )
+  //   }
+  //   return tableRows
+  // }
 
   // async componentDidMount() {
   //   this._isMounted = true
@@ -350,11 +351,6 @@ function Athlos(props) {
   //   }
   // }
 
-  // componentWillUnmount() {
-  //   this._isMounted = false
-  //   console.log("unmounting header...")
-  // }
-
   // logout() {
   //   console.log("logging out...")
   //   // var { socket } = this.state
@@ -408,30 +404,6 @@ function Athlos(props) {
   //   }
   // }
 
-  // renderSideMenu() {
-  //   const { match } = this.props
-  //   return (
-  //     <Media query={`(min-width: ${sidebarMediaQuery})`} render={() => 
-  //       (
-  //         <div className='col-md-3 sideMenu-container'>
-  //           <div className='card text-center'>
-  //             <div className="sideMenu-container">
-  //               <SideMenu
-  //                 homeURL="/app"
-  //                 communityURL={`${match.url}/community`}
-  //                 fitnessURL={`${match.url}/fitness`}
-  //                 profileURL={`${match.url}/profile/${this.state.username}`}
-  //                 settingsURL={`${match.url}/settings`}
-  //                 logout={this.logout}
-  //               />
-  //             </div>
-  //           </div>
-  //         </div>
-  //       )}
-  //     />
-  //   )
-  // }
-
   // updates the state and therefore the context if the user info is suspected
   // to change. For example if the user changes their settings we want the new
   // settings to be applied automatically. For now only used for settings.
@@ -461,47 +433,8 @@ function Athlos(props) {
     }))
   }
 
-  // render() {
-  //   console.log("rendering header...")
-  //   // renders the general layout of the application
-  //   return (
-  //     <div className="home-container">
-  //       <SpaContext.Provider value={this.state}>
-  //         <div className='row'>
-  //           <div className='col-12'>
-  //             {this.renderHeader()} 
-  //           </div>
-  //         </div>
-  //         {/* only returns elements if it's not a phone */}
-  //         <div className='mt-3 ml-2 p-1 content'>
-  //           {this.renderSideMenu()}
-  //           <div className='col-md-9 col-12 page-container'>
-  //             <div className="card text-center h-100">
-  //               <Switch location={this.props.location}>
-  //                 <Route exact path={`${root}`} component={Home}/>
-  //                 <Route path={`${root}/community`} component={Community}/>
-  //                 <Route path={`${root}/fitness`} component={Fitness}/>
-  //                 <Route path={`${root}/jumpDetails`} component={JumpDetails}/>
-  //                 <Route path={`${root}/swimDetails`} component={SwimDetails}/>
-  //                 <Route path={`${root}/runDetails`} component={RunDetails}/>
-  //                 <Route exact path={`${root}/profile/:username?`} component={Profile}/>
-  //                 {/* <Route path={`${root}/profile/:username?/edit`} component={EditProfile}/> */}
-  //                 <Route path={`${root}/profile/:username?/edit`} component={EditProfileFunc}/>
-  //                 <Route
-  //                   exact path={`${root}/settings`}
-  //                   render={(props) => <Settings {...props} updateUserInfo={this.updateUserInfo} />}
-  //                 />
-  //                 <Route path={`${root}/settings/stats`} component={Stats}/>
-  //               </Switch>
-  //             </div>
-  //           </div>
-  //         </div>
-  //       </SpaContext.Provider>
-  //     </div>
-  //   )
-  // }
   const BottomTab = createBottomTabNavigator();
-  console.log("Athlose context: ", state)
+  console.log("Athlos context: ", state)
   return (
     <UserDataContext.Provider value={state}>
       <AppFunctionsContext.Provider
