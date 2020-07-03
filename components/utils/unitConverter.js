@@ -8,32 +8,39 @@ const ftToCm = (30.48 / 1.0)
 
 // converts from metric to english weight (kg to lbs)
 const toEnglishWeight = (weightInKg) => {
-  return weightInKg * kgToLbs
+  if (weightInKg === '') weightInKg = 0
+  return parseFloat(weightInKg) * kgToLbs
 }
 
 // converts from metric to english height (cm to in)
 const toEnglishHeight = (heightInCm) => {
-  return heightInCm * cmToIn
+  if (heightInCm === '') heightInCm = 0
+  return parseFloat(heightInCm) * cmToIn
 }
 
 // returns array [ft, in] given height in inches
 const toFtAndInches = (inches) => {
-  return [Math.floor(inches / 12), inches % 12]
+  if (inches === '') inches = 0
+  return [Math.floor(parseFloat(inches) / 12), parseFloat(inches) % 12]
 }
 
 // returns inches given height in ft, inches
 const toInches = (ft, inches) => {
-  return 12 * ft + inches
+  if (ft === '') ft = 0
+  if (inches === '') inches = 0
+  return 12 * parseFloat(ft) + parseFloat(inches)
 }
 
 // converts inches to centimeters
 const inchesToCm = (inches) => {
-  return inches * inToCm
+  if (inches === '') inches = 0
+  return parseFloat(inches) * inToCm
 }
 
 // converts pounds to kilograms
 const poundsToKg = (lbs) => {
-  return lbs * lbsToKg
+  if (lbs === '') lbs = 0
+  return parseFloat(lbs) * lbsToKg
 }
 
 // system is the system you wanna display in

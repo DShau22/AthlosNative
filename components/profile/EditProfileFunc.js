@@ -1,12 +1,17 @@
 import React from 'react'
-import { UserDataContext } from "../../Context"
+import { UserDataContext, AppFunctionsContext } from "../../Context"
 import { View, StyleSheet, Alert, ScrollView, SafeAreaView } from 'react-native'
 import { Button } from 'react-native-elements'
 import { Text } from 'react-native-elements'
-import { getData } from '../utils/storage'
 import GLOBAL_CONSTANTS from '../GlobalConstants'
 import * as Yup from 'yup';
 import ImagePicker from 'react-native-image-picker';
+import {
+  getData,
+  storeData,
+  storeDataObj,
+  getDataObj
+} from '../utils/storage';
 const imagePickerOptions = {
   title: 'Select a photo',
   customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
@@ -37,6 +42,7 @@ const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 
 export default function EditProfileFunc(props) {
   const context = React.useContext(UserDataContext);
+  const { updateLocalUserInfo, setAppState } = React.useContext(AppFunctionsContext);
   const { unitSystem } = context.settings
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -48,7 +54,7 @@ export default function EditProfileFunc(props) {
     updateGender: context.gender,
     updateLocation: context.location,
     updateWeight: context.weight,
-    updateProfilePic: {},
+    updateProfilePic: null,
 
     // for the sake of now, will change to respond to context and unit system
     updateHeightFt: Math.floor(context.height / 12),
@@ -85,7 +91,6 @@ export default function EditProfileFunc(props) {
   });
 
   const handleFirstNameChange = (val) => {
-    console.log(val);
     Yup.reach(editProfileSchema, "updateFirstName").validate(val)
       .then(function(isValid) {
         setState(prevState => ({
@@ -105,7 +110,6 @@ export default function EditProfileFunc(props) {
   }
 
   const handleLastNameChange = (val) => {
-    console.log(val);
     Yup.reach(editProfileSchema, "updateLastName").validate(val)
       .then(function(isValid) {
         setState(prevState => ({
@@ -125,7 +129,6 @@ export default function EditProfileFunc(props) {
   }
 
   const handleBioChange = (val) => {
-    console.log(val);
     Yup.reach(editProfileSchema, "updateBio").validate(val)
       .then(function(isValid) {
         setState(prevState => ({
@@ -145,7 +148,6 @@ export default function EditProfileFunc(props) {
   }
 
   const handleAgeChange = (val) => {
-    console.log(val);
     const validationString = val === '' ? undefined : val
     Yup.reach(editProfileSchema, "updateAge").validate(validationString)
       .then(function(isValid) {
@@ -166,7 +168,6 @@ export default function EditProfileFunc(props) {
   }
 
   const handleGenderChange = (val) => {
-    console.log(val);
     Yup.reach(editProfileSchema, "updateGender").validate(val)
       .then(function(isValid) {
         setState(prevState => ({
@@ -186,7 +187,6 @@ export default function EditProfileFunc(props) {
   }
 
   const handleLocationChange = (val) => {
-    console.log(val);
     Yup.reach(editProfileSchema, "updateLocation").validate(val)
       .then(function(isValid) {
         setState(prevState => ({
@@ -207,8 +207,8 @@ export default function EditProfileFunc(props) {
 
   // FIGURE OUT HOW TO HANDLE THIS EXACTLY
   const handleHeightCmChange = (val) => {
-    console.log(val);
-    Yup.reach(editProfileSchema, "updateHeightCm").validate(val)
+    const validationString = val === '' ? undefined : val
+    Yup.reach(editProfileSchema, "updateHeightCm").validate(validationString)
       .then(function(isValid) {
         setState(prevState => ({
           ...prevState,
@@ -227,8 +227,8 @@ export default function EditProfileFunc(props) {
   }
 
   const handleHeightFtChange = (val) => {
-    console.log(val);
-    Yup.reach(editProfileSchema, "updateHeightFt").validate(val)
+    const validationString = val === '' ? undefined : val
+    Yup.reach(editProfileSchema, "updateHeightFt").validate(validationString)
       .then(function(isValid) {
         setState(prevState => ({
           ...prevState,
@@ -247,8 +247,8 @@ export default function EditProfileFunc(props) {
   }
 
   const handleHeightInChange = (val) => {
-    console.log(val);
-    Yup.reach(editProfileSchema, "updateHeightIn").validate(val)
+    const validationString = val === '' ? undefined : val
+    Yup.reach(editProfileSchema, "updateHeightIn").validate(validationString)
       .then(function(isValid) {
         setState(prevState => ({
           ...prevState,
@@ -267,8 +267,8 @@ export default function EditProfileFunc(props) {
   }
 
   const handleWeightChange = (val) => {
-    console.log(val);
-    Yup.reach(editProfileSchema, "updateWeight").validate(val)
+    const validationString = val === '' ? undefined : val
+    Yup.reach(editProfileSchema, "updateWeight").validate(validationString)
       .then(function(isValid) {
         setState(prevState => ({
           ...prevState,
@@ -379,8 +379,10 @@ export default function EditProfileFunc(props) {
           }
         }
       } catch(e) {
+        console.error(e)
         Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please try again.", [{ text: "Okay" }]);
         setIsLoading(false);
+        return;
       }
 
       // convert height to pure inches
@@ -399,6 +401,7 @@ export default function EditProfileFunc(props) {
         age: updateAge,
         userToken,
       }
+      console.log("updating information: ", reqBody)
 
       try {
         var updateRes = await fetch(updateProfileURL, {
@@ -409,20 +412,22 @@ export default function EditProfileFunc(props) {
           body: JSON.stringify(reqBody),
         })
         var updateJson = await updateRes.json()
-        console.log("aioajweif", updateJson)
+        console.log("update json: ", updateJson)
         if (updateJson.success) {
+          // make fetch to backend to update app context. Maybe consider just setting state
+          // instead of making an entire other fetch
+          await updateLocalUserInfo();
           Alert.alert(`All Done!`, "Successfully updated your profile!", [{ text: "Okay" }]);
           setIsLoading(false);
-          // refresh the page to get new context n everything aka make a request again to the server or update
-          // async storage here!
-  
         } else {
           Alert.alert(`Oh No :(`, updateJson.message, [{ text: "Okay" }]);
           setIsLoading(false);
         }
       } catch(e) {
+        console.error(e)
         Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please try again.", [{ text: "Okay" }]);
         setIsLoading(false);
+        return;
       }
     }
     asyncUpdateProfile();

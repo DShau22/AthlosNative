@@ -31,6 +31,7 @@ const imgAlt = "../profile/default_profile.png"
 const dataURL = ENDPOINTS.getData
 
 function Athlos(props) {
+  const [isLoading, setIsLoading] = React.useState(false);
   const [state, setState] = React.useState({
     headerText: 'Home',
     friends: [],
@@ -46,7 +47,6 @@ function Athlos(props) {
     age: "",
     profilePicture: "",
     settings: {},
-    isLoading: false,
     logout: false,
     // socket: null,
     notification: null,
@@ -73,7 +73,8 @@ function Athlos(props) {
   React.useEffect(() => {
     const prepareData = async () => {
       console.log("Athlos component using effect")
-      setState({ ...state, isLoading: true });
+      setIsLoading(true);
+      console.log("just set isloading")
       // set up the web socket connection to server
       // var socket = await this.setUpSocket()
 
@@ -85,7 +86,7 @@ function Athlos(props) {
       }
       if (userData) {
         console.log("there is data is async storage")
-        setState({ ...userData, isLoading: false});
+        setIsLoading(false);
         return;
       }
 
@@ -99,7 +100,7 @@ function Athlos(props) {
       } catch(e) {
         console.error(e);
         Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
-        setState({ ...state, isLoading: false });
+        setIsLoading(false);
       }
       console.log('user json: ', userJson);
 
@@ -108,7 +109,7 @@ function Athlos(props) {
       //   var friendTableRows = await addFriendRows(userJson.friends, numFriendsDisplay)
       // } catch(e) {
       //   console.error(e)
-      //   setState({ ...state, isLoading: false });
+      //   setIsLoading(false);
       // }
 
       // get user's fitness data for jumps, runs, swims
@@ -122,7 +123,7 @@ function Athlos(props) {
       } catch(e) {
         console.error(e)
         Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
-        setState({ ...state, isLoading: false });
+        setIsLoading(false);
       }
       var gotAllInfo = userJson.success && jumpsTracked.success && swimsTracked.success && runsTracked.success
       if (gotAllInfo) {
@@ -144,7 +145,6 @@ function Athlos(props) {
             ...state.swimJson,
             activityData: swimsTracked.activityData 
           },
-          isLoading: false
         }
         // one bug that could come up is if another setState occurred outside this function before
         // the fetch response finished running. This delayed setState would then
@@ -154,7 +154,8 @@ function Athlos(props) {
         // store in Async storage so no need to request every time
         // probably change this later so this refreshes every now and then?
         // adding a service worker or background process would be good
-        storeDataObj(userData);        
+        // storeDataObj(userData);
+        setIsLoading(false);        
       } else {
         console.log("one of the requests to get fitness data or user info didn't work");
         console.log("user: ", userJson);
@@ -162,7 +163,7 @@ function Athlos(props) {
         console.log("swims: ", swimsTracked);
         console.log("runs: ", runsTracked);
         Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
-        setState({ ...state, isLoading: true });
+        setIsLoading(false);
       }
     }
     prepareData();
@@ -244,37 +245,6 @@ function Athlos(props) {
     var trackedFitness = await res.json()
     return trackedFitness
   }
-
-  // /**
-  //  * for each friend in the friend array, return
-  //  * a table row to show in the friends table
-  //  */  
-  // const addFriendRows = async (friends, numFriendsDisplay) => {
-  //   var tableRows = []
-
-  //   // DONT FORGET TO SORT FRIENDS
-  //   for (let i = 0; i < friends.length; i++) {
-  //     if (i === numFriendsDisplay - 1) { break }
-  //     let { id, firstName, lastName } = friends[i]
-  //     let [bests, profileUrl, username] = await Promise.all([getBests(id), getProfile(id), getUsername(id)])
-  //     tableRows.push(
-  //       <FriendDisplay 
-  //         key={id}
-  //         isFriend={true}
-  //         isFriendRequest={false}
-  //         rank={i + 1}
-  //         onClick={() => {this.props.history.push(`/app/profile/${username}`)}}
-  //         profileUrl={profileUrl}
-  //         defaultProfile={defaultProfile}
-  //         imgAlt={imgAlt}
-  //         firstName={firstName}
-  //         lastName={lastName}
-  //         bests={bests}
-  //       />
-  //     )
-  //   }
-  //   return tableRows
-  // }
 
   // async componentDidMount() {
   //   this._isMounted = true
@@ -369,41 +339,6 @@ function Athlos(props) {
   //   // socket.emit("logoutServer", data)
   // }
 
-  // renderHeader() {
-  //   const { match } = this.props
-  //   // if there is a token in session or local storage...
-  //   if (getToken()) {
-  //     return (
-  //       <div className="header w-100">
-  //         <div className="d-flex align-items-center w-100 h-100">
-  //           <span className='header-title position-absolute w-100'>
-  //             Athlos Tracker
-  //           </span>
-  //           {/* dont display the sidebar opener (the thing with three lines) unless it's a phone */}
-  //           <Media query={`(max-width: ${sidebarMediaQuery})`} render={() => 
-  //             (
-  //               <div className="navbar-container ml-3 mt-auto mb-auto">
-  //                 <Navbar
-  //                   homeURL="/app"
-  //                   communityURL={`${match.url}/community`}
-  //                   fitnessURL={`${match.url}/fitness`}
-  //                   profileURL={`${match.url}/profile/${this.state.username}`}
-  //                   settingsURL={`${match.url}/settings`}
-  //                   logout={this.logout}
-  //                 />
-  //               </div>
-  //             )}
-  //           />
-  //         </div>
-  //       </div>
-  //     )
-  //   } else {
-  //     // no token, redirect to login
-  //     alert('no token in the storage...')
-  //     this.props.history.push("/")
-  //   }
-  // }
-
   // updates the state and therefore the context if the user info is suspected
   // to change. For example if the user changes their settings we want the new
   // settings to be applied automatically. For now only used for settings.
@@ -413,24 +348,33 @@ function Athlos(props) {
 
   // HAVE A METHOD THAT RUNS AND JUST UPDATES DATABASE AFTER USER SAVES
   // ANYTHING SUBSTANTIAL LIKE SETTINGS OR THEY SYNC WITH EARBUDS
-  const updateUserInfo = async () => {
+  const updateLocalUserInfo = async () => {
     // get the user's information here from database
     // make request to server to user information and set state
-    var userToken = getToken()
+    var userToken = await getData()
     var headers = new Headers()
     headers.append("authorization", `Bearer ${userToken}`)
-
-    var res = await fetch(getUserInfoURL, { method: "GET", headers })
-    var userJson = await res.json()
-    this.setState(prevState => ({
-      ...userJson,
-      // socket: prevState.socket,
-      mounted: true,
-      friendTableRows: prevState.friendTableRows,
-      jumpJson: prevState.jumpJson,
-      runJson: prevState.runJson,
-      swimJson: prevState.swimJson,
-    }))
+    try {
+      var res = await fetch(ENDPOINTS.getUserInfo, { method: "GET", headers })
+      var userJson = await res.json()
+      if (!userJson.success) {
+        console.log(userJson)
+        Alert.alert(`Oh No :(`, "Something went wrong with the request to the server. Please refresh.", [{ text: "Okay" }]);
+      }
+      const newState = {
+        ...userJson,
+        // socket: prevState.socket,
+        mounted: true,
+        jumpJson: state.jumpJson,
+        runJson: state.runJson,
+        swimJson: state.swimJson,
+      }
+      setState(newState);
+      storeDataObj(newState);
+    } catch(e) {
+      console.log("error in updateLocalUserInfo: ", e)
+      Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
+    }
   }
 
   const BottomTab = createBottomTabNavigator();
@@ -439,10 +383,11 @@ function Athlos(props) {
     <UserDataContext.Provider value={state}>
       <AppFunctionsContext.Provider
         value={{
-          setAppState: setState
+          // setAppState: setState,
+          updateLocalUserInfo,
         }}
       >
-      { state.isLoading ? <View style={styles.container}><LoadingSpin/></View> : 
+      { isLoading ? <View style={styles.container}><LoadingSpin/></View> : 
         <>
           <Header
             leftComponent={{ icon: 'menu', color: '#fff' }}

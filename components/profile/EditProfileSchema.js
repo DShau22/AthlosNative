@@ -19,15 +19,19 @@ const editProfileSchema = Yup.object({
   updateGender: Yup.string()
     .max(50, 'Must be 50 characters or less'),
   updateHeightCm: Yup.number()
+    .typeError('Height must be a number')
     .positive("Must be greater than 0")
     .integer("Must be a whole number"),
   updateHeightIn: Yup.number()
+    .typeError('Height must be a number')
     .positive("Must be greater than 0")
     .integer("Must be a whole number"),
   updateHeightFt: Yup.number()
+    .typeError('Height must be a number')
     .positive("Must be greater than 0")
     .integer("Must be a whole number"),
   updateWeight: Yup.number()
+    .typeError('Weight must be a number')
     .positive("Must be greater than 0")
     .integer("Must be a whole number"),
 })
