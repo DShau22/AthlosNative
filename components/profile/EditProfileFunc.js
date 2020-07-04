@@ -14,7 +14,6 @@ import {
 } from '../utils/storage';
 const imagePickerOptions = {
   title: 'Select a photo',
-  customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
   storageOptions: {
     skipBackup: true,
     path: 'images',
@@ -44,8 +43,10 @@ export default function EditProfileFunc(props) {
   const context = React.useContext(UserDataContext);
   const { updateLocalUserInfo, setAppState } = React.useContext(AppFunctionsContext);
   const { unitSystem } = context.settings
-  const [isLoading, setIsLoading] = React.useState(false);
 
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [uploadImageTitle, setUploadImageTitle] = React.useState('upload an image');
+  const [updateProfilePic, setUpdateProfilePic] = React.useState(null);
   const [state, setState] = React.useState({
     updateFirstName: context.firstName,
     updateLastName: context.lastName,
@@ -54,7 +55,6 @@ export default function EditProfileFunc(props) {
     updateGender: context.gender,
     updateLocation: context.location,
     updateWeight: context.weight,
-    updateProfilePic: null,
 
     // for the sake of now, will change to respond to context and unit system
     updateHeightFt: Math.floor(context.height / 12),
@@ -339,22 +339,18 @@ export default function EditProfileFunc(props) {
       console.log("updating profile...")
       var { updateFirstName, updateLastName, updateBio, updateLocation, updateGender } = state
       var { updateHeightFt, updateHeightIn, updateHeightCm, updateWeight, updateAge } = state
-      var { updateProfilePic } = state
       var { profilePicture } = context
       var { unitSystem } = context.settings
       unitSystem = unitSystem.toLowerCase()
       var userToken = await getData();
 
-      var formData = new FormData();
-
-      formData.append("profilePic", updateProfilePic)
-      formData.append("currImgHash", profilePicture.etag)
-      // check out what this logs in the backend...
-      if (updateProfilePic) formData.append("product[images_attributes[0][file]]", updateProfilePic);
-
       // turn this into a function that returns a promise later and await/.then it
       try {
         if (updateProfilePic) {
+          console.log("uploading profile pic: ", updateProfilePic)
+          var formData = new FormData();
+          formData.append("profilePic", updateProfilePic)
+          // formData.append("currImgHash", profilePicture.etag)
           // check for duplicate pic upload
           // var verifyRes = await fetch(checkDuplicateURL, {
           //   method: "POST",
@@ -366,21 +362,24 @@ export default function EditProfileFunc(props) {
           //   setIsLoading(false);
           //   return
           // }
-          var headers = new Headers()
-          headers.append("authorization", `Bearer ${userToken}`)
           var uploadPicRes = await fetch(uploadPicURL, {
             method: "POST",
-            headers,
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': `Bearer ${userToken}`
+            },
             body: formData
           })
           var uploadPicJson = await uploadPicRes.json()
           if (uploadPicJson.success) {
             console.log("successfully updated profile picture!")
+          } else {
+            Alert.alert(`Oh No :(`, "Something went wrong with uploading your new profile picture. Please try again.", [{ text: "Okay" }]);
           }
         }
       } catch(e) {
         console.error(e)
-        Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please try again.", [{ text: "Okay" }]);
+        Alert.alert(`Oh No :(`, "Something went wrong with uploading your new profile picture. Please try again.", [{ text: "Okay" }]);
         setIsLoading(false);
         return;
       }
@@ -509,7 +508,10 @@ export default function EditProfileFunc(props) {
             errMsg={state.weightMsg}
           />
           <Button 
-            title="upload an image"
+            title={uploadImageTitle}
+            style={{
+              backgroundColor: 'red'
+            }}
             onPress={() => {
               ImagePicker.showImagePicker(imagePickerOptions, (response) => {
                 if (response.didCancel) {
@@ -519,12 +521,20 @@ export default function EditProfileFunc(props) {
                 } else if (response.customButton) {
                   console.log('User tapped custom button: ', response.customButton);
                 } else {
-                  const photo = { uri: response.uri, name: 'image.jpg', type: 'image/jpeg' };
+                  // if (response.type !== 'image/jpeg') {
+                  //   Alert.alert(`Oh No :(`, `Image must be`, [{ text: "Okay" }]);
+                  //   return;
+                  // }
+                  const photo = {
+                    uri:  Platform.OS === "android" ? response.uri : response.uri.replace("file://", ""),
+                    // uri: response.uri,
+                    name: response.fileName === null ? "newProfilePicture" : response.fileName,
+                    type: response.type
+                  };
+                  console.log(Object.keys(response))
                   console.log('uploaded photo: ', photo)
-                  setState(prevState => ({
-                    ...prevState,
-                    profilePicture: photo
-                  }))
+                  setUploadImageTitle(`uploaded a new photo`);
+                  setUpdateProfilePic(photo);
                   // You can also display the image using data:
                   // const source = { uri: 'data:image/jpeg;base64,' + response.data };
                 }

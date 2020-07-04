@@ -86,6 +86,7 @@ function Athlos(props) {
       }
       if (userData) {
         console.log("there is data is async storage")
+        setState(userData);
         setIsLoading(false);
         return;
       }
