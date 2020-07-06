@@ -28,16 +28,14 @@ const Following = (props) => {
           case('Pending'):
             return (
               <ActionButton
-                title='Cancel'
-                afterPressTitle='Cancelled'
+                initialTitle='Cancel'
                 onPress={cancelFollowRequest}       
               />
             )
           case('Following'):
             return (
               <ActionButton
-                title='Unfollow'
-                afterPressTitle='Unfollowed'
+                initialTitle='Unfollow'
                 onPress={stopFollowing}       
               />
             )

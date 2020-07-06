@@ -5,8 +5,7 @@ import ActionButton from '../../ActionButton'
 import AcceptRejectButton from './AcceptRejectButton'
 import COMMUNITY_CONSTANTS from '../../CommunityConstants'
 import ENDPOINTS from '../../../endpoints'
-import { getData } from '../../../utils/storage'
-const { acceptFollowerRequest, rejectFollowerRequest, removeFollower} = ENDPOINTS
+import { getData, storeDataObj } from '../../../utils/storage'
 const { FOLLOWERS, REQUESTS } = COMMUNITY_CONSTANTS
 
 const Follower = (props) => {
@@ -26,6 +25,12 @@ const Follower = (props) => {
     console.log('accept follower request')
     // set button text to be loading
     console.log("is loading", setIsLoading)
+    const newFollower = {
+      requesterID: requester._id,
+      requesterFirstName: requester.firstName,
+      requesterLastName: requester.lastName,
+      requesterProfilePicUrl: requester.profilePicUrl
+    }
     setIsLoading(true);
     try {
       const userToken = await getData();
@@ -34,23 +39,16 @@ const Follower = (props) => {
         receiverFirstName: userDataContext.firstName,
         receiverLastName: userDataContext.lastName,
         receiverProfilePicUrl: userDataContext.profilePicture.profileUrl,
-    
-        requesterID: requester._id,
-        requesterFirstName: requester.firstName,
-        requesterLastName: requester.lastName,
-        requesterProfilePicUrl: requester.profilePicUrl
+        ...newFollower
       }
-      var res = await fetch(acceptFollowerRequest, {
+      var res = await fetch(ENDPOINTS.acceptFollowerRequest, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
       })
       var resJson = await res.json()
-      if (resJson.success) {
-        // set the button text to be accepted
-        setActionSuccess(true)
-        setButtonText('Accepted')
-      } else {
+      if (!resJson.success) {
+        console.log("resJson.success is false: ", resJson.message);
         throw new Error("resJson.success is false")
       }
     } catch(e) {
@@ -61,9 +59,32 @@ const Follower = (props) => {
         [{ text: "Okay" }]
       );
       setButtonText('Accept')
-    } finally {
-      // button will not be loading anymore
-      setIsLoading(false)
+    }
+
+    // set the app state and update async storage separately hear, and throw error
+    // asking for refresh if this fails
+    try {
+      const newFollowerRequests = userDataContext.followerRequests.filter(user => {
+        return user._id !== requester._id
+      })
+      const newState = {
+        ...userDataContext,
+        followers: [...userDataContext.followers, newFollower],
+        followerRequests: newFollowerRequests
+      }
+      console.log('setting new state: ', newState)
+      setAppState(newState)
+      await storeDataObj(newState)
+      setActionSuccess(true)
+      setButtonText('Accepted')
+    } catch(e) {
+      console.log(e)
+      Alert.alert(
+        'Oh No :(',
+        `Something went wrong updating the app storage. Please refresh.`,
+        [{ text: "Okay" }]
+      );
+      setButtonText('Accept')
     }
   }
 
@@ -91,8 +112,7 @@ const Follower = (props) => {
           case(FOLLOWERS):
             return (
               <ActionButton
-                title='Remove'
-                afterPressTitle='Removed'
+                initialTitle='Remove'
                 onPress={(setButtonText, setActionSuccess, setIsLoading) => removeFollower(item, setButtonText, setActionSuccess, setIsLoading)}              
               />
             )
