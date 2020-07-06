@@ -14,6 +14,11 @@ import Discover from './screens/Discover'
 import { UserDataContext } from '../../Context'
 import ENDPOINTS from "../endpoints"
 import CommunityList from './screens/CommunityList';
+import Follower from './screens/listItems/Follower'
+import Following from './screens/listItems/Following'
+import Rival from './screens/listItems/Rival'
+import COMMUNITY_CONSTANTS from './CommunityConstants'
+const { FOLLOWERS, FOLLOWING, RIVALS, PENDING, DISCOVER } = COMMUNITY_CONSTANTS
 const searchURL = ENDPOINTS.searchUser
 const friendReqURL = ENDPOINTS.sendFriendReq
 // const getUserInfoURL = "https://us-central1-athlos-live.cloudfunctions.net/athlos-server/getUserInfo"
@@ -21,10 +26,6 @@ const tokenToID = ENDPOINTS.tokenToID
 const acceptFriendURL = ENDPOINTS.acceptFriendReq
 const imgAlt = "default"
 
-const DISCOVER  = "Discover" 
-const FOLLOWERS = "Followers"
-const FOLLOWING =  "Following"
-const RIVALS    =  "Rivals"
 const CommunityNav = (props) => {
   const { navigation } = props;
   const [stateFriends, setStateFriends] = React.useState([]);
@@ -191,152 +192,16 @@ const CommunityNav = (props) => {
 
   const toUserProfile = (user) => {
     console.log("redirect to this user: ", user)
-    navigation.navigate(props.USER_PROFILE, {
-      id: user._id
-    });
+    navigation.navigate(COMMUNITY_CONSTANTS.SEARCH_PROFILE, { _id: user._id });
   }
 
-  // const renderSearch = () => {
-  //   var liTags = []
-  //   var { searches, emptySearch } = state
-  //   var { friends, friendRequests, friendsPending, rootURL } = context
-
-  //   // put the user ids into a set for easy lookup
-  //   // apparently these constructors don't work on IE 11
-  //   var friendSet = new Set(friends.map(user => user.id))
-  //   var requestSet = new Set(friendRequests.map(user => user.id))
-  //   var pendingSet = new Set(friendsPending.map(user => user.id))
-
-  //   // if user just searched name not in database
-  //   if (emptySearch) {
-  //     liTags.push(
-  //       <div className="empty-search-container" key="empty-key">
-  //         <span>No search results :( try being more specific</span>
-  //       </div>
-  //     )
-  //   }
-
-  //   var displayButton = (user, friendSet, requestSet, pendingSet) => {
-  //     // console.log(user, friendSet, requestSet, pendingSet)
-  //     var { firstName, lastName, _id, username} = user
-  //     if (friendSet.has(_id)) {
-  //       return (
-  //         <React.Fragment>
-  //           <i className="fas fa-check ml-1 mr-1"></i>
-  //           <span className='mr-1'>Friends</span>
-  //         </React.Fragment>
-  //       )
-  //     } else if (requestSet.has(_id)) {
-  //       return (
-  //         <div
-  //           className='rel-wrapper'              
-  //           onClick={() => {
-  //             acceptRequest(_id, firstName, lastName)
-  //             removeFriendReq(_id)
-  //             addFriendToState(_id, firstName, lastName)
-  //           }}
-  //         >
-  //           <i className="fas fa-user-plu req-sent ml-1 mr-1"></i>
-  //           <span className='accept-req-btn'>
-  //             accept
-  //           </span>
-  //         </div>
-  //       )
-  //     } else if (pendingSet.has(_id)) {
-  //       return (
-  //         <React.Fragment>
-  //           <i className="fas fa-user-plu req-sent ml-1 mr-1"></i>
-  //           <span className=''>Request Sent</span>
-  //         </React.Fragment>
-  //       )
-  //     } else {
-  //       return (
-  //           <div
-  //             className='rel-wrapper'
-  //             onClick={() => {sendReq(_id, firstName, lastName, username)}}
-  //           >
-  //             <i className="fas fa-user-plu req-sent ml-1 mr-1"></i>
-  //             <span className='add-friend-btn ml-1'>Add</span> 
-  //           </div>
-  //       )
-  //     }
-  //   }
-
-  //   searches.forEach((user, i) => {
-  //     var { firstName, lastName, _id, username, profilePicture } = user
-  //     // capitalize first and last name before displaying
-  //     firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1)
-  //     lastName  = lastName.charAt(0).toUpperCase() + lastName.slice(1)
-  //     liTags.push(
-  //       <div key={_id + "_search"} className="user-container">
-  //         <img
-  //           src={profilePicture.profileURL}
-  //           alt={imgAlt}
-  //         ></img>
-  //         <NavLink
-  //           to={{pathname: `${rootURL}/profile/${username}`}}
-  //           className='search-name ml-3'
-  //         >
-  //           {firstName}, {lastName}
-  //         </NavLink>
-  //         <div className='search-relationship'>
-  //           {displayButton(user, friendSet, requestSet, pendingSet)}
-  //         </div>
-  //       </div>
-  //     )
-  //   })
-
-  //   liTags.push(
-  //     <div className="clear-search-container mt-3" key="clear-search-container">
-  //       <span onClick={clearSearch}>Clear Search</span>
-  //     </div>
-  //   )
-  //   return liTags
-  // }
-
-  // const renderDisplay = () => {
-  //   var { display } = state
-  //   var { context } = this
-  //   display = display.toLowerCase()
-  //   if (display === 'friends') {
-  //     return <Friends />
-  //   } else if (display === 'requests') {
-  //     return (
-  //       <FriendRequests
-  //         userToken={getToken()}
-  //         userFirstName={context.userFirstName}
-  //         userLastName={context.userLastName}
-  //         addFriendToState={addFriendToState}
-  //         removeFriendReq={removeFriendReq}
-  //         friendRequests={context.friendRequests}
-  //         friendsPending={context.friendsPending}
-  //         friends={context.friends}
-  //         numRequests={context.numRequests}
-  //         acceptRequest={acceptRequest}
-  //       />
-  //     )     
-  //   } else if (display === 'search') {
-  //     return (
-  //       <div className='search-wrapper'>
-  //         <h4>Search for users</h4>
-  //         <Searchbar
-  //           search={search}
-  //           onSearchTextChange={onSearchTextChange}
-  //           mouseLeave={mouseLeave}
-  //           searchText={state.searchText}
-  //         />
-  //         <div className={"queries" + (state.showQueries ? " expand" : " collapsed")}>
-  //           {renderSearch()}
-  //         </div>
-  //       </div>
-  //     )
-  //   } else {
-  //     console.log('display is not friends, requests, or search')
-  //     return null
-  //   }
-  // }
   const TopTab = createMaterialTopTabNavigator();
-  const { friends, friendRequests, friendsPending } = context;
+  // const { friends, friendRequests, friendsPending } = context;
+  const {
+    rivals, rivalsPending, rivalRequests,
+    following, followingPending, 
+    followers, followerRequests
+  } = context;
   return (
     <TopTab.Navigator
       tabBarOptions={{
@@ -362,12 +227,13 @@ const CommunityNav = (props) => {
         {(props) => (
           <CommunityList
             {...props}
+            listItem={Following}
             peopleTitle={FOLLOWING}
             peopleSubtitle="you're following"
-            pendingTitle="Requests"
+            pendingTitle="Pending"
             pendingSubtitle="you've sent a request"
-            pendingList={friendsPending}
-            itemList={friends}
+            pendingList={followingPending}
+            itemList={following}
             onItemPress={toUserProfile}
           />
         )}
@@ -378,12 +244,13 @@ const CommunityNav = (props) => {
         {(props) => (
           <CommunityList
             {...props}
+            listItem={Follower}
             peopleTitle={FOLLOWERS}
             peopleSubtitle="is following you"
             pendingTitle="Requests"
             pendingSubtitle="wants to follow you!"
-            pendingList={friendRequests}
-            itemList={friends}
+            pendingList={followerRequests}
+            itemList={followers}
             onItemPress={toUserProfile}
           />
         )}
@@ -395,12 +262,14 @@ const CommunityNav = (props) => {
         {(props) => (
           <CommunityList 
             {...props}
+            listItem={Rival}
             peopleTitle={RIVALS}
             peopleSubtitle="thinks they're better than you >:("
             pendingTitle="Pending"
             pendingSubtitle="wants to challenge you!"
-            pendingList={friendsPending}
-            itemList={friends}
+            pendingList={rivalsPending}
+            // add another for rival requests
+            itemList={rivals}
             onItemPress={toUserProfile}
           />
         )}

@@ -23,12 +23,11 @@ const Profile = (props) => {
           <>
             <Text>BUNCH OF TEXT HELLO</Text>
             <UserProfile {...props}/>
+            {/* <Fitness /> */}
           </>
         )}
       </Stack.Screen>
       <Stack.Screen name={PROFILE_CONSTANTS.EDIT_PROFILE} component={EditProfileFunc}/>
-
-      {/* <Fitness /> */}
     </Stack.Navigator>
   )
     var { context } = this

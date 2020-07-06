@@ -9,43 +9,20 @@ const CommunityList = (props) => {
     {
       title: pendingTitle,
       data: pendingList
+      // data: []
     },
     {
       title: peopleTitle,
       data: itemList
+      // data: []
     }
   ]
   return (
     <View style={styles.container}>
       <SectionList
         sections={withSections}
-        keyExtractor={(item, idx) => item.id}
-        renderItem={({ item, section }) => (
-          <ListItem
-            key={item.id}
-            title={`${item.firstName} ${item.lastName}`}
-            subtitle={section.title === 'Requests' ? pendingSubtitle : peopleSubtitle}
-            // MAKE THIS THEIR PHOTO. USE CLOUDINARY URL
-            // leftAvatar={{ source: { uri: item.avatar_url } }}
-
-            // MAKE THIS THE FOLLOW/ACCEPT BUTTON
-            rightElement={() => (
-              <ActionButton
-                title='hello'
-                afterPressTitle='bye'
-                onPress={() => {
-                  console.log("freind button pressed")
-                }}
-              />
-            )}
-            bottomDivider
-            onPress={() => {
-              console.log("friend pressed")
-              // get the user's profile and display based on their settings
-              onItemPress(item)
-            }}
-          />
-        )}
+        keyExtractor={(item, idx) => item._id}
+        renderItem={({ item, section }) => props.listItem({item, section, onItemPress})}
         renderSectionHeader={({ section: { title } }) => (
           <Text style={styles.header}>{title}</Text>
         )}

@@ -46,16 +46,19 @@ const Settings = (props) => {
       setIsLoading(true);
       console.log(friendsListChoice, fitnessChoice, basicInfoChoice, unitDisplayChoice, swimLengthChoice)
       // get user token
-      const token = await getData()
-      if (!token) {
-        // send them back to the login page
-        console.log("WOT they have no token hmmmm")
-        return
-        // return
-      } 
-  
+      try {
+        var token = await getData()
+        if (!token) {
+          // send them back to the login page
+          console.log("WOT they have no token hmmmm")
+          setIsLoading(false);
+          return
+        } 
+      } catch(e) {
+        console.log(e)
+      }
       // update Athlos state
-      setAppState({
+      const newState = {
         ...context,
         settings: {
           seeBasicInfo: basicInfoChoice,
@@ -64,13 +67,15 @@ const Settings = (props) => {
           swimLap: swimLengthChoice,
           unitSystem: unitDisplayChoice
         }
-      })
+      }
+      setAppState(newState)
       console.log("app state updated")
   
       // update async storage
       try {
-        console.log("storing data object")
-        await storeDataObj(context)
+        // THIS DOESN'T ACTUALLY WORK DOESNT SEEM LIKE CONTEXT DOESNT GET UPDATED FUCK
+        console.log("storing data object: ", newState)
+        await storeDataObj(newState)
       } catch(e) {
         console.error(e)
         Alert.alert('Oh No :(', "Something went wrong with trying to save your settings. Please try again.", [{ text: "Okay" }]);
@@ -163,41 +168,6 @@ const Settings = (props) => {
       )
     } else {
       alert('error showing menu')
-    }
-  }
-
-  const displayErrors = () => {
-    const clearErrors = () => {
-      console.log("clearing errors...")
-      setState({
-        errorMsgs: ""
-      })
-    }
-    if (state.errorMsgs) {
-      return (
-        <div className="msg-container">
-          <ErrorAlert msg={state.errorMsgs} onClose={clearErrors}/>
-        </div>
-      )
-    } else {
-      return null
-    }
-  }
-  
-  const displaySuccesses = () => {
-    const clearSuccesses = () => {
-      setState({
-        successMsgs: ""
-      })
-    }
-    if (state.successMsgs) {
-      return (
-        <div className="msg-container">
-          <Success msg={state.successMsgs} onClose={clearSuccesses}/>
-        </div>
-      )
-    } else {
-      return null
     }
   }
 
@@ -299,9 +269,8 @@ const BASIC_INFO_SETTINGS = 'Basic Info Settings'
 const UNIT_SYSTEM_SETTINGS = 'Unit System Settings'
 const SWIM_SETTINGS = 'Swimming Settings'
 
-const ONLY_ME = 'Only Me'
-const FRIENDS = 'Only Friends'
-const EVERYONE = 'Everyone'
+import GLOBAL_CONSTANTS from '../GlobalConstants'
+const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS
 
 const FRIENDS_SETTINGS_LIST = [
   {
@@ -309,7 +278,7 @@ const FRIENDS_SETTINGS_LIST = [
     subtitle: 'FRIENDS_SETTINGS_LIST',  
   },
   {
-    title: FRIENDS,
+    title: FOLLOWERS,
     subtitle: 'FRIENDS_SETTINGS_LIST',
   },
   {
@@ -324,7 +293,7 @@ const FITNESS_SETTINGS_LIST = [
     subtitle: 'FITNESS_SETTINGS_LIST',  
   },
   {
-    title: FRIENDS,
+    title: FOLLOWERS,
     subtitle: 'FITNESS_SETTINGS_LIST',
   },
   {
@@ -339,7 +308,7 @@ const BASIC_INFO_SETTINGS_LIST = [
     subtitle: 'BASIC_INFO_SETTINGS_LIST',  
   },
   {
-    title: FRIENDS,
+    title: FOLLOWERS,
     subtitle: 'BASIC_INFO_SETTINGS_LIST',
   },
   {
@@ -365,7 +334,7 @@ const SWIM_SETTINGS_LIST = [
     subtitle: 'SWIM_SETTINGS_LIST',  
   },
   {
-    title: FRIENDS,
+    title: FOLLOWERS,
     subtitle: 'SWIM_SETTINGS_LIST',
   },
   {

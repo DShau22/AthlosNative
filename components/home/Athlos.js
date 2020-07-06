@@ -10,7 +10,6 @@ import {
   getDataObj
 } from '../utils/storage';
 import ENDPOINTS from "../endpoints"
-import FriendDisplay from "../community/friends/FriendDisplay"
 import {
   getBests,
   getProfile,
@@ -32,11 +31,32 @@ const dataURL = ENDPOINTS.getData
 
 function Athlos(props) {
   const [isLoading, setIsLoading] = React.useState(false);
+  // const [rivals, setRivals] = React.useState([]);
+  // const [rivalsPending, setRivalsPending] = React.useState([]);
+  // const [rivalRequests, setRivalRequests] = React.useState([]);
+
+  // const [followers, setFollowers] = React.useState([]);
+  // const [followerRequests, setFollowerRequests] = React.useState([]);
+
+  // const [following, setFollowing] = React.useState([]);
+  // const [followingPending, setFollowingPending] = React.useState([]);
+
   const [state, setState] = React.useState({
     headerText: 'Home',
     friends: [],
     friendRequests: [],
     friendsPending: [],
+
+    rivals: [],
+    rivalsPending: [],
+    rivalRequests: [],
+
+    followers: [],
+    followerRequests: [],
+
+    following: [],
+    followingPending: [],
+
     firstName: "",
     lastName: "",
     username: "",
@@ -155,7 +175,7 @@ function Athlos(props) {
         // store in Async storage so no need to request every time
         // probably change this later so this refreshes every now and then?
         // adding a service worker or background process would be good
-        // storeDataObj(userData);
+        storeDataObj(userData);
         setIsLoading(false);        
       } else {
         console.log("one of the requests to get fitness data or user info didn't work");
@@ -384,7 +404,7 @@ function Athlos(props) {
     <UserDataContext.Provider value={state}>
       <AppFunctionsContext.Provider
         value={{
-          // setAppState: setState,
+          setAppState: setState,
           updateLocalUserInfo,
         }}
       >

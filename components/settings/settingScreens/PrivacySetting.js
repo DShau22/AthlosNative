@@ -2,15 +2,14 @@ import React from 'react'
 import { FlatList, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { RadioButton } from 'react-native-paper';
 import { Text, ListItem } from 'react-native-elements';
-const ONLY_ME = 'Only Me'
-const FRIENDS = 'Only Friends'
-const EVERYONE = 'Everyone'
+import GLOBAL_CONSTANTS from '../../GlobalConstants'
+const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS
 
 export default function PrivacySetting(props) {
   let { defaultOption, settingsList, updateSettings } = props;
   let initialChoice = defaultOption;
   // this is just in case the backend names don't line up with the frontend
-  if (defaultOption !== ONLY_ME && defaultOption !== FRIENDS && defaultOption !== EVERYONE) initialChoice = ONLY_ME;
+  if (defaultOption !== ONLY_ME && defaultOption !== FOLLOWERS && defaultOption !== EVERYONE) initialChoice = ONLY_ME;
 
   const [buttonPressed, setButtonPressed] = React.useState(initialChoice);
   return (

@@ -14,13 +14,14 @@ const ActionButton = (props) => {
     <Button
       title={pressed ? afterPressTitle : title}
       type={pressed ? 'outline' : 'solid'}
+      disabled={pressed}
       // linearGradientProps={{
       //   colors: ['red', 'pink'],
       //   start: { x: 0, y: 0.5 },
       //   end: { x: 1, y: 0.5 },
       // }}
       onPress={() => {
-        setPressed(!pressed);
+        setPressed(true);
         onPress()
       }}
     />

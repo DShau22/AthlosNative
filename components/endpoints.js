@@ -24,7 +24,7 @@ const ENDPOINTS = {
     searchUser: `${serverURL}/searchUser`,
     getSearchUserBasicInfo: `${serverURL}/getSearchUserBasicInfo`,
     getSearchUserFriends: `${serverURL}/getSearchUserFriends`,
-    getSearchUserFitness: `${serverURL}/getSearchUserFriends`,
+    getSearchUserFitness: `${serverURL}/getSearchUserFitness`,
 
     // user data and info
     getData: `${serverURL}/data`,

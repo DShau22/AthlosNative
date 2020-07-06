@@ -16,6 +16,8 @@ import ENDPOINTS from "../endpoints"
 import CommunityList from './screens/CommunityList';
 // import UserProfile from '../profile/UserProfile'
 import CommunityNav from './CommunityNav';
+import COMMUNITY_CONSTANTS from './CommunityConstants'
+import SearchProfile from '../profile/SearchProfile';
 const searchURL = ENDPOINTS.searchUser
 const friendReqURL = ENDPOINTS.sendFriendReq
 // const getUserInfoURL = "https://us-central1-athlos-live.cloudfunctions.net/athlos-server/getUserInfo"
@@ -23,19 +25,19 @@ const tokenToID = ENDPOINTS.tokenToID
 const acceptFriendURL = ENDPOINTS.acceptFriendReq
 const imgAlt = "default"
 
-const USER_PROFILE = "User Profile"
-const COMMUNITY = "Community"
 const Community = (props) => {
   const Stack = createStackNavigator();
   return (
     <Stack.Navigator>
-      <Stack.Screen name={COMMUNITY}>
-        {(props) => <CommunityNav {...props} USER_PROFILE={USER_PROFILE}/>}
+      <Stack.Screen name={COMMUNITY_CONSTANTS.COMMUNITY}>
+        {(props) => <CommunityNav {...props} />}
       </Stack.Screen>
-      <Stack.Screen name={USER_PROFILE}>
+      <Stack.Screen name={COMMUNITY_CONSTANTS.SEARCH_PROFILE}>
         {(props) => (
           // THIS SHOULD BE THE PROFILE COMPONENT INSTEAD
-          <Text>Nother user :0</Text>
+          <SearchProfile
+            {...props}
+          />
         )}
       </Stack.Screen>
     </Stack.Navigator>
