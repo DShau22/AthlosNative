@@ -2,9 +2,12 @@ import React from 'react'
 import { View, StyleSheet, SectionList } from 'react-native'
 import { Tooltip, Text, ListItem } from 'react-native-elements';
 import ActionButton from "../ActionButton"
+import { AppFunctionsContext, UserDataContext } from '../../../Context'
 // RIGHT NOW THIS DISPLAYS FRIENDS where friends is the field in Mongo
 const CommunityList = (props) => {
   const { onItemPress, itemList, pendingList, pendingTitle, peopleTitle, pendingSubtitle, peopleSubtitle } = props
+  const { setAppState } = React.useContext(AppFunctionsContext);
+  const userDataContext = React.useContext(UserDataContext);
   const withSections = [
     {
       title: pendingTitle,
@@ -22,7 +25,7 @@ const CommunityList = (props) => {
       <SectionList
         sections={withSections}
         keyExtractor={(item, idx) => item._id}
-        renderItem={({ item, section }) => props.listItem({item, section, onItemPress})}
+        renderItem={({ item, section }) => props.listItem({item, section, onItemPress, setAppState, userDataContext})}
         renderSectionHeader={({ section: { title } }) => (
           <Text style={styles.header}>{title}</Text>
         )}

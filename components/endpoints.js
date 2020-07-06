@@ -15,9 +15,12 @@ const ENDPOINTS = {
     passwordReset: `${serverURL}/confPasswordReset`,
     forgotPassword: `${serverURL}/forgotPassword`,
 
-    // friend stuff
+    // community stuff
     sendFriendReq: `${serverURL}/sendFriendReq`,
     acceptFriendReq: `${serverURL}/acceptRequest`,
+    acceptFollowerRequest: `${serverURL}/acceptFollowerRequest`,
+    rejectFollowerRequest: `${serverURL}/rejectFollowerRequest`,
+    removeFollower: `${serverURL}/removeFollower`,
 
     // search stuff
     getSearchUser: `${serverURL}/getSearchUser`,

@@ -2,12 +2,10 @@ import React from 'react'
 import { Tooltip, Text, ListItem } from 'react-native-elements';
 import { View, StyleSheet, SectionList } from 'react-native'
 import ActionButton from '../../ActionButton'
-import AcceptRejectButton from './AcceptRejectButton'
-import { AppFunctionsContext } from '../../../../Context'
-
+import COMMUNITY_CONSTANTS from '../../CommunityConstants'
+const { FOLLOWERS, REQUESTS } = COMMUNITY_CONSTANTS
 const Following = (props) => {
-  const { item, section, onItemPress } = props;
-  // const { setAppState } = React.useContext(AppFunctionsContext);
+  const { item, section, onItemPress, setAppState } = props;
   // cancels the follow request that the user sent to this person
   const cancelFollowRequest = () => {
     console.log('cancel follow request')

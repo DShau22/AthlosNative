@@ -3,12 +3,10 @@ import { Tooltip, Text, ListItem } from 'react-native-elements';
 import { View, StyleSheet, SectionList } from 'react-native'
 import ActionButton from '../../ActionButton'
 import AcceptRejectButton from './AcceptRejectButton'
-
-import { AppFunctionsContext } from '../../../../Context'
-
+import COMMUNITY_CONSTANTS from '../../CommunityConstants'
+const { FOLLOWERS, REQUESTS } = COMMUNITY_CONSTANTS
 const Rival = (props) => {
-  const { item, section, onItemPress } = props;
-  const { setAppState } = React.useContext(AppFunctionsContext);
+  const { item, section, onItemPress, setAppState } = props;
   const acceptRivalRequest = () => {
     console.log('accept rival request')
   }

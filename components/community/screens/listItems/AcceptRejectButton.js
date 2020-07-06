@@ -5,13 +5,11 @@ export default function AcceptRejectButton(props) {
   return (
     <View style={styles.container}>
       <ActionButton
-        title='Accept'
-        afterPressTitle='Accepted'
+        initialTitle='Accept'
         onPress={props.accept}
       />
       <ActionButton
-        title='Reject'
-        afterPressTitle='Rejected'
+        initialTitle='Reject'
         onPress={props.reject}
       />
     </View>
