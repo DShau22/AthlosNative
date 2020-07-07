@@ -13,6 +13,7 @@ import {
   getData,
   storeData
 } from '../utils/storage';
+import Axios from 'axios';
 
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
@@ -106,20 +107,13 @@ const SignIn = ({ navigation }) => {
       ...data,
       isSignInLoading: true
     })
-    // setTimeout(() => {
-    //   Alert.alert('Oh No :(', "Login timed out. Please try again later", [{ text: "Okay" }]);
-    //   setData({
-    //     ...data,
-    //     isSignInLoading: false
-    //   })
-    // }, 10000);
-    // Post request to backend
     const login = async () => {
       // for android
       // const url = 'https://127.0.0.1:8080/api/account/signin'
       // otherwise apple
       const url = signInURL;
       console.log(url);
+      
       try {
         var res = await fetch(url, {
           method: 'POST',
@@ -137,11 +131,8 @@ const SignIn = ({ navigation }) => {
           console.log("login succeeded");
           await storeData(json.token);
           // navigate away to the main Athlos app
+          // by setting the token and changing the App.js state
           setToken(json.token);
-          setData({
-            ...data,
-            isSignInLoading: false,
-          });
         } else {
           console.log("alerting!")
           Alert.alert('Login Failed :(', json.messages[0], [{ text: 'Okay' }]);

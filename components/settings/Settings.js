@@ -1,11 +1,10 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { View, ScrollView, StyleSheet, Alert, FlatList } from 'react-native'
 import { Tooltip, Text, ListItem } from 'react-native-elements';
 import { UserDataContext, SettingsContext, AppFunctionsContext } from "../../Context"
 import LoadingScreen from "../generic/LoadingScreen"
-import { useFocusEffect } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-
+import axios from 'axios';
 
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
@@ -35,11 +34,18 @@ const Settings = (props) => {
   const [unitDisplayChoice, setUnitDisplayChoice] = React.useState(settings.unitSystem);
   const [swimLengthChoice, setSwimLengthChoice] = React.useState(settings.swimLap);
 
-  useFocusEffect(
-    React.useCallback(() => {
+  // cancel token for cancelling Axios requests on unmount
+  const CancelToken = axios.CancelToken;
+  const source = CancelToken.source();
 
-    }, [])
-  );
+  React.useEffect(() => {
+    console.log("Community Nav has mounted");
+    return () => {
+      console.log("Settings requests are being canceled")
+      source.cancel('Operation has been canceled')
+    };
+  }, [])
+
   const saveSettings = () => {
     const asyncSaveSettings = async () => {
       console.log('saving settings...')
@@ -56,6 +62,36 @@ const Settings = (props) => {
         } 
       } catch(e) {
         console.log(e)
+      }
+  
+      // update settings with the backend
+      try {
+        const config = {
+          headers: { 'Content-Type': 'application/json' },
+          cancelToken: source.token
+        }
+        var res = await axios.post(settingsURL, {
+          userToken: token,
+          seeFriendsList: friendsListChoice,
+          seeFitness: fitnessChoice,
+          seeBasicInfo: basicInfoChoice,
+          unitSystem: unitDisplayChoice,
+          swimLap: swimLengthChoice
+        }, config)
+        var json = res.data
+        console.log("axios response: ", json)
+        if (json.success) {
+          // props.updateUserInfo()
+          Alert.alert('All Done!', "Your settings have been successfully updated :)", [{ text: "Okay" }]);
+          setIsLoading(false);
+        } else {
+          Alert.alert('Oh No :(', json.message, [{ text: "Okay" }]);
+          setIsLoading(false);
+        }
+      } catch(e) {
+        console.error(e)
+        Alert.alert('Oh No :(', "Something went wrong with the connection to the server. Please try again.", [{ text: "Okay" }]);
+        setIsLoading(false);
       }
       // update Athlos state
       const newState = {
@@ -81,37 +117,6 @@ const Settings = (props) => {
         Alert.alert('Oh No :(', "Something went wrong with trying to save your settings. Please try again.", [{ text: "Okay" }]);
       }
       console.log("async storage updated")
-  
-      // update settings with the backend
-      try {
-        var res = await fetch(settingsURL, {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            userToken: token,
-            seeFriendsList: friendsListChoice,
-            seeFitness: fitnessChoice,
-            seeBasicInfo: basicInfoChoice,
-            unitSystem: unitDisplayChoice,
-            swimLap: swimLengthChoice
-          })
-        })
-        var json = await res.json()
-        if (json.success) {
-          // props.updateUserInfo()
-          Alert.alert('All Done!', "Your settings have been successfully updated :)", [{ text: "Okay" }]);
-          setIsLoading(false);
-        } else {
-          Alert.alert('Oh No :(', "Something went wrong with the response from the server. Please try again.", [{ text: "Okay" }]);
-          setIsLoading(false);
-        }
-      } catch(e) {
-        console.error(e)
-        Alert.alert('Oh No :(', "Something went wrong with the connection to the server. Please try again.", [{ text: "Okay" }]);
-        setIsLoading(false);
-      }
     }
     asyncSaveSettings();
   }
@@ -181,7 +186,7 @@ const Settings = (props) => {
       <SettingsContext.Provider value={{
         saveSettings,
       }}>
-        <Text>CHANGE IT SO UNIT SYSTEM AND SWIM LAP WORK LATER DONT HIT SAVE SETTINGS</Text>
+        <Text>CHANGE IT SO UNIT SYSTEM AND SWIM LAP WORK LATER</Text>
         <Spinner
           visible={isLoading}
           textContent={'Saving...'}

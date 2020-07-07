@@ -3,8 +3,7 @@ import {
 } from '../utils/storage';
 
 import React from 'react'
-// import FriendRequests from "./friends/FriendRequests"
-// import Friends from "./friends/Friends"
+import axios from 'axios';
 import { View, Alert, StyleSheet, Text, Dimensions, PixelRatio } from 'react-native'
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -38,6 +37,18 @@ const CommunityNav = (props) => {
 
   const context = React.useContext(UserDataContext);
 
+  // cancel token for cancelling Axios requests on unmount
+  const CancelToken = axios.CancelToken;
+  const source = CancelToken.source();
+
+  React.useEffect(() => {
+    console.log("Community Nav has mounted");
+    return () => {
+      console.log("cleanup community nav")
+      source.cancel('Operation has been canceled')
+    };
+  }, [])
+
   const removeFriendReq = (id) => {
     console.log("removing friend with id: ", id)
     var { friendRequests } = context
@@ -64,19 +75,17 @@ const CommunityNav = (props) => {
       setSearches([]);
       setIsLoading(true);
       var userToken = await getData();
-      var reqBody = {
-        searchText,
-        userToken,
-      }
       try {
-        var res = await fetch(searchURL, {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(reqBody),
-        })
-        var json = await res.json()
+        const reqBody = {
+          searchText,
+          userToken,
+        }
+        const config = {
+          headers: { 'Content-Type': 'application/json' },
+          cancelToken: source.token
+        }
+        var res = await axios.post(searchURL, reqBody, config);
+        var json = res.data
         if (!json.success) {
           // DISPLAY SOME SORT OF ERROR
           console.log("json.success is false: ", json)

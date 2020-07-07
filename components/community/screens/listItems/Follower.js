@@ -6,6 +6,7 @@ import AcceptRejectButton from './AcceptRejectButton'
 import COMMUNITY_CONSTANTS from '../../CommunityConstants'
 import ENDPOINTS from '../../../endpoints'
 import { getData, storeDataObj } from '../../../utils/storage'
+const defaultProfile = require('../../../assets/profile.png')
 const { FOLLOWERS, REQUESTS } = COMMUNITY_CONSTANTS
 
 const Follower = (props) => {
@@ -25,12 +26,6 @@ const Follower = (props) => {
     console.log('accept follower request')
     // set button text to be loading
     console.log("is loading", setIsLoading)
-    const newFollower = {
-      requesterID: requester._id,
-      requesterFirstName: requester.firstName,
-      requesterLastName: requester.lastName,
-      requesterProfilePicUrl: requester.profilePicUrl
-    }
     setIsLoading(true);
     try {
       const userToken = await getData();
@@ -39,7 +34,11 @@ const Follower = (props) => {
         receiverFirstName: userDataContext.firstName,
         receiverLastName: userDataContext.lastName,
         receiverProfilePicUrl: userDataContext.profilePicture.profileUrl,
-        ...newFollower
+        
+        requesterID: requester._id,
+        requesterFirstName: requester.firstName,
+        requesterLastName: requester.lastName,
+        requesterProfilePicUrl: requester.profilePicUrl
       }
       var res = await fetch(ENDPOINTS.acceptFollowerRequest, {
         method: "POST",
@@ -67,6 +66,12 @@ const Follower = (props) => {
       const newFollowerRequests = userDataContext.followerRequests.filter(user => {
         return user._id !== requester._id
       })
+      const newFollower = {
+        _id: requester._id,
+        firstName: requester.firstName,
+        lastName: requester.lastName,
+        profilePicUrl: requester.profilePicUrl
+      }
       const newState = {
         ...userDataContext,
         followers: [...userDataContext.followers, newFollower],
@@ -97,7 +102,10 @@ const Follower = (props) => {
       title={`${item.firstName} ${item.lastName}`}
       // subtitle={section.title === 'Requests' ? 'wants to follow you!' : 'is following you'}
       // MAKE THIS THEIR PHOTO. USE CLOUDINARY URL
-      leftAvatar={{ source: { uri: item.profilePicUrl } }}
+      leftAvatar={item.profilePicUrl.length > 0 ?
+        { source: { uri: item.profilePicUrl }} : 
+        { source: defaultProfile } 
+      }
 
       // MAKE THIS THE FOLLOW/ACCEPT BUTTON
       rightElement={() => {
@@ -105,15 +113,21 @@ const Follower = (props) => {
           case(REQUESTS):
             return (
               <AcceptRejectButton
-                accept={(setButtonText, setActionSuccess, setIsLoading) => acceptFollowerRequest(item, setButtonText, setActionSuccess, setIsLoading)}
-                reject={(setButtonText, setActionSuccess, setIsLoading) => rejectFollowerRequest(item, setButtonText, setActionSuccess, setIsLoading)}
+                accept={(setButtonText, setActionSuccess, setIsLoading) => 
+                  acceptFollowerRequest(item, setButtonText, setActionSuccess, setIsLoading)
+                }
+                reject={(setButtonText, setActionSuccess, setIsLoading) => 
+                  rejectFollowerRequest(item, setButtonText, setActionSuccess, setIsLoading)
+                }
               />
             )
           case(FOLLOWERS):
             return (
               <ActionButton
                 initialTitle='Remove'
-                onPress={(setButtonText, setActionSuccess, setIsLoading) => removeFollower(item, setButtonText, setActionSuccess, setIsLoading)}              
+                onPress={(setButtonText, setActionSuccess, setIsLoading) => 
+                  removeFollower(item, setButtonText, setActionSuccess, setIsLoading)
+                }
               />
             )
         }
