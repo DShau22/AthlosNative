@@ -17,7 +17,7 @@ import Follower from './screens/listItems/Follower'
 import Following from './screens/listItems/Following'
 import Rival from './screens/listItems/Rival'
 import COMMUNITY_CONSTANTS from './CommunityConstants'
-const { FOLLOWERS, FOLLOWING, RIVALS, PENDING, DISCOVER } = COMMUNITY_CONSTANTS
+const { FOLLOWERS, FOLLOWING, RIVALS, PENDING, DISCOVER, NO_SEARCH_RESULTS } = COMMUNITY_CONSTANTS
 const searchURL = ENDPOINTS.searchUser
 const friendReqURL = ENDPOINTS.sendFriendReq
 // const getUserInfoURL = "https://us-central1-athlos-live.cloudfunctions.net/athlos-server/getUserInfo"
@@ -27,15 +27,21 @@ const imgAlt = "default"
 
 const CommunityNav = (props) => {
   const { navigation } = props;
-  const [stateFriends, setStateFriends] = React.useState([]);
-  const [display, setDisplay] = React.useState('friends');
-  const [searches, setSearches] = React.useState([]);
-  const [searchText, setSearchText] = React.useState('');
-  const [showQueries, setShowQueries] = React.useState(false);
-  const [emptySearch, setEmptySearch] = React.useState(false);
-  const [numFriendsDisplay, setNumFriendsDisplay] = React.useState(25);
-
   const context = React.useContext(UserDataContext);
+
+  const [searches, setSearches] = React.useState([]);
+
+  const [communityState, setCommunityState] = React.useState({
+    followerRequests: context.followerRequests,
+    followers: context.followers,
+    followingPending: context.followingPending,
+    following: context.following,
+    rivalRequests: context.rivalRequests,
+    rivalsPending: context.rivalsPending,
+    rivals: context.rivals,
+  })
+
+  const [numFriendsDisplay, setNumFriendsDisplay] = React.useState(25);
 
   // cancel token for cancelling Axios requests on unmount
   const CancelToken = axios.CancelToken;
@@ -48,25 +54,6 @@ const CommunityNav = (props) => {
       source.cancel('Operation has been canceled')
     };
   }, [])
-
-  const removeFriendReq = (id) => {
-    console.log("removing friend with id: ", id)
-    var { friendRequests } = context
-    // remove friend object from requests with id
-    var removed = friendRequests.filter((friend) => {
-      return friend.senderID !== id
-    })
-    console.log("removed", removed)
-    setState({
-      friendRequests: removed,
-    })
-  }
-
-  const addFriendToState = (id, firstName, lastName) => {
-    var { friends } = context
-    var friendObject = { id, firstName, lastName }
-    setFriends([...friends, friendObject])
-  }
 
   const search = (searchText, setIsLoading) => {
     const asyncSearch = async () => {
@@ -94,11 +81,10 @@ const CommunityNav = (props) => {
         }
         var { users } = json
         if (users === undefined || users.length === 0) {
-          setEmptySearch(true);
+          // set searches to a sad message of not being able to find anything :(
+          setSearches([NO_SEARCH_RESULTS])
         } else {
           setSearches(users);
-          setShowQueries(true);
-          setEmptySearch(false);
         }
         setIsLoading(false);
       } catch(e) {
@@ -109,108 +95,21 @@ const CommunityNav = (props) => {
     asyncSearch();
   }
 
-  const decodeToken = async () => {
-    // send request to server to decode stored token into the user id
-    var userToken = await getData();
-    var headers = new Headers()
-    headers.append("authorization", `Bearer ${userToken}`)
-    var res = await fetch(tokenToID, {method: "GET", headers})
-    var json = await res.json()
-    var { userID } = json
-    return userID
-  }
-
-  const sendReq = async (_id, receiverFirstName, receiverLastName, receiverUsername) => {
-    // emit event using web socket to server
-    var { socket } = context
-    var { firstName, lastName, username } = context
-
-    // get decoded userID
-    var userID = await decodeToken()
-    var userToken = getToken()
-    console.log("sending request", userID)
-    socket.emit("sendFriendRequest", {
-      senderID: userID,
-      senderFirstName: firstName,
-      senderLastName: lastName,
-      senderUsername: username,
-      receiverID: _id,
-    })
-
-    var body = JSON.stringify({
-      token: userToken,
-      senderFirstName: firstName,
-      senderLastName: lastName,
-      senderUsername: username,
-      receiverID: _id,
-      receiverFirstName,
-      receiverLastName,
-      receiverUsername,
-    })
-
-    fetch(friendReqURL, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body,
-    })
-      .then(res => res.json())
-      .then((json) => {
-        console.log(JSON.stringify(json))
-      })
-    .catch((err) => {throw err})
-  }
-
-  const acceptRequest = async (senderID, senderFirstName, senderLastName) => {
-    // SENDER refers to the FRIEND REQUEST SENDER
-    var userToken = getToken()
-    var { firstName, lastName } = context
-    // send notification to server
-    var { socket } = context
-    var userID = decodeToken()
-    socket.emit("acceptFriendRequest", { userID, receiverFirstName: firstName, receiverLastName: lastName, otherFriendID: senderID })
-
-    var reqBody = {
-      userToken,
-      receiverFirstName: firstName,
-      receiverLastName: lastName,
-      senderID,
-      senderFirstName,
-      senderLastName,
-    }
-
-    var res = await fetch(acceptFriendURL, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(reqBody)
-    })
-    var json = await res.json()
-    console.log("json message: ", json.message)
-  }
-
-  const clearSearch = () => {
-    // set search state data to inital state
-    setSearchText('');
-    setSearches([]);
-    setShowQueries(false);
-    setEmptySearch(false);
-  }
-
   const toUserProfile = (user) => {
     console.log("redirect to this user: ", user)
     navigation.navigate(COMMUNITY_CONSTANTS.SEARCH_PROFILE, { _id: user._id });
   }
 
   const TopTab = createMaterialTopTabNavigator();
-  // const { friends, friendRequests, friendsPending } = context;
   const {
-    rivals, rivalsPending, rivalRequests,
-    following, followingPending, 
-    followers, followerRequests
-  } = context;
+    followingPending,
+    following,
+    followerRequests,
+    followers,
+    rivalRequests,
+    rivalsPending,
+    rivals,
+  } = context
   return (
     <TopTab.Navigator
       tabBarOptions={{
@@ -233,6 +132,7 @@ const CommunityNav = (props) => {
       <TopTab.Screen
         name={FOLLOWING}
       >
+        {/* INSTEAD OF TWO LISTS, MERGE THEM INTO ONE ARRAY FOR SECTIONLIST */}
         {(props) => (
           <CommunityList
             {...props}

@@ -7,26 +7,85 @@ import COMMUNITY_CONSTANTS from '../../CommunityConstants'
 import ENDPOINTS from '../../../endpoints'
 import { getData, storeDataObj } from '../../../utils/storage'
 const defaultProfile = require('../../../assets/profile.png')
-const { FOLLOWERS, REQUESTS } = COMMUNITY_CONSTANTS
+const { FOLLOWERS, REQUESTS, DISAPPEAR_TIME } = COMMUNITY_CONSTANTS
+
+const ACCEPT_FOLLOWER_REQUEST = 'accept follower request'
+const REJECT_FOLLOWER_REQUEST = 'reject follower request'
+const REMOVE_FOLLOWER         = 'remove follower'
 
 const Follower = (props) => {
-  const { item, section, onItemPress, setAppState } = props;
+  const { item, section, onItemPress, setAppState, disappear, setIdxsToAnimate, index } = props;
   // this is a work around cuz using useContext here violates some hook rule...
   const { userDataContext } = props
 
-  // setButtonText is passed as a useState function from action button.
-  // it will set the text of the action button once the request is complete
-  const removeFollower = async (follower, setButtonText, setActionSuccess, setIsLoading) => {
-    console.log('remove follower')
+  // generates the error message based on what action the user performed
+  const errorMsg = (action, requester) => {
+    switch(action) {
+      case ACCEPT_FOLLOWER_REQUEST:
+        return `Something went wrong with accepting ${requester.firstName} ${requester.lastName}'s request. Please try again.`
+      case REJECT_FOLLOWER_REQUEST:
+        return `Something went wrong with rejecting ${requester.firstName} ${requester.lastName}'s request. Please try again.`
+      case REMOVE_FOLLOWER:
+        return `Something went wrong with remove ${requester.firstName} ${requester.lastName} from your followers. Please try again.`
+    }
   }
 
-  const acceptFollowerRequest = async (requester, setButtonText, setActionSuccess, setIsLoading) => {
-    // need the user's fname, lname, token in header, profilepicUrl
-    // and the requester's as well
-    console.log('accept follower request')
+  // returns new app state after accepting a follower
+  const accpetFollowerNewState = (requester) => {
+    const newFollowerRequests = userDataContext.followerRequests.filter(user => {
+      return user._id !== requester._id
+    })
+    const newFollower = {
+      _id: requester._id,
+      firstName: requester.firstName,
+      lastName: requester.lastName,
+      profilePicUrl: requester.profilePicUrl
+    }
+    return {
+      ...userDataContext,
+      followers: [...userDataContext.followers, newFollower],
+      followerRequests: newFollowerRequests
+    }
+  }
+
+  // returns new app state after rejecting a follower
+  const rejectFollowerNewState = (requester) => {
+    const newFollowerRequests = userDataContext.followerRequests.filter(user => {
+      return user._id !== requester._id
+    })
+    return {
+      ...userDataContext,
+      followerRequests: newFollowerRequests
+    }
+  }
+
+  // updates async storage after removing a follower
+  const removeFollowerNewState = (requester) => {
+    const newFollowers = userDataContext.followers.filter(user => {
+      return user._id !== requester._id
+    })
+    return {
+      ...userDataContext,
+      followers: newFollowers
+    }
+  }
+
+  // will accept/reject follower request or remove the follower 
+  // setButtonText is passed as a useState function from action button.
+  // it will set the text of the action button once the request is complete
+  const buttonAction = async (requester, action) => {
     // set button text to be loading
-    console.log("is loading", setIsLoading)
-    setIsLoading(true);
+    var endPoint;
+    switch(action) {
+      case ACCEPT_FOLLOWER_REQUEST:
+        endPoint = ENDPOINTS.acceptFollowerRequest;
+        break;
+      case REJECT_FOLLOWER_REQUEST:
+        endPoint = ENDPOINTS.rejectFollowerRequest;
+        break;
+      case REMOVE_FOLLOWER:
+        endPoint = ENDPOINTS.removeFollower;
+    }
     try {
       const userToken = await getData();
       const requestBody = {
@@ -40,7 +99,7 @@ const Follower = (props) => {
         requesterLastName: requester.lastName,
         requesterProfilePicUrl: requester.profilePicUrl
       }
-      var res = await fetch(ENDPOINTS.acceptFollowerRequest, {
+      var res = await fetch(endPoint, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
@@ -54,34 +113,34 @@ const Follower = (props) => {
       console.log(e)
       Alert.alert(
         'Oh No :(',
-        `Something went wrong with accepting ${requester.firstName} ${requester.lastName}'s request. Please try again.`,
+        errorMsg(action, requester),
         [{ text: "Okay" }]
       );
-      setButtonText('Accept')
     }
-
     // set the app state and update async storage separately hear, and throw error
     // asking for refresh if this fails
     try {
-      const newFollowerRequests = userDataContext.followerRequests.filter(user => {
-        return user._id !== requester._id
-      })
-      const newFollower = {
-        _id: requester._id,
-        firstName: requester.firstName,
-        lastName: requester.lastName,
-        profilePicUrl: requester.profilePicUrl
-      }
-      const newState = {
-        ...userDataContext,
-        followers: [...userDataContext.followers, newFollower],
-        followerRequests: newFollowerRequests
+      var newState;
+      switch(action) {
+        case ACCEPT_FOLLOWER_REQUEST:
+          newState = accpetFollowerNewState(requester);
+          break;
+        case REJECT_FOLLOWER_REQUEST:
+          newState = rejectFollowerNewState(requester);
+          break;
+        case REMOVE_FOLLOWER:
+          newState = removeFollowerNewState(requester);
       }
       console.log('setting new state: ', newState)
-      setAppState(newState)
-      await storeDataObj(newState)
-      setActionSuccess(true)
-      setButtonText('Accepted')
+      // await storeDataObj(newState)
+      // start the disappearing animation
+      setIdxsToAnimate(prevIdxsToAnimate => [...prevIdxsToAnimate, index])
+      disappear()
+      // delay setting app state so diappear animation can complete
+      setTimeout(() => {
+        console.log("done!")
+        setAppState(newState)
+      }, DISAPPEAR_TIME + 100);
     } catch(e) {
       console.log(e)
       Alert.alert(
@@ -89,13 +148,9 @@ const Follower = (props) => {
         `Something went wrong updating the app storage. Please refresh.`,
         [{ text: "Okay" }]
       );
-      setButtonText('Accept')
     }
   }
 
-  const rejectFollowerRequest = (requester, setButtonText, setActionSuccess, setIsLoading) => {
-    console.log('reject follower request')
-  }
   return (
     <ListItem
       key={item._id}
@@ -113,21 +168,15 @@ const Follower = (props) => {
           case(REQUESTS):
             return (
               <AcceptRejectButton
-                accept={(setButtonText, setActionSuccess, setIsLoading) => 
-                  acceptFollowerRequest(item, setButtonText, setActionSuccess, setIsLoading)
-                }
-                reject={(setButtonText, setActionSuccess, setIsLoading) => 
-                  rejectFollowerRequest(item, setButtonText, setActionSuccess, setIsLoading)
-                }
+                accept={() => buttonAction(item, ACCEPT_FOLLOWER_REQUEST)}
+                reject={() => buttonAction(item, REJECT_FOLLOWER_REQUEST)}
               />
             )
           case(FOLLOWERS):
             return (
               <ActionButton
                 initialTitle='Remove'
-                onPress={(setButtonText, setActionSuccess, setIsLoading) => 
-                  removeFollower(item, setButtonText, setActionSuccess, setIsLoading)
-                }
+                onPress={() => buttonAction(item, REMOVE_FOLLOWER)}
               />
             )
         }

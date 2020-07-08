@@ -41,7 +41,6 @@ const Community = (props) => {
         )}
       </Stack.Screen>
     </Stack.Navigator>
-    
   )
 }
 
