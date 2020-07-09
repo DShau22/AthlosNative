@@ -22,6 +22,10 @@ const ENDPOINTS = {
     rejectFollowerRequest: `${serverURL}/rejectFollowerRequest`,
     removeFollower: `${serverURL}/removeFollower`,
 
+    cancelFollowRequest: `${serverURL}/cancelFollowRequest`,
+    stopFollowing: `${serverURL}/stopFollowing`,
+    unfollow: `${serverURL}/unfollow`,
+
     // search stuff
     getSearchUser: `${serverURL}/getSearchUser`,
     searchUser: `${serverURL}/searchUser`,

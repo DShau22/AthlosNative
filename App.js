@@ -40,47 +40,6 @@ function HomeScreen({ navigation, route }) {
   );
 }
 
-function CreatePostScreen({ navigation, route }) {
-  const [postText, setPostText] = React.useState('');
-
-  return (
-    <>
-      <TextInput
-        multiline
-        placeholder="What's on your mind?"
-        style={{ height: 200, padding: 10, backgroundColor: 'white' }}
-        value={postText}
-        onChangeText={setPostText}
-      />
-      <Button
-        title="Done"
-        onPress={() => {
-          // Pass params back to home screen
-          navigation.navigate('Home', { post: postText });
-        }}
-      />
-    </>
-  );
-}
-
-// when you wanna use route.params in the options param
-function StackScreen() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ title: 'My home' }}
-      />
-      <Stack.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={({ route }) => ({ title: route.params.name })}
-      />
-    </Stack.Navigator>
-  );
-}
-
 function App() {
   
   const [isLoading, setIsLoading] = React.useState(true);

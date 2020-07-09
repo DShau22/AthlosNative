@@ -42,7 +42,7 @@ class Follower extends Component {
       case REJECT_FOLLOWER_REQUEST:
         return `Something went wrong with rejecting ${requester.firstName} ${requester.lastName}'s request. Please try again.`
       case REMOVE_FOLLOWER:
-        return `Something went wrong with remove ${requester.firstName} ${requester.lastName} from your followers. Please try again.`
+        return `Something went wrong with removing ${requester.firstName} ${requester.lastName} from your followers. Please try again.`
     }
   }
 
@@ -89,10 +89,11 @@ class Follower extends Component {
   // will accept/reject follower request or remove the follower 
   // setButtonText is passed as a useState function from action button.
   // it will set the text of the action button once the request is complete
-  async buttonAction(requester, action) {
+  async buttonAction(requester, action, setIsButtonLoading) {
     // set button text to be loading
-    const {  setAppState, disappear } = this.props;
-    console.log("action taken: ", action)
+    setIsButtonLoading(true)
+    const { setAppState } = this.props;
+    console.log("action taken: ", action, requester)
     var endPoint;
     switch(action) {
       case ACCEPT_FOLLOWER_REQUEST:
@@ -134,6 +135,7 @@ class Follower extends Component {
         this.errorMsg(action, requester),
         [{ text: "Okay" }]
       );
+      setIsButtonLoading(false)
       return;
     }
     // set the app state and update async storage separately hear, and throw error
@@ -166,6 +168,7 @@ class Follower extends Component {
         `Something went wrong updating the app storage. Please refresh.`,
         [{ text: "Okay" }]
       );
+      setIsButtonLoading(false)
     }
   }
   render() {
@@ -194,28 +197,26 @@ class Follower extends Component {
               case(REQUESTS):
                 return (
                   <AcceptRejectButton
-                    accept={() => this.buttonAction(item, ACCEPT_FOLLOWER_REQUEST)}
-                    reject={() => this.buttonAction(item, REJECT_FOLLOWER_REQUEST)}
+                    accept={(setIsButtonLoading) => this.buttonAction(item, ACCEPT_FOLLOWER_REQUEST, setIsButtonLoading)}
+                    reject={(setIsButtonLoading) => this.buttonAction(item, REJECT_FOLLOWER_REQUEST, setIsButtonLoading)}
                   />
                 )
               case(FOLLOWERS):
                 return (
                   <ActionButton
                     initialTitle='Remove'
-                    onPress={() => this.buttonAction(item, REMOVE_FOLLOWER)}
+                    onPress={(setIsButtonLoading) => this.buttonAction(item, REMOVE_FOLLOWER, setIsButtonLoading)}
                   />
                 )
             }
           }}
           bottomDivider
           onPress={() => {
-            console.log("friend pressed")
             // get the user's profile and display based on their settings
             onItemPress(item)
           }}
         />
       </Animated.View>
-
     )
   }
 }

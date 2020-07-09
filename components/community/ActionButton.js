@@ -20,8 +20,7 @@ const ActionButton = (props) => {
       //   end: { x: 1, y: 0.5 },
       // }}
       onPress={() => {
-        props.onPress()
-        setIsLoading(true)
+        props.onPress(setIsLoading)
       }}
     />
   )
