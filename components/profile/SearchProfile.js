@@ -33,7 +33,7 @@ const SearchProfile = (props) => {
     settings: {},
     firstName: '',
     lastName: '',
-    isFriend: false,
+    follows: false,
     bio: '',
     age: 0,
     height: '',
@@ -60,19 +60,19 @@ const SearchProfile = (props) => {
           body: JSON.stringify({ _id, userToken: token }),
         })
         var searchUserJson = await res.json();
-        var { success, settings, firstName, lastName, isFriend, profilePicture } = searchUserJson
+        var { success, settings, firstName, lastName, follows, profilePicture } = searchUserJson
         if (!success) {
           console.log("not success: ", searchUserJson)
           Alert.alert(`Oh No :(`, "Something went wrong with the server. Please try again.", [{ text: "Okay" }]);
           setIsLoading(false);
           return
         }
-        setState(prevState => ({ ...prevState, settings, firstName, lastName, isFriend, profilePicture }))
-        // need to pass in settings, isFriend cuz setState is asynchronous
+        setState(prevState => ({ ...prevState, settings, firstName, lastName, follows, profilePicture }))
+        // need to pass in settings, follows cuz setState is asynchronous
         await Promise.all([
-          getBasicInfo(settings, isFriend),
-          getTotalsAndBests(settings, isFriend),
-          getFriends(settings, isFriend)
+          getBasicInfo(settings, follows),
+          getTotalsAndBests(settings, follows),
+          getFriends(settings, follows)
         ])
         setIsLoading(false);
       } catch(e) {
@@ -84,10 +84,10 @@ const SearchProfile = (props) => {
     setup();
   }, []);
 
-  const getBasicInfo = async (settings, isFriend) => {
+  const getBasicInfo = async (settings, follows) => {
     console.log("get basic info")
     var { seeBasicInfo } = settings
-    if (seeBasicInfo === EVERYONE || (seeBasicInfo === FRIENDS && isFriend)) {
+    if (seeBasicInfo === EVERYONE || (seeBasicInfo === FRIENDS && follows)) {
       var res = await fetch(getBasicInfoURL, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
@@ -99,10 +99,10 @@ const SearchProfile = (props) => {
     }
   }
 
-  const getFriends = async (settings, isFriend) => {
+  const getFriends = async (settings, follows) => {
     console.log("get friends")
     var { seeFriendsList } = settings
-    if (seeFriendsList === "everyone" || (seeFriendsList === "friends" && isFriend)) {
+    if (seeFriendsList === "everyone" || (seeFriendsList === "friends" && follows)) {
       var res = await fetch(getFriendsURL, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
@@ -114,10 +114,10 @@ const SearchProfile = (props) => {
     }
   }
 
-  const getTotalsAndBests = async (settings, isFriend) => {
+  const getTotalsAndBests = async (settings, follows) => {
     console.log("get totals")
     var { seeFitness } = settings
-    if (seeFitness === "everyone" || (seeFitness === "friends" && isFriend)) {
+    if (seeFitness === "everyone" || (seeFitness === "friends" && follows)) {
       var res = await fetch(getFitnessURL, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },

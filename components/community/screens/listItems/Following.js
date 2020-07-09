@@ -58,7 +58,7 @@ class Following extends Component {
       console.log(e)
       Alert.alert(
         'Oh No :(',
-        `Something went wrong with canceling your request to ${user.firstName, user.lastName}. Please try again.`,
+        `Something went wrong with canceling your request to follow ${user.firstName, user.lastName}. Please try again.`,
         [{ text: "Okay" }]
       );
       setIsButtonLoading(false)
@@ -178,7 +178,7 @@ class Following extends Component {
               case(PENDING):
                 return (
                   <ActionButton
-                    initialTitle='Cancel Request'
+                    initialTitle='Cancel'
                     onPress={(setIsButtonLoading) => this.cancelFollowRequest(item, setIsButtonLoading)}
                   />
                 )
