@@ -17,6 +17,8 @@ import * as Yup from 'yup';
 
 import { signUpValidationSchema } from "./validationSchema";
 import ENDPOINTS from "../endpoints"
+import LOGIN_CONSTANTS from './LoginConstants'
+const { SIGNIN } = LOGIN_CONSTANTS
 
 const SignUp = ({navigation}) => {
 
@@ -359,20 +361,20 @@ const SignUp = ({navigation}) => {
                   color:'#fff'
                 }]}>Sign Up</Text>
               </LinearGradient>
-              </TouchableOpacity>
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={[styles.signUp, {
-                  borderColor: '#009387',
-                  borderWidth: 1,
-                  marginTop: 15
-                }]}
-              >
-                <Text style={[styles.textSign, {
-                  color: '#009387'
-                }]}>Sign In</Text>
-              </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate(SIGNIN)}
+              style={[styles.signUp, {
+                borderColor: '#009387',
+                borderWidth: 1,
+                marginTop: 15
+              }]}
+            >
+              <Text style={[styles.textSign, {
+                color: '#009387'
+              }]}>Sign In</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </Animatable.View>

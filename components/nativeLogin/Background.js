@@ -14,11 +14,14 @@ import { useTheme } from '@react-navigation/native';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
+
+import LOGIN_CONSTANTS from './LoginConstants'
+const { SIGNIN } = LOGIN_CONSTANTS
+
 MaterialIcons.loadFont();
 Ionicons.loadFont();
 
 const Background = ({ navigation }) => {
-  console.log("rendering spa...")
   const { colors } = useTheme();
   return (
     <View style={styles.container}>
@@ -43,7 +46,7 @@ const Background = ({ navigation }) => {
         }]}>Stay connected with everyone!</Text>
         <Text style={styles.text}>Sign in with account</Text>
         <View style={styles.button}>
-          <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
+          <TouchableOpacity onPress={() => navigation.navigate(SIGNIN)}>
             <LinearGradient
               colors={['#08d4c4', '#01ab9d']}
               style={styles.signIn}

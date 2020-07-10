@@ -10,7 +10,6 @@ import {
     Alert
 } from 'react-native';
 import {
-  getData,
   storeData
 } from '../utils/storage';
 import Axios from 'axios';
@@ -27,8 +26,8 @@ Feather.loadFont();
 import { useTheme } from 'react-native-paper';
 import { AppContext } from "../../Context"
 import ENDPOINTS from '../endpoints'
-const verifyURL = ENDPOINTS.emailVerify
-const signUpURL = ENDPOINTS.signUp
+import LOGIN_CONSTANTS from './LoginConstants'
+const { SIGNUP, FORGOT_PASSWORD } = LOGIN_CONSTANTS
 const signInURL = ENDPOINTS.signIn
 
 const SignIn = ({ navigation }) => {
@@ -185,7 +184,7 @@ const SignIn = ({ navigation }) => {
             placeholder="Your Username"
             placeholderTextColor="#666666"
             style={[styles.textInput, {
-                color: colors.text
+              color: colors.text
             }]}
             autoCapitalize="none"
             onChangeText={(val) => textInputChange(val)}
@@ -253,7 +252,9 @@ const SignIn = ({ navigation }) => {
           </Animatable.View>
         }
 
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate(FORGOT_PASSWORD)}
+        >
           <Text style={{color: '#009387', marginTop:15}}>Forgot password?</Text>
         </TouchableOpacity>
         <View style={styles.button}>
@@ -272,7 +273,7 @@ const SignIn = ({ navigation }) => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate('SignUp')}
+            onPress={() => navigation.navigate(SIGNUP)}
             style={[styles.signIn, {
               borderColor: '#009387',
               borderWidth: 1,

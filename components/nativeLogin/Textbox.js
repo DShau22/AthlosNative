@@ -6,11 +6,13 @@ import {
   StyleSheet,
   TouchableOpacity
 } from 'react-native';
+import { useTheme } from 'react-native-paper';
 import * as Animatable from 'react-native-animatable';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
 
 export default function Textbox(props) {
+  const { colors } = useTheme();
   return (
     <>
       <Text style={[styles.text_footer, {
@@ -24,11 +26,14 @@ export default function Textbox(props) {
         />
         <TextInput 
           placeholder={props.placeholder}
-          style={styles.textInput}
+          style={[styles.textInput, {
+            color: colors.text
+          }]}
+          placeholderTextColor="#666666"
+          autoCapitalize="none"
           keyboardType={props.keyboardType !== undefined ? props.keyboardType : 'default'}
           defaultValue={props.defaultValue !== undefined ? props.defaultValue : ''}
           secureTextEntry={props.secureTextEntry}
-          autoCapitalize="none"
           onChangeText={(val) => props.handleChange(val)}
         />
         {props.didChange && !props.errMsg ? 
