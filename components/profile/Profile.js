@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import React, { Component } from 'react';
 import { View } from 'react-native'
 import { Text } from 'react-native-elements'
@@ -40,4 +42,4 @@ const Profile = (props) => {
 }
 
 // export default withRouter(Profile)
-export default Profile
+export default gestureHandlerRootHOC(Profile)

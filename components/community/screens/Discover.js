@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import React from 'react';
 import { View, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
 import { SearchBar } from 'react-native-elements';
@@ -60,4 +62,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default Discover
+export default gestureHandlerRootHOC(Discover)

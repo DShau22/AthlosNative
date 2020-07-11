@@ -1,6 +1,4 @@
-import {
-  getData,
-} from '../utils/storage';
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
 import React from 'react'
 // import FriendRequests from "./friends/FriendRequests"
@@ -44,4 +42,4 @@ const Community = (props) => {
   )
 }
 
-export default Community
+export default gestureHandlerRootHOC(Community)

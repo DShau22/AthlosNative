@@ -5,3 +5,6 @@ Runnning on iOS:
 Running on Android:
   Open Android studio, go to AVD manager, and launch a device emulator
   Run npx react-native run-android
+
+Any new screens created should be wrapped in the gestureHandlerRootHOC Higher order component
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';

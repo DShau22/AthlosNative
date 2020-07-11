@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import React from 'react'
 import {
   View, 
@@ -117,4 +119,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default Background
+export default gestureHandlerRootHOC(Background)

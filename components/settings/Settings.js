@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import React from 'react'
 import { View, ScrollView, StyleSheet, Alert, FlatList } from 'react-native'
 import { Tooltip, Text, ListItem } from 'react-native-elements';
@@ -348,4 +350,4 @@ const SWIM_SETTINGS_LIST = [
   },
 ]
 
-export default Settings
+export default gestureHandlerRootHOC(Settings)

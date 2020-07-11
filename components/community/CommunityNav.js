@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import {
   getData,
 } from '../utils/storage';
@@ -192,4 +194,4 @@ const styles = StyleSheet.create({
     backgroundColor: 'black'
   }
 })
-export default CommunityNav
+export default gestureHandlerRootHOC(CommunityNav)

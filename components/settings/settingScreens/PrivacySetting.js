@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import React from 'react'
 import { FlatList, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { RadioButton } from 'react-native-paper';
@@ -5,7 +7,7 @@ import { Text, ListItem } from 'react-native-elements';
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS
 
-export default function PrivacySetting(props) {
+const PrivacySetting = (props) => {
   let { defaultOption, settingsList, updateSettings } = props;
   let initialChoice = defaultOption;
   // this is just in case the backend names don't line up with the frontend
@@ -64,3 +66,4 @@ const styles = StyleSheet.create({
 
   },
 })
+export default gestureHandlerRootHOC(PrivacySetting)

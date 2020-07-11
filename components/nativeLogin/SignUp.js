@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import React from 'react';
 import { 
     View, 
@@ -382,8 +384,6 @@ const SignUp = ({navigation}) => {
   );
 };
 
-export default SignUp;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1, 
@@ -456,3 +456,4 @@ const styles = StyleSheet.create({
     color: "black"
   }
 });
+export default gestureHandlerRootHOC(SignUp);

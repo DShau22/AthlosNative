@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import React, { Component } from 'react'
 import Carousel from "../carousel/Carousel"
 import Calories from "../Calories"
@@ -236,4 +238,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default withFitnessPage(Swim)
+export default gestureHandlerRootHOC(withFitnessPage(Swim))

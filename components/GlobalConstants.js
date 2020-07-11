@@ -12,5 +12,13 @@ const GLOBAL_CONSTANTS = {
   RUN_THEME: '#9cf0b1',
   SWIM_THEME: '#9cbcf0',
   JUMP_THEME: '#f39ef3',
+
+  HOME: 'Home',
+  FITNESS: 'Fitness',
+  COMMUNITY: 'Community',
+  SETTINGS: 'Settings',
+  PROFILE: 'Profile',
+  DEVICE_CONFIG: 'Device Config',
+
 }
 export default GLOBAL_CONSTANTS;

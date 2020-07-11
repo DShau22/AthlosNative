@@ -22,6 +22,17 @@ import Home from "./Home"
 import Settings from "../settings/Settings"
 import Community from "../community/Community"
 import Profile from '../profile/Profile'
+import DeviceConfig from '../configure/DeviceConfig'
+
+import GLOBAL_CONSTANTS from '../GlobalConstants'
+const {
+  HOME,
+  FITNESS,
+  COMMUNITY,
+  SETTINGS,
+  PROFILE,
+  DEVICE_CONFIG,
+} = GLOBAL_CONSTANTS
 // server url
 const defaultProfile = "./profile/default_profile.png"
 
@@ -415,23 +426,12 @@ function Athlos(props) {
             rightComponent={{ icon: 'home', color: '#fff' }}
           />
           <BottomTab.Navigator>
-            <BottomTab.Screen
-              name="Home"
-              component={Home}
-            />
-            <BottomTab.Screen
-              name="Fitness"
-              component={Fitness}
-            />
-            <BottomTab.Screen
-              name="Profile"
-              component={Profile}
-            />
-            <BottomTab.Screen
-              name="Settings"
-              component={Settings}
-            />
-            <BottomTab.Screen name="Community" component={Community}/>
+            <BottomTab.Screen name={HOME} component={Home} />
+            <BottomTab.Screen name={FITNESS} component={Fitness} />
+            <BottomTab.Screen name={PROFILE} component={Profile} />
+            <BottomTab.Screen name={SETTINGS} component={Settings} />
+            <BottomTab.Screen name={COMMUNITY} component={Community} />
+            <BottomTab.Screen name={DEVICE_CONFIG} component={DeviceConfig} />
           </BottomTab.Navigator>
         </>
       }

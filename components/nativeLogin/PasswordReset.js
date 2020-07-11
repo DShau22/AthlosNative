@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import React from 'react'
 import { View, StyleSheet, Alert, TouchableOpacity, StatusBar } from 'react-native'
 import { Text } from 'react-native-elements'
@@ -9,7 +11,7 @@ import * as Yup from 'yup';
 import { signUpValidationSchema } from "./validationSchema";
 import ENDPOINTS from '../endpoints'
 import axios from 'axios'
-export default function PasswordReset() {
+const PasswordReset = () => {
   const [isLoading, setIsLoading] = React.useState(false);
 
   const [emailChange, setEmailChange] = React.useState(false);
@@ -193,3 +195,4 @@ const styles = StyleSheet.create({
     color: "black"
   }
 })
+export default gestureHandlerRootHOC(PasswordReset)

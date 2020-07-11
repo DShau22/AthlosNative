@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import React from 'react'
 import { View, Text, StyleSheet, Dimensions } from 'react-native'
 import { UserDataContext } from "../../Context"
@@ -26,5 +28,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   }
 });
-export default Home
+export default gestureHandlerRootHOC(Home)
 

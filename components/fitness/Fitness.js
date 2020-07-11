@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import React from 'react'
 import Run from "./run/Run"
 import Jump from "./jump/Jump"
@@ -55,4 +57,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default Fitness;
+export default gestureHandlerRootHOC(Fitness);

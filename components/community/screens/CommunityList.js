@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import React from 'react'
 import { View, StyleSheet, SectionList, Animated, Dimensions } from 'react-native'
 import { Tooltip, Text, ListItem } from 'react-native-elements';
@@ -57,4 +59,4 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff"
   },
 })
-export default CommunityList
+export default gestureHandlerRootHOC(CommunityList)

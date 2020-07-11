@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import React, { Component } from 'react'
 import { View, ScrollView, StyleSheet, Alert, SectionList, Settings } from 'react-native'
 import { Button } from 'react-native-paper';
@@ -115,4 +117,4 @@ const BASIC_INFO_SETTINGS = 'Basic Info Settings'
 const UNIT_SYSTEM_SETTINGS = 'Unit System Settings'
 const SWIM_SETTINGS = 'Swimming Settings'
 
-export default SettingsMenu
+export default gestureHandlerRootHOC(SettingsMenu)

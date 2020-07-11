@@ -1,3 +1,5 @@
+import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
 import React, { Component } from 'react'
 import { View, Text, StyleSheet, ScrollView, FlatList, Dimensions, SafeAreaView } from 'react-native'
 import Carousel from "../carousel/Carousel"
@@ -232,4 +234,4 @@ const styles = StyleSheet.create({
     backgroundColor: 'red',
   }
 })
-export default withFitnessPage(Run)
+export default gestureHandlerRootHOC(withFitnessPage(Run))
