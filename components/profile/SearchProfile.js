@@ -15,13 +15,7 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import { getData } from "../utils/storage"
 import ENDPOINTS from '../endpoints'
 import GLOBAL_CONSTANTS from "../GlobalConstants"
-const { ONLY_ME, FRIENDS, EVERYONE } = GLOBAL_CONSTANTS
-const getSearchUserUrl = ENDPOINTS.getSearchUser
-const getBasicInfoURL = ENDPOINTS.getSearchUserBasicInfo
-const getFriendsURL = ENDPOINTS.getSearchUserFriends
-const getFitnessURL = ENDPOINTS.getSearchUserFitness
-
-const imgAlt = "./default_profile.png"
+const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS
 
 const SearchProfile = (props) => {
   const context = React.useContext(UserDataContext);
@@ -29,19 +23,21 @@ const SearchProfile = (props) => {
   // the user who's using the app right now
   const [isLoading, setIsLoading] = React.useState(false);
   const [state, setState] = React.useState({
-    errorMsgs: [],
     settings: {},
     firstName: '',
     lastName: '',
     follows: false,
     bio: '',
-    age: 0,
+    age: '',
     height: '',
     weight: '',
     totals: {},
     bests: {},
     profilePicture: {},
-    friends: []
+
+    followers: [],
+    following: [],
+    rivals: [],
   })
   // the searched user's id
   const { _id } = props.route.params
@@ -52,15 +48,15 @@ const SearchProfile = (props) => {
       console.log("search profile using effect")
       setIsLoading(true);
       // query this user's settings, bests, totals and set state
-      var token = await getData()
+      const token = await getData()
       try {
-        var res = await fetch(getSearchUserUrl, {
+        const res = await fetch(ENDPOINTS.getSearchUser, {
           method: "POST",
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ _id, userToken: token }),
         })
-        var searchUserJson = await res.json();
-        var { success, settings, firstName, lastName, follows, profilePicture } = searchUserJson
+        const searchUserJson = await res.json();
+        const { success, settings, firstName, lastName, follows, profilePicture } = searchUserJson
         if (!success) {
           console.log("not success: ", searchUserJson)
           Alert.alert(`Oh No :(`, "Something went wrong with the server. Please try again.", [{ text: "Okay" }]);
@@ -72,7 +68,7 @@ const SearchProfile = (props) => {
         await Promise.all([
           getBasicInfo(settings, follows),
           getTotalsAndBests(settings, follows),
-          getFriends(settings, follows)
+          getPeople(settings, follows)
         ])
         setIsLoading(false);
       } catch(e) {
@@ -86,110 +82,117 @@ const SearchProfile = (props) => {
 
   const getBasicInfo = async (settings, follows) => {
     console.log("get basic info")
-    var { seeBasicInfo } = settings
-    if (seeBasicInfo === EVERYONE || (seeBasicInfo === FRIENDS && follows)) {
-      var res = await fetch(getBasicInfoURL, {
+    const { seeBasicInfo } = settings
+    if (seeBasicInfo === EVERYONE || (seeBasicInfo === FOLLOWERS && follows)) {
+      const res = await fetch(ENDPOINTS.getSearchUserBasicInfo, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ _id }),
       })
-      var { bio, weight, height, age, gender } = await res.json()
+      const { bio, weight, height, age, gender } = await res.json()
       console.log("get basic info set state")
       setState(prevState => ({ ...prevState, bio, weight, height, age, gender }))
     }
   }
 
-  const getFriends = async (settings, follows) => {
-    console.log("get friends")
-    var { seeFriendsList } = settings
-    if (seeFriendsList === "everyone" || (seeFriendsList === "friends" && follows)) {
-      var res = await fetch(getFriendsURL, {
+  // gets the followers, following, and rivals lists
+  const getPeople = async (settings, follows) => {
+    console.log("getting people")
+    const { seePeople } = settings
+    if (seePeople === EVERYONE || (seePeople === FOLLOWERS && follows)) {
+      const res = await fetch(ENDPOINTS.getSearchUserPeople, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ _id }),
       })
-      var { friends } = await res.json()
+      const { followers, following, rivals } = await res.json()
       console.log("get friends set state")
-      setState(prevState => ({ ...prevState, friends }))
+      setState(prevState => ({ ...prevState, followers, following, rivals }))
     }
   }
 
   const getTotalsAndBests = async (settings, follows) => {
     console.log("get totals")
-    var { seeFitness } = settings
-    if (seeFitness === "everyone" || (seeFitness === "friends" && follows)) {
-      var res = await fetch(getFitnessURL, {
+    const { seeFitness } = settings
+    if (seeFitness === EVERYONE || (seeFitness === FOLLOWERS && follows)) {
+      const res = await fetch(ENDPOINTS.getSearchUserFitness, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ _id }),
       })
       console.log("get totals set state")
-      var { bests, totals } = await res.json()
+      const { bests, totals } = await res.json()
       setState(prevState => ({ ...prevState, bests, totals }))
     }
   }
 
-  var { firstName, lastName, age, height, bio, weight, totals, bests, profilePicture } = state
+  const { firstName, lastName, age, height, bio, weight, totals, bests, profilePicture } = state
+  const { followers, following, rivals } = state
   console.log("search profile's state: ", state);
   if (context.mounted) {
     return (
-      <View className="profile-container">
+      <View>
         <Spinner
           visible={isLoading}
           textContent={'Loading...'}
           // textStyle={styles.spinnerTextStyle}
         />
-        <View className='top-half'>
-          <View className='img-container mt-2'>
+        <View>
+          <View>
             <Image 
               source={{ uri: profilePicture.profileURL}}
               style={styles.tinyLogo}
               // defaultSource={{uri: imgAlt}}
             />
           </View>
-          <View className="name-container">
-            <Text className='fname'>{firstName}</Text>
-            <Text className='lname'>{lastName}</Text>
+          <View>
+            <Text>{firstName}</Text>
+            <Text>{lastName}</Text>
           </View>
-          <View className='info-container m-3'>
-            <View className='row'>
-              <View className='col-4'>
+          <View>
+            <View >
+              <View>
                 <Text h3>Age</Text>
                 <Text>{age}</Text>
               </View>
-              <View className='col-4'>
+              <View>
                 <Text h3>Height</Text>
                 <Text>{height}</Text>
               </View>
-              <View className='col-4'>
+              <View>
                 <Text h3>Weight</Text>
                 <Text>{weight}</Text>
               </View>
             </View>
           </View>
-          <View className='bio-container m-3'>
+          <View>
+            <Text h3>Bio</Text>
             <Text>{bio}</Text>
           </View>
         </View>
-        <View className='bot-half'>
-          <View className='row'>
-            <View className='col-6'>
+        <View>
+          <View>
+            <View>
               <Text h3>Total Steps</Text>
               <Text>{totals.steps}</Text>
             </View>
-            <View className='col-6'>
+            <View>
               <Text h3>Total Min</Text>
               <Text>{totals.minutes}</Text>
             </View>
           </View>
-          <View className='row'>
-            <View className='col-6'>
+          <View>
+            <View>
               <Text h3>Total Laps</Text>
               <Text>{totals.laps}</Text>
             </View>
-            <View className='col-6'>
+            <View>
               <Text h3>Highest Jump</Text>
               <Text>{bests.jump}</Text>
+            </View>
+            <View>
+              <Text h3>people</Text>
+              <Text>have screen for followers, following, rivals. Maybe community Nav???</Text>
             </View>
           </View>
         </View>
@@ -198,7 +201,7 @@ const SearchProfile = (props) => {
   } else {
     // spa hasn't mounted and established context yet
     return (
-      <View className="profile-loading-container">
+      <View>
         <Text>loading...</Text>
       </View>
     )

@@ -23,7 +23,7 @@ const Profile = (props) => {
       <Stack.Screen name={PROFILE_CONSTANTS.PROFILE}>
         {(props) => (
           <>
-            <Text>BUNCH OF TEXT HELLO</Text>
+            <Text>YO USE THE COMMUNITY HEADER MAYBE FOR PROFILE TOO</Text>
             <UserProfile {...props}/>
             {/* <Fitness /> */}
           </>

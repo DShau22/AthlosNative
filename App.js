@@ -1,6 +1,9 @@
 // apparently this always has to be at the top?
 import 'react-native-gesture-handler';
 
+// need to wrap application in this to use some of the popups
+import { MenuProvider } from 'react-native-popup-menu';
+
 import * as React from 'react';
 import { Text, TextInput, View, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';

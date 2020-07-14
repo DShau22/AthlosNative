@@ -23,6 +23,7 @@ import Settings from "../settings/Settings"
 import Community from "../community/Community"
 import Profile from '../profile/Profile'
 import DeviceConfig from '../configure/DeviceConfig'
+import Example from '../configure/Example'
 
 import GLOBAL_CONSTANTS from '../GlobalConstants'
 const {
