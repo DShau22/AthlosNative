@@ -7,6 +7,21 @@ const DEVICE_CONFIG_CONSTANTS = {
   SWIMMING_EVENT: 'Swimming Event',
   TIMED_RUN: 'Timed Run',
 
+  // SUBTITLES
+  MUSIC_ONLY_SUBTITLE: 'Music AOIJFOIAJWEIF',
+  RUN_SUBTITLE: 'RUN AOIJFOIAJWEIF',
+  SWIM_SUBTITLE: 'SWIM AOIJFOIAJWEIF',
+  JUMP_SUBTITLE: 'JUMP AOIJFOIAJWEIF',
+  SWIMMING_EVENT_SUBTITLE: 'Swimming AOIJFOIAJWEIF',
+  TIMED_RUN_SUBTITLE: 'Timed AOIJFOIAJWEIFn',
+  
+  // enums based on what mode the user is editing
+  EDIT_RUN: 'Edit Run',
+  EDIT_SWIM: 'Edit Swim',
+  EDIT_JUMP: 'Edit Jump',
+  EDIT_SWIMMING_EVENT: 'Edit Swimming Event',
+  EDIT_TIMED_RUN: 'Edit Timed Run',
+
   // triggers
   TRIGGER_STEPS: 'Steps',
   TRIGGER_MIN: 'Min',
@@ -39,6 +54,12 @@ const {
   JUMP,
   SWIMMING_EVENT,
   TIMED_RUN,
+  MUSIC_ONLY_SUBTITLE,
+  RUN_SUBTITLE,
+  SWIM_SUBTITLE,
+  JUMP_SUBTITLE,
+  SWIMMING_EVENT_SUBTITLE,
+  TIMED_RUN_SUBTITLE,
   TRIGGER_STEPS,
   TRIGGER_MIN,
   TRIGGER_LAP,
@@ -62,13 +83,13 @@ const {
 const DEFAULT_CONFIG = [
   {
     mode: MUSIC_ONLY,
-    subtitle: 'aiowjdoiajwd',
+    subtitle: MUSIC_ONLY_SUBTITLE,
     backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`
   },
   {
     // The device mode. Using make sure to make the keyExtractor take the mode
     mode: RUN,
-    subtitle: 'aiowjdoiajwd',
+    subtitle: RUN_SUBTITLE,
     // background color of the list item
     backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
     // what metrics are reported. 
@@ -80,20 +101,20 @@ const DEFAULT_CONFIG = [
   },
   {
     mode: JUMP,
-    subtitle: 'aiowjdoiajwd',
+    subtitle: JUMP_SUBTITLE,
     backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
     // this should always only be a one element array
     metrics: [ VERTICAL_HEIGHT ] 
   },
   {
     mode: SWIM,
-    subtitle: 'aiowjdoiajwd',
+    subtitle: SWIM_SUBTITLE,
     backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
     metrics: [ LAP_COUNT, LAPTIME ],
   },
   {
     mode: SWIMMING_EVENT,
-    subtitle: 'aiowjdoiajwd',
+    subtitle: SWIMMING_EVENT_SUBTITLE,
     backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
     stroke: FREESTYLE,
     distance: 200,
@@ -103,7 +124,7 @@ const DEFAULT_CONFIG = [
   },
   {
     mode: TIMED_RUN, // lol this should have a better name
-    subtitle: 'aiowjdoiajwd',
+    subtitle: TIMED_RUN_SUBTITLE,
     backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
   }
 ]

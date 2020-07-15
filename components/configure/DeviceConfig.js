@@ -1,65 +1,82 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 import DraggableFlatList from 'react-native-draggable-flatlist'
 import React from 'react'
-import { View, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native'
 import { Text, Button } from 'react-native-elements'
-import { DEVICE_CONFIG_CONSTANTS, DEFAULT_CONFIG} from './DeviceConfigConstants'
+import AsyncStorage from '@react-native-community/async-storage';
 import Icon from 'react-native-vector-icons/Entypo';
-import Popup from './Popup'
+Icon.loadFont()
+import { DEVICE_CONFIG_CONSTANTS, DEFAULT_CONFIG } from './DeviceConfigConstants'
+import AddPopup from './popups/AddPopup'
+import RunEditPopup from './popups/RunEditPopup'
+import ModeItem from './ModeItem'
+const {
+  RUN,
+  SWIM,
+  JUMP,
+  SWIMMING_EVENT,
+  TIMED_RUN
+} = DEVICE_CONFIG_CONSTANTS
+
+// CONSIDER USING REACT NATIVE PAPER FAB.GROUP INSTEAD OF A POPUP MODAL
+// WHEN ADDING A NEW MODE
 
 const DeviceConfig = (props) => {
   const [deviceConfig, setDeviceConfig] = React.useState(DEFAULT_CONFIG);
   const [adding, setAdding] = React.useState(false);
+  // can be one of the 5 modes
+  const [editMode, setEditMode] = React.useState('');
+  // keeps track of which index in the mode list the user is editing
+  const [editModeIdx, setEditModeIdx] = React.useState(null);
 
+  // deletes a mode from the device config
+  const deleteMode = (index, mode) => {
+    const newConfig = deviceConfig.filter((_, idx) => {
+      return index !== idx;
+    })
+    Alert.alert(
+      "",
+      `Are you sure you want to delete these ${mode} settings? You can always add new settings by tapping the + button`,
+      [
+        {
+          text: "Yes",
+          onPress: () => setDeviceConfig(newConfig)
+        },
+        {
+          text: "No",
+        }
+      ]
+    )
+  }
+
+  // function for rendering draggable list item
   const renderItem = ({ item, index, drag, isActive }) => {
     return (
-      <TouchableOpacity
-        style={{
-          height: 100,
-          backgroundColor: isActive ? "blue" : item.backgroundColor,
-          marginTop: 15,
-          marginLeft: 15,
-          marginRight: 15,
-          borderRadius: 5,
+      <ModeItem
+        item={item}
+        drag={drag}
+        index={index}
+        isActive={isActive}
+        deleteMode={deleteMode}
+        displayEditModal={() => {
+          setEditModeIdx(index)
+          setEditMode(item.mode);
         }}
-        onLongPress={drag}
-      >
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <TouchableOpacity
-            style={styles.removeButton}
-            onPress={() => console.log("butotn")}
-          >
-            <Icon
-              name='rocket'
-              size={30}
-              color="white"
-            />
-          </TouchableOpacity>
-          <Text
-            style={{
-              fontWeight: "bold",
-              color: "white",
-              fontSize: 32
-            }}
-          >
-            {item.mode}
-          </Text>
-        </View>
-      </TouchableOpacity>
+      />
     );
   };
 
   return (
     <View style={{ flex: 1 }}>
-      <Popup
+      <AddPopup
         adding={adding}
         setAdding={setAdding}
+        setDeviceConfig={setDeviceConfig}
+      />
+      <RunEditPopup
+        visible={editMode === RUN}
+        setVisible={(visible) => setEditMode(visible ? RUN : '')}
+        editModeIdx={editModeIdx}
         setDeviceConfig={setDeviceConfig}
       />
       <DraggableFlatList
@@ -87,15 +104,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 100,
-    height: 100,
+    width: 60,
+    height: 60,
     backgroundColor: '#fff',
-    borderRadius: 50,
+    borderRadius: 30,
   },
-  removeButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10
-  }
+
 })
 export default gestureHandlerRootHOC(DeviceConfig)

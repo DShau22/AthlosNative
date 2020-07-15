@@ -1,10 +1,9 @@
 import React from 'react'
 import { View, StyleSheet, TouchableOpacity, FlatList } from 'react-native'
 import { Text, Button, ListItem } from 'react-native-elements'
-import { DEVICE_CONFIG_CONSTANTS, DEFAULT_CONFIG, MODES } from './DeviceConfigConstants'
+import { DEVICE_CONFIG_CONSTANTS, DEFAULT_CONFIG, MODES } from '../DeviceConfigConstants'
 const { MUSIC_ONLY, RUN, SWIM, JUMP, SWIMMING_EVENT, TIMED_RUN } = DEVICE_CONFIG_CONSTANTS
 import LinearGradient from 'react-native-linear-gradient';
-import Icon from 'react-native-vector-icons/FontAwesome';
 // popup stuff
 import Modal, {
   ModalContent,
@@ -12,12 +11,9 @@ import Modal, {
   SlideAnimation,
 } from 'react-native-modals';
 
-export default function Popup(props) {
+export default function AddPopup(props) {
   const { adding, setAdding, setDeviceConfig } = props
 
-  const addMode = (item) => {
-
-  }
   return (
     <Modal
       visible={adding}
