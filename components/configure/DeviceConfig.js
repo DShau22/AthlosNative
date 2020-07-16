@@ -8,7 +8,6 @@ import Icon from 'react-native-vector-icons/Entypo';
 Icon.loadFont()
 import { DEVICE_CONFIG_CONSTANTS, DEFAULT_CONFIG } from './DeviceConfigConstants'
 import AddPopup from './popups/AddPopup'
-import RunEditPopup from './popups/RunEditPopup'
 import ModeItem from './ModeItem'
 const {
   RUN,
@@ -18,16 +17,21 @@ const {
   TIMED_RUN
 } = DEVICE_CONFIG_CONSTANTS
 
+// edit popups
+import RunEditPopup from './popups/RunEditPopup'
+import JumpEditPopup from './popups/JumpEditPopup'
+import SwimEditPopup from './popups/SwimEditPopup'
 // CONSIDER USING REACT NATIVE PAPER FAB.GROUP INSTEAD OF A POPUP MODAL
 // WHEN ADDING A NEW MODE
 
 const DeviceConfig = (props) => {
+  // CHANGE FROM DEFAULT CONFIG TO THE ASYNC STORAGE
   const [deviceConfig, setDeviceConfig] = React.useState(DEFAULT_CONFIG);
   const [adding, setAdding] = React.useState(false);
   // can be one of the 5 modes
   const [editMode, setEditMode] = React.useState('');
-  // keeps track of which index in the mode list the user is editing
-  const [editModeIdx, setEditModeIdx] = React.useState(null);
+  // keeps track of which item in the mode list the user is editing
+  const [editModeItem, setEditModeItem] = React.useState({});
 
   // deletes a mode from the device config
   const deleteMode = (index, mode) => {
@@ -59,12 +63,45 @@ const DeviceConfig = (props) => {
         isActive={isActive}
         deleteMode={deleteMode}
         displayEditModal={() => {
-          setEditModeIdx(index)
+          setEditModeItem(item)
           setEditMode(item.mode);
         }}
       />
     );
   };
+
+  // lists each of the possible popups that can be rendered based on
+  // what the users taps (controlled by the editMode string)
+  const popups = () => {
+    return (
+      <>
+        <RunEditPopup
+          visible={editModeItem.mode === RUN}
+          setVisible={(visible) => {
+            if (!visible) setEditModeItem({})
+          }}
+          editModeItem={editModeItem}
+          setDeviceConfig={setDeviceConfig}
+        />
+        <JumpEditPopup 
+          visible={editModeItem.mode === JUMP}
+          setVisible={(visible) => {
+            if (!visible) setEditModeItem({})
+          }}
+          editModeItem={editModeItem}
+          setDeviceConfig={setDeviceConfig}
+        />
+        <SwimEditPopup 
+          visible={editModeItem.mode === SWIM}
+          setVisible={(visible) => {
+            if (!visible) setEditModeItem({})
+          }}
+          editModeItem={editModeItem}
+          setDeviceConfig={setDeviceConfig}
+        />
+      </>
+    )
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -73,12 +110,7 @@ const DeviceConfig = (props) => {
         setAdding={setAdding}
         setDeviceConfig={setDeviceConfig}
       />
-      <RunEditPopup
-        visible={editMode === RUN}
-        setVisible={(visible) => setEditMode(visible ? RUN : '')}
-        editModeIdx={editModeIdx}
-        setDeviceConfig={setDeviceConfig}
-      />
+      {popups()}
       <DraggableFlatList
         data={deviceConfig}
         renderItem={renderItem}

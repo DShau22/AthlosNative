@@ -26,7 +26,7 @@ const DEVICE_CONFIG_CONSTANTS = {
   TRIGGER_STEPS: 'Steps',
   TRIGGER_MIN: 'Min',
   TRIGGER_LAP: 'Lap',
-  TRIGGER_ON_REST: 'When resting',
+  TRIGGER_ON_FINISH: 'On Finish',
 
   // metrics
   STEP_COUNT: 'Step Count',
@@ -35,7 +35,7 @@ const DEVICE_CONFIG_CONSTANTS = {
 
   SWIMMING_SPEED: 'Swimming Speed',
   LAPTIME: 'Lap time',
-  TOTAL_LAPS_SWUM: 'Total Laps Swum',
+  TOTAL_LAP_COUNT: 'Total Lap Count',
   LAP_COUNT: 'Lap Count',
 
   VERTICAL_HEIGHT: 'Vertical Height',
@@ -97,19 +97,23 @@ const DEFAULT_CONFIG = [
     // whether it's reported based on time interval or number of steps
     trigger: TRIGGER_MIN,
     // how frequently these metrics are reported
-    frequency: 1
+    numUntilTrigger: 1
   },
   {
     mode: JUMP,
     subtitle: JUMP_SUBTITLE,
     backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
     // this should always only be a one element array
-    metrics: [ VERTICAL_HEIGHT ] 
+    metric: VERTICAL_HEIGHT 
   },
   {
     mode: SWIM,
     subtitle: SWIM_SUBTITLE,
     backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
+    trigger: TRIGGER_LAP,
+    // number of laps until the report is given. Number doesn't matter if 
+    // trigger is set to TRIGGER_ON_FINISH
+    numUntilTrigger: 1,
     metrics: [ LAP_COUNT, LAPTIME ],
   },
   {
