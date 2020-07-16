@@ -21,6 +21,7 @@ const {
 import RunEditPopup from './popups/RunEditPopup'
 import JumpEditPopup from './popups/JumpEditPopup'
 import SwimEditPopup from './popups/SwimEditPopup'
+import SwimEventEditPopup from './popups/SwimEventEditPopup'
 // CONSIDER USING REACT NATIVE PAPER FAB.GROUP INSTEAD OF A POPUP MODAL
 // WHEN ADDING A NEW MODE
 
@@ -77,25 +78,25 @@ const DeviceConfig = (props) => {
       <>
         <RunEditPopup
           visible={editModeItem.mode === RUN}
-          setVisible={(visible) => {
-            if (!visible) setEditModeItem({})
-          }}
+          setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
           editModeItem={editModeItem}
           setDeviceConfig={setDeviceConfig}
         />
         <JumpEditPopup 
           visible={editModeItem.mode === JUMP}
-          setVisible={(visible) => {
-            if (!visible) setEditModeItem({})
-          }}
+          setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
           editModeItem={editModeItem}
           setDeviceConfig={setDeviceConfig}
         />
         <SwimEditPopup 
           visible={editModeItem.mode === SWIM}
-          setVisible={(visible) => {
-            if (!visible) setEditModeItem({})
-          }}
+          setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
+          editModeItem={editModeItem}
+          setDeviceConfig={setDeviceConfig}
+        />
+        <SwimEventEditPopup 
+          visible={editModeItem.mode === SWIMMING_EVENT}
+          setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
           editModeItem={editModeItem}
           setDeviceConfig={setDeviceConfig}
         />

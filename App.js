@@ -46,11 +46,13 @@ function App() {
     return ( <LoadingScreen />)
   }
   return (
-    <AppContext.Provider value={setToken}>
-      <NavigationContainer>
-        { token ? <Athlos token={token} /> : <RootStackScreen /> }
-      </NavigationContainer>
-    </AppContext.Provider>
+    <MenuProvider>
+      <AppContext.Provider value={setToken}>
+        <NavigationContainer>
+          { token ? <Athlos token={token} /> : <RootStackScreen /> }
+        </NavigationContainer>
+      </AppContext.Provider>
+    </MenuProvider>
   );
 }
 

@@ -49,11 +49,11 @@ export default function SwimEditPopup(props) {
   const [speedChecked, setSpeedChecked] = React.useState(false)
   
   React.useEffect(() => {
-    setLapNumber(editModeItem.numUntilTrigger)
-    setReportTrigger(editModeItem.trigger)
-    setMetrics(editModeItem.metrics)
-
     if (editModeItem.mode === SWIM) {
+      setLapNumber(editModeItem.numUntilTrigger)
+      setReportTrigger(editModeItem.trigger)
+      setMetrics(editModeItem.metrics)
+      
       setCalChecked(editModeItem.metrics.includes(CALORIES))
       setLapTimeChecked(editModeItem.metrics.includes(LAPTIME))
       setLapCountChecked(editModeItem.metrics.includes(LAP_COUNT))
