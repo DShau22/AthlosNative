@@ -124,7 +124,7 @@ const DEFAULT_CONFIG = [
     distance: 200,
     // splits are for every 50. Can have up to 8.
     // any splits after 8 are just repeated (8 and after is what it'll show)
-    splits: [30.0, 30.0, 30.0, 30.0]
+    splits: ['24', '27', '28', '26']
   },
   {
     mode: TIMED_RUN, // lol this should have a better name

@@ -22,8 +22,13 @@ import RunEditPopup from './popups/RunEditPopup'
 import JumpEditPopup from './popups/JumpEditPopup'
 import SwimEditPopup from './popups/SwimEditPopup'
 import SwimEventEditPopup from './popups/SwimEventEditPopup'
+
+
 // CONSIDER USING REACT NATIVE PAPER FAB.GROUP INSTEAD OF A POPUP MODAL
 // WHEN ADDING A NEW MODE
+
+// ALSO LOOK AT REACT NATIVE NUMERIC INPUT https://github.com/himelbrand/react-native-numeric-input
+// FOR THE UP DOWN BUTTON STUFF
 
 const DeviceConfig = (props) => {
   // CHANGE FROM DEFAULT CONFIG TO THE ASYNC STORAGE
@@ -74,6 +79,8 @@ const DeviceConfig = (props) => {
   // lists each of the possible popups that can be rendered based on
   // what the users taps (controlled by the editMode string)
   const popups = () => {
+    // IMPORTANT: these popups are always mounted when DeviceConfig mounts,
+    // even though they can't always be seen, which is kinda dumb imo
     return (
       <>
         <RunEditPopup
