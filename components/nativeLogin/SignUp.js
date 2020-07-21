@@ -120,11 +120,14 @@ const SignUp = ({navigation}) => {
       var json = await res.json();
       console.log('json', json);
       if (json.success) {
-        Alert.alert(`Welcome ${firstName}!`, "You're almost there! Just check your inbox for a confirmation email.", [{ text: "Okay" }]);
+        Alert.alert(
+          `Welcome ${firstName}!`, 
+          "You're almost there! Check your inbox for a confirmation email. It might take ~5 minutes to send.", 
+          [{ text: "Okay" }]);
         setData({ ...data, isLoading: false });
       } else {
         // change later to show all error messages probably
-        Alert.alert("Oh No :(", json.mesages[0]);
+        Alert.alert("Oh No :(", json.messages[0]);
         setData({ ...data, isLoading: false });
       }
     } catch(e) {

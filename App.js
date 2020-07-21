@@ -5,13 +5,10 @@ import 'react-native-gesture-handler';
 import { MenuProvider } from 'react-native-popup-menu';
 
 import * as React from 'react';
-import { Text, TextInput, View, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 Ionicons.loadFont();
 
-import Background from "./components/nativeLogin/Background"
 import RootStackScreen from './components/nativeLogin/RootStackScreen';
 
 import {

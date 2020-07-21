@@ -25,6 +25,7 @@ Ionicons.loadFont();
 
 const Background = ({ navigation }) => {
   const { colors } = useTheme();
+  console.log("colors: ", colors)
   return (
     <View style={styles.container}>
       <StatusBar backgroundColor='#009387' barStyle="light-content"/>
@@ -45,8 +46,8 @@ const Background = ({ navigation }) => {
       >
         <Text style={[styles.title, {
           color: colors.text
-        }]}>Stay connected with everyone!</Text>
-        <Text style={styles.text}>Sign in with account</Text>
+        }]}>View your Athlos fitness and connect with other athletes!</Text>
+        {/* <Text style={styles.text}>Sign in with your account</Text> */}
         <View style={styles.button}>
           <TouchableOpacity onPress={() => navigation.navigate(SIGNIN)}>
             <LinearGradient
@@ -76,46 +77,46 @@ const styles = StyleSheet.create({
     backgroundColor: '#009387'
   },
   header: {
-      flex: 2,
-      justifyContent: 'center',
-      alignItems: 'center'
+    flex: 2,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   footer: {
-      flex: 1,
-      backgroundColor: '#fff',
-      borderTopLeftRadius: 30,
-      borderTopRightRadius: 30,
-      paddingVertical: 50,
-      paddingHorizontal: 30
+    flex: 1,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingVertical: 50,
+    paddingHorizontal: 30
   },
   logo: {
-      width: height_logo,
-      height: height_logo
+    width: height_logo,
+    height: height_logo
   },
   title: {
-      color: '#05375a',
-      fontSize: 30,
-      fontWeight: 'bold'
+    color: '#05375a',
+    fontSize: 30,
+    fontWeight: 'bold'
   },
   text: {
-      color: 'grey',
-      marginTop:5
+    color: 'grey',
+    marginTop:5
   },
   button: {
-      alignItems: 'flex-end',
-      marginTop: 30
+    alignItems: 'flex-end',
+    marginTop: 30
   },
   signIn: {
-      width: 150,
-      height: 40,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderRadius: 50,
-      flexDirection: 'row'
+    width: 150,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 50,
+    flexDirection: 'row'
   },
   textSign: {
-      color: 'white',
-      fontWeight: 'bold'
+    color: 'white',
+    fontWeight: 'bold'
   }
 });
 

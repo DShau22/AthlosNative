@@ -27,4 +27,4 @@ const RootStackScreen = ({navigation}) => (
   </RootStack.Navigator>
 );
 
-export default RootStackScreen;
+export default gestureHandlerRootHOC(RootStackScreen);
