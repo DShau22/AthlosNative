@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text, View, StyleSheet, Alert } from 'react-native';
+import { Text, View, StyleSheet, Alert, ScrollView, SafeAreaView } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Header } from 'react-native-elements';
 
@@ -55,6 +55,7 @@ function Athlos(props) {
 
   const [state, setState] = React.useState({
     headerText: 'Home',
+    _id: '',
     friends: [],
     friendRequests: [],
     friendsPending: [],
@@ -429,7 +430,14 @@ function Athlos(props) {
           <BottomTab.Navigator>
             <BottomTab.Screen name={HOME} component={Home} />
             <BottomTab.Screen name={FITNESS} component={Fitness} />
-            <BottomTab.Screen name={PROFILE} component={Profile} />
+            <BottomTab.Screen name={PROFILE}>
+              {props => <Profile {...props} initialId={state._id}/>}
+            </BottomTab.Screen>
+            {/* <BottomTab.Screen name={PROFILE} component={Profile} /> */}
+            {/* something like this for passing the navigation props and other props too */}
+            {/* <Stack.Screen name={COMMUNITY_CONSTANTS.COMMUNITY}>
+              {(props) => <CommunityNav {...props} />}
+            </Stack.Screen> */}
             <BottomTab.Screen name={SETTINGS} component={Settings} />
             <BottomTab.Screen name={COMMUNITY} component={Community} />
             <BottomTab.Screen name={DEVICE_CONFIG} component={DeviceConfig} />

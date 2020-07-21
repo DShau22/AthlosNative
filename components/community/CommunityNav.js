@@ -19,7 +19,9 @@ import Follower from './screens/listItems/Follower'
 import Following from './screens/listItems/Following'
 import Rival from './screens/listItems/Rival'
 import COMMUNITY_CONSTANTS from './CommunityConstants'
+import GLOBAL_CONSTANTS from '../GlobalConstants'
 const { FOLLOWERS, FOLLOWING, RIVALS, PENDING, DISCOVER, NO_SEARCH_RESULTS } = COMMUNITY_CONSTANTS
+
 const searchURL = ENDPOINTS.searchUser
 const friendReqURL = ENDPOINTS.sendFriendReq
 // const getUserInfoURL = "https://us-central1-athlos-live.cloudfunctions.net/athlos-server/getUserInfo"
@@ -99,7 +101,7 @@ const CommunityNav = (props) => {
 
   const toUserProfile = (user) => {
     console.log("redirect to this user: ", user)
-    navigation.navigate(COMMUNITY_CONSTANTS.SEARCH_PROFILE, { _id: user._id });
+    navigation.navigate(GLOBAL_CONSTANTS.PROFILE, { _id: user._id });
   }
 
   const TopTab = createMaterialTopTabNavigator();

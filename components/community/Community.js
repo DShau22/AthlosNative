@@ -26,19 +26,20 @@ const imgAlt = "default"
 const Community = (props) => {
   const Stack = createStackNavigator();
   return (
-    <Stack.Navigator>
-      <Stack.Screen name={COMMUNITY_CONSTANTS.COMMUNITY}>
-        {(props) => <CommunityNav {...props} />}
-      </Stack.Screen>
-      <Stack.Screen name={COMMUNITY_CONSTANTS.SEARCH_PROFILE}>
-        {(props) => (
-          // THIS SHOULD BE THE PROFILE COMPONENT INSTEAD
-          <SearchProfile
-            {...props}
-          />
-        )}
-      </Stack.Screen>
-    </Stack.Navigator>
+    <CommunityNav navigation={props.navigation}/>
+    // <Stack.Navigator>
+    //   <Stack.Screen name={COMMUNITY_CONSTANTS.COMMUNITY}>
+    //     {(props) => <CommunityNav {...props} />}
+    //   </Stack.Screen>
+    //   <Stack.Screen name={COMMUNITY_CONSTANTS.SEARCH_PROFILE}>
+    //     {(props) => (
+    //       // THIS SHOULD BE THE PROFILE COMPONENT INSTEAD
+    //       <SearchProfile
+    //         {...props}
+    //       />
+    //     )}
+    //   </Stack.Screen>
+    // </Stack.Navigator>
   )
 }
 
