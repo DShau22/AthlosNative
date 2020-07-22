@@ -9,32 +9,21 @@ import COMMUNITY_CONSTANTS from '../CommunityConstants'
 const { DISAPPEAR_TIME } = COMMUNITY_CONSTANTS
 // RIGHT NOW THIS DISPLAYS FRIENDS where friends is the field in Mongo
 const CommunityList = (props) => {
-  const { onItemPress, itemList, pendingList, pendingTitle, peopleTitle, pendingSubtitle, peopleSubtitle } = props
+  const { onItemPress, sectionList, showActionButton } = props
   const { setAppState } = React.useContext(AppFunctionsContext);
   const userDataContext = React.useContext(UserDataContext);
-  const withSections = [
-    {
-      title: pendingTitle,
-      data: pendingList
-    },
-    {
-      title: peopleTitle,
-      data: itemList
-    }
-  ]
   return (
     <View style={styles.container}>
       <SectionList
-        sections={withSections}
+        sections={sectionList}
         keyExtractor={(item, idx) => item._id}
-        // CONSIDER CHANGING THIS TO JUST INCLUDE THE LISTEM. THEN PUT ALL REQUEST FUNCTION
-        // STUFF INTO HERE IT'LL BE A PHAT COMPONENT THO
         renderItem={({ item, section, index }) => (
           <props.listItem
             item={item}
             section={section}
             onItemPress={onItemPress}
             setAppState={setAppState}
+            showActionButton={showActionButton}
           />
         )}
         renderSectionHeader={({ section: { title } }) => (

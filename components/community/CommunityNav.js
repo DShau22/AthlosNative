@@ -101,7 +101,8 @@ const CommunityNav = (props) => {
 
   const toUserProfile = (user) => {
     console.log("redirect to this user: ", user)
-    navigation.navigate(GLOBAL_CONSTANTS.PROFILE, { _id: user._id });
+    // navigation.navigate(GLOBAL_CONSTANTS.PROFILE, { _id: user._id });
+    navigation.navigate(COMMUNITY_CONSTANTS.SEARCH_PROFILE, { _id: user._id });
   }
 
   const TopTab = createMaterialTopTabNavigator();

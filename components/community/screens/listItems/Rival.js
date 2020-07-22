@@ -6,7 +6,7 @@ import AcceptRejectButton from './AcceptRejectButton'
 import COMMUNITY_CONSTANTS from '../../CommunityConstants'
 const { FOLLOWERS, REQUESTS } = COMMUNITY_CONSTANTS
 const Rival = (props) => {
-  const { item, section, onItemPress, setAppState } = props;
+  const { item, section, onItemPress, setAppState, showActionButton } = props;
   const acceptRivalRequest = () => {
     console.log('accept rival request')
   }
@@ -32,6 +32,7 @@ const Rival = (props) => {
       // check what section this item is in. Based on that then decide which
       // kind of button to put here
       rightElement={() => {
+        if (!showActionButton) return;
         switch(section.title) {
           case('Requests'):
             return (

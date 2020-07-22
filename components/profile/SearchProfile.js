@@ -2,23 +2,22 @@
 // that the user logged in on the browser searched for
 
 import React, { Component } from 'react'
-// import {
-//   Redirect,
-// } from "react-router-dom";
-// import { englishHeight }from "../utils/unitConverter"
 import { UserDataContext } from '../../Context';
 import { View, StyleSheet, FlatList, ScrollView, Alert, Image } from 'react-native'
+import { createStackNavigator } from '@react-navigation/stack';
+
 import { Text } from 'react-native-elements'
 import Spinner from 'react-native-loading-spinner-overlay';
-// import { withRouter } from 'react-router-dom';
-// import './css/userProfile.css'
 import { getData } from "../utils/storage"
 import ENDPOINTS from '../endpoints'
 import GLOBAL_CONSTANTS from "../GlobalConstants"
 const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS
+import PROFILE_CONSTANTS from './ProfileConstants'
+import Community from '../community/Community'
+import ProfileHeader from './sections/ProfileHeader'
+import ProfileTemplate from './ProfileTemplate'
 
 const SearchProfile = (props) => {
-  const context = React.useContext(UserDataContext);
   // all these correspond to the fields of the searched user, NOT
   // the user who's using the app right now
   const [isLoading, setIsLoading] = React.useState(false);
@@ -40,7 +39,7 @@ const SearchProfile = (props) => {
     rivals: [],
   })
   // the searched user's id
-  const { _id } = props.route.params
+  const { _id } = props
   console.log("search user id: ", _id);
 
   React.useEffect(() => {
@@ -126,90 +125,45 @@ const SearchProfile = (props) => {
     }
   }
 
-  const { firstName, lastName, age, height, bio, weight, totals, bests, profilePicture } = state
+  const { firstName, lastName, age, height, bio, weight, totals, bests, profilePicture, settings } = state
   const { followers, following, rivals } = state
   console.log("search profile's state: ", state);
-  if (context.mounted) {
-    return (
-      <View>
-        <Spinner
-          visible={isLoading}
-          textContent={'Loading...'}
-          // textStyle={styles.spinnerTextStyle}
-        />
-        <View>
-          <View>
-            <Image 
-              source={{ uri: profilePicture.profileURL}}
-              style={styles.tinyLogo}
-              // defaultSource={{uri: imgAlt}}
-            />
-          </View>
-          <View>
-            <Text>{firstName}</Text>
-            <Text>{lastName}</Text>
-          </View>
-          <View>
-            <View >
-              <View>
-                <Text h3>Age</Text>
-                <Text>{age}</Text>
-              </View>
-              <View>
-                <Text h3>Height</Text>
-                <Text>{height}</Text>
-              </View>
-              <View>
-                <Text h3>Weight</Text>
-                <Text>{weight}</Text>
-              </View>
-            </View>
-          </View>
-          <View>
-            <Text h3>Bio</Text>
-            <Text>{bio}</Text>
-          </View>
-        </View>
-        <View>
-          <View>
-            <View>
-              <Text h3>Total Steps</Text>
-              <Text>{totals.steps}</Text>
-            </View>
-            <View>
-              <Text h3>Total Min</Text>
-              <Text>{totals.minutes}</Text>
-            </View>
-          </View>
-          <View>
-            <View>
-              <Text h3>Total Laps</Text>
-              <Text>{totals.laps}</Text>
-            </View>
-            <View>
-              <Text h3>Highest Jump</Text>
-              <Text>{bests.jump}</Text>
-            </View>
-            <View>
-              <Text h3>people</Text>
-              <Text>have screen for followers, following, rivals. Maybe community Nav???</Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    )
-  } else {
-    // spa hasn't mounted and established context yet
-    return (
-      <View>
-        <Text>loading...</Text>
-      </View>
-    )
+  const Stack = createStackNavigator();
+  const profileHeaderProps = {
+    profileURL: profilePicture.profileURL,
+    firstName: firstName,
+    lastName: lastName,
+    numFollowers: followers.length,
+    numFollowing: following.length,
+    numRivals: rivals.length,
+    relationshipStatus: PROFILE_CONSTANTS.SEARCH_PROFILE,
+    settings,
   }
+  const communityProps = {
+    followers: followers,
+    following: following,
+    rivals: rivals,
+    relationshipStatus: PROFILE_CONSTANTS.SEARCH_PROFILE,
+    settings,
+  }
+  return (
+    <>
+      <Spinner
+        visible={isLoading}
+        textContent={'Loading...'}
+        // textStyle={styles.spinnerTextStyle}
+      />
+      <ProfileTemplate
+        profileHeaderProps={profileHeaderProps}
+        communityProps={communityProps}
+      />
+    </>
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     paddingTop: 50,
   },
   tinyLogo: {

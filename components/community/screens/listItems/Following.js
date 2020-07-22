@@ -156,7 +156,7 @@ class Following extends Component {
   }
 
   render() {
-    const { item, section, onItemPress } = this.props;
+    const { item, section, onItemPress, showActionButton } = this.props;
     return (
       <Animated.View
         style={{
@@ -174,6 +174,7 @@ class Following extends Component {
           }
           // MAKE THIS THE FOLLOW/ACCEPT BUTTON
           rightElement={() => {
+            if (!showActionButton) return;
             switch(section.title) {
               case(PENDING):
                 return (

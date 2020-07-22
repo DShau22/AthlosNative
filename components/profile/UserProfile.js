@@ -3,19 +3,16 @@
 import React, { Component } from 'react'
 import { View, Image, StyleSheet } from 'react-native'
 import { Text, Button } from 'react-native-elements'
-// import {
-//   withRouter,
-// } from "react-router-dom";
-// import ShowMoreText from 'react-show-more-text';
 
 import { UserDataContext } from '../../Context';
 import { poundsToKg, inchesToCm } from "../utils/unitConverter"
 import PROFILE_CONSTANTS from "./ProfileConstants"
 import GLOBAL_CONSTANTS from '../GlobalConstants'
 const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
-// import "./css/userProfile.css"
-// import Popup from "reactjs-popup";
-import EditProfileFunc from "./EditProfileFunc"
+import Community from '../community/Community'
+
+import ProfileHeader from './sections/ProfileHeader'
+import ProfileTemplate from './ProfileTemplate'
 // replace with default avatar link
 const imgAlt = "./default_profile.png"
 
@@ -98,82 +95,36 @@ const UserProfile = (props) => {
       // </Popup>
     )
   }
-
-  // if user clicked the button to go to the edit profile page
-  if (context.mounted) {
-    return (
-      <View className="profile-container">
-        <View className='top-half'>
-          <Button
-            buttonStyle={styles.editButton}
-            title="Edit Profile"
-            onPress={() => {
-              props.navigation.navigate(PROFILE_CONSTANTS.EDIT_PROFILE)
-            }}
-          />
-          <View className='img-container mt-2'>
-            <Text>Should contain image</Text>
-            <Image 
-              style={styles.tinyLogo}
-              source={{uri: context.profilePicture.profileURL}}
-              // defaultSource={{uri: imgAlt}}
-            />
-          </View>
-          <View className="name-container">
-            <Text className='fname'>{context.firstName}</Text>
-            <Text className='lname'>{context.lastName}</Text>
-          </View>
-          <View className='info-container m-3'>
-            <View className='row'>
-              <View className='col-4'>
-                <Text h4>Age</Text>
-                <Text>{context.age}</Text>
-              </View>
-              <View className='col-4'>
-                <Text h4>Height</Text>
-                <Text>{renderHeight()}</Text>
-              </View>
-              <View className='col-4'>
-                <Text h4>Weight</Text>
-                <Text>{renderWeight()}</Text>
-              </View>
-            </View>
-          </View>
-          <View className='bio-container m-3'>
-            <Text>{renderBio()}</Text>
-          </View>
-        </View>
-        <View className='bot-half'>
-          <View className='row'>
-            <Text className='col-6'>
-              total steps
-            </Text>
-            <Text className='col-6'>
-              total mins
-            </Text>
-          </View>
-          <View className='row'>
-            <Text className='col-6'>
-              total laps
-            </Text>
-            <Text className='col-6'>
-              hightest jump
-            </Text>
-          </View>
-        </View>
-      </View>
-    )
-  } else {
-    // spa hasn't mounted and established context yet
-    return (
-      <View className="profile-loading-container">
-        <Text>Athlos context mounted value should be false?</Text>
-      </View>
-    )
+  const profileHeaderProps = {
+    profileURL: context.profilePicture.profileURL,
+    firstName: context.firstName,
+    lastName: context.lastName,
+    numFollowers: context.followers.length,
+    numFollowing: context.following.length,
+    numRivals: context.rivals.length,
+    relationshipStatus: PROFILE_CONSTANTS.IS_SELF,
   }
+  const communityProps = {
+    followerRequests: context.followerRequests,
+    followers: context.followers,
+    followingPending: context.followingPending,
+    following: context.following,
+    rivalRequests: context.rivalRequests,
+    rivalsPending: context.rivalsPending,
+    rivals: context.rivals,
+    relationshipStatus: PROFILE_CONSTANTS.IS_SELF,
+    settings: context.settings,
+  }
+  return (
+    <ProfileTemplate
+      profileHeaderProps={profileHeaderProps}
+      communityProps={communityProps}
+    />
+  )
 }
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     paddingTop: 50,
   },
   tinyLogo: {

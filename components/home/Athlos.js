@@ -430,10 +430,10 @@ function Athlos(props) {
           <BottomTab.Navigator>
             <BottomTab.Screen name={HOME} component={Home} />
             <BottomTab.Screen name={FITNESS} component={Fitness} />
-            <BottomTab.Screen name={PROFILE}>
+            {/* <BottomTab.Screen name={PROFILE}>
               {props => <Profile {...props} initialId={state._id}/>}
-            </BottomTab.Screen>
-            {/* <BottomTab.Screen name={PROFILE} component={Profile} /> */}
+            </BottomTab.Screen> */}
+            <BottomTab.Screen name={PROFILE} component={Profile} initialParams={{_id: state._id,}}/>
             {/* something like this for passing the navigation props and other props too */}
             {/* <Stack.Screen name={COMMUNITY_CONSTANTS.COMMUNITY}>
               {(props) => <CommunityNav {...props} />}
