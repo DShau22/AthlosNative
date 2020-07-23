@@ -1,8 +1,10 @@
 import React, {Component} from 'react'
-import { View, StyleSheet, Text } from 'react-native'
+import { View, StyleSheet, ScrollView } from 'react-native'
 import { UserDataContext } from "../../Context"
 import { parseDate } from "../utils/unitConverter"
-
+import Carousel from './carousel/Carousel'
+import Calories from './Calories'
+import Duration from './Duration'
 // HOC for run, swim, jump fitness pages.
 // reuses label and data getting for:
 // 1. past laps/jumps/steps (num)
@@ -41,6 +43,8 @@ export default function withFitnessPage( WrappedComponent ) {
       makePastGraphLabels()
       makePastGraphData()
     }, [])
+    
+    const { activityJson, id } = props.route.params
 
     const roundToNDecimals = (num, decimals) => {
       return parseFloat(num).toFixed(decimals)
@@ -54,7 +58,6 @@ export default function withFitnessPage( WrappedComponent ) {
     const makePastGraphLabels = () => {
       var pastGraphLabels = []
       // can be either run, jump or swimming json
-      var { activityJson } = props.route.params
       activityJson.activityData.forEach((session, idx) => {
         var { uploadDate } = session
         var stringToDate = new Date(uploadDate)
@@ -68,7 +71,6 @@ export default function withFitnessPage( WrappedComponent ) {
 
     const makePastGraphData = () => {
       var pastGraphData = []
-      var { activityJson } = props.route.params
       activityJson.activityData.forEach((session, idx) => {
         var { num } = session
         pastGraphData.push(num)
@@ -80,7 +82,6 @@ export default function withFitnessPage( WrappedComponent ) {
     // returns Day of week, month day (num) in a string format
     // i.e Sat, Jul 20
     const displayDate = () => {
-      var { activityJson } = props.route.params
       var { activityIndex } = state
       if (activityJson.activityData.length === 0) {
         return "No uploads yet"
@@ -101,7 +102,7 @@ export default function withFitnessPage( WrappedComponent ) {
       // Activity json contains all the queried activity data
       // NOTE THIS IS NOT THE TRUE AVG SINCE THE QUERY IS AT MAX
       // (50) DOCUMENTS OF ACTIVITY DATA
-      var { activityData } = props.route.params.activityJson
+      var { activityData } = activityJson
       var avg = 0
       var count = 0
       activityData.forEach((session, idx) => {
@@ -112,7 +113,7 @@ export default function withFitnessPage( WrappedComponent ) {
     }
 
     const calcAvgCals = () => {
-      var { activityData } = props.route.params.activityJson
+      var { activityData } = activityJson
       var avg = 0
       var count = 0
       activityData.forEach((session, idx) => {
@@ -123,37 +124,80 @@ export default function withFitnessPage( WrappedComponent ) {
     }
 
     const previousSlide = () => {
-      var { activityData } = props.route.params.activityJson
-      var nextIndex = Math.min((state.activityIndex + 1), activityData.length - 1)
+      const { activityData } = activityJson
+      const lowestIndex = Math.max(0, activityData.length - 1)
+      const nextIndex = Math.min((state.activityIndex + 1), lowestIndex)
       setState({ ...state, activityIndex: nextIndex })
       console.log("previous pressed! ", state.activityIndex)
     }
   
     const nextSlide = () => {
       // 0 represents the most recent upload date
-      var nextIndex = Math.max((state.activityIndex - 1), 0)
+      const nextIndex = Math.max((state.activityIndex - 1), 0)
       setState({ ...state, activityIndex: nextIndex })
       console.log("next pressed! ", state.activityIndex)
     }
 
-    var { activityIndex, pastGraphData, pastGraphLabels } = state
+    const { activityIndex, pastGraphData, pastGraphLabels } = state
+    const currentStatDisplay = activityJson.activityData[activityIndex]
+    console.log('fitness page state: ', id, state)
     return (
-      <WrappedComponent
-        pastGraphData={pastGraphData}
-        pastGraphLabels={pastGraphLabels}
-        activityIndex={activityIndex}
-        dropdownItemClick={dropdownItemClick}
-        displayDate={displayDate}
-        nextSlide={nextSlide}
-        previousSlide={previousSlide}
-        calcAvgNum={calcAvgNum}
-        calcAvgCals={calcAvgCals}
-        isNullOrUndefined={isNullOrUndefined}
-        roundToNDecimals={roundToNDecimals}
-        {...props.route.params}
-      />
+      <ScrollView
+        contentContainerStyle={styles.scrollContents}
+        style={styles.container}
+      >
+        <Carousel
+          stats={activityJson}
+          previousSlide={previousSlide}
+          nextSlide={nextSlide}
+          activityIndex={activityIndex}
+          displayDate={displayDate}
+          dropdownItemClick={dropdownItemClick}
+        />
+        <View>
+          <Calories 
+            cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
+          />
+          <Duration 
+            duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
+          />
+        </View>
+        <WrappedComponent
+          pastGraphData={pastGraphData}
+          pastGraphLabels={pastGraphLabels}
+          activityIndex={activityIndex}
+          dropdownItemClick={dropdownItemClick}
+          displayDate={displayDate}
+          nextSlide={nextSlide}
+          previousSlide={previousSlide}
+          calcAvgNum={calcAvgNum}
+          calcAvgCals={calcAvgCals}
+          isNullOrUndefined={isNullOrUndefined}
+          roundToNDecimals={roundToNDecimals}
+          {...props.route.params}
+        />
+      </ScrollView>
     )
   }
   return WithFitnessPage
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    height: '100%',
+    width: '100%'
+  },
+  scrollContents: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calsAndTimeContainer: {
+    marginTop: 10,
+    marginBottom: 10,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+})
 

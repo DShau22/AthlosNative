@@ -3,10 +3,10 @@ import { View, StyleSheet, Text, TouchableOpacity } from 'react-native'
 import { runTheme, jumpTheme, swimTheme } from "../../Constants"
 const Arrow = ({ direction, clickFunction, glyph, activity }) => (
   <TouchableOpacity
-    style={[styles.slideArray, styles[direction], styles[activity]]}
+    style={[styles.slideArray, styles[direction], styles[activity.toLowerCase()]]}
     onPress={ clickFunction }
   >
-    <Text style={[styles.glyphStyle, styles[activity]]}>{ glyph }</Text>
+    <Text style={[styles.glyphStyle, styles[activity.toLowerCase()]]}>{ glyph }</Text>
   </TouchableOpacity>
 );
 const styles = StyleSheet.create({

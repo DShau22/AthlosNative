@@ -103,27 +103,28 @@ const Run = (props) => {
   var currentStatDisplay = runJson.activityData[activityIndex]
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.scrollContents}
-      style={styles.container}
-    >
-      <Carousel
-        stats={runJson}
-        previousSlide={previousSlide}
-        nextSlide={nextSlide}
-        activityIndex={activityIndex}
-        displayDate={displayDate}
-        dropdownItemClick={dropdownItemClick}
-        renderSecondary={estimateDistanceRun}
-      />
-      <View style={styles.calsAndTimeContainer}>
-        <Calories 
-          cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
-        />
-        <Duration 
-          duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
-        />
-      </View>
+    // <ScrollView
+    //   contentContainerStyle={styles.scrollContents}
+    //   style={styles.container}
+    // >
+    //   <Carousel
+    //     stats={runJson}
+    //     previousSlide={previousSlide}
+    //     nextSlide={nextSlide}
+    //     activityIndex={activityIndex}
+    //     displayDate={displayDate}
+    //     dropdownItemClick={dropdownItemClick}
+    //     renderSecondary={estimateDistanceRun}
+    //   />
+    //   <View style={styles.calsAndTimeContainer}>
+    //     <Calories 
+    //       cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
+    //     />
+    //     <Duration 
+    //       duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
+    //     />
+    //   </View>
+    <>
       <Past
         chartTitle="Previous Runs"
         labels={pastGraphLabels}
@@ -189,7 +190,8 @@ const Run = (props) => {
           </View>
         </View>
       </View>
-    </ScrollView>
+    </>
+    // </ScrollView>
   )
 }
 const styles = StyleSheet.create({

@@ -46,7 +46,6 @@ const Carousel = (props) => {
     })
     return result
   }
-
   return (
     <View style={styles.carousel}>
       <DropDownPicker
@@ -71,7 +70,6 @@ const Carousel = (props) => {
         <ImageSlide
           stats={stats}
           indexDisplay={activityIndex}
-          renderSecondary={renderSecondary}
         />
 
         <Arrow

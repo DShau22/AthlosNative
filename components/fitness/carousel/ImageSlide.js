@@ -3,16 +3,16 @@ import { View, StyleSheet, Text } from "react-native"
 import { UserDataContext } from "../../../Context"
 import { runTheme, jumpTheme, swimTheme } from "../../Constants"
 import { ProgressCircle } from 'react-native-svg-charts'
-
+import FITNESS_CONSTANTS from '../../fitness/FitnessConstants'
 const ImageSlide = (props) => {
   const getLabels = (action) => {
     var { unitSystem } = React.useContext(UserDataContext).settings
-    if (action === "run") {
+    if (action === FITNESS_CONSTANTS.RUN) {
       return {
         numLabel: "steps",
         secondaryLabel: (unitSystem === "metric") ? "km" : "miles"
       }
-    } else if (action === "swim") {
+    } else if (action === FITNESS_CONSTANTS.SWIM) {
       // CHANGE THIS BASED ON SWIMMING PART OF SETTINGS
       return {
         numLabel: "laps",
@@ -35,16 +35,16 @@ const ImageSlide = (props) => {
 
   const getActivityColor = () => {
     switch (props.stats.action) {
-      case 'run':
+      case FITNESS_CONSTANTS.RUN:
         return runTheme;
-      case 'swim':
+      case FITNESS_CONSTANTS.SWIM:
         return swimTheme;
       default:
         return jumpTheme
     }
   }
 
-  var { stats, indexDisplay, renderSecondary } = props
+  var { stats, indexDisplay } = props
   return (
     <View style={styles.imageSlide}> 
       <ProgressCircle style={{ height: '100%', width: '100%' }} progress={0.7} progressColor={getActivityColor()} />
@@ -52,7 +52,6 @@ const ImageSlide = (props) => {
       {/* add data through props */}
       {/* <img src={stats.imageUrl} alt="loading..."/> */}
       {renderNum(stats, indexDisplay, styles.number)}
-      {renderSecondary(styles.estimatedDistance)}
     </View>
   )
 }

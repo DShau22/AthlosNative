@@ -56,27 +56,28 @@ const Jump = (props) => {
   } = props
   var currentStatDisplay = jumpJson.activityData[activityIndex]
   return (
-    <ScrollView
-      contentContainerStyle={styles.scrollContents}
-      style={styles.container}
-    >
-      <Carousel
-        stats={jumpJson}
-        previousSlide={previousSlide}
-        nextSlide={nextSlide}
-        activityIndex={activityIndex}
-        displayDate={displayDate}
-        dropdownItemClick={dropdownItemClick}
-        renderSecondary={getCurrentBestHeight}
-      />
-      <View>
-        <Calories 
-          cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
-        />
-        <Duration 
-          duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
-        />
-      </View>
+    // <ScrollView
+    //   contentContainerStyle={styles.scrollContents}
+    //   style={styles.container}
+    // >
+    //   <Carousel
+    //     stats={jumpJson}
+    //     previousSlide={previousSlide}
+    //     nextSlide={nextSlide}
+    //     activityIndex={activityIndex}
+    //     displayDate={displayDate}
+    //     dropdownItemClick={dropdownItemClick}
+    //     renderSecondary={getCurrentBestHeight}
+    //   />
+    //   <View>
+    //     <Calories 
+    //       cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
+    //     />
+    //     <Duration 
+    //       duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
+    //     />
+    //   </View>
+    <>
       <Past
         chartTitle="Previous Sessions"
         labels={pastGraphLabels}
@@ -102,7 +103,8 @@ const Jump = (props) => {
         <Text className="card-title">Overall Best</Text>
         <Text>{bests.jump}</Text>
       </View> */}
-    </ScrollView>
+    </>
+    // </ScrollView>
   )
 }
 

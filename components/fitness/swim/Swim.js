@@ -144,28 +144,29 @@ const Swim = (props) => {
   var currentStatDisplay = swimJson.activityData[activityIndex]
   // 50m, 25yd, or 25m
   return (
-    <ScrollView
-      contentContainerStyle={styles.scrollContents}
-      style={styles.container}
-    >
-      <Carousel
-        stats={swimJson}
-        previousSlide={previousSlide}
-        nextSlide={nextSlide}
-        activityIndex={activityIndex}
-        displayDate={displayDate}
-        dropdownItemClick={dropdownItemClick}
-        renderSecondary={calculateDistance}
-      />
-      <View>
-        <Calories 
-          cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
-        />
-        <Details detailsLink={swimLink}/>
-        <Duration 
-          duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
-        />
-      </View>
+    // <ScrollView
+    //   contentContainerStyle={styles.scrollContents}
+    //   style={styles.container}
+    // >
+    //   <Carousel
+    //     stats={swimJson}
+    //     previousSlide={previousSlide}
+    //     nextSlide={nextSlide}
+    //     activityIndex={activityIndex}
+    //     displayDate={displayDate}
+    //     dropdownItemClick={dropdownItemClick}
+    //     renderSecondary={calculateDistance}
+    //   />
+    //   <View>
+    //     <Calories 
+    //       cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
+    //     />
+    //     <Details detailsLink={swimLink}/>
+    //     <Duration 
+    //       duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
+    //     />
+    //   </View>
+    <>
       <Past
         chartTitle="Previous Swims"
         labels={pastGraphLabels}
@@ -212,7 +213,8 @@ const Swim = (props) => {
           ]}
         />
       </View>
-    </ScrollView>
+    </>
+    // </ScrollView>
   )
 }
 
