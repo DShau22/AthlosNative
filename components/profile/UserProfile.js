@@ -115,10 +115,17 @@ const UserProfile = (props) => {
     relationshipStatus: PROFILE_CONSTANTS.IS_SELF,
     settings: context.settings,
   }
+  const fitnessProps = {
+    settings: context.settings,
+  }
   return (
     <ProfileTemplate
+      _id={context._id}
       profileHeaderProps={profileHeaderProps}
       communityProps={communityProps}
+      fitnessProps={fitnessProps}
+      relationshipStatus={PROFILE_CONSTANTS.IS_SELF}
+      rootNav={props.rootNav}
     />
   )
 }

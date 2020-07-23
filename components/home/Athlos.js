@@ -34,6 +34,7 @@ const {
   PROFILE,
   DEVICE_CONFIG,
 } = GLOBAL_CONSTANTS
+import FITNESS_CONTANTS from '../fitness/FitnessConstants'
 // server url
 const defaultProfile = "./profile/default_profile.png"
 
@@ -88,18 +89,18 @@ function Athlos(props) {
     numFriendsDisplay: 25,
     jumpJson: {
       activityData: [],
-      action: "jump",
-      imageUrl: "https://img.icons8.com/ios/50/000000/trampoline-park-filled.png"
+      action: FITNESS_CONTANTS.JUMP,
+      imageUrl: FITNESS_CONTANTS.JUMP_ICON
     },
     runJson: {
       activityData: [],
-      action: "run",
-      imageUrl: "https://img.icons8.com/nolan/64/000000/running.png",
+      action: FITNESS_CONTANTS.RUN,
+      imageUrl: FITNESS_CONTANTS.RUN_ICON
     },
     swimJson: {
       activityData: [],
-      action: "swim",
-      imageUrl: "https://img.icons8.com/nolan/64/000000/swimming.png"
+      action: FITNESS_CONTANTS.SWIM,
+      imageUrl: FITNESS_CONTANTS.SWIM_ICON
     },
   });
   
@@ -429,7 +430,7 @@ function Athlos(props) {
           />
           <BottomTab.Navigator>
             <BottomTab.Screen name={HOME} component={Home} />
-            <BottomTab.Screen name={FITNESS} component={Fitness} />
+            {/* <BottomTab.Screen name={FITNESS} component={Fitness} /> */}
             {/* <BottomTab.Screen name={PROFILE}>
               {props => <Profile {...props} initialId={state._id}/>}
             </BottomTab.Screen> */}
@@ -439,7 +440,7 @@ function Athlos(props) {
               {(props) => <CommunityNav {...props} />}
             </Stack.Screen> */}
             <BottomTab.Screen name={SETTINGS} component={Settings} />
-            <BottomTab.Screen name={COMMUNITY} component={Community} />
+            {/* <BottomTab.Screen name={COMMUNITY} component={Community} /> */}
             <BottomTab.Screen name={DEVICE_CONFIG} component={DeviceConfig} />
           </BottomTab.Navigator>
         </>

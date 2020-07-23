@@ -101,11 +101,16 @@ const Community = (props) => {
   const toUserProfile = (user) => {
     const screen = user._id === userDataContext ? PROFILE_CONSTANTS.USER_PROFILE : PROFILE_CONSTANTS.SEARCH_PROFILE
     console.log("redirect to this user: ", user)
-    console.log("to this screen: ", screen)
     navigation.navigate(
       GLOBAL_CONSTANTS.PROFILE,
-      { _id: user._id, },
+      { _id: user._id, screen: screen},
     );
+    // have to do this cuz for some reason it doesn't actually navigate to the root screen
+    navigation.popToTop();
+    // props.rootNav.push(
+    //   GLOBAL_CONSTANTS.PROFILE,
+    //   { _id: user._id, screen: screen },
+    // );
   }
 
   const createFollowerSectionList = () => {

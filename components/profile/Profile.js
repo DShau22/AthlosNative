@@ -1,4 +1,5 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 
 import React, { Component } from 'react';
 import { View, RefreshControl, SafeAreaView, ScrollView, StyleSheet, Button } from 'react-native'
@@ -22,14 +23,16 @@ const Profile = (props) => {
   // this is the user's own id
   const { _id, test } = props.route.params;
   const userDataContext = React.useContext(UserDataContext)
-
+  // console.log('route props: ', props.route.state)
+  // console.log('navigation props: ', props.navigation)
   const [id, setId] = React.useState(_id)
+
   // whenever the id changes, check if it matches the id of the user. If it does,
   // set the state based on the context. If not, do a fetch and set state based on
   // fetch results and the search user's settings. If they settings don't permit this
   // user to view that field, don't set the field so it'll remain undefined.
   React.useEffect(() => {
-    console.log("using effect cuz route params: ", _id);
+    // console.log("using effect cuz route params: ", _id);
     setId(_id)
   }, [_id])
 
@@ -44,15 +47,15 @@ const Profile = (props) => {
   }
 
   const Stack = createStackNavigator();
-  console.log('returning the profile props, id is: ', _id);
+  // console.log('returning the profile props, id is: ', _id);
   return (
     // <WithRefresh
     //   refreshFunction={onRefresh}
     // >
     <>
       { _id === userDataContext._id ? 
-        <UserProfile /> : <SearchProfile _id={_id} />
-      }
+        <UserProfile rootNav={props.navigation} /> : <SearchProfile rootNav={props.navigation} _id={_id} />
+      } 
     </>
     // </WithRefresh>
   )

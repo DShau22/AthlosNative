@@ -11,8 +11,10 @@ import { rawHeightConvert } from "../../utils/unitConverter"
 import { View, StyleSheet, Text, ScrollView } from 'react-native'
 const Jump = (props) => {
   const context = React.useContext(UserDataContext);
+  const { activityJson, settings } = props
+  const jumpJson = activityJson;
   const calcAvgHeight = () => {
-    var { activityData } = context.jumpJson
+    var { activityData } = jumpJson
     var avg = 0
     var count = 0
     activityData.forEach((session, i) => {
@@ -25,8 +27,8 @@ const Jump = (props) => {
   }
 
   const getCurrentBestHeight = () => {
-    var { unitSystem } = context.settings
-    var { activityData } = context.jumpJson
+    var { unitSystem } = settings
+    var { activityData } = jumpJson
     var { activityIndex } = props
     if (activityData.length === 0) { return null }
     var session = activityData[activityIndex]
@@ -39,7 +41,6 @@ const Jump = (props) => {
     )
   }
 
-  var { jumpJson, settings, bests } = context
   var { unitSystem } = settings
   var {
     activityIndex,
@@ -97,10 +98,10 @@ const Jump = (props) => {
         <Text className="card-title">Avg Cals per Session</Text>
         <Text>{calcAvgCals()}</Text>
       </View>
-      <View className="card text-center">
+      {/* <View className="card text-center">
         <Text className="card-title">Overall Best</Text>
         <Text>{bests.jump}</Text>
-      </View>
+      </View> */}
     </ScrollView>
   )
 }

@@ -33,10 +33,12 @@ const ENDPOINTS = {
 
     getSearchUserBasicInfo: `${serverURL}/getSearchUserBasicInfo`,
     getSearchUserFriends: `${serverURL}/getSearchUserFriends`,
+    // getSearchUserFitness: `${serverURL}/getSearchUserFitness`,
+    getSearchUserFitnessBests: `${serverURL}/getSearchUserFitnessBests`,
     getSearchUserFitness: `${serverURL}/getSearchUserFitness`,
 
     // user data and info
-    getData: `${serverURL}/data`,
+    getData: `${serverURL}/getUserFitness`,
     getUserInfo: `${serverURL}/getUserInfo`,
     updateProfile: `${serverURL}/updateProfile`,
     checkDuplicatePic: `${serverURL}/checkDuplicatePic`,

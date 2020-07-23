@@ -3,7 +3,7 @@
 
 import React, { Component } from 'react'
 import { UserDataContext } from '../../Context';
-import { View, StyleSheet, FlatList, ScrollView, Alert, Image } from 'react-native'
+import { View, StyleSheet, FlatList, ScrollView, Alert, Button } from 'react-native'
 import { createStackNavigator } from '@react-navigation/stack';
 
 import { Text } from 'react-native-elements'
@@ -18,9 +18,12 @@ import ProfileHeader from './sections/ProfileHeader'
 import ProfileTemplate from './ProfileTemplate'
 
 const SearchProfile = (props) => {
+  const userDataContext = React.useContext(UserDataContext)
   // all these correspond to the fields of the searched user, NOT
   // the user who's using the app right now
   const [isLoading, setIsLoading] = React.useState(false);
+  // This state only contains what's necessary. All the fitness stuff
+  // should be fetched (if needed) in the fitness component
   const [state, setState] = React.useState({
     settings: {},
     firstName: '',
@@ -114,7 +117,7 @@ const SearchProfile = (props) => {
     console.log("get totals")
     const { seeFitness } = settings
     if (seeFitness === EVERYONE || (seeFitness === FOLLOWERS && follows)) {
-      const res = await fetch(ENDPOINTS.getSearchUserFitness, {
+      const res = await fetch(ENDPOINTS.getSearchUserFitnessBests, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ _id }),
@@ -146,6 +149,9 @@ const SearchProfile = (props) => {
     relationshipStatus: PROFILE_CONSTANTS.SEARCH_PROFILE,
     settings,
   }
+  const fitnessProps = {
+    settings
+  }
   return (
     <>
       <Spinner
@@ -154,8 +160,12 @@ const SearchProfile = (props) => {
         // textStyle={styles.spinnerTextStyle}
       />
       <ProfileTemplate
+        _id={_id}
         profileHeaderProps={profileHeaderProps}
         communityProps={communityProps}
+        fitnessProps={fitnessProps}
+        relationshipStatus={'firned....'}
+        rootNav={props.rootNav}
       />
     </>
   )

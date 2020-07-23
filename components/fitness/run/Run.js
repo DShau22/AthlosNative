@@ -19,11 +19,13 @@ const restPaceMin = 5 // say 60 steps per minute is basically resting. 1 step/se
 
 const Run = (props) => {
   const context = React.useContext(UserDataContext)
+  const { settings, activityJson } = props
+  const runJson = activityJson;
   const makeDoughnutData = () => {
     var runCount = 0
     var walkCount = 0
     var count = 0
-    var { activityData } = context.runJson
+    var { activityData } = runJson
     activityData.forEach((session, i) => {
       session.paces.forEach((pace, j) => {
         // if pace is somehow undefined or NaN or null then skip
@@ -48,7 +50,7 @@ const Run = (props) => {
   }
 
   const calcAvgPace = () => {
-    var { activityData } = context.runJson
+    var { activityData } = runJson
     var avg = 0
     var count = 0
     activityData.forEach((session, i) => {
@@ -61,7 +63,6 @@ const Run = (props) => {
   }
 
   const estimateDistanceRun = (style) => {
-    var { settings } = context
     var { unitSystem } = settings
     // this means the person's height is in cm, display km
     if (unitSystem === "metric") {
@@ -85,8 +86,6 @@ const Run = (props) => {
     }
     return timeSeries
   }
-
-  var { runJson } = context
 
   // from withFitnessPage
   var {

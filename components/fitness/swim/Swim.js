@@ -20,9 +20,11 @@ const swimLink = "/app/swimDetails"
 
 const Swim = (props) => {
   const context = React.useContext(UserDataContext);
+  const { settings, activityJson } = props
+  const swimJson = activityJson
 
   const calculateDistance = (currentStatDisplay) => {
-    var { swimLap, unitSystem } = context.settings
+    var { swimLap, unitSystem } = settings
     const { roundToNDecimals, isNullOrUndefined } = props
     unitSystem = unitSystem.toLowerCase()
     if (isNullOrUndefined(currentStatDisplay)) {
@@ -50,7 +52,7 @@ const Swim = (props) => {
 
   const calcAvgSpeed = () => {
     var { activityData } = props.activityJson
-    var { swimLap, unitSystem } = context.settings
+    var { swimLap, unitSystem } = settings
     const { roundToNDecimals, isNullOrUndefined } = props
     if (isNullOrUndefined(activityData)) {
       return 0
@@ -125,7 +127,6 @@ const Swim = (props) => {
     return [flyCount, backCount, breastCount, freeCount]     
   }
   
-  var { settings, swimJson } = context
   var { unitSystem } = settings
   var {
     activityIndex,
