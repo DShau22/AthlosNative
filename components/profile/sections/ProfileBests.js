@@ -22,7 +22,7 @@ const ProfileBests = (props) => {
 
   const inchesOrCm = unitSystem === METRIC ? 'cm' : 'in'
   const jumpDisplay = unitSystem === METRIC ? inchesToCm(highestJump) : highestJump
-
+  const eventTitle = `${bestEvent.distance}${bestEvent.metric} ${bestEvent.stroke}`
   const renderSplits = () => {
     return bestEvent.splits.map((time, idx) => {
       return {lap: idx+1, time}
@@ -51,7 +51,7 @@ const ProfileBests = (props) => {
         })}
         modalTitle={
           <ModalTitle
-            title={`${bestEvent.distance} ${bestEvent.metric} ${bestEvent.stroke}`}
+            title={eventTitle}
             align="center"
           />
         }
@@ -95,7 +95,7 @@ const ProfileBests = (props) => {
         <Card style={styles.cardContainerStyle} onPress={() => setShowSplits(true)}>
           <Card.Title title="Best Event" style={styles.cardTitleStyle}/>
           <Card.Content style={styles.cardContentStyle}>
-            <Text>{`${bestEvent.distance} ${bestEvent.metric} ${bestEvent.stroke}`}</Text>
+            <Text>{eventTitle}</Text>
             <Text>{bestEvent.time}</Text>
           </Card.Content>
         </Card>

@@ -1,10 +1,17 @@
-import React from 'react'
+import React from 'react';
+import { View, Image, StyleSheet } from 'react-native';
+import { Text, Button } from 'react-native-elements';
+import { UserDataContext } from '../../Context';
 
-// consists of the user's basic info (if they want to show it)
-export default function ProfileInfo() {
+const ProfileInfo = (props) => {
   return (
-    <div>
-      
-    </div>
+    <View>
+
+    </View>
   )
 }
+
+export default ProfileInfo;
+const styles = StyleSheet.create({
+
+})

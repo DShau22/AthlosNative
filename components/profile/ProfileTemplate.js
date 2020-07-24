@@ -19,6 +19,7 @@ import Community from '../community/Community'
 import Fitness from '../fitness/Fitness'
 import ProfileHeader from './sections/ProfileHeader'
 import ProfileBests from './sections/ProfileBests'
+import ProfileInfo from './sections/ProfileInfo'
 // replace with default avatar link
 const imgAlt = "./default_profile.png"
 
@@ -31,6 +32,7 @@ const ProfileTemplate = (props) => {
     relationshipStatus,
     fitnessProps,
     bestsProps,
+    infoProps,
     // rootNav
   } = props
 
@@ -66,12 +68,11 @@ const ProfileTemplate = (props) => {
                 title='See Fitness'
                 onPress={() => navigateToFitness(props.navigation)}
               />
+              <ProfileInfo 
+                {...infoProps}
+              />
               <ProfileBests
                 {...bestsProps}
-                // bestJump={}
-                // mostSteps={}
-                // mostLaps={}
-                // bestEvent={{}} // this should be an object with the stroke, distance, splits, (follows that of the device conf)
               />
             {/* <View className='top-half'>
               <View className='info-container m-3'>

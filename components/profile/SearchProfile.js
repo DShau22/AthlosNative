@@ -16,12 +16,13 @@ import PROFILE_CONSTANTS from './ProfileConstants'
 import Community from '../community/Community'
 import ProfileHeader from './sections/ProfileHeader'
 import ProfileTemplate from './ProfileTemplate'
+import LoadingScreen from '../generic/LoadingScreen'
 
 const SearchProfile = (props) => {
   const userDataContext = React.useContext(UserDataContext)
   // all these correspond to the fields of the searched user, NOT
   // the user who's using the app right now
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
   // This state only contains what's necessary. All the fitness stuff
   // should be fetched (if needed) in the fitness component
   const [state, setState] = React.useState({
@@ -48,7 +49,6 @@ const SearchProfile = (props) => {
   React.useEffect(() => {
     const setup = async () => {
       console.log("search profile using effect")
-      setIsLoading(true);
       // query this user's settings, bests, totals and set state
       const token = await getData()
       try {
@@ -152,13 +152,16 @@ const SearchProfile = (props) => {
   const fitnessProps = {
     settings
   }
+  if (isLoading) {
+    return <LoadingScreen/>
+  }
   return (
     <>
-      <Spinner
+      {/* <Spinner
         visible={isLoading}
         textContent={'Loading...'}
         // textStyle={styles.spinnerTextStyle}
-      />
+      /> */}
       <ProfileTemplate
         _id={_id}
         profileHeaderProps={profileHeaderProps}
