@@ -170,6 +170,8 @@ const SearchProfile = (props) => {
         bestsProps={bests}
         relationshipStatus={'firned....'}
         rootNav={props.rootNav}
+
+        profileContext={state}
       />
     </>
   )

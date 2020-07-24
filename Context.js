@@ -3,11 +3,11 @@ const AppContext = React.createContext()
 const UserDataContext = React.createContext()
 const SettingsContext = React.createContext()
 const AppFunctionsContext = React.createContext()
-const ProflieContext = React.createContext()
+const ProfileContext = React.createContext()
 module.exports = {
   AppContext,
   UserDataContext,
   SettingsContext,
   AppFunctionsContext,
-  ProflieContext
+  ProfileContext
 }

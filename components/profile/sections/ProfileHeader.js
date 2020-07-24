@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, StyleSheet, Image, Button } from 'react-native'
 import { Text } from 'react-native-elements'
+import { UserDataContext, ProfileContext } from '../../../Context'
 import PROFILE_CONSTANTS from '../ProfileConstants'
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import COMMUNITY_CONSTANTS from '../../community/CommunityConstants'
@@ -11,17 +12,28 @@ import COMMUNITY_CONSTANTS from '../../community/CommunityConstants'
 // 3. Relationship status/action (follower, following rival) => on tap bring up modal from bottom for more actions
 
 const ProfileHeader = (props) => {
-  const { 
-    profileURL,
+  // const { 
+  //   profileURL,
+  //   firstName,
+  //   lastName,
+  //   numFollowers,
+  //   numFollowing,
+  //   numRivals,
+  //   relationshipStatus,
+  //   navigation,
+  //   settings,
+  // } = props;
+  const profileContext = React.useContext(ProfileContext);
+  const {
     firstName,
     lastName,
-    numFollowers,
-    numFollowing,
-    numRivals,
+    followers,
+    following,
+    rivals,
     relationshipStatus,
-    navigation,
     settings,
-  } = props;
+  } = profileContext
+  const { profileURL } = profileContext.profilePicture 
   console.log(relationshipStatus)
   return (
     <View style={styles.container}>
@@ -48,21 +60,21 @@ const ProfileHeader = (props) => {
       <View style={styles.communityContainer}>
         <Button
             buttonStyle={styles.communityButton}
-            title={`Followers  ${numFollowers}`}
+            title={`Followers  ${followers.length}`}
             onPress={() => {
               props.navigation.push(GLOBAL_CONSTANTS.COMMUNITY, { screen: COMMUNITY_CONSTANTS.FOLLOWERS })
             }}
           />
         <Button
           buttonStyle={styles.communityButton}
-          title={`Following  ${numFollowing}`}
+          title={`Following  ${following.length}`}
           onPress={() => {
             props.navigation.push(GLOBAL_CONSTANTS.COMMUNITY, { screen: COMMUNITY_CONSTANTS.FOLLOWING })
           }}
         />
         <Button
           buttonStyle={styles.communityButton}
-          title={`Rivals  ${numRivals}`}
+          title={`Rivals  ${rivals.length}`}
           onPress={() => {
             props.navigation.push(GLOBAL_CONSTANTS.COMMUNITY, { screen: COMMUNITY_CONSTANTS.RIVALS })
           }}

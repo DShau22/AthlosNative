@@ -4,7 +4,7 @@ import React, { Component } from 'react'
 import { View, Image, StyleSheet } from 'react-native'
 import { Text, Button } from 'react-native-elements'
 
-import { UserDataContext } from '../../Context';
+import { UserDataContext, ProflieContext } from '../../Context';
 import { poundsToKg, inchesToCm } from "../utils/unitConverter"
 import PROFILE_CONSTANTS from "./ProfileConstants"
 import GLOBAL_CONSTANTS from '../GlobalConstants'
@@ -118,6 +118,13 @@ const UserProfile = (props) => {
   const fitnessProps = {
     settings: context.settings,
   }
+  const infoProps = {
+    bio: context.bio,
+    height: context.height,
+    age: context.age,
+    weight: context.weight,
+    
+  }
   return (
     <ProfileTemplate
       _id={context._id}
@@ -127,6 +134,8 @@ const UserProfile = (props) => {
       bestsProps={context.bests}
       relationshipStatus={PROFILE_CONSTANTS.IS_SELF}
       rootNav={props.rootNav}
+
+      profileContext={context}
     />
   )
 }

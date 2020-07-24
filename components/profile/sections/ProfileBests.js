@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Image, StyleSheet, FlatList } from 'react-native';
 import { Text, Button } from 'react-native-elements';
-import { UserDataContext } from '../../../Context';
+import { UserDataContext, ProfileContext } from '../../../Context';
 import { Card, } from 'react-native-paper';
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import { inchesToCm } from '../../utils/unitConverter'
@@ -15,8 +15,10 @@ import Modal, {
 const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 
 const ProfileBests = (props) => {
-  const { highestJump, mostLaps, mostSteps, bestEvent } = props
+  // const { highestJump, mostLaps, mostSteps, bestEvent } = props
   const userDataContext = React.useContext(UserDataContext);
+  const profileContext = React.useContext(ProfileContext);
+  const { highestJump, mostLaps, mostSteps, bestEvent } = profileContext.bests
   const [showSplits, setShowSplits] = React.useState(false);
   const unitSystem = userDataContext.settings.unitSystem.toLowerCase()
 

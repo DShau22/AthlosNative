@@ -7,7 +7,7 @@ import { View, Image, StyleSheet } from 'react-native'
 import { Text, Button } from 'react-native-elements'
 import { createStackNavigator } from '@react-navigation/stack';
 
-import { UserDataContext } from '../../Context';
+import { UserDataContext, ProfileContext } from '../../Context';
 import { poundsToKg, inchesToCm } from "../utils/unitConverter"
 import PROFILE_CONSTANTS from "./ProfileConstants"
 const {
@@ -33,6 +33,7 @@ const ProfileTemplate = (props) => {
     fitnessProps,
     bestsProps,
     infoProps,
+    profileContext
     // rootNav
   } = props
 
@@ -47,7 +48,7 @@ const ProfileTemplate = (props) => {
   const Stack = createStackNavigator();
   const profileScreenName = relationshipStatus === IS_SELF ? USER_PROFILE : SEARCH_PROFILE
   return (
-    <>
+    <ProfileContext.Provider value={{...props.profileContext, relationshipStatus}}>
       <Stack.Navigator headerMode='none' initialRouteName={profileScreenName}>
         <Stack.Screen
           name={profileScreenName}
@@ -136,7 +137,7 @@ const ProfileTemplate = (props) => {
           )}
         </Stack.Screen>
       </Stack.Navigator>
-    </>
+    </ProfileContext.Provider>
   )
 }
 const styles = StyleSheet.create({
