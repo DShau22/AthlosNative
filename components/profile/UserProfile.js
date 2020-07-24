@@ -124,6 +124,7 @@ const UserProfile = (props) => {
       profileHeaderProps={profileHeaderProps}
       communityProps={communityProps}
       fitnessProps={fitnessProps}
+      bestsProps={context.bests}
       relationshipStatus={PROFILE_CONSTANTS.IS_SELF}
       rootNav={props.rootNav}
     />

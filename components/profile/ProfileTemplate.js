@@ -18,6 +18,7 @@ const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 import Community from '../community/Community'
 import Fitness from '../fitness/Fitness'
 import ProfileHeader from './sections/ProfileHeader'
+import ProfileBests from './sections/ProfileBests'
 // replace with default avatar link
 const imgAlt = "./default_profile.png"
 
@@ -29,6 +30,7 @@ const ProfileTemplate = (props) => {
     communityProps,
     relationshipStatus,
     fitnessProps,
+    bestsProps,
     // rootNav
   } = props
 
@@ -63,6 +65,13 @@ const ProfileTemplate = (props) => {
               <Button
                 title='See Fitness'
                 onPress={() => navigateToFitness(props.navigation)}
+              />
+              <ProfileBests
+                {...bestsProps}
+                // bestJump={}
+                // mostSteps={}
+                // mostLaps={}
+                // bestEvent={{}} // this should be an object with the stroke, distance, splits, (follows that of the device conf)
               />
             {/* <View className='top-half'>
               <View className='info-container m-3'>
@@ -132,7 +141,8 @@ const ProfileTemplate = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 50,
+    paddingTop: 25,
+    alignItems: 'center'
   },
   tinyLogo: {
     width: 50,

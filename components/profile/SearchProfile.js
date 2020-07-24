@@ -164,6 +164,7 @@ const SearchProfile = (props) => {
         profileHeaderProps={profileHeaderProps}
         communityProps={communityProps}
         fitnessProps={fitnessProps}
+        bestsProps={bests}
         relationshipStatus={'firned....'}
         rootNav={props.rootNav}
       />
