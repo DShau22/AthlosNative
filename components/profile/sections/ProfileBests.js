@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Image, StyleSheet, FlatList } from 'react-native';
-import { Text, Button } from 'react-native-elements';
+import { View, StyleSheet, FlatList } from 'react-native';
+import { Text } from 'react-native-elements';
 import { UserDataContext, ProfileContext } from '../../../Context';
-import { Card, } from 'react-native-paper';
+import { Card } from 'react-native-paper';
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import { inchesToCm } from '../../utils/unitConverter'
 // popup stuff for tapping on cards

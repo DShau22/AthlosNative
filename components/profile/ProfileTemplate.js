@@ -3,7 +3,7 @@
 // oassed in from the profile component
 
 import React, { Component } from 'react'
-import { View, Image, StyleSheet } from 'react-native'
+import { View, ScrollView, StyleSheet } from 'react-native'
 import { Text, Button } from 'react-native-elements'
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -20,6 +20,8 @@ import Fitness from '../fitness/Fitness'
 import ProfileHeader from './sections/ProfileHeader'
 import ProfileBests from './sections/ProfileBests'
 import ProfileInfo from './sections/ProfileInfo'
+import ProfileAggregates from './sections/ProfileAggregates'
+import EditProfile from './EditProfileFunc'
 // replace with default avatar link
 const imgAlt = "./default_profile.png"
 
@@ -44,76 +46,43 @@ const ProfileTemplate = (props) => {
   const profileScreenName = relationshipStatus === IS_SELF ? USER_PROFILE : SEARCH_PROFILE
   return (
     <ProfileContext.Provider value={{...profileContext, relationshipStatus}}>
-      <Stack.Navigator headerMode='none' initialRouteName={profileScreenName}>
+      <Stack.Navigator initialRouteName={profileScreenName}>
         <Stack.Screen
           name={profileScreenName}
+          options={{ title: relationshipStatus === IS_SELF ? 'Your Profile' : `${profileContext.firstName}'s Profile` }}
         >
           {(props) => (
-            <View style={styles.container}>
-              {relationshipStatus !== IS_SELF ? 
-                <Button 
-                  title='back to your profile'
-                  onPress={() => props.navigation.navigate(GLOBAL_CONSTANTS.PROFILE, {_id: userDataContext._id})}
-                /> : null
-              }
-              <ProfileHeader
-                navigation={props.navigation}
-              />
-              <View style={styles.routeButtons}>
-                <Button
-                  title='See Fitness'
-                  onPress={() => navigateToFitness(props.navigation)}
+            <ScrollView>
+              <View style={styles.container}>
+                {relationshipStatus !== IS_SELF ? 
+                  <Button 
+                    title='back to your profile'
+                    onPress={() => props.navigation.navigate(GLOBAL_CONSTANTS.PROFILE, {_id: userDataContext._id})}
+                  /> : null
+                }
+                <ProfileHeader
+                  navigation={props.navigation}
                 />
-                <Button
-                  title='See Basic Info'
-                  onPress={() => props.navigation.navigate(PROFILE_CONSTANTS.BASIC_INFO)}
-                />
-              </View>
-
-              <ProfileBests />
-            {/* <View className='top-half'>
-              <View className='info-container m-3'>
-                <View className='row'>
-                  <View className='col-4'>
-                    <Text h4>Age</Text>
-                    <Text>{context.age}</Text>
-                  </View>
-                  <View className='col-4'>
-                    <Text h4>Height</Text>
-                    <Text>{renderHeight()}</Text>
-                  </View>
-                  <View className='col-4'>
-                    <Text h4>Weight</Text>
-                    <Text>{renderWeight()}</Text>
-                  </View>
+                <View style={styles.routeButtons}>
+                  <Button
+                    title='See Fitness'
+                    onPress={() => navigateToFitness(props.navigation)}
+                  />
+                  <Button
+                    title='See Basic Info'
+                    onPress={() => props.navigation.navigate(PROFILE_CONSTANTS.BASIC_INFO)}
+                  />
                 </View>
+                <ProfileBests />
+                <ProfileAggregates />
               </View>
-              <View className='bio-container m-3'>
-                <Text>{renderBio()}</Text>
-              </View>
-            </View> */}
-            <View className='bot-half'>
-              <View className='row'>
-                <Text className='col-6'>
-                  total steps
-                </Text>
-                <Text className='col-6'>
-                  total mins
-                </Text>
-              </View>
-              <View className='row'>
-                <Text className='col-6'>
-                  total laps
-                </Text>
-                <Text className='col-6'>
-                  hightest jump
-                </Text>
-              </View>
-            </View>
-          </View>
+            </ScrollView>
           )}
         </Stack.Screen>
-        <Stack.Screen name={GLOBAL_CONSTANTS.COMMUNITY}>
+        <Stack.Screen
+          name={GLOBAL_CONSTANTS.COMMUNITY}
+          options={{ title: relationshipStatus === IS_SELF ? 'Your Community' : `${profileContext.firstName}'s Community` }}
+        >
           {props => (
             <Community
               navigation={props.navigation}
@@ -121,7 +90,10 @@ const ProfileTemplate = (props) => {
             />
           )}
         </Stack.Screen>
-        <Stack.Screen name={GLOBAL_CONSTANTS.FITNESS}>
+        <Stack.Screen
+          name={GLOBAL_CONSTANTS.FITNESS}
+          options={{ title: relationshipStatus === IS_SELF ? 'Your Fitness' : `${profileContext.firstName}'s Fitness` }}
+        >
           {props => (
             <Fitness
               _id={_id}
@@ -129,7 +101,10 @@ const ProfileTemplate = (props) => {
             />
           )}
         </Stack.Screen>
-        <Stack.Screen name={PROFILE_CONSTANTS.BASIC_INFO}>
+        <Stack.Screen
+          name={PROFILE_CONSTANTS.BASIC_INFO}
+          options={{ title: relationshipStatus === IS_SELF ? 'Your Basic Info' : `${profileContext.firstName}'s Basic Info` }}
+        >
           {props => (
             <ProfileInfo
               _id={_id}
@@ -137,6 +112,12 @@ const ProfileTemplate = (props) => {
               relationshipStatus={relationshipStatus}
             />
           )}
+        </Stack.Screen>
+        <Stack.Screen
+          name={PROFILE_CONSTANTS.EDIT_PROFILE}
+          options={{ title: 'Edit Your Profile' }}
+        >
+          {props => ( <EditProfile navigation={props.navigation}/> )}
         </Stack.Screen>
       </Stack.Navigator>
     </ProfileContext.Provider>

@@ -1,7 +1,7 @@
 const PROFILE_CONSTANTS = {
   PROFILE: "Profile",
   SEARCH_PROFILE: 'search profile',
-  USER_PROFILE: 'user profile',
+  USER_PROFILE: 'Your Profile',
   // different relationship statuses
   IS_FOLLOWER: 'Follower',
   IS_FOLLOWING: 'Following',
