@@ -1,5 +1,4 @@
 const PROFILE_CONSTANTS = {
-  EDIT_PROFILE: "Edit Profile",
   PROFILE: "Profile",
   SEARCH_PROFILE: 'search profile',
   USER_PROFILE: 'user profile',
@@ -10,6 +9,16 @@ const PROFILE_CONSTANTS = {
   IS_SELF: '',
   IS_FOLLOWER_PENDING: 'Accept Request',
   IS_FOLLOWING_PENDING: 'Pending...',
-  IS_RIVAL_PENDING: 'Pending...'
+  IS_RIVAL_PENDING: 'Pending...',
+
+  EDIT_PROFILE: "Edit Profile",
+  BASIC_INFO: 'Basic Info',
+
+  BIO: 'Bio',
+  AGE: 'Age',
+  WEIGHT: 'Weight',
+  HEIGHT: 'Height',
+  GENDER: 'Gender',
+  USERNAME: 'Username',
 }
 export default PROFILE_CONSTANTS

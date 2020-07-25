@@ -59,11 +59,17 @@ const ProfileTemplate = (props) => {
               <ProfileHeader
                 navigation={props.navigation}
               />
-              <Button
-                title='See Fitness'
-                onPress={() => navigateToFitness(props.navigation)}
-              />
-              <ProfileInfo />
+              <View style={styles.routeButtons}>
+                <Button
+                  title='See Fitness'
+                  onPress={() => navigateToFitness(props.navigation)}
+                />
+                <Button
+                  title='See Basic Info'
+                  onPress={() => props.navigation.navigate(PROFILE_CONSTANTS.BASIC_INFO)}
+                />
+              </View>
+
               <ProfileBests />
             {/* <View className='top-half'>
               <View className='info-container m-3'>
@@ -123,7 +129,7 @@ const ProfileTemplate = (props) => {
             />
           )}
         </Stack.Screen>
-        <Stack.Screen name={'basic info'}>
+        <Stack.Screen name={PROFILE_CONSTANTS.BASIC_INFO}>
           {props => (
             <ProfileInfo
               _id={_id}
@@ -149,6 +155,17 @@ const styles = StyleSheet.create({
   logo: {
     width: 66,
     height: 58,
+  },
+  routeButtons: {
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   editButton: {
     backgroundColor: 'red',
