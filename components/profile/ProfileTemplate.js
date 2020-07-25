@@ -27,12 +27,7 @@ const ProfileTemplate = (props) => {
   const userDataContext = React.useContext(UserDataContext)
   const {
     _id,
-    profileHeaderProps,
-    communityProps,
     relationshipStatus,
-    fitnessProps,
-    bestsProps,
-    infoProps,
     profileContext
     // rootNav
   } = props
@@ -48,7 +43,7 @@ const ProfileTemplate = (props) => {
   const Stack = createStackNavigator();
   const profileScreenName = relationshipStatus === IS_SELF ? USER_PROFILE : SEARCH_PROFILE
   return (
-    <ProfileContext.Provider value={{...props.profileContext, relationshipStatus}}>
+    <ProfileContext.Provider value={{...profileContext, relationshipStatus}}>
       <Stack.Navigator headerMode='none' initialRouteName={profileScreenName}>
         <Stack.Screen
           name={profileScreenName}
@@ -62,19 +57,14 @@ const ProfileTemplate = (props) => {
                 /> : null
               }
               <ProfileHeader
-                {...profileHeaderProps}
                 navigation={props.navigation}
               />
               <Button
                 title='See Fitness'
                 onPress={() => navigateToFitness(props.navigation)}
               />
-              <ProfileInfo 
-                {...infoProps}
-              />
-              <ProfileBests
-                {...bestsProps}
-              />
+              <ProfileInfo />
+              <ProfileBests />
             {/* <View className='top-half'>
               <View className='info-container m-3'>
                 <View className='row'>
@@ -120,7 +110,6 @@ const ProfileTemplate = (props) => {
         <Stack.Screen name={GLOBAL_CONSTANTS.COMMUNITY}>
           {props => (
             <Community
-              {...communityProps}
               navigation={props.navigation}
               // rootNav={rootNav}
             />
@@ -130,7 +119,14 @@ const ProfileTemplate = (props) => {
           {props => (
             <Fitness
               _id={_id}
-              {...fitnessProps}
+              navigation={props.navigation}
+            />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name={'basic info'}>
+          {props => (
+            <ProfileInfo
+              _id={_id}
               navigation={props.navigation}
               relationshipStatus={relationshipStatus}
             />

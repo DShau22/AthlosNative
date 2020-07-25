@@ -12,17 +12,6 @@ import COMMUNITY_CONSTANTS from '../../community/CommunityConstants'
 // 3. Relationship status/action (follower, following rival) => on tap bring up modal from bottom for more actions
 
 const ProfileHeader = (props) => {
-  // const { 
-  //   profileURL,
-  //   firstName,
-  //   lastName,
-  //   numFollowers,
-  //   numFollowing,
-  //   numRivals,
-  //   relationshipStatus,
-  //   navigation,
-  //   settings,
-  // } = props;
   const profileContext = React.useContext(ProfileContext);
   const {
     firstName,

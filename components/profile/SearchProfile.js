@@ -132,26 +132,6 @@ const SearchProfile = (props) => {
   const { followers, following, rivals } = state
   console.log("search profile's state: ", state);
   const Stack = createStackNavigator();
-  const profileHeaderProps = {
-    profileURL: profilePicture.profileURL,
-    firstName: firstName,
-    lastName: lastName,
-    numFollowers: followers.length,
-    numFollowing: following.length,
-    numRivals: rivals.length,
-    relationshipStatus: PROFILE_CONSTANTS.SEARCH_PROFILE,
-    settings,
-  }
-  const communityProps = {
-    followers: followers,
-    following: following,
-    rivals: rivals,
-    relationshipStatus: PROFILE_CONSTANTS.SEARCH_PROFILE,
-    settings,
-  }
-  const fitnessProps = {
-    settings
-  }
   if (isLoading) {
     return <LoadingScreen/>
   }
@@ -164,10 +144,6 @@ const SearchProfile = (props) => {
       /> */}
       <ProfileTemplate
         _id={_id}
-        profileHeaderProps={profileHeaderProps}
-        communityProps={communityProps}
-        fitnessProps={fitnessProps}
-        bestsProps={bests}
         relationshipStatus={'firned....'}
         rootNav={props.rootNav}
 

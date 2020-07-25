@@ -12,7 +12,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import Discover from './screens/Discover'
 
-import { UserDataContext } from '../../Context'
+import { UserDataContext, ProfileContext } from '../../Context'
 import ENDPOINTS from "../endpoints"
 import CommunityList from './screens/CommunityList';
 import Follower from './screens/listItems/Follower'
@@ -31,8 +31,11 @@ const acceptFriendURL = ENDPOINTS.acceptFriendReq
 const imgAlt = "default"
 
 const Community = (props) => {
+  const { navigation } = props;
+  const userDataContext = React.useContext(UserDataContext);
+  const profileContext  = React.useContext(ProfileContext);
+  const [searches, setSearches] = React.useState([]);
   const {
-    navigation,
     followerRequests,
     followers,
     followingPending,
@@ -42,9 +45,7 @@ const Community = (props) => {
     rivals,
     relationshipStatus,
     settings
-  } = props;
-  const userDataContext = React.useContext(UserDataContext);
-  const [searches, setSearches] = React.useState([]);
+  } = profileContext;
 
   // cancel token for cancelling Axios requests on unmount
   const CancelToken = axios.CancelToken;

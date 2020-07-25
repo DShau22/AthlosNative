@@ -95,43 +95,9 @@ const UserProfile = (props) => {
       // </Popup>
     )
   }
-  const profileHeaderProps = {
-    profileURL: context.profilePicture.profileURL,
-    firstName: context.firstName,
-    lastName: context.lastName,
-    numFollowers: context.followers.length,
-    numFollowing: context.following.length,
-    numRivals: context.rivals.length,
-    relationshipStatus: PROFILE_CONSTANTS.IS_SELF,
-  }
-  const communityProps = {
-    followerRequests: context.followerRequests,
-    followers: context.followers,
-    followingPending: context.followingPending,
-    following: context.following,
-    rivalRequests: context.rivalRequests,
-    rivalsPending: context.rivalsPending,
-    rivals: context.rivals,
-    relationshipStatus: PROFILE_CONSTANTS.IS_SELF,
-    settings: context.settings,
-  }
-  const fitnessProps = {
-    settings: context.settings,
-  }
-  const infoProps = {
-    bio: context.bio,
-    height: context.height,
-    age: context.age,
-    weight: context.weight,
-    
-  }
   return (
     <ProfileTemplate
       _id={context._id}
-      profileHeaderProps={profileHeaderProps}
-      communityProps={communityProps}
-      fitnessProps={fitnessProps}
-      bestsProps={context.bests}
       relationshipStatus={PROFILE_CONSTANTS.IS_SELF}
       rootNav={props.rootNav}
 

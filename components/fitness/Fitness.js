@@ -4,7 +4,7 @@ import React from 'react'
 import Run from "./run/Run"
 import Jump from "./jump/Jump"
 import Swim from "./swim/Swim"
-import { UserDataContext } from "../../Context"
+import { UserDataContext, ProfileContext } from "../../Context"
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import LoadingScreen from '../generic/LoadingScreen';
 import { View, StyleSheet, Alert } from "react-native";
@@ -16,6 +16,8 @@ import FITNESS_CONSTANTS from './FitnessConstants'
 
 const Fitness = (props) => {
   const userDataContext = React.useContext(UserDataContext);
+  const profileContext = React.useContext(ProfileContext);
+
   const [display, setDisplay] = React.useState(true);
   const [activityDisplay, setActivityDisplay] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);  
@@ -24,7 +26,8 @@ const Fitness = (props) => {
   const [swimJson, setSwimJson] = React.useState(userDataContext.swimJson)
   const [jumpJson, setJumpJson] = React.useState(userDataContext.jumpJson)
   
-  const { _id, relationshipStatus, settings } = props
+  const { settings, relationshipStatus } = profileContext
+  const { _id } = props
 
   useFocusEffect(
     React.useCallback(() => {
