@@ -7,10 +7,6 @@ import React from 'react'
 import { parseDate } from "../../utils/unitConverter"
 import { ProgressCircle } from 'react-native-svg-charts'
 
-// const jumpActivity = "jump"
-// const runActivity = "run"
-// const swimActivity = "swim"
-
 const Carousel = (props) => {
   const getDropdownDates = () => {
     var { dropdownItemClick, stats } = props
@@ -46,11 +42,16 @@ const Carousel = (props) => {
     })
     return result
   }
+  const dropDownItems = createDropdownItems();
+  const initialDropdownText = dropDownItems.length === 0 ? 
+    `You have no recorded ${stats.action.toLowerCase()} sessions`: dropDownItems[0].label
   return (
     <View style={styles.carousel}>
       <DropDownPicker
-        items={createDropdownItems()}
+        items={dropDownItems}
         defaultValue={activityIndex}
+        disabled={dropDownItems.length === 0}
+        placeholder={initialDropdownText}
         containerStyle={{height: 40}}
         style={styles.dropdownStyle}
         dropDownStyle={{backgroundColor: '#fafafa'}}

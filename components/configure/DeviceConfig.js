@@ -14,7 +14,9 @@ const {
   SWIM,
   JUMP,
   SWIMMING_EVENT,
-  TIMED_RUN
+  TIMED_RUN,
+  MUSIC_ONLY,
+  CONFIG_KEY
 } = DEVICE_CONFIG_CONSTANTS
 
 // edit popups
@@ -22,6 +24,7 @@ import RunEditPopup from './popups/RunEditPopup'
 import JumpEditPopup from './popups/JumpEditPopup'
 import SwimEditPopup from './popups/SwimEditPopup'
 import SwimEventEditPopup from './popups/SwimEventEditPopup'
+import MusicPopup from './popups/MusicPopup'
 
 
 // CONSIDER USING REACT NATIVE PAPER FAB.GROUP INSTEAD OF A POPUP MODAL
@@ -31,13 +34,52 @@ import SwimEventEditPopup from './popups/SwimEventEditPopup'
 // FOR THE UP DOWN BUTTON STUFF
 
 const DeviceConfig = (props) => {
-  // CHANGE FROM DEFAULT CONFIG TO THE ASYNC STORAGE
   const [deviceConfig, setDeviceConfig] = React.useState(DEFAULT_CONFIG);
   const [adding, setAdding] = React.useState(false);
   // can be one of the 5 modes
   const [editMode, setEditMode] = React.useState('');
   // keeps track of which item in the mode list the user is editing
   const [editModeItem, setEditModeItem] = React.useState({});
+  // keeps track of whether or not this is the first render of this component
+  const firstUpdate = React.useRef(true);
+  // run this on the first render
+  const asyncPrep = async () => {
+    try {
+      console.log("getting config from async storage")
+      const initialConfig = await AsyncStorage.getItem(CONFIG_KEY)
+      if (initialConfig !== null) setDeviceConfig(JSON.parse(initialConfig))
+      firstUpdate.current = false;
+    } catch(e) {
+      console.log(e)
+      Alert.alert(
+        "Oh No :(",
+        `Something went wrong with loading your config settings. Please refresh and try again.`,
+        [{text: "Ok"}]
+      )
+    }
+  }
+  // run this on every other render
+  const storeConfig = async () => {
+    try {
+      await AsyncStorage.setItem(CONFIG_KEY, JSON.stringify(deviceConfig))
+      console.log("new config stored: ", deviceConfig)
+    } catch(e) {
+      console.log(e)
+      Alert.alert(
+        "Oh No :(",
+        `Something went wrong with saving your config settings. Please try again.`,
+        [{text: "Ok"}]
+      )
+    }
+  }
+  React.useEffect(() => {
+    console.log(firstUpdate.current)
+    if (firstUpdate.current) {
+      asyncPrep();
+    } else {
+      storeConfig();
+    }
+  }, [deviceConfig])
 
   // deletes a mode from the device config
   const deleteMode = (index, mode) => {
@@ -48,13 +90,8 @@ const DeviceConfig = (props) => {
       "",
       `Are you sure you want to delete these ${mode} settings? You can always add new settings by tapping the + button`,
       [
-        {
-          text: "Yes",
-          onPress: () => setDeviceConfig(newConfig)
-        },
-        {
-          text: "No",
-        }
+        { text: "Yes", onPress: () => setDeviceConfig(newConfig) },
+        { text: "No", }
       ]
     )
   }
@@ -87,7 +124,7 @@ const DeviceConfig = (props) => {
           visible={editModeItem.mode === RUN}
           setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
           editModeItem={editModeItem}
-          setDeviceConfig={setDeviceConfig}
+          setDeviceConfig={newConfig => setDeviceConfig(newConfig)}
         />
         <JumpEditPopup 
           visible={editModeItem.mode === JUMP}
@@ -107,10 +144,16 @@ const DeviceConfig = (props) => {
           editModeItem={editModeItem}
           setDeviceConfig={setDeviceConfig}
         />
+        <MusicPopup
+          visible={editModeItem.mode === MUSIC_ONLY}
+          setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
+          editModeItem={editModeItem}
+          setDeviceConfig={setDeviceConfig}
+        />
       </>
     )
   }
-
+  console.log("device conf: ", deviceConfig)
   return (
     <View style={{ flex: 1 }}>
       <AddPopup

@@ -6,11 +6,10 @@ import { Text } from 'react-native-elements'
 import GLOBAL_CONSTANTS from '../GlobalConstants'
 import * as Yup from 'yup';
 import ImagePicker from 'react-native-image-picker';
+import axios from 'axios';
+
 import {
   getData,
-  storeData,
-  storeDataObj,
-  getDataObj
 } from '../utils/storage';
 const imagePickerOptions = {
   title: 'Select a photo',
@@ -23,9 +22,7 @@ const imagePickerOptions = {
 import {
   toEnglishWeight,
   toEnglishHeight,
-  toFtAndInchest,
   toInches,
-  poundsToKg,
   inchesToCm
 } from "../utils/unitConverter"
 import ENDPOINTS from "../endpoints"
@@ -89,6 +86,10 @@ export default function EditProfileFunc(props) {
     heightCmMsg: '',
     heightInMsg: '',
   });
+
+  // cancel token for cancelling Axios requests on unmount
+  const CancelToken = axios.CancelToken;
+  const source = CancelToken.source();
 
   const handleFirstNameChange = (val) => {
     Yup.reach(editProfileSchema, "updateFirstName").validate(val)
@@ -362,24 +363,32 @@ export default function EditProfileFunc(props) {
           //   setIsLoading(false);
           //   return
           // }
-          var uploadPicRes = await fetch(uploadPicURL, {
-            method: "POST",
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'Authorization': `Bearer ${userToken}`
-            },
-            body: formData
-          })
-          var uploadPicJson = await uploadPicRes.json()
-          if (uploadPicJson.success) {
+          // console.log(formData.getHeaders())
+          const config = {
+            // headers: {'Content-Type': 'multipart/form-data'},
+            headers: {'Authorization': `Bearer ${userToken}`},
+            cancelToken: source.token
+          }
+          var res = await axios.post(uploadPicURL, {data: formData}, config)
+          // var uploadPicRes = await fetch(uploadPicURL, {
+          //   method: "POST",
+          //   headers: {
+          //     'Content-Type': 'multipart/form-data',
+          //     'Authorization': `Bearer ${userToken}`
+          //   },
+          //   body: formData
+          // })
+          // var uploadPicJson = await uploadPicRes.json()
+          if (res.data.success) {
             console.log("successfully updated profile picture!")
           } else {
-            Alert.alert(`Oh No :(`, "Something went wrong with uploading your new profile picture. Please try again.", [{ text: "Okay" }]);
+            console.log(res.data)
+            throw new Error(res.data.message)
           }
         }
       } catch(e) {
-        console.error(e)
-        Alert.alert(`Oh No :(`, "Something went wrong with uploading your new profile picture. Please try again.", [{ text: "Okay" }]);
+        console.log(e)
+        Alert.alert(`Oh No :(`, e.toString(), [{ text: "Okay" }]);
         setIsLoading(false);
         return;
       }

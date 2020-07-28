@@ -111,8 +111,8 @@ export default function SwimEventEditPopup(props) {
       };
       const index = prevConfig.indexOf(editModeItem)
       prevConfig[index] = newModeSettings
-      console.log('aiodwja', prevConfig)
-      return prevConfig
+      console.log('swim event changes', prevConfig)
+      return [...prevConfig]
     })
     setVisible(false);
   }

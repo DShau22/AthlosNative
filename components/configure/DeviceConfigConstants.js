@@ -1,5 +1,10 @@
 const DEVICE_CONFIG_CONSTANTS = {
   // an array of objects representing the mode configs
+
+  // async storage keys
+  CONFIG_KEY: 'Config Key',
+
+  // mode titles
   MUSIC_ONLY: 'Music Only',
   RUN: 'Run',
   SWIM: 'Swim',

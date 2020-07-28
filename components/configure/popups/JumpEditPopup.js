@@ -16,6 +16,7 @@ import Modal, {
 } from 'react-native-modals';
 import SaveCancelFooter from './SaveCancelFooter'
 const ANIMATION_DURATION = 150
+
 export default function JumpEditPopup(props) {
   const { visible, setVisible, setDeviceConfig, editModeItem, } = props;
   // report either vertical height or hangtime
@@ -39,7 +40,7 @@ export default function JumpEditPopup(props) {
       const index = prevConfig.indexOf(editModeItem)
       prevConfig[index] = newModeSettings
       console.log('new jump edits:', prevConfig)
-      return prevConfig
+      return [...prevConfig]
     })
     setVisible(false);
   }
