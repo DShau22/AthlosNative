@@ -1,6 +1,8 @@
 const DEVICE_CONFIG_CONSTANTS = {
   // an array of objects representing the mode configs
 
+  MODE_CONFIG: 'Mode Configurations',
+
   // async storage keys
   CONFIG_KEY: 'Config Key',
 

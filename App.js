@@ -5,7 +5,7 @@ import 'react-native-gesture-handler';
 import { MenuProvider } from 'react-native-popup-menu';
 
 import * as React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 Ionicons.loadFont();
 
@@ -42,10 +42,11 @@ function App() {
   if (isLoading) {
     return ( <LoadingScreen />)
   }
+  console.log('default theme: ', DefaultTheme)
   return (
     <MenuProvider>
       <AppContext.Provider value={setToken}>
-        <NavigationContainer>
+        <NavigationContainer theme={DefaultTheme}>
           { token ? <Athlos token={token} /> : <RootStackScreen /> }
         </NavigationContainer>
       </AppContext.Provider>

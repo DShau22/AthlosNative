@@ -3,6 +3,7 @@ import DraggableFlatList from 'react-native-draggable-flatlist'
 import React from 'react'
 import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native'
 import { Text, Button } from 'react-native-elements'
+import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Icon from 'react-native-vector-icons/Entypo';
 Icon.loadFont()
@@ -16,8 +17,10 @@ const {
   SWIMMING_EVENT,
   TIMED_RUN,
   MUSIC_ONLY,
-  CONFIG_KEY
+  CONFIG_KEY,
+  MODE_CONFIG
 } = DEVICE_CONFIG_CONSTANTS
+import GLOBAL_CONSTANTS from '../GlobalConstants'
 
 // edit popups
 import RunEditPopup from './popups/RunEditPopup'
@@ -153,28 +156,37 @@ const DeviceConfig = (props) => {
       </>
     )
   }
-  console.log("device conf: ", deviceConfig)
+  const Stack = createStackNavigator();
   return (
-    <View style={{ flex: 1 }}>
-      <AddPopup
-        adding={adding}
-        setAdding={setAdding}
-        setDeviceConfig={setDeviceConfig}
-      />
-      {popups()}
-      <DraggableFlatList
-        data={deviceConfig}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => `draggable-item-${item.mode}-${index}`}
-        onDragEnd={({ data }) => setDeviceConfig(data)}
-      />
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setAdding(true)}
+    <Stack.Navigator>
+      <Stack.Screen
+        name={MODE_CONFIG}
+        options={{ title: "Your Device Settings" }}
       >
-        <Icon name="plus" size={30} color='black' />
-      </TouchableOpacity>
-    </View>
+        {props => 
+          <View style={{ flex: 1 }}>
+            <AddPopup
+              adding={adding}
+              setAdding={setAdding}
+              setDeviceConfig={setDeviceConfig}
+            />
+            {popups()}
+            <DraggableFlatList
+              data={deviceConfig}
+              renderItem={renderItem}
+              keyExtractor={(item, index) => `draggable-item-${item.mode}-${index}`}
+              onDragEnd={({ data }) => setDeviceConfig(data)}
+            />
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => setAdding(true)}
+            >
+              <Icon name="plus" size={30} color='black' />
+            </TouchableOpacity>
+          </View>
+        }
+      </Stack.Screen>
+    </Stack.Navigator>
   );
 }
 const styles = StyleSheet.create({

@@ -122,61 +122,6 @@ const Settings = (props) => {
     }
     asyncSaveSettings();
   }
-  // // saves the custom entered swimming pool length the user put in to the state 
-  // // in the format: "distance units"
-  // const setCustomSwimLength = () => {
-  //   var { customSwimUnits, currCustomSwimLength } = state
-  //   // user must have entered a swimming length
-  //   if (!currCustomSwimLength) {
-
-  //   }
-  //   // standardize for database
-  //   if (customSwimUnits === "Meters") {
-  //     customSwimUnits = "m"
-  //   } else {
-  //     customSwimUnits = 'yds'
-  //   }
-  //   // set the custom swim length that can be uploaded to database, and also
-  //   // close the modal
-  //   setState({
-  //     swimLengthChoice: `${currCustomSwimLength} ${customSwimUnits}`,
-  //     showCustomSwimSettings: false
-  //   })
-  // }
-
-  const renderDropDown = (menuType, dropdownText) => {
-    let {
-      friendsListChoice,
-      fitnessChoice,
-      basicInfoChoice,
-      unitDisplayChoice,
-      swimLengthChoice
-    } = state
-    if (menuType === friendsListID) {
-      return ( 
-        <PrivacyMenu
-          dropdownText={friendsListChoice ? friendsListChoice : dropdownText}
-          onSelect={setFriendsListChoice}
-        />
-      )
-    } else if (menuType === fitnessID) {
-      return (<PrivacyMenu dropdownText={fitnessChoice ? fitnessChoice : dropdownText} onSelect={setFitnessChoice}/>)
-    } else if (menuType === basicInfoID) {
-      return (<PrivacyMenu dropdownText={basicInfoChoice ? basicInfoChoice : dropdownText} onSelect={setBasicInfoChoice}/>)
-    } else if (menuType === unitSystemID) {
-      return (<UnitSystemMenu dropdownText={unitDisplayChoice ? unitDisplayChoice : dropdownText} onSelect={setUnitDisplayChoice}/>)
-    } else if (menuType === swimLapID) {
-      return (
-        <PoolLengthMenu
-          dropdownText={swimLengthChoice ? swimLengthChoice : dropdownText}
-          onCustomSwimClick={onCustomSwimClick}
-          onSelect={setSwimLengthChoice}
-        />
-      )
-    } else {
-      alert('error showing menu')
-    }
-  }
 
   // for navigating to each setting page
   const Stack = createStackNavigator();
@@ -188,14 +133,17 @@ const Settings = (props) => {
       <SettingsContext.Provider value={{
         saveSettings,
       }}>
-        <Text>CHANGE IT SO UNIT SYSTEM AND SWIM LAP WORK LATER</Text>
         <Spinner
           visible={isLoading}
           textContent={'Saving...'}
           textStyle={styles.spinnerTextStyle}
         />
+        <Text>CHANGE IT SO UNIT SYSTEM AND SWIM LAP WORK LATER</Text>
         <Stack.Navigator>
-          <Stack.Screen name={SETTINGS_MENU}>
+          <Stack.Screen
+            name={SETTINGS_MENU}
+            options={{ title: "Your Settings" }}
+          >
             {(props) => <SettingsMenu {...props} saveSettings={saveSettings}/>}
           </Stack.Screen>
           <Stack.Screen name={FRIENDS_SETTINGS}>

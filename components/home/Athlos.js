@@ -424,10 +424,10 @@ function Athlos(props) {
       >
       { isLoading ? <View style={styles.container}><LoadingSpin/></View> : 
         <>
-          <Header
+          {/* <Header
             leftComponent={{ icon: 'menu', color: '#fff' }}
             rightComponent={{ icon: 'home', color: '#fff' }}
-          />
+          /> */}
           <BottomTab.Navigator>
             <BottomTab.Screen name={HOME} component={Home} />
             {/* <BottomTab.Screen name={FITNESS} component={Fitness} /> */}
