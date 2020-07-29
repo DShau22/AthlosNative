@@ -15,9 +15,28 @@ import {
 } from '../utils/storage';
 
 import SettingsMenu from "./settingScreens/SettingsMenu"
+import GLOBAL_CONSTANTS from '../GlobalConstants'
+import SETTINGS_CONSTANTS from './SettingsConstants'
+const {
+  COMMUNITY_SETTINGS_LIST,
+  FITNESS_SETTINGS_LIST,
+  BASIC_INFO_SETTINGS_LIST,
+  UNIT_SYSTEM_SETTINGS_LIST,
+  SWIM_SETTINGS_LIST,
+  BESTS_SETTINGS_LIST,
+  TOTALS_SETTINGS_LIST,
 
-import Success from "../messages/Success"
-import ErrorAlert from "../messages/Error"
+  SETTINGS_MENU,
+  COMMUNITY_SETTINGS,
+  FITNESS_SETTINGS,
+  BESTS_SETTINGS,
+  TOTALS_SETTINGS,
+  BASIC_INFO_SETTINGS,
+  UNIT_SYSTEM_SETTINGS,
+  SWIM_SETTINGS,
+} = SETTINGS_CONSTANTS
+const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS
+
 import ENDPOINTS from '../endpoints'
 import PrivacySetting from './settingScreens/PrivacySetting';
 
@@ -30,9 +49,11 @@ const Settings = (props) => {
   const [customSwimUnits, setCustomSwimUnits] = React.useState('Yards');
   const [currCustomSwimLength, setCurrCustomSwimLength] = React.useState('');
   const [customSwimLength, setCustomSwimLength] = React.useState(0);
-  const [friendsListChoice, setFriendsListChoice] = React.useState(settings.seeFriendsList);
+  const [communityChoice, setCommunityChoice] = React.useState(settings.seeCommunity);
   const [fitnessChoice, setFitnessChoice] = React.useState(settings.seeFitness);
   const [basicInfoChoice, setBasicInfoChoice] = React.useState(settings.seeBasicInfo);
+  const [bestsChoice, setBestsChoice] = React.useState(settings.seeBests);
+  const [totalsChoice, setTotalsChoice] = React.useState(settings.seeTotals);
   const [unitDisplayChoice, setUnitDisplayChoice] = React.useState(settings.unitSystem);
   const [swimLengthChoice, setSwimLengthChoice] = React.useState(settings.swimLap);
 
@@ -52,7 +73,6 @@ const Settings = (props) => {
     const asyncSaveSettings = async () => {
       console.log('saving settings...')
       setIsLoading(true);
-      console.log(friendsListChoice, fitnessChoice, basicInfoChoice, unitDisplayChoice, swimLengthChoice)
       // get user token
       try {
         var token = await getData()
@@ -72,10 +92,13 @@ const Settings = (props) => {
           headers: { 'Content-Type': 'application/json' },
           cancelToken: source.token
         }
-        var res = await axios.post(settingsURL, {
+        console.log(bestsChoice, totalsChoice)
+        var res = await axios.post(ENDPOINTS.updateSettings, {
           userToken: token,
-          seeFriendsList: friendsListChoice,
+          seeCommunity: communityChoice,
           seeFitness: fitnessChoice,
+          seeBests: bestsChoice,
+          seeTotals: totalsChoice,
           seeBasicInfo: basicInfoChoice,
           unitSystem: unitDisplayChoice,
           swimLap: swimLengthChoice
@@ -87,13 +110,13 @@ const Settings = (props) => {
           Alert.alert('All Done!', "Your settings have been successfully updated :)", [{ text: "Okay" }]);
           setIsLoading(false);
         } else {
-          Alert.alert('Oh No :(', json.message, [{ text: "Okay" }]);
-          setIsLoading(false);
+          throw new Error(json.message)
         }
       } catch(e) {
-        console.error(e)
-        Alert.alert('Oh No :(', "Something went wrong with the connection to the server. Please try again.", [{ text: "Okay" }]);
+        console.log(e)
+        Alert.alert('Oh No :(', e.toString(), [{ text: "Okay" }]);
         setIsLoading(false);
+        return;
       }
       // update Athlos state
       const newState = {
@@ -101,7 +124,9 @@ const Settings = (props) => {
         settings: {
           seeBasicInfo: basicInfoChoice,
           seeFitness: fitnessChoice,
-          seeFriendsList: friendsListChoice,
+          seeBests: bestsChoice,
+          seeTotals: totalsChoice,
+          seeCommunity: communityChoice,
           swimLap: swimLengthChoice,
           unitSystem: unitDisplayChoice
         }
@@ -114,11 +139,11 @@ const Settings = (props) => {
         // THIS DOESN'T ACTUALLY WORK DOESNT SEEM LIKE CONTEXT DOESNT GET UPDATED FUCK
         console.log("storing data object: ", newState)
         await storeDataObj(newState)
+        console.log("async storage updated")
       } catch(e) {
         console.error(e)
         Alert.alert('Oh No :(', "Something went wrong with trying to save your settings. Please try again.", [{ text: "Okay" }]);
       }
-      console.log("async storage updated")
     }
     asyncSaveSettings();
   }
@@ -144,19 +169,19 @@ const Settings = (props) => {
             name={SETTINGS_MENU}
             options={{ title: "Your Settings" }}
           >
-            {(props) => <SettingsMenu {...props} saveSettings={saveSettings}/>}
+            {props => <SettingsMenu {...props} saveSettings={saveSettings}/>}
           </Stack.Screen>
-          <Stack.Screen name={FRIENDS_SETTINGS}>
-            {(props) => (
+          <Stack.Screen name={COMMUNITY_SETTINGS}>
+            {props => (
               <PrivacySetting
-                settingsList={FRIENDS_SETTINGS_LIST}
-                updateSettings={setFriendsListChoice}
-                defaultOption={friendsListChoice}
+                settingsList={COMMUNITY_SETTINGS_LIST}
+                updateSettings={setCommunityChoice}
+                defaultOption={communityChoice}
               />
             )}
           </Stack.Screen>
           <Stack.Screen name={FITNESS_SETTINGS}>
-            {(props) => (
+            {props => (
               <PrivacySetting
                 settingsList={FITNESS_SETTINGS_LIST}
                 updateSettings={setFitnessChoice}
@@ -164,8 +189,26 @@ const Settings = (props) => {
               />
             )}
           </Stack.Screen>
+          <Stack.Screen name={BESTS_SETTINGS}>
+            {props => (
+              <PrivacySetting
+                settingsList={BESTS_SETTINGS_LIST}
+                updateSettings={setBestsChoice}
+                defaultOption={bestsChoice}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name={TOTALS_SETTINGS}>
+            {props => (
+              <PrivacySetting
+                settingsList={TOTALS_SETTINGS_LIST}
+                updateSettings={setTotalsChoice}
+                defaultOption={totalsChoice}
+              />
+            )}
+          </Stack.Screen>
           <Stack.Screen name={BASIC_INFO_SETTINGS}>
-            {(props) => (
+            {props => (
               <PrivacySetting
                 settingsList={BASIC_INFO_SETTINGS_LIST}
                 updateSettings={setBasicInfoChoice}
@@ -174,7 +217,7 @@ const Settings = (props) => {
             )}
           </Stack.Screen>
           <Stack.Screen name={UNIT_SYSTEM_SETTINGS}>
-            {(props) => (
+            {props => (
               <PrivacySetting
                 settingsList={UNIT_SYSTEM_SETTINGS_LIST}
                 updateSettings={setUnitDisplayChoice}
@@ -183,7 +226,7 @@ const Settings = (props) => {
             )}
           </Stack.Screen>
           <Stack.Screen name={SWIM_SETTINGS}>
-            {(props) => (
+            {props => (
               <PrivacySetting
                 {...props}
                 settingsList={SWIM_SETTINGS_LIST}
@@ -209,93 +252,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 })
-// vars for checking which dropdown menu to display
-const friendsListID = 'friends list'
-const fitnessID = 'fitness'
-const basicInfoID = 'info'
-const swimLapID = 'swim lap'
-const unitSystemID = 'unit system'
-const settingsURL = ENDPOINTS.updateSettings
-
-const SETTINGS_MENU = ' '
-const FRIENDS_SETTINGS = 'Friends Settings'
-const FITNESS_SETTINGS = 'Fitness Settings'
-const BASIC_INFO_SETTINGS = 'Basic Info Settings'
-const UNIT_SYSTEM_SETTINGS = 'Unit System Settings'
-const SWIM_SETTINGS = 'Swimming Settings'
-
-import GLOBAL_CONSTANTS from '../GlobalConstants'
-const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS
-
-const FRIENDS_SETTINGS_LIST = [
-  {
-    title: EVERYONE,
-    subtitle: 'FRIENDS_SETTINGS_LIST',  
-  },
-  {
-    title: FOLLOWERS,
-    subtitle: 'FRIENDS_SETTINGS_LIST',
-  },
-  {
-    title: ONLY_ME,
-    subtitle: 'FRIENDS_SETTINGS_LIST', 
-  },
-]
-
-const FITNESS_SETTINGS_LIST = [
-  {
-    title: EVERYONE,
-    subtitle: 'FITNESS_SETTINGS_LIST',  
-  },
-  {
-    title: FOLLOWERS,
-    subtitle: 'FITNESS_SETTINGS_LIST',
-  },
-  {
-    title: ONLY_ME,
-    subtitle: 'FITNESS_SETTINGS_LIST', 
-  },
-]
-
-const BASIC_INFO_SETTINGS_LIST = [
-  {
-    title: EVERYONE,
-    subtitle: 'BASIC_INFO_SETTINGS_LIST',  
-  },
-  {
-    title: FOLLOWERS,
-    subtitle: 'BASIC_INFO_SETTINGS_LIST',
-  },
-  {
-    title: ONLY_ME,
-    subtitle: 'BASIC_INFO_SETTINGS_LIST', 
-  },
-]
-
-const UNIT_SYSTEM_SETTINGS_LIST = [
-  {
-    title: 'English',
-    subtitle: 'yards, feet, inches, etc...',  
-  },
-  {
-    title: 'Metric',
-    subtitle: 'meters, centimeters, kilometers, etc...',
-  },
-]
-
-const SWIM_SETTINGS_LIST = [
-  {
-    title: EVERYONE,
-    subtitle: 'SWIM_SETTINGS_LIST',  
-  },
-  {
-    title: FOLLOWERS,
-    subtitle: 'SWIM_SETTINGS_LIST',
-  },
-  {
-    title: ONLY_ME,
-    subtitle: 'SWIM_SETTINGS_LIST', 
-  },
-]
 
 export default gestureHandlerRootHOC(Settings)

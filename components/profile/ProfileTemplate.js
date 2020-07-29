@@ -11,10 +11,10 @@ import { UserDataContext, ProfileContext } from '../../Context';
 import { poundsToKg, inchesToCm } from "../utils/unitConverter"
 import PROFILE_CONSTANTS from "./ProfileConstants"
 const {
-  IS_SELF, USER_PROFILE, SEARCH_PROFILE
+  IS_SELF, IS_FOLLOWER, IS_FOLLOWING, IS_RIVAL, USER_PROFILE, SEARCH_PROFILE
 } =  PROFILE_CONSTANTS
 import GLOBAL_CONSTANTS from '../GlobalConstants'
-const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
+const { METRIC, ENGLISH, EVERYONE, FOLLOWERS, ONLY_ME } = GLOBAL_CONSTANTS
 import Community from '../community/Community'
 import Fitness from '../fitness/Fitness'
 import ProfileHeader from './sections/ProfileHeader'
@@ -33,6 +33,7 @@ const ProfileTemplate = (props) => {
     profileContext
     // rootNav
   } = props
+  const { settings } = profileContext
 
   const navigateToFitness = (navigation) => {
     if (relationshipStatus === PROFILE_CONSTANTS.IS_SELF) {
@@ -42,6 +43,31 @@ const ProfileTemplate = (props) => {
     }
   }
 
+  const canViewFitness = () => (
+    relationshipStatus === IS_SELF ||
+    settings.seeFitness === EVERYONE ||
+    ((relationshipStatus === IS_FOLLOWING || relationshipStatus === IS_RIVAL) && settings.seeFitness === FOLLOWERS)
+  )
+
+  const canViewTotals = () => (
+    relationshipStatus === IS_SELF ||
+    settings.seeTotals === EVERYONE ||
+    ((relationshipStatus === IS_FOLLOWING || relationshipStatus === IS_RIVAL) && settings.seeTotals === FOLLOWERS)
+  )
+
+  const canViewBests = () => (
+    relationshipStatus === IS_SELF ||
+    settings.seeBests === EVERYONE ||
+    ((relationshipStatus === IS_FOLLOWING || relationshipStatus === IS_RIVAL) && settings.seeBests === FOLLOWERS)
+  )
+
+  const canViewBasicInfo = () => (
+    relationshipStatus === IS_SELF ||
+    settings.seeBasicInfo === EVERYONE ||
+    ((relationshipStatus === IS_FOLLOWING || relationshipStatus === IS_RIVAL) && settings.seeBasicInfo === FOLLOWERS)
+  )
+  console.log('setings', settings)
+  console.log('bests', canViewBests())
   const Stack = createStackNavigator();
   const profileScreenName = relationshipStatus === IS_SELF ? USER_PROFILE : SEARCH_PROFILE
   return (
@@ -62,19 +88,24 @@ const ProfileTemplate = (props) => {
                 }
                 <ProfileHeader
                   navigation={props.navigation}
+                  relationshipStatus={relationshipStatus}
                 />
                 <View style={styles.routeButtons}>
-                  <Button
-                    title='See Fitness'
-                    onPress={() => navigateToFitness(props.navigation)}
-                  />
-                  <Button
-                    title='See Basic Info'
-                    onPress={() => props.navigation.navigate(PROFILE_CONSTANTS.BASIC_INFO)}
-                  />
+                  {canViewFitness() ?
+                    <Button
+                      title='See Fitness'
+                      onPress={() => navigateToFitness(props.navigation)}
+                    /> : null
+                  }
+                  {canViewBasicInfo() ?
+                    <Button
+                      title='See Basic Info'
+                      onPress={() => props.navigation.navigate(PROFILE_CONSTANTS.BASIC_INFO)}
+                    /> : null
+                  }
                 </View>
-                <ProfileBests />
-                <ProfileAggregates />
+                {canViewBests() ? <ProfileBests /> : null}
+                {canViewTotals() ? <ProfileAggregates /> : null}
               </View>
             </ScrollView>
           )}

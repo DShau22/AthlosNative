@@ -1,7 +1,7 @@
 // Displays the profile of the searched person
 // that the user logged in on the browser searched for
 
-import React, { Component } from 'react'
+import React from 'react'
 import { UserDataContext } from '../../Context';
 import { View, StyleSheet, FlatList, ScrollView, Alert, Button } from 'react-native'
 import { createStackNavigator } from '@react-navigation/stack';
@@ -13,8 +13,11 @@ import ENDPOINTS from '../endpoints'
 import GLOBAL_CONSTANTS from "../GlobalConstants"
 const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS
 import PROFILE_CONSTANTS from './ProfileConstants'
-import Community from '../community/Community'
-import ProfileHeader from './sections/ProfileHeader'
+const {
+  FOLLOWS_YOU,
+  YOU_FOLLOW,
+  IS_RIVAL,
+} = PROFILE_CONSTANTS
 import ProfileTemplate from './ProfileTemplate'
 import LoadingScreen from '../generic/LoadingScreen'
 
@@ -29,7 +32,7 @@ const SearchProfile = (props) => {
     settings: {},
     firstName: '',
     lastName: '',
-    follows: false,
+    relationshipStatus: 'Unrelated',
     bio: '',
     age: '',
     height: '',
@@ -58,99 +61,80 @@ const SearchProfile = (props) => {
           body: JSON.stringify({ _id, userToken: token }),
         })
         const searchUserJson = await res.json();
-        const { success, settings, firstName, lastName, follows, profilePicture } = searchUserJson
+        const { success, settings, firstName, lastName, relationshipStatus, profilePicture } = searchUserJson
         if (!success) {
           console.log("not success: ", searchUserJson)
-          Alert.alert(`Oh No :(`, "Something went wrong with the server. Please try again.", [{ text: "Okay" }]);
-          setIsLoading(false);
-          return
+          throw new Error(searchJson.message)
         }
-        setState(prevState => ({ ...prevState, settings, firstName, lastName, follows, profilePicture }))
+        setState(prevState => ({ ...prevState, settings, firstName, lastName, relationshipStatus, profilePicture }))
         // need to pass in settings, follows cuz setState is asynchronous
         await Promise.all([
-          getBasicInfo(settings, follows),
-          getTotalsAndBests(settings, follows),
-          getPeople(settings, follows)
+          getBasicInfo(settings, relationshipStatus),
+          getTotalsAndBests(settings, relationshipStatus),
+          getPeople(settings, relationshipStatus)
         ])
+        console.log(state.bests)
         setIsLoading(false);
       } catch(e) {
         console.log(e)
-        Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please try again.", [{ text: "Okay" }]);
+        Alert.alert(`Oh No :(`, e.toString(), [{ text: "Okay" }]);
         setIsLoading(false);
+        return;
       }
     }
     setup();
   }, []);
 
-  const getBasicInfo = async (settings, follows) => {
-    console.log("get basic info")
-    const { seeBasicInfo } = settings
-    if (seeBasicInfo === EVERYONE || (seeBasicInfo === FOLLOWERS && follows)) {
-      const res = await fetch(ENDPOINTS.getSearchUserBasicInfo, {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ _id }),
-      })
-      const { bio, weight, height, age, gender } = await res.json()
-      console.log("get basic info set state")
-      setState(prevState => ({ ...prevState, bio, weight, height, age, gender }))
-    }
+  const getBasicInfo = async (settings) => {
+    const res = await fetch(ENDPOINTS.getSearchUserBasicInfo, {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ _id }),
+    })
+    const { bio, weight, height, age, gender } = await res.json()
+    console.log("get basic info set state")
+    setState(prevState => ({ ...prevState, bio, weight, height, age, gender }))
   }
 
   // gets the followers, following, and rivals lists
-  const getPeople = async (settings, follows) => {
-    console.log("getting people")
-    const { seePeople } = settings
-    if (seePeople === EVERYONE || (seePeople === FOLLOWERS && follows)) {
-      const res = await fetch(ENDPOINTS.getSearchUserPeople, {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ _id }),
-      })
-      const { followers, following, rivals } = await res.json()
-      console.log("get friends set state")
-      setState(prevState => ({ ...prevState, followers, following, rivals }))
-    }
+  const getPeople = async (settings) => {
+    const res = await fetch(ENDPOINTS.getSearchUserPeople, {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ _id }),
+    })
+    const { followers, following, rivals } = await res.json()
+    console.log("get friends set state")
+    setState(prevState => ({ ...prevState, followers, following, rivals }))
   }
 
-  const getTotalsAndBests = async (settings, follows) => {
-    console.log("get totals")
-    const { seeFitness } = settings
-    if (seeFitness === EVERYONE || (seeFitness === FOLLOWERS && follows)) {
-      const res = await fetch(ENDPOINTS.getSearchUserFitnessBests, {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ _id }),
-      })
-      console.log("get totals set state")
-      const { bests, totals } = await res.json()
-      setState(prevState => ({ ...prevState, bests, totals }))
-    }
+  const getTotalsAndBests = async (settings) => {
+    const res = await fetch(ENDPOINTS.getSearchUserFitnessBests, {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ _id }),
+    })
+    console.log("get totals set state")
+    const { bests, totals } = await res.json()
+    setState(prevState => ({ ...prevState, bests, totals }))
   }
 
-  const { firstName, lastName, age, height, bio, weight, totals, bests, profilePicture, settings } = state
-  const { followers, following, rivals } = state
+  const { relationshipStatus } = state
   console.log("search profile's state: ", state);
   const Stack = createStackNavigator();
   if (isLoading) {
     return <LoadingScreen/>
-  }
-  return (
-    <>
-      {/* <Spinner
-        visible={isLoading}
-        textContent={'Loading...'}
-        // textStyle={styles.spinnerTextStyle}
-      /> */}
+  } else {
+    return (
       <ProfileTemplate
         _id={_id}
-        relationshipStatus={'firned....'}
+        relationshipStatus={relationshipStatus}
         rootNav={props.rootNav}
 
         profileContext={state}
       />
-    </>
-  )
+    )
+  }
 }
 
 const styles = StyleSheet.create({

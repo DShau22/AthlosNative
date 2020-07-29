@@ -8,14 +8,16 @@ import { UserDataContext, SettingsContext } from "../../../Context"
 import LoadingScreen from "../../generic/LoadingScreen"
 import { useFocusEffect } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-
-
-import Spinner from 'react-native-loading-spinner-overlay';
-import {
-  getData,
-} from '../../utils/storage';
-
-import ENDPOINTS from '../../endpoints'
+import SETTINGS_CONSTANTS from '../SettingsConstants'
+const {
+  COMMUNITY_SETTINGS,
+  FITNESS_SETTINGS,
+  BESTS_SETTINGS,
+  TOTALS_SETTINGS,
+  BASIC_INFO_SETTINGS,
+  UNIT_SYSTEM_SETTINGS,
+  SWIM_SETTINGS,
+} = SETTINGS_CONSTANTS
 
 const SettingsMenu = (props) => {
   const settingsContext = React.useContext(SettingsContext);
@@ -24,12 +26,20 @@ const SettingsMenu = (props) => {
       title: "Settings",
       data: [
         {
-          title: FRIENDS_SETTINGS,
+          title: COMMUNITY_SETTINGS,
           subtitle: 'Who can see your friends list?',  
         },
         {
           title: FITNESS_SETTINGS,
           subtitle: 'Who can see your fitness?',
+        },
+        {
+          title: BESTS_SETTINGS,
+          subtitle: 'Who can see your basic info?',
+        },
+        {
+          title: TOTALS_SETTINGS,
+          subtitle: 'Who can see your basic info?',
         },
         {
           title: BASIC_INFO_SETTINGS,
@@ -110,11 +120,5 @@ const styles = StyleSheet.create({
     height: 50,
   }
 })
-
-const FRIENDS_SETTINGS = 'Friends Settings'
-const FITNESS_SETTINGS = 'Fitness Settings'
-const BASIC_INFO_SETTINGS = 'Basic Info Settings'
-const UNIT_SYSTEM_SETTINGS = 'Unit System Settings'
-const SWIM_SETTINGS = 'Swimming Settings'
 
 export default gestureHandlerRootHOC(SettingsMenu)
