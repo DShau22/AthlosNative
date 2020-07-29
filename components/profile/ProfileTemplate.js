@@ -3,7 +3,7 @@
 // oassed in from the profile component
 
 import React, { Component } from 'react'
-import { View, ScrollView, StyleSheet } from 'react-native'
+import { View, ScrollView, StyleSheet, RefreshControl } from 'react-native'
 import { Text, Button } from 'react-native-elements'
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -30,7 +30,10 @@ const ProfileTemplate = (props) => {
   const {
     _id,
     relationshipStatus,
-    profileContext
+    profileContext,
+
+    refreshing,
+    onRefresh,
     // rootNav
   } = props
   const { settings } = profileContext
@@ -66,8 +69,7 @@ const ProfileTemplate = (props) => {
     settings.seeBasicInfo === EVERYONE ||
     ((relationshipStatus === IS_FOLLOWING || relationshipStatus === IS_RIVAL) && settings.seeBasicInfo === FOLLOWERS)
   )
-  console.log('setings', settings)
-  console.log('bests', canViewBests())
+
   const Stack = createStackNavigator();
   const profileScreenName = relationshipStatus === IS_SELF ? USER_PROFILE : SEARCH_PROFILE
   return (
@@ -78,7 +80,11 @@ const ProfileTemplate = (props) => {
           options={{ title: relationshipStatus === IS_SELF ? 'Your Profile' : `${profileContext.firstName}'s Profile` }}
         >
           {(props) => (
-            <ScrollView>
+            <ScrollView
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+            >
               <View style={styles.container}>
                 {relationshipStatus !== IS_SELF ? 
                   <Button 

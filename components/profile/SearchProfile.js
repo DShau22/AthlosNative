@@ -26,6 +26,8 @@ const SearchProfile = (props) => {
   // all these correspond to the fields of the searched user, NOT
   // the user who's using the app right now
   const [isLoading, setIsLoading] = React.useState(true);
+  // passed down to the profile template
+  const [refreshing, setRefreshing] = React.useState(false);
   // This state only contains what's necessary. All the fitness stuff
   // should be fetched (if needed) in the fitness component
   const [state, setState] = React.useState({
@@ -47,43 +49,57 @@ const SearchProfile = (props) => {
   })
   // the searched user's id
   const { _id } = props
-  console.log("search user id: ", _id);
+  // console.log("search user id: ", _id);
 
   React.useEffect(() => {
-    const setup = async () => {
-      console.log("search profile using effect")
-      // query this user's settings, bests, totals and set state
-      const token = await getData()
-      try {
-        const res = await fetch(ENDPOINTS.getSearchUser, {
-          method: "POST",
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ _id, userToken: token }),
-        })
-        const searchUserJson = await res.json();
-        const { success, settings, firstName, lastName, relationshipStatus, profilePicture } = searchUserJson
-        if (!success) {
-          console.log("not success: ", searchUserJson)
-          throw new Error(searchJson.message)
-        }
-        setState(prevState => ({ ...prevState, settings, firstName, lastName, relationshipStatus, profilePicture }))
-        // need to pass in settings, follows cuz setState is asynchronous
-        await Promise.all([
-          getBasicInfo(settings, relationshipStatus),
-          getTotalsAndBests(settings, relationshipStatus),
-          getPeople(settings, relationshipStatus)
-        ])
-        console.log(state.bests)
-        setIsLoading(false);
-      } catch(e) {
-        console.log(e)
-        Alert.alert(`Oh No :(`, e.toString(), [{ text: "Okay" }]);
-        setIsLoading(false);
-        return;
-      }
-    }
     setup();
   }, []);
+  
+  const wait = (timeout) => {
+    return new Promise(resolve => {
+      setTimeout(resolve, timeout);
+    });
+  }
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await setup();
+    // await wait(2000);
+    setRefreshing(false);
+  }, []);
+
+  const setup = async () => {
+    console.log("setting up search profile...")
+    // query this user's settings, bests, totals and set state
+    const token = await getData()
+    try {
+      const res = await fetch(ENDPOINTS.getSearchUser, {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ _id, userToken: token }),
+      })
+      const searchUserJson = await res.json();
+      const { success, settings, firstName, lastName, relationshipStatus, profilePicture } = searchUserJson
+      if (!success) {
+        console.log("not success: ", searchUserJson)
+        throw new Error(searchJson.message)
+      }
+      setState(prevState => ({ ...prevState, settings, firstName, lastName, relationshipStatus, profilePicture }))
+      // need to pass in settings, follows cuz setState is asynchronous
+      await Promise.all([
+        getBasicInfo(settings, relationshipStatus),
+        getTotalsAndBests(settings, relationshipStatus),
+        getPeople(settings, relationshipStatus)
+      ])
+      // console.log(state.bests)
+      setIsLoading(false);
+    } catch(e) {
+      console.log(e)
+      Alert.alert(`Oh No :(`, e.toString(), [{ text: "Okay" }]);
+      setIsLoading(false);
+      return;
+    }
+  }
 
   const getBasicInfo = async (settings) => {
     const res = await fetch(ENDPOINTS.getSearchUserBasicInfo, {
@@ -92,7 +108,7 @@ const SearchProfile = (props) => {
       body: JSON.stringify({ _id }),
     })
     const { bio, weight, height, age, gender } = await res.json()
-    console.log("get basic info set state")
+    // console.log("get basic info set state")
     setState(prevState => ({ ...prevState, bio, weight, height, age, gender }))
   }
 
@@ -104,7 +120,7 @@ const SearchProfile = (props) => {
       body: JSON.stringify({ _id }),
     })
     const { followers, following, rivals } = await res.json()
-    console.log("get friends set state")
+    // console.log("get friends set state")
     setState(prevState => ({ ...prevState, followers, following, rivals }))
   }
 
@@ -114,13 +130,13 @@ const SearchProfile = (props) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ _id }),
     })
-    console.log("get totals set state")
+    // console.log("get totals set state")
     const { bests, totals } = await res.json()
     setState(prevState => ({ ...prevState, bests, totals }))
   }
 
   const { relationshipStatus } = state
-  console.log("search profile's state: ", state);
+  // console.log("search profile's state: ", state);
   const Stack = createStackNavigator();
   if (isLoading) {
     return <LoadingScreen/>
@@ -130,6 +146,9 @@ const SearchProfile = (props) => {
         _id={_id}
         relationshipStatus={relationshipStatus}
         rootNav={props.rootNav}
+
+        refreshing={refreshing}
+        onRefresh={onRefresh}
 
         profileContext={state}
       />

@@ -49,15 +49,11 @@ const Profile = (props) => {
   const Stack = createStackNavigator();
   // console.log('returning the profile props, id is: ', _id);
   return (
-    // <WithRefresh
-    //   refreshFunction={onRefresh}
-    // >
     <>
       { _id === userDataContext._id ? 
         <UserProfile rootNav={props.navigation} /> : <SearchProfile rootNav={props.navigation} _id={_id} />
       } 
     </>
-    // </WithRefresh>
   )
 }
 const styles = StyleSheet.create({

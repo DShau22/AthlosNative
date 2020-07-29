@@ -33,6 +33,8 @@ import MusicPopup from './popups/MusicPopup'
 // CONSIDER USING REACT NATIVE PAPER FAB.GROUP INSTEAD OF A POPUP MODAL
 // WHEN ADDING A NEW MODE
 
+//OR ALSO REACT-NATIVE ACTION BUTTON https://github.com/mastermoo/react-native-action-button
+
 // ALSO LOOK AT REACT NATIVE NUMERIC INPUT https://github.com/himelbrand/react-native-numeric-input
 // FOR THE UP DOWN BUTTON STUFF
 

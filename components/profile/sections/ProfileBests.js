@@ -41,7 +41,6 @@ const ProfileBests = (props) => {
       </View>
     </View>
   )
-  console.log(unitSystem)
   
   return (
     <View style={styles.container}>

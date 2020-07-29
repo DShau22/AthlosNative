@@ -23,7 +23,6 @@ const ProfileHeader = (props) => {
     settings,
   } = profileContext
   const { profileURL } = profileContext.profilePicture 
-  console.log(relationshipStatus)
   return (
     <View style={styles.container}>
       <View style={styles.imageAndStatusContainer}>

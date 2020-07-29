@@ -1,10 +1,10 @@
 // Displays the profile of the user who is logged in on the browser
 // They should be able to see everything
 import React, { Component } from 'react'
-import { View, Image, StyleSheet } from 'react-native'
+import { View, Image, StyleSheet, ScrollView } from 'react-native'
 import { Text, Button } from 'react-native-elements'
 
-import { UserDataContext, ProflieContext } from '../../Context';
+import { UserDataContext, AppFunctionsContext } from '../../Context';
 import { poundsToKg, inchesToCm } from "../utils/unitConverter"
 import PROFILE_CONSTANTS from "./ProfileConstants"
 import GLOBAL_CONSTANTS from '../GlobalConstants'
@@ -18,11 +18,29 @@ const imgAlt = "./default_profile.png"
 
 const UserProfile = (props) => {
   const context = React.useContext(UserDataContext);
+  const appFunctionsContext = React.useContext(AppFunctionsContext);
+  const { updateLocalUserInfo } = appFunctionsContext;
+  // passed down to the profile template
+  const [refreshing, setRefreshing] = React.useState(false);
+  const wait = (timeout) => {
+    return new Promise(resolve => {
+      setTimeout(resolve, timeout);
+    });
+  }
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await updateLocalUserInfo();
+    setRefreshing(false);
+  }, []);
+
   return (
     <ProfileTemplate
       _id={context._id}
       relationshipStatus={PROFILE_CONSTANTS.IS_SELF}
       rootNav={props.rootNav}
+
+      refreshing={refreshing}
+      onRefresh={onRefresh}
 
       profileContext={context}
     />
