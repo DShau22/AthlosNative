@@ -42,7 +42,6 @@ function App() {
   if (isLoading) {
     return ( <LoadingScreen />)
   }
-  console.log('default theme: ', DefaultTheme)
   return (
     <MenuProvider>
       <AppContext.Provider value={setToken}>

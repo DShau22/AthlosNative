@@ -22,11 +22,6 @@ const UserProfile = (props) => {
   const { updateLocalUserInfo } = appFunctionsContext;
   // passed down to the profile template
   const [refreshing, setRefreshing] = React.useState(false);
-  const wait = (timeout) => {
-    return new Promise(resolve => {
-      setTimeout(resolve, timeout);
-    });
-  }
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     await updateLocalUserInfo();

@@ -1,7 +1,8 @@
 import React from 'react'
 import { View, StyleSheet, Text } from "react-native"
 import { UserDataContext } from "../../../Context"
-import { runTheme, jumpTheme, swimTheme } from "../../Constants"
+import {COLOR_THEMES} from "../../ColorThemes"
+const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES
 import { ProgressCircle } from 'react-native-svg-charts'
 import FITNESS_CONSTANTS from '../../fitness/FitnessConstants'
 const ImageSlide = (props) => {
@@ -36,11 +37,11 @@ const ImageSlide = (props) => {
   const getActivityColor = () => {
     switch (props.stats.action) {
       case FITNESS_CONSTANTS.RUN:
-        return runTheme;
+        return RUN_THEME;
       case FITNESS_CONSTANTS.SWIM:
-        return swimTheme;
+        return SWIM_THEME;
       default:
-        return jumpTheme
+        return JUMP_THEME;
     }
   }
 
@@ -75,8 +76,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '65%'
   },
-  run:  { borderColor: runTheme },
-  swim: { borderColor: swimTheme },
-  jump: { borderColor: jumpTheme }
+  run:  { borderColor: RUN_THEME },
+  swim: { borderColor: SWIM_THEME },
+  jump: { borderColor: JUMP_THEME }
 })
 export default ImageSlide

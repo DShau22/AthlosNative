@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native'
-import { runTheme, jumpTheme, swimTheme } from "../../Constants"
+import {COLOR_THEMES} from "../../ColorThemes"
+const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES
 const Arrow = ({ direction, clickFunction, glyph, activity }) => (
   <TouchableOpacity
     style={[styles.slideArray, styles[direction], styles[activity.toLowerCase()]]}
@@ -23,8 +24,8 @@ const styles = StyleSheet.create({
   left: {
     marginRight: 8
   },
-  run:  { color: runTheme },
-  swim: { color: swimTheme },
-  jump: { color: jumpTheme }
+  run:  { color: RUN_THEME },
+  swim: { color: SWIM_THEME },
+  jump: { color: JUMP_THEME }
 });
 export default Arrow

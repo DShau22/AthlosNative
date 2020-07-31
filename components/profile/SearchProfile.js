@@ -54,12 +54,6 @@ const SearchProfile = (props) => {
   React.useEffect(() => {
     setup();
   }, []);
-  
-  const wait = (timeout) => {
-    return new Promise(resolve => {
-      setTimeout(resolve, timeout);
-    });
-  }
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
