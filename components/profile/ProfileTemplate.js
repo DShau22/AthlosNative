@@ -1,11 +1,11 @@
 // A template for the general structure and style of a profile
 // has many holes that need to be filled with a shit ton of props
 // oassed in from the profile component
-
 import React, { Component } from 'react'
 import { View, ScrollView, StyleSheet, RefreshControl } from 'react-native'
-import { Text, Button } from 'react-native-elements'
+import { Text, Button, Divider } from 'react-native-elements'
 import { createStackNavigator } from '@react-navigation/stack';
+import { useTheme } from '@react-navigation/native';
 
 import { UserDataContext, ProfileContext } from '../../Context';
 import { poundsToKg, inchesToCm } from "../utils/unitConverter"
@@ -22,6 +22,8 @@ import ProfileBests from './sections/ProfileBests'
 import ProfileInfo from './sections/ProfileInfo'
 import ProfileAggregates from './sections/ProfileAggregates'
 import EditProfile from './EditProfileFunc'
+import GradientButton from '../generic/GradientButton'
+
 // replace with default avatar link
 const imgAlt = "./default_profile.png"
 
@@ -98,14 +100,14 @@ const ProfileTemplate = (props) => {
                 />
                 <View style={styles.routeButtons}>
                   {canViewFitness() ?
-                    <Button
-                      title='See Fitness'
+                    <GradientButton 
+                      buttonText='Fitness'
                       onPress={() => navigateToFitness(props.navigation)}
                     /> : null
                   }
                   {canViewBasicInfo() ?
-                    <Button
-                      title='See Basic Info'
+                    <GradientButton 
+                      buttonText='Basic Info'
                       onPress={() => props.navigation.navigate(PROFILE_CONSTANTS.BASIC_INFO)}
                     /> : null
                   }

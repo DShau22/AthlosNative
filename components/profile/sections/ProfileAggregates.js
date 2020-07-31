@@ -3,6 +3,8 @@ import { View, StyleSheet } from 'react-native';
 import { Text, Button } from 'react-native-elements';
 import { UserDataContext, ProfileContext } from '../../../Context';
 import { Card, } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/FontAwesome';
+Icon.loadFont();
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 
 const ProfileAggregates = (props) => {
@@ -11,36 +13,36 @@ const ProfileAggregates = (props) => {
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <Card style={styles.cardContainerStyle}>
-          <Card.Title title="Total Steps Taken" />
-          <Card.Content style={styles.cardContentStyle}>
-            <Text h3>
-              {totals.steps}
-            </Text>
-          </Card.Content>
-        </Card>
-        <Card style={styles.cardContainerStyle}>
-          <Card.Title title="Total Laps Swum" />
-          <Card.Content style={styles.cardContentStyle}>
-            <Text h3>{totals.laps}</Text>
-          </Card.Content>
-        </Card>
+        <View style={styles.gridBox}>
+          <Icon name='long-arrow-up' size={30}/>
+          <View style={styles.gridTextBox}>
+            <Text h4>{totals.steps}</Text>
+            <Text>Total Steps</Text>
+          </View>
+        </View>
+        <View style={styles.gridBox}>
+          <Icon name='long-arrow-up' size={30}/>
+          <View style={styles.gridTextBox}>
+            <Text h4>{totals.laps}</Text>
+            <Text>Total Laps</Text>
+          </View>
+        </View>
       </View>
       <View style={styles.row}>
-        <Card style={styles.cardContainerStyle}>
-          <Card.Title title="Total Jumps" style={styles.cardTitleStyle}/>
-          <Card.Content style={styles.cardContentStyle}>
-            <Text h3>
-              {totals.verticalJumps}
-            </Text>
-          </Card.Content>
-        </Card>
-        <Card style={styles.cardContainerStyle} onPress={() => setShowSplits(true)}>
-          <Card.Title title="Total Calories Burned" style={styles.cardTitleStyle}/>
-          <Card.Content style={styles.cardContentStyle}>
-            <Text>{totals.calories}</Text>
-          </Card.Content>
-        </Card>
+        <View style={styles.gridBox}>
+          <Icon name='long-arrow-up' size={30}/>
+          <View style={styles.gridTextBox}>
+            <Text h4>{totals.verticalJumps}</Text>
+            <Text>Total Jumps</Text>
+          </View>
+        </View>
+        <View style={styles.gridBox}>
+          <Icon name='long-arrow-up' size={30}/>
+          <View style={styles.gridTextBox}>
+            <Text h4>{totals.calories}</Text>
+            <Text>Cals burned</Text>
+          </View>
+        </View>
       </View>
     </View>
   )
@@ -57,19 +59,20 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 20,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    // justifyContent: 'space-around',
     width: '100%'
   },
-  cardContainerStyle: {
-    width: '40%'
-  },
-  cardContentStyle: {
-    justifyContent: 'center',
+  gridBox: {
+    marginLeft: 30,
+    flex: 1,
+    // backgroundColor: 'red',
+    flexDirection: 'row',
+    // justifyContent: 'center',
     alignItems: 'center'
   },
-  cardTitleStyle: {
-    alignItems: 'center',
+  gridTextBox: {
     justifyContent: 'center',
-    alignSelf: 'center'
-  }
+    marginLeft: 10
+    // alignItems: 'center'
+  },
 })

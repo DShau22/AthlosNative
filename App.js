@@ -5,7 +5,7 @@ import 'react-native-gesture-handler';
 import { MenuProvider } from 'react-native-popup-menu';
 
 import * as React from 'react';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 Ionicons.loadFont();
 
@@ -20,6 +20,7 @@ import Athlos from "./components/home/Athlos"
 import AsyncStorage from '@react-native-community/async-storage';
 
 import { AppContext } from "./Context"
+import { TROPIC_THEME, DARK_THEME } from './components/ColorThemes'
 
 function App() {
   
@@ -45,7 +46,7 @@ function App() {
   return (
     <MenuProvider>
       <AppContext.Provider value={setToken}>
-        <NavigationContainer theme={DefaultTheme}>
+        <NavigationContainer theme={TROPIC_THEME}>
           { token ? <Athlos token={token} /> : <RootStackScreen /> }
         </NavigationContainer>
       </AppContext.Provider>

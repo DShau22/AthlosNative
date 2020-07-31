@@ -18,6 +18,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import PROFILE_CONSTANTS from "./ProfileConstants"
 import WithRefresh from '../generic/WithRefresh'
 import SearchProfile from './SearchProfile';
+import LinearGradient from 'react-native-linear-gradient';
+import { useTheme } from '@react-navigation/native';
 
 const Profile = (props) => {
   // this is the user's own id
@@ -47,6 +49,7 @@ const Profile = (props) => {
   }
 
   const Stack = createStackNavigator();
+  const { colors } = useTheme();
   // console.log('returning the profile props, id is: ', _id);
   return (
     <>

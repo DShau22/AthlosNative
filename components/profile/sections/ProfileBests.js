@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
-import { Text } from 'react-native-elements';
+import { Text, Divider } from 'react-native-elements';
 import { UserDataContext, ProfileContext } from '../../../Context';
-import { Card } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/FontAwesome';
+Icon.loadFont();
+
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import { inchesToCm } from '../../utils/unitConverter'
 // popup stuff for tapping on cards
@@ -11,6 +13,7 @@ import Modal, {
   ModalTitle,
   SlideAnimation,
 } from 'react-native-modals';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 
@@ -68,38 +71,44 @@ const ProfileBests = (props) => {
           />
         </ModalContent>
       </Modal>
+      <Divider />
       <View style={styles.row}>
-        <Card style={styles.cardContainerStyle}>
-          <Card.Title title="Highest Jump" />
-          <Card.Content style={styles.cardContentStyle}>
-            <Text h3>
-              {`${jumpDisplay} ${inchesOrCm}`}
-            </Text>
-          </Card.Content>
-        </Card>
-        <Card style={styles.cardContainerStyle}>
-          <Card.Title title="Most Steps" />
-          <Card.Content style={styles.cardContentStyle}>
-            <Text h3>{mostSteps}</Text>
-          </Card.Content>
-        </Card>
+        <View style={styles.gridBox}>
+          <Icon name='long-arrow-up' size={30}/>
+          <View style={styles.gridTextBox}>
+            <Text h4>{`${jumpDisplay} ${inchesOrCm}`}</Text>
+            <Text>Highest Jump</Text>
+          </View>
+        </View>
+        <View style={styles.gridBox}>
+          <Icon name='long-arrow-up' size={30}/>
+          <View style={styles.gridTextBox}>
+            <Text h4>{mostSteps}</Text>
+            <Text>Most Steps</Text>
+          </View>
+        </View>
       </View>
+
       <View style={styles.row}>
-        <Card style={styles.cardContainerStyle}>
-          <Card.Title title="Most Laps" style={styles.cardTitleStyle}/>
-          <Card.Content style={styles.cardContentStyle}>
-            <Text h3>
-              {`${mostLaps}`}
-            </Text>
-          </Card.Content>
-        </Card>
-        <Card style={styles.cardContainerStyle} onPress={() => setShowSplits(true)}>
-          <Card.Title title="Best Event" style={styles.cardTitleStyle}/>
-          <Card.Content style={styles.cardContentStyle}>
-            <Text>{eventTitle}</Text>
-            <Text>{bestEvent.time}</Text>
-          </Card.Content>
-        </Card>
+        <View style={styles.gridBox}>
+          <Icon name='long-arrow-up' size={30}/>
+          <View style={styles.gridTextBox}>
+            <Text h4>{mostLaps}</Text>
+            <Text>Most Laps</Text>
+          </View>
+        </View>
+        <View style={styles.gridBox}>
+          <TouchableOpacity
+            style={{flexDirection: 'row', alignItems: 'center'}}
+            onPress={() => setShowSplits(true)}
+          >
+            <Icon name='long-arrow-up' size={30}/>
+            <View style={styles.gridTextBox}>
+              <Text h4>{bestEvent.time}</Text>
+              <Text>{eventTitle}</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   )
@@ -116,19 +125,20 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 20,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    // justifyContent: 'space-around',
     width: '100%'
   },
-  cardContainerStyle: {
-    width: '40%'
-  },
-  cardContentStyle: {
-    justifyContent: 'center',
+  gridBox: {
+    marginLeft: 30,
+    flex: 1,
+    // backgroundColor: 'blue',
+    flexDirection: 'row',
+    // justifyContent: 'center',
     alignItems: 'center'
   },
-  cardTitleStyle: {
-    alignItems: 'center',
+  gridTextBox: {
     justifyContent: 'center',
-    alignSelf: 'center'
-  }
+    marginLeft: 10
+    // alignItems: 'center'
+  },
 })
