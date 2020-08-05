@@ -1,13 +1,29 @@
 import React, { Component } from 'react'
 import { Dimensions, View, Text, StyleSheet } from "react-native";
+import { Card } from 'react-native-elements';
 import {
   LineChart,
   BarChart,
 } from "react-native-chart-kit";
+import { useTheme } from '@react-navigation/native';
+import { COLOR_THEMES } from '../../ColorThemes' 
 const screenWidth = Dimensions.get("window").width;
 
 const Past = (props) => {
-  const { labels, data, hoverLabel, yAxisMin, yAxisMax, chartTitle } = props
+  const { labels, data, hoverLabel, yAxisMin, yAxisMax, chartTitle, activity } = props
+  const { colors } = useTheme();
+  const getColorTheme = () => {
+    switch(activity.toLowerCase()) {
+      case 'runs':
+        return COLOR_THEMES.RUN_THEME
+      case 'jumps':
+        return COLOR_THEMES.JUMP_THEME
+      case 'swims':
+        return COLOR_THEMES.SWIM_THEME
+      default:
+        return 'black'
+    }
+  }
   const chartData = {
     labels,
     datasets: [
@@ -17,62 +33,62 @@ const Past = (props) => {
     ]
   };
   chartConfig={
-    backgroundColor: "#e26a00",
-    backgroundGradientFrom: "#fb8c00",
-    backgroundGradientTo: "#ffa726",
-    decimalPlaces: 2, // optional, defaults to 2dp
-    color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-    labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+    // backgroundColor: colors.background,
+    backgroundGradientFrom: colors.background,
+    // backgroundGradientFrom: 'white',
+    // backgroundGradientFromOpacity: 0,
+    backgroundGradientTo: colors.background,
+    // backgroundGradientTo: 'white',
+    // backgroundGradientToOpacity: 0.5,
+    barPercentage: .8,
+    useShadowColorFromDataset: false, // optional
+    decimalPlaces: 0, // optional, defaults to 2dp
+    color: (opacity = 1) => getColorTheme(), // controls bar colors
+    labelColor: (opacity = 1) => colors.textColor,
     style: {
-      borderRadius: 16
+      borderRadius: 16,
     },
-    propsForDots: {
-      r: "6",
-      strokeWidth: "2",
-      stroke: "#ffa726"
-    }
+    fillShadowGradientOpacity: .6,
+    // barRadius: 10,
+    // propsForDots: {
+    //   r: "6",
+    //   strokeWidth: "2",
+    //   stroke: "#ffa726"
+    // },
+    propsForBackgroundLines: {
+      stroke: colors.textColor,
+      opacity: .3,
+      strokeWidth: '1',
+    },
   };
   const graphStyle = {
-    backgroundGradientFrom: "#1E2923",
-    backgroundGradientFromOpacity: 0,
-    backgroundGradientTo: "#08130D",
-    backgroundGradientToOpacity: 0.5,
-    color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
-    strokeWidth: 2, // optional, default 3
-    barPercentage: 0.5,
-    useShadowColorFromDataset: false // optional
+    // backgroundColor: 'red',
   };
   return (
-    <BarChart
-      style={graphStyle}
-      data={chartData}
-      width={screenWidth}
-      height={300}
-      yAxisLabel="$"
-      chartConfig={chartConfig}
-      verticalLabelRotation={25}
-      fromZero
-    />
+    // <Card
+    //   containerStyle={styles.cardContainer}
+    // >
+      <BarChart
+        style={graphStyle}
+        data={chartData}
+        width={.9 * screenWidth}
+        height={300}
+        chartConfig={chartConfig}
+        verticalLabelRotation={25}
+        horizontalLabelRotation={10}
+        fromZero
+        // showBarTops={false}
+        // showValuesOnTopOfBars
+      />
+    // </Card>
   )
-  // const chartData = {
-  //   labels,
-  //   datasets: [
-  //     {
-  //       data,
-  //       color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // optional
-  //       strokeWidth: 2 // optional
-  //     }
-  //   ],
-  // };
-
-  // return (
-  //   <LineChart
-  //     data={chartData}
-  //     width={screenWidth}
-  //     height={220}
-  //     chartConfig={chartConfig}
-  //   />
-  // )
 }
-
+const styles = StyleSheet.create({
+  cardContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '90%',
+    padding: 20,
+  }
+})
 export default Past

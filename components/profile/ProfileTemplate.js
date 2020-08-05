@@ -23,6 +23,7 @@ import ProfileInfo from './sections/ProfileInfo'
 import ProfileAggregates from './sections/ProfileAggregates'
 import EditProfile from './EditProfileFunc'
 import GradientButton from '../generic/GradientButton'
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 // replace with default avatar link
 const imgAlt = "./default_profile.png"
@@ -100,6 +101,9 @@ const ProfileTemplate = (props) => {
                 />
                 <View style={styles.routeButtons}>
                   {canViewFitness() ?
+                    // <TouchableOpacity>
+                    //   <Text>Fitness</Text>
+                    // </TouchableOpacity> : null
                     <GradientButton 
                       buttonText='Fitness'
                       onPress={() => navigateToFitness(props.navigation)}

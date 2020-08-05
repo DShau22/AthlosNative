@@ -3,8 +3,8 @@ import { DefaultTheme, DarkTheme } from '@react-navigation/native';
 // activity color themes
 const COLOR_THEMES = {
   RUN_THEME: '#9cf0b1',
-  SWIM_THEME: '#9cbcf0',
-  JUMP_THEME: '#f39ef3',
+  SWIM_THEME: '#B3F2FF',
+  JUMP_THEME: '#FAB6F8',
 };
 
 // supposed to emulate tropical water colors and vibes
@@ -13,13 +13,16 @@ const TROPIC_THEME = {
   dark: false,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#197CCB',
-    background: '#EDF6FF',
-    gradientLeft: '#16E8EF',
-    gradientMiddle: '#197CCB',
-    gradientRight: '#36EA8E',
+    secondary: '#CFFAF7',
+    background: '#F7F8FF',
+    profileHeader: '#BFB3FF',
+    gradientLeft: '#197CCB',
+    gradientRight: '#5CE7EA',
+    gradientMiddle: '#16BAEF',
+    dropdown: '#E6EBF5',
     textButtonColor: '#F2FFFF',
-    textColor: 'black'
+    textColor: '#252526',
+    cardBackground: 'white'
   },
 };
 

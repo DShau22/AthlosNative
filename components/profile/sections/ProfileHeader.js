@@ -15,6 +15,8 @@ const {
 } = PROFILE_CONSTANTS
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import COMMUNITY_CONSTANTS from '../../community/CommunityConstants'
+import ThemeText from '../../generic/ThemeText'
+
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import GradientButton from '../../generic/GradientButton'
 import { useTheme } from '@react-navigation/native';
@@ -61,13 +63,13 @@ const ProfileHeader = (props) => {
         props.navigation.push(GLOBAL_CONSTANTS.COMMUNITY, { screen: toScreen })
       }}
     >
-      <Text h4 style={{color: colors.textColor}}>{topText}</Text>
-      <Text style={{color: colors.textColor}}>{bottomText}</Text>
+      <ThemeText h4>{topText}</ThemeText>
+      <ThemeText>{bottomText}</ThemeText>
     </TouchableOpacity>
   )
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container]}>
       <View style={styles.topContainer}>
         <View style={styles.imageContainer}>
           <Image 
@@ -84,14 +86,20 @@ const ProfileHeader = (props) => {
       </View>
       <Text h4 style={[styles.nameText, {color: colors.textColor}]}>{`${firstName} ${lastName}`}</Text>
       { renderRelationshipAction() }
+      <Divider style={styles.divider}/>
     </View>
   )
 }
 const styles = StyleSheet.create({
   container: {
+    // paddingTop: 20,
     flex: 1,
     flexDirection: 'column',
-    width: '100%'
+    width: '100%',
+  },
+  divider: {
+    marginLeft: 8,
+    marginRight: 8,
   },
   editButtonContainer: {
     margin: 15,

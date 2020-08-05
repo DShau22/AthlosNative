@@ -2,11 +2,13 @@ import React from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 import { Text, Divider } from 'react-native-elements';
 import { UserDataContext, ProfileContext } from '../../../Context';
+import { useTheme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 Icon.loadFont();
 
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import { inchesToCm } from '../../utils/unitConverter'
+import ThemeText from '../../generic/ThemeText'
 // popup stuff for tapping on cards
 import Modal, {
   ModalContent,
@@ -28,6 +30,8 @@ const ProfileBests = (props) => {
   const inchesOrCm = unitSystem === METRIC ? 'cm' : 'in'
   const jumpDisplay = unitSystem === METRIC ? inchesToCm(highestJump) : highestJump
   const eventTitle = `${bestEvent.distance}${bestEvent.metric} ${bestEvent.stroke}`
+
+  const { colors } = useTheme();
   const renderSplits = () => {
     return bestEvent.splits.map((time, idx) => {
       return {lap: idx+1, time}
@@ -37,10 +41,10 @@ const ProfileBests = (props) => {
   const SplitItem = ({ lap, time }) => (
     <View style={{flexDirection: 'row'}}>
       <View style={{flex: 1}}>
-        <Text h3>{lap}</Text>
+        <ThemeText h3>{lap}</ThemeText>
       </View>
       <View style={{flex: 5, justifyContent: 'center', alignItems: 'center'}}>
-        <Text h4>{time}</Text>
+        <ThemeText h4>{time}</ThemeText>
       </View>
     </View>
   )
@@ -71,30 +75,30 @@ const ProfileBests = (props) => {
           />
         </ModalContent>
       </Modal>
-      <Divider />
+      <Divider style={styles.divider}/>
       <View style={styles.row}>
         <View style={styles.gridBox}>
-          <Icon name='long-arrow-up' size={30}/>
+          <Icon name='long-arrow-up' size={30} color={colors.textColor}/>
           <View style={styles.gridTextBox}>
-            <Text h4>{`${jumpDisplay} ${inchesOrCm}`}</Text>
-            <Text>Highest Jump</Text>
+            <ThemeText h4>{`${jumpDisplay} ${inchesOrCm}`}</ThemeText>
+            <ThemeText>Highest Jump</ThemeText>
           </View>
         </View>
         <View style={styles.gridBox}>
-          <Icon name='long-arrow-up' size={30}/>
+          <Icon name='long-arrow-up' size={30} color={colors.textColor}/>
           <View style={styles.gridTextBox}>
-            <Text h4>{mostSteps}</Text>
-            <Text>Most Steps</Text>
+            <ThemeText h4>{mostSteps}</ThemeText>
+            <ThemeText>Most Steps</ThemeText>
           </View>
         </View>
       </View>
 
       <View style={styles.row}>
         <View style={styles.gridBox}>
-          <Icon name='long-arrow-up' size={30}/>
+          <Icon name='long-arrow-up' size={30} color={colors.textColor}/>
           <View style={styles.gridTextBox}>
-            <Text h4>{mostLaps}</Text>
-            <Text>Most Laps</Text>
+            <ThemeText h4>{mostLaps}</ThemeText>
+            <ThemeText>Most Laps</ThemeText>
           </View>
         </View>
         <View style={styles.gridBox}>
@@ -102,10 +106,10 @@ const ProfileBests = (props) => {
             style={{flexDirection: 'row', alignItems: 'center'}}
             onPress={() => setShowSplits(true)}
           >
-            <Icon name='long-arrow-up' size={30}/>
+            <Icon name='long-arrow-up' size={30} color={colors.textColor}/>
             <View style={styles.gridTextBox}>
-              <Text h4>{bestEvent.time}</Text>
-              <Text>{eventTitle}</Text>
+              <ThemeText h4>{bestEvent.time}</ThemeText>
+              <ThemeText>{eventTitle}</ThemeText>
             </View>
           </TouchableOpacity>
         </View>
@@ -120,6 +124,10 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     // backgroundColor: 'red'
+  },
+  divider: {
+    marginLeft: 8,
+    marginRight: 8,
   },
   row: {
     flex: 1,

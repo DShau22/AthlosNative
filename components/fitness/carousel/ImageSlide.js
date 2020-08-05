@@ -2,6 +2,8 @@ import React from 'react'
 import { View, StyleSheet, Text } from "react-native"
 import { UserDataContext } from "../../../Context"
 import {COLOR_THEMES} from "../../ColorThemes"
+import * as Animatable from 'react-native-animatable';
+
 const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES
 import { ProgressCircle } from 'react-native-svg-charts'
 import FITNESS_CONSTANTS from '../../fitness/FitnessConstants'
@@ -31,7 +33,10 @@ const ImageSlide = (props) => {
     var { activityData } = stats
     var labels = getLabels(stats.action)
     var num = activityData.length === 0 ? 0 : activityData[indexDisplay].num
-    return ( <Text style={style}> {`${num} ${labels.numLabel}`} </Text> )
+    return (
+      <Text style={style}> {`${num} ${labels.numLabel}`} </Text>
+      // <Animatable.Text animation="slideInLeft">{`${num} ${labels.numLabel}`}</Animatable.Text>
+    )
   }
 
   const getActivityColor = () => {

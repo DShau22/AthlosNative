@@ -1,10 +1,13 @@
-import React, {Component} from 'react'
+import React from 'react'
+import { Divider, Button } from 'react-native-elements'
 import { View, StyleSheet, ScrollView } from 'react-native'
 import { UserDataContext } from "../../Context"
 import { parseDate } from "../utils/unitConverter"
 import Carousel from './carousel/Carousel'
 import Calories from './Calories'
 import Duration from './Duration'
+import { PieChart } from 'react-native-svg-charts'
+
 // HOC for run, swim, jump fitness pages.
 // reuses label and data getting for:
 // 1. past laps/jumps/steps (num)
@@ -66,7 +69,7 @@ export default function withFitnessPage( WrappedComponent ) {
         pastGraphLabels.push(dateInfo[0] + ", " + dateInfo[1] + " " + dateInfo[2])
       })
       reverse(pastGraphLabels)
-      setState({ ...state, pastGraphLabels })
+      setState(prevState => ({ ...prevState, pastGraphLabels }))
     }
 
     const makePastGraphData = () => {
@@ -76,7 +79,7 @@ export default function withFitnessPage( WrappedComponent ) {
         pastGraphData.push(num)
       })
       reverse(pastGraphData)
-      setState({ ...state, pastGraphData })
+      setState(prevState => ({ ...prevState, pastGraphData }))
     }
 
     // returns Day of week, month day (num) in a string format
@@ -95,7 +98,7 @@ export default function withFitnessPage( WrappedComponent ) {
     const dropdownItemClick = (activityIndex) => {
       // on dropdown date click, display that date on the dropdown,
       // and switch the image slider to display that date
-      setState({ ...state, activityIndex })
+      setState(prevState => ({ ...prevState, activityIndex }))
     }
 
     const calcAvgNum = () => {
@@ -127,23 +130,31 @@ export default function withFitnessPage( WrappedComponent ) {
       const { activityData } = activityJson
       const lowestIndex = Math.max(0, activityData.length - 1)
       const nextIndex = Math.min((state.activityIndex + 1), lowestIndex)
-      setState({ ...state, activityIndex: nextIndex })
+      setState(prevState => ({ ...prevState, activityIndex: nextIndex }))
       console.log("previous pressed! ", state.activityIndex)
     }
   
     const nextSlide = () => {
       // 0 represents the most recent upload date
       const nextIndex = Math.max((state.activityIndex - 1), 0)
-      setState({ ...state, activityIndex: nextIndex })
+      setState(prevState => ({ ...prevState, activityIndex: nextIndex }))
       console.log("next pressed! ", state.activityIndex)
     }
 
     const { activityIndex, pastGraphData, pastGraphLabels } = state
     const currentStatDisplay = activityJson.activityData[activityIndex]
-    console.log('fitness page state: ', id, state)
+    // console.log('fitness page state: ', id, state)
+    data = [15, 15, 15]
+    const pieData = data.map((value, index) => ({
+      value,
+      svg: {
+        fill: 'red',
+        onPress: () => console.log('press', index),
+      },
+      key: `pie-${index}-${value}`,
+    }))
     return (
-      <ScrollView
-        contentContainerStyle={styles.scrollContents}
+      <View
         style={styles.container}
       >
         <Carousel
@@ -154,14 +165,22 @@ export default function withFitnessPage( WrappedComponent ) {
           displayDate={displayDate}
           dropdownItemClick={dropdownItemClick}
         />
-        <View>
+        <View style={styles.calsAndTimeContainer}>
           <Calories 
             cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
+            activity={activityJson.action}
+          />
+          <Button 
+            title='Past'
+            onPress={() => console.log('pressed past')}
           />
           <Duration 
             duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
+            activity={activityJson.action}
           />
         </View>
+        <Divider style={{width: '95%'}}/>
+        {/* DO A PROPS.CHILDREN THING HERE INSTEAD AND SEE IF THAT SOLVES THE FUCKING ISSUE */}
         <WrappedComponent
           pastGraphData={pastGraphData}
           pastGraphLabels={pastGraphLabels}
@@ -176,7 +195,7 @@ export default function withFitnessPage( WrappedComponent ) {
           roundToNDecimals={roundToNDecimals}
           {...props.route.params}
         />
-      </ScrollView>
+      </View>
     )
   }
   return WithFitnessPage
@@ -186,17 +205,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     height: '100%',
-    width: '100%'
+    width: '100%',
+    alignItems: 'center',
+    // justifyContent: 'center',
   },
   scrollContents: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    // alignItems: 'center',
+    // justifyContent: 'center',
   },
   calsAndTimeContainer: {
-    marginTop: 10,
-    marginBottom: 10,
+    marginTop: 5,
+    marginBottom: 20,
     width: '100%',
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-around',
   },
 })

@@ -1,14 +1,16 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
 import React, { Component } from 'react'
-import { View, Text, StyleSheet, ScrollView, FlatList, Dimensions, SafeAreaView } from 'react-native'
-import Carousel from "../carousel/Carousel"
-import Calories from "../Calories"
-import Duration from "../Duration"
+import { Divider } from 'react-native-elements'
+import { Card } from 'react-native-paper'
+import { View, Text, StyleSheet, ScrollView, FlatList, Dimensions, Image } from 'react-native'
 import Past from "../charts/Past"
-// import RunDoughnut from "./RunDoughnut"
+import RunDonut from "./RunDonut"
 import withFitnessPage from "../withFitnessPage"
 import { UserDataContext } from "../../../Context"
+import { COLOR_THEMES } from '../../ColorThemes'
+import { PieChart } from 'react-native-svg-charts'
+import ThemeText from '../../generic/ThemeText'
 // import PaceLineProgression from "../charts/PaceLineProgression"
 
 // btw restPaceMin and walkPaceMax is walking
@@ -102,29 +104,31 @@ const Run = (props) => {
   } = props
   var currentStatDisplay = runJson.activityData[activityIndex]
 
+  data = [15, 15, 15]
+  const pieData = data.map((value, index) => ({
+    value,
+    svg: {
+      fill: 'red',
+      onPress: () => console.log('press', index),
+    },
+    key: `pie-${index}-${value}`,
+  }))
   return (
-    // <ScrollView
-    //   contentContainerStyle={styles.scrollContents}
-    //   style={styles.container}
-    // >
-    //   <Carousel
-    //     stats={runJson}
-    //     previousSlide={previousSlide}
-    //     nextSlide={nextSlide}
-    //     activityIndex={activityIndex}
-    //     displayDate={displayDate}
-    //     dropdownItemClick={dropdownItemClick}
-    //     renderSecondary={estimateDistanceRun}
-    //   />
-    //   <View style={styles.calsAndTimeContainer}>
-    //     <Calories 
-    //       cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
-    //     />
-    //     <Duration 
-    //       duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
-    //     />
-    //   </View>
-    <>
+  //   <RunDoughnut
+  //   style={{height: 400, backgroundColor: 'blue'}}
+  //   labels={['% run', '% walk', '% rest']}
+  //   // data={makeDoughnutData()}
+  //   data={pieData}
+  //   colors={[
+  //     // 'rgba(102, 255, 102, 0.4)',
+  //     // 'rgba(255, 255, 0, 0.4)',
+  //     // 'rgba(255, 51, 0, 0.4)',
+  //     'red',
+  //     'green',
+  //     'blue'
+  //   ]}
+  // />
+    <View style={styles.container}>
       <Past
         chartTitle="Previous Runs"
         labels={pastGraphLabels}
@@ -134,75 +138,85 @@ const Run = (props) => {
         yAxisMin={0}
         yAxisMax={Math.max(...pastGraphData)}
       />
-      <View className="row">
-        <View className="col">
-          {/* <PaceLineProgression
-            activity="Pace Progression"
-            displayDate={displayDate}
-            data={[0, ...currentStatDisplay.paces]} // add 0 to beginning of paces array to indicate 0 pace at time 0
-            labels={makePaceLabels(currentStatDisplay.paces, currentStatDisplay.time)}
-            hoverLabel="Pace"
-            yAxisMin={0}
-            yAxisMax={Math.max(...currentStatDisplay.paces) + 2}
-          /> */}
-        </View>
-      </View>
-      <View className="row mt-3">
-        <View className="col-6">
-          <View className="card text-center">
-            <View className="card-body">
-              <Text className="card-title">Avg Steps per Session</Text>
-              <Text>{calcAvgNum()}</Text>
-            </View>
+        <RunDonut
+          style={{height: 250}}
+          labels={['% run', '% walk', '% rest']}
+          // data={makeDoughnutData()}
+          data={[.5, .4, .1]}
+          colors={[
+            'rgba(102, 255, 102, 0.4)',
+            'rgba(255, 255, 0, 0.4)',
+            'rgba(255, 51, 0, 0.4)',
+          ]}
+        />
+      <Card style={styles.cardContainer}>
+        <Card.Content style={styles.cardContent}>
+        </Card.Content>
+      </Card>
+      {/* <PaceLineProgression
+        activity="Pace Progression"
+        displayDate={displayDate}
+        data={[0, ...currentStatDisplay.paces]} // add 0 to beginning of paces array to indicate 0 pace at time 0
+        labels={makePaceLabels(currentStatDisplay.paces, currentStatDisplay.time)}
+        hoverLabel="Pace"
+        yAxisMin={0}
+        yAxisMax={Math.max(...currentStatDisplay.paces) + 2}
+      /> */}
+      <Card style={styles.cardContainer}>
+        <Card.Content style={styles.cardContent}>
+          <Image
+            style={{width: 35, height: 35, borderRadius: 70}}
+            source={{
+              uri: 'https://reactnative.dev/img/tiny_logo.png',
+            }}
+          />
+          <View style={{marginLeft: 40}}>
+            <ThemeText >Average steps per session</ThemeText>
+            <ThemeText style={{marginTop: 5}}>{calcAvgNum()}</ThemeText>
           </View>
-        </View>
-        <View className="col-6">
-          <View className="card text-center">
-            <View className="card-body">
-              <Text className="card-title">Avg Pace per Session</Text>
-              <Text>{calcAvgPace()}</Text>
-            </View>
+        </Card.Content>
+      </Card>
+
+      <Card style={styles.cardContainer}>
+        <Card.Content style={styles.cardContent}>
+          <Image
+            style={{width: 35, height: 35, borderRadius: 70}}
+            source={{
+              uri: 'https://reactnative.dev/img/tiny_logo.png',
+            }}
+          />
+          <View style={{marginLeft: 40}}>
+            <ThemeText >Average cadence per Session</ThemeText>
+            <ThemeText style={{marginTop: 5}}>{calcAvgPace()}</ThemeText>
           </View>
-        </View>
-      </View>
-      <View className="row mt-3">
-        <View className="col-6">
-          <View className="card text-center">
-            <View className="card-body">
-              <Text className="card-title">Avg Cals per Session</Text>
-              <Text>{calcAvgCals()}</Text>
-            </View>
+        </Card.Content>
+      </Card>
+
+      <Card style={styles.cardContainer}>
+        <Card.Content style={styles.cardContent}>
+          <Image
+            style={{width: 35, height: 35, borderRadius: 70}}
+            source={{
+              uri: 'https://reactnative.dev/img/tiny_logo.png',
+            }}
+          />
+          <View style={{marginLeft: 40}}>
+            <ThemeText >Average Calories burned per Session</ThemeText>
+            <ThemeText style={{marginTop: 5}}>{calcAvgCals()}</ThemeText>
           </View>
-        </View>
-        <View className="col-6">
-          <View className="card text-center">
-            <View className="card-body">
-              {/* <RunDoughnut
-                labels={['% run', '% walk', '% rest']}
-                data={makeDoughnutData()}
-                colors={[
-                  'rgba(102, 255, 102, 0.4)',
-                  'rgba(255, 255, 0, 0.4)',
-                  'rgba(255, 51, 0, 0.4)',
-                ]}
-              /> */}
-            </View>
-          </View>
-        </View>
-      </View>
-    </>
-    // </ScrollView>
+        </Card.Content>
+      </Card>
+    </View>
   )
 }
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    height: '100%',
-    width: '100%'
-  },
-  scrollContents: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    // flex: 1,
+    // height: '100%',
+    width: '100%',
+    // backgroundColor: 'red',
+    // alignItems: 'center',
+    marginTop: 25
   },
   calsAndTimeContainer: {
     marginTop: 10,
@@ -220,19 +234,17 @@ const styles = StyleSheet.create({
     // alignItems: 'center',
     marginBottom: 10
   },
-  text1: {
-    flex: 1,
-    // fontSize: 14,
-    color: '#2f354b',
-    // textAlign: 'center',
-    backgroundColor: 'black',
+  cardContainer: {
+    width: '90%',
+    // height: 80,
+    borderRadius: 15,
+    marginTop: 20,
   },
-  text2: {
-    flex: 2,
-    // fontSize: 14,
-    color: '#2f354b',
-    // textAlign: 'center',
-    backgroundColor: 'red',
+  cardContent: {
+    flexDirection: 'row',
+    marginTop: 5,
+    // alignItems: 'center',
+    // justifyContent: 'center',
   }
 })
 export default gestureHandlerRootHOC(withFitnessPage(Run))

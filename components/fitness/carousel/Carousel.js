@@ -6,8 +6,10 @@ import Arrow from "./Arrow"
 import React from 'react'
 import { parseDate } from "../../utils/unitConverter"
 import { ProgressCircle } from 'react-native-svg-charts'
+import { useTheme } from '@react-navigation/native';
 
 const Carousel = (props) => {
+  const { colors } = useTheme();
   const getDropdownDates = () => {
     var { dropdownItemClick, stats } = props
     var dropdownItems = []
@@ -53,7 +55,12 @@ const Carousel = (props) => {
         disabled={dropDownItems.length === 0}
         placeholder={initialDropdownText}
         containerStyle={{height: 40}}
-        style={styles.dropdownStyle}
+        style={[styles.dropdownStyle, {backgroundColor: colors.dropdown}]}
+        labelStyle={{
+          fontSize: 14,
+          textAlign: 'left',
+          color: colors.textColor
+        }}
         dropDownStyle={{backgroundColor: '#fafafa'}}
         onChangeItem={item => {
           // set the activity index to what it should be (item.value)
@@ -91,7 +98,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   dropdownStyle: {
-    backgroundColor: '#fafafa',
+    // backgroundColor: 'red',
     width: '100%',
     height: 100,
   },
