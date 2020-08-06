@@ -11,57 +11,57 @@ import { UserDataContext } from "../../../Context"
 import { COLOR_THEMES } from '../../ColorThemes'
 import { PieChart } from 'react-native-svg-charts'
 import ThemeText from '../../generic/ThemeText'
-// import PaceLineProgression from "../charts/PaceLineProgression"
+import CadenceLineProgression from "./CadenceLineProgression"
 
 // btw restPaceMin and walkPaceMax is walking
 // greater that walkPaceMax is running
-const walkPaceMax = 2.314 // 130 steps per minute is a fast walk, which is 2.16 steps/sec, 2.314 (.2sec) / step
-// anything above restPaceMax is resting
-const restPaceMin = 5 // say 60 steps per minute is basically resting. 1 step/sec, 5 (.2sec) / step
+const walkCadenceMax = 130// 130 steps per minute is a fast walk, which is 2.16 steps/sec, 2.314 (.2sec) / step
+// anything above restcadenceMax is resting
+const restCadenceMin = 50 // say 60 steps per minute is basically resting. 1 step/sec, 5 (.2sec) / step
 
 const Run = (props) => {
   const context = React.useContext(UserDataContext)
   const { settings, activityJson } = props
   const runJson = activityJson;
-  const makeDoughnutData = () => {
+  const makeDonutData = () => {
     var runCount = 0
     var walkCount = 0
     var count = 0
     var { activityData } = runJson
     activityData.forEach((session, i) => {
-      session.paces.forEach((pace, j) => {
-        // if pace is somehow undefined or NaN or null then skip
-        if (!(!pace || isNaN(pace))) {
-          if (pace > walkPaceMax) {
+      session.cadences.forEach((cadence, j) => {
+        // if cadence is somehow undefined or NaN or null then skip
+        if (!(!cadence || isNaN(cadence))) {
+          if (cadence > walkCadenceMax) {
             runCount += 1
-          } else if (pace > restPaceMin && pace < walkPaceMax) {
+          } else if (cadence <= walkCadenceMax && cadence > restCadenceMin) {
             walkCount += 1
           }
           count += 1
         } else {
-          console.log("this pace entry is corrupted somehow...")
+          console.log("this cadence entry is corrupted somehow...")
         }
       })
     })
     if (count === 0) {
       return [0, 0, 0]
     }
-    var runPercent = runCount / count
-    var walkPercent = walkCount / count
-    return [runPercent, walkPercent, 1 - (runPercent + walkPercent)]
+    var runPercent = Math.floor(100 * runCount / count)
+    var walkPercent = Math.floor(100 * walkCount / count)
+    return [runPercent, walkPercent, 100 - (runPercent + walkPercent)]
   }
 
-  const calcAvgPace = () => {
+  const calcAvgCadence = () => {
     var { activityData } = runJson
     var avg = 0
     var count = 0
     activityData.forEach((session, i) => {
-      session.paces.forEach((pace, j) => {
-        avg += pace
+      session.cadences.forEach((cadence, j) => {
+        avg += cadence
         count += 1
       })
     })
-    return (count === 0) ? 0 : avg / count
+    return (count === 0) ? 0 : Math.floor(avg / count)
   }
 
   const estimateDistanceRun = (style) => {
@@ -75,16 +75,18 @@ const Run = (props) => {
     return (<Text style={style}>estimated dist</Text>)
   }
 
-  // returns an array of time labels for a given paces array
-  // and the total time the user spent on running mode
-  const makePaceLabels = (paces, totalTime) => {
-    let timeInterval = Math.floor(totalTime / paces.length)
-    let timeSeries = Array(paces.length)
+  // returns an array of time labels for a given cadences array
+  // and the total time the user spent on running mode. Only displays
+  // the label for every 5 minutes
+  const makeCadenceLabels = (cadences, totalTime) => {
+    console.log(totalTime / cadences.length)
+    let timeInterval = Math.floor(totalTime / cadences.length)
+    let timeSeries = Array(cadences.length)
 
-    // add 1 to length of paces array cuz you wanna start with 0
+    // add 1 to length of cadences array cuz you wanna start with 0
     // on the display chart
-    for (let i = 0; i < paces.length + 1; i++) {
-      timeSeries[i] = `${Math.floor(timeInterval * i / 10)} sec`
+    for (let i = 0; i < cadences.length + 1; i+=5) {
+      timeSeries[i] = `${Math.floor(timeInterval * i)}`
     }
     return timeSeries
   }
@@ -114,99 +116,98 @@ const Run = (props) => {
     key: `pie-${index}-${value}`,
   }))
   return (
-  //   <RunDoughnut
-  //   style={{height: 400, backgroundColor: 'blue'}}
-  //   labels={['% run', '% walk', '% rest']}
-  //   // data={makeDoughnutData()}
-  //   data={pieData}
-  //   colors={[
-  //     // 'rgba(102, 255, 102, 0.4)',
-  //     // 'rgba(255, 255, 0, 0.4)',
-  //     // 'rgba(255, 51, 0, 0.4)',
-  //     'red',
-  //     'green',
-  //     'blue'
-  //   ]}
-  // />
     <View style={styles.container}>
-      <Past
-        chartTitle="Previous Runs"
-        labels={pastGraphLabels}
-        data={pastGraphData}
-        hoverLabel="Steps"
-        activity="Runs"
-        yAxisMin={0}
-        yAxisMax={Math.max(...pastGraphData)}
-      />
+      <View style={{alignItems: 'center'}}>
+        <ThemeText h4>Cadence Progression</ThemeText>
+      </View>
+      <ScrollView horizontal style={{marginTop: 20}}>
+        <CadenceLineProgression
+          activity="Cadence Progression"
+          data={[0, ...currentStatDisplay.cadences]} // add 0 to beginning of cadences array to indicate 0 cadence at time 0
+          labels={makeCadenceLabels(currentStatDisplay.cadences, currentStatDisplay.time)}
+        />
+      </ScrollView>
+      <View style={{alignItems: 'center'}}>
+        <Divider style={{width: '95%', marginBottom: 10, marginTop: 10}}/>
+        <ThemeText h4>Distribution</ThemeText>
+      </View>
+      <View>
         <RunDonut
           style={{height: 250}}
           labels={['% run', '% walk', '% rest']}
-          // data={makeDoughnutData()}
-          data={[.5, .4, .1]}
+          data={makeDonutData()}
           colors={[
             'rgba(102, 255, 102, 0.4)',
             'rgba(255, 255, 0, 0.4)',
             'rgba(255, 51, 0, 0.4)',
           ]}
         />
-      <Card style={styles.cardContainer}>
-        <Card.Content style={styles.cardContent}>
-        </Card.Content>
-      </Card>
-      {/* <PaceLineProgression
-        activity="Pace Progression"
-        displayDate={displayDate}
-        data={[0, ...currentStatDisplay.paces]} // add 0 to beginning of paces array to indicate 0 pace at time 0
-        labels={makePaceLabels(currentStatDisplay.paces, currentStatDisplay.time)}
-        hoverLabel="Pace"
-        yAxisMin={0}
-        yAxisMax={Math.max(...currentStatDisplay.paces) + 2}
-      /> */}
-      <Card style={styles.cardContainer}>
-        <Card.Content style={styles.cardContent}>
-          <Image
-            style={{width: 35, height: 35, borderRadius: 70}}
-            source={{
-              uri: 'https://reactnative.dev/img/tiny_logo.png',
-            }}
-          />
-          <View style={{marginLeft: 40}}>
-            <ThemeText >Average steps per session</ThemeText>
-            <ThemeText style={{marginTop: 5}}>{calcAvgNum()}</ThemeText>
-          </View>
-        </Card.Content>
-      </Card>
+      </View>
+      <View style={{alignItems: 'center'}}>
+        <Divider style={{width: '95%', marginBottom: 10, marginTop: 10}}/>
+      </View>
+      <View style={{alignItems: 'center'}}>
+        <ThemeText h4>Past Runs</ThemeText>
+      </View>
+      <ScrollView horizontal contentContainerStyle={{alignItems: 'center', marginTop: 15}}>
+        <Past
+          chartTitle="Previous Runs"
+          labels={pastGraphLabels}
+          data={pastGraphData}
+          hoverLabel="Steps"
+          activity="Runs"
+          yAxisMin={0}
+          yAxisMax={Math.max(...pastGraphData)}
+        />
+      </ScrollView>
+      <View style={{alignItems: 'center'}}>
+        <Card style={styles.cardContainer}>
+          <Card.Content style={styles.cardContent}>
+            <Image
+              style={{width: 35, height: 35, borderRadius: 70}}
+              source={{
+                uri: 'https://reactnative.dev/img/tiny_logo.png',
+              }}
+            />
+            <View style={{marginLeft: 40}}>
+              <ThemeText >Average steps per session</ThemeText>
+              <ThemeText style={{marginTop: 5}}>{calcAvgNum()}</ThemeText>
+            </View>
+          </Card.Content>
+        </Card>
 
-      <Card style={styles.cardContainer}>
-        <Card.Content style={styles.cardContent}>
-          <Image
-            style={{width: 35, height: 35, borderRadius: 70}}
-            source={{
-              uri: 'https://reactnative.dev/img/tiny_logo.png',
-            }}
-          />
-          <View style={{marginLeft: 40}}>
-            <ThemeText >Average cadence per Session</ThemeText>
-            <ThemeText style={{marginTop: 5}}>{calcAvgPace()}</ThemeText>
-          </View>
-        </Card.Content>
-      </Card>
+        <Card style={styles.cardContainer}>
+          <Card.Content style={styles.cardContent}>
+            <Image
+              style={{width: 35, height: 35, borderRadius: 70}}
+              source={{
+                uri: 'https://reactnative.dev/img/tiny_logo.png',
+              }}
+            />
+            <View style={{marginLeft: 40}}>
+              <ThemeText >Average cadence per Session</ThemeText>
+              <ThemeText style={{marginTop: 5}}>{calcAvgCadence()}</ThemeText>
+            </View>
+          </Card.Content>
+        </Card>
 
-      <Card style={styles.cardContainer}>
-        <Card.Content style={styles.cardContent}>
-          <Image
-            style={{width: 35, height: 35, borderRadius: 70}}
-            source={{
-              uri: 'https://reactnative.dev/img/tiny_logo.png',
-            }}
-          />
-          <View style={{marginLeft: 40}}>
-            <ThemeText >Average Calories burned per Session</ThemeText>
-            <ThemeText style={{marginTop: 5}}>{calcAvgCals()}</ThemeText>
-          </View>
-        </Card.Content>
-      </Card>
+        <Card style={styles.cardContainer}>
+          <Card.Content style={styles.cardContent}>
+            <Image
+              style={{width: 35, height: 35, borderRadius: 70}}
+              source={{
+                uri: 'https://reactnative.dev/img/tiny_logo.png',
+              }}
+            />
+            <View style={{marginLeft: 40}}>
+              <ThemeText >Average Calories burned per Session</ThemeText>
+              <ThemeText style={{marginTop: 5}}>{calcAvgCals()}</ThemeText>
+            </View>
+          </Card.Content>
+        </Card>
+      </View>
     </View>
+    
   )
 }
 const styles = StyleSheet.create({

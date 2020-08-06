@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import { Dimensions, View, Text, StyleSheet } from "react-native";
 import { Card } from 'react-native-elements';
 import {
-  LineChart,
   BarChart,
 } from "react-native-chart-kit";
 import { useTheme } from '@react-navigation/native';
@@ -11,6 +10,7 @@ const screenWidth = Dimensions.get("window").width;
 
 const Past = (props) => {
   const { labels, data, hoverLabel, yAxisMin, yAxisMax, chartTitle, activity } = props
+  const chartWidth = Math.max(.9 * screenWidth, data.length / 7 * screenWidth)
   const { colors } = useTheme();
   const getColorTheme = () => {
     switch(activity.toLowerCase()) {
@@ -63,24 +63,20 @@ const Past = (props) => {
   };
   const graphStyle = {
     // backgroundColor: 'red',
+    marginLeft: 20
   };
   return (
-    // <Card
-    //   containerStyle={styles.cardContainer}
-    // >
-      <BarChart
-        style={graphStyle}
-        data={chartData}
-        width={.9 * screenWidth}
-        height={300}
-        chartConfig={chartConfig}
-        verticalLabelRotation={25}
-        horizontalLabelRotation={10}
-        fromZero
-        // showBarTops={false}
-        // showValuesOnTopOfBars
-      />
-    // </Card>
+    <BarChart
+      style={graphStyle}
+      data={chartData}
+      width={chartWidth}
+      height={300}
+      chartConfig={chartConfig}
+      verticalLabelRotation={25}
+      fromZero
+      // showBarTops={false}
+      // showValuesOnTopOfBars
+    />
   )
 }
 const styles = StyleSheet.create({

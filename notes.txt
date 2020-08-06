@@ -8,3 +8,6 @@ Running on Android:
 
 Any new screens created should be wrapped in the gestureHandlerRootHOC Higher order component
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
+
+To edit boilerplate template, go to:
+Code > preferences > user snippets
