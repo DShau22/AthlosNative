@@ -9,7 +9,7 @@ import { COLOR_THEMES } from '../../ColorThemes'
 const screenWidth = Dimensions.get("window").width;
 
 const Past = (props) => {
-  const { labels, data, hoverLabel, yAxisMin, yAxisMax, chartTitle, activity } = props
+  const { labels, data, activity } = props
   const chartWidth = Math.max(.9 * screenWidth, data.length / 7 * screenWidth)
   const { colors } = useTheme();
   const getColorTheme = () => {

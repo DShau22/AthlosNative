@@ -1,6 +1,8 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
-
 import React, { Component } from 'react'
+import { View, StyleSheet, Text, ScrollView } from 'react-native'
+import { Divider } from 'react-native-elements'
+
 import Carousel from "../carousel/Carousel"
 import Calories from "../Calories"
 import Duration from "../Duration"
@@ -8,12 +10,12 @@ import Duration from "../Duration"
 import Details from "../Details"
 import SwimDoughnut from "./SwimDoughnut"
 import PieChartWithDynamicSlices from "./PieChartWithDynamicSlices"
-
+import StatCard from '../StatCard'
+import ThemeText from '../../generic/ThemeText'
 import { UserDataContext } from '../../../Context'
 import Past from "../charts/Past"
 import withFitnessPage from "../withFitnessPage"
-import { View, StyleSheet, Text, ScrollView } from 'react-native'
-
+import DistributionDonut from '../charts/DistributionDonut'
 const metersToYards = 1.0 / 1.09361
 const yardsToMeters = 1.0 / 0.9144
 const swimLink = "/app/swimDetails"
@@ -100,7 +102,7 @@ const Swim = (props) => {
     return roundToNDecimals(totalTime / totalNumLaps, 2)
   }
 
-  const makeDoughnutData = () => {
+  const makeDonutData = () => {
     var { activityData } = props.activityJson
     const { isNullOrUndefined } = props
     if (isNullOrUndefined(activityData)) {
@@ -144,67 +146,16 @@ const Swim = (props) => {
   var currentStatDisplay = swimJson.activityData[activityIndex]
   // 50m, 25yd, or 25m
   return (
-    // <ScrollView
-    //   contentContainerStyle={styles.scrollContents}
-    //   style={styles.container}
-    // >
-    //   <Carousel
-    //     stats={swimJson}
-    //     previousSlide={previousSlide}
-    //     nextSlide={nextSlide}
-    //     activityIndex={activityIndex}
-    //     displayDate={displayDate}
-    //     dropdownItemClick={dropdownItemClick}
-    //     renderSecondary={calculateDistance}
-    //   />
-    //   <View>
-    //     <Calories 
-    //       cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
-    //     />
-    //     <Details detailsLink={swimLink}/>
-    //     <Duration 
-    //       duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
-    //     />
-    //   </View>
-    <>
-      <Past
-        chartTitle="Previous Swims"
-        labels={pastGraphLabels}
-        data={pastGraphData}
-        hoverLabel="Laps"
-        activity="Swims"
-        yAxisMin={0}
-        yAxisMax={50}
-      />
-      <View>
-        <Text>Avg Laps per Session</Text>
-        <Text>{calcAvgNum()}</Text>
+    <View style={styles.container}>
+      <View style={{alignItems: 'center'}}>
+        <ThemeText h4>Distribution</ThemeText>
       </View>
       <View>
-        <Text>Avg Speed per Lap</Text>
-        <Text>{calcAvgSpeed() + " " + (unitSystem === "metric" ? "m/s" : "yd/s")}</Text>
-      </View>
-      <View>
-        <Text>Avg Time per Lap</Text>
-        <Text>{calcAvgTimePerLap() + " seconds"}</Text>
-      </View>
-      <View>
-        <Text>Avg Strokes per Lap</Text>
-        <Text>avg strokes</Text>
-      </View>
-      <View>
-        <Text>Avg Cals per Session</Text>
-        <Text>{calcAvgCals()}</Text>
-      </View>
-      <View>
-        <Text>Avg Cals per Session</Text>
-        <Text>{calcAvgCals()}</Text>
-      </View>
-      <View style={styles.strokeDistribution}>
-        <Text>Stroke Distribution</Text>
-        <SwimDoughnut
-          data={makeDoughnutData()}
-          labels={["laps fly", "laps back", "laps breast", "laps free"]}
+        <DistributionDonut
+          style={{height: 250}}
+          data={makeDonutData()}
+          indexToLabel={{0: 'Fly', 1: 'Back', 2: 'Breast', 3: 'Free'}}
+          labelUnit=' laps'
           colors={[
             'rgba(102, 255, 102, 0.4)',
             'rgba(255, 255, 0, 0.4)',
@@ -213,20 +164,53 @@ const Swim = (props) => {
           ]}
         />
       </View>
-    </>
-    // </ScrollView>
+      <Divider style={{width: '95%'}}/>
+      <View style={{alignItems: 'center'}}>
+        <ThemeText h4>Past Swims</ThemeText>
+      </View>
+      <ScrollView horizontal contentContainerStyle={{alignItems: 'center', marginTop: 15}}>
+        <Past
+          labels={pastGraphLabels}
+          data={pastGraphData}
+          activity="Swims"
+          yAxisMin={0}
+          yAxisMax={Math.max(...pastGraphData)}
+        />
+      </ScrollView>
+      <View style={{alignItems: 'center'}}>
+        <StatCard
+          imageUri='https://reactnative.dev/img/tiny_logo.png'
+          label='Average laps per session'
+          stat={calcAvgNum()}
+        />
+        <StatCard
+          imageUri='https://reactnative.dev/img/tiny_logo.png'
+          label='Average Speed'
+          stat={`${calcAvgSpeed()} ${unitSystem === "metric" ? "m/s" : "yd/s"}`}
+        />
+        <StatCard
+          imageUri='https://reactnative.dev/img/tiny_logo.png'
+          label='Avg Time per Lap'
+          stat={`${calcAvgTimePerLap()} s`}
+        />
+        <StatCard
+          imageUri='https://reactnative.dev/img/tiny_logo.png'
+          label='Avg Cals burned per Session'
+          stat={calcAvgCals()}
+        />
+      </View>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    height: '100%',
-    width: '100%'
-  },
-  scrollContents: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    // flex: 1,
+    // height: '100%',
+    width: '100%',
+    // backgroundColor: 'red',
+    // alignItems: 'center',
+    marginTop: 25
   },
   calsAndTimeContainer: {
     marginTop: 10,
@@ -235,9 +219,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
   },
-  strokeDistribution: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  circle: {
+    flex: 1,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: 'black',
+    // minWidth: 80,
+    // alignItems: 'center',
+    marginBottom: 10
+  },
+  cardContainer: {
+    width: '90%',
+    // height: 80,
+    borderRadius: 15,
+    marginTop: 20,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    marginTop: 5,
+    // alignItems: 'center',
+    // justifyContent: 'center',
   }
 })
 

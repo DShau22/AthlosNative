@@ -3,15 +3,17 @@ import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 import React, { Component } from 'react'
 import { Divider } from 'react-native-elements'
 import { Card } from 'react-native-paper'
+import { PieChart } from 'react-native-svg-charts'
 import { View, Text, StyleSheet, ScrollView, FlatList, Dimensions, Image } from 'react-native'
 import Past from "../charts/Past"
 import RunDonut from "./RunDonut"
 import withFitnessPage from "../withFitnessPage"
+import StatCard from '../StatCard'
+import ThemeText from '../../generic/ThemeText'
 import { UserDataContext } from "../../../Context"
 import { COLOR_THEMES } from '../../ColorThemes'
-import { PieChart } from 'react-native-svg-charts'
-import ThemeText from '../../generic/ThemeText'
 import CadenceLineProgression from "./CadenceLineProgression"
+import DistributionDonut from '../charts/DistributionDonut'
 
 // btw restPaceMin and walkPaceMax is walking
 // greater that walkPaceMax is running
@@ -23,11 +25,14 @@ const Run = (props) => {
   const context = React.useContext(UserDataContext)
   const { settings, activityJson } = props
   const runJson = activityJson;
+  // returns an array of percentages for the distribution of walking, running, and resting.
+  // returns an empty array if there is no fitness data
   const makeDonutData = () => {
     var runCount = 0
     var walkCount = 0
     var count = 0
     var { activityData } = runJson
+    if (activityData.length === 0) return []
     activityData.forEach((session, i) => {
       session.cadences.forEach((cadence, j) => {
         // if cadence is somehow undefined or NaN or null then skip
@@ -43,9 +48,6 @@ const Run = (props) => {
         }
       })
     })
-    if (count === 0) {
-      return [0, 0, 0]
-    }
     var runPercent = Math.floor(100 * runCount / count)
     var walkPercent = Math.floor(100 * walkCount / count)
     return [runPercent, walkPercent, 100 - (runPercent + walkPercent)]
@@ -79,7 +81,6 @@ const Run = (props) => {
   // and the total time the user spent on running mode. Only displays
   // the label for every 5 minutes
   const makeCadenceLabels = (cadences, totalTime) => {
-    console.log(totalTime / cadences.length)
     let timeInterval = Math.floor(totalTime / cadences.length)
     let timeSeries = Array(cadences.length)
 
@@ -105,16 +106,6 @@ const Run = (props) => {
     isNullOrUndefined
   } = props
   var currentStatDisplay = runJson.activityData[activityIndex]
-
-  data = [15, 15, 15]
-  const pieData = data.map((value, index) => ({
-    value,
-    svg: {
-      fill: 'red',
-      onPress: () => console.log('press', index),
-    },
-    key: `pie-${index}-${value}`,
-  }))
   return (
     <View style={styles.container}>
       <View style={{alignItems: 'center'}}>
@@ -132,10 +123,12 @@ const Run = (props) => {
         <ThemeText h4>Distribution</ThemeText>
       </View>
       <View>
-        <RunDonut
+        <DistributionDonut
           style={{height: 250}}
-          labels={['% run', '% walk', '% rest']}
           data={makeDonutData()}
+          indexToLabel={{0: 'Running', 1: 'Walking', 2: 'Resting'}}
+          labelUnit='%'
+          // data={[]}
           colors={[
             'rgba(102, 255, 102, 0.4)',
             'rgba(255, 255, 0, 0.4)',
@@ -151,63 +144,29 @@ const Run = (props) => {
       </View>
       <ScrollView horizontal contentContainerStyle={{alignItems: 'center', marginTop: 15}}>
         <Past
-          chartTitle="Previous Runs"
           labels={pastGraphLabels}
           data={pastGraphData}
-          hoverLabel="Steps"
           activity="Runs"
-          yAxisMin={0}
-          yAxisMax={Math.max(...pastGraphData)}
         />
       </ScrollView>
       <View style={{alignItems: 'center'}}>
-        <Card style={styles.cardContainer}>
-          <Card.Content style={styles.cardContent}>
-            <Image
-              style={{width: 35, height: 35, borderRadius: 70}}
-              source={{
-                uri: 'https://reactnative.dev/img/tiny_logo.png',
-              }}
-            />
-            <View style={{marginLeft: 40}}>
-              <ThemeText >Average steps per session</ThemeText>
-              <ThemeText style={{marginTop: 5}}>{calcAvgNum()}</ThemeText>
-            </View>
-          </Card.Content>
-        </Card>
-
-        <Card style={styles.cardContainer}>
-          <Card.Content style={styles.cardContent}>
-            <Image
-              style={{width: 35, height: 35, borderRadius: 70}}
-              source={{
-                uri: 'https://reactnative.dev/img/tiny_logo.png',
-              }}
-            />
-            <View style={{marginLeft: 40}}>
-              <ThemeText >Average cadence per Session</ThemeText>
-              <ThemeText style={{marginTop: 5}}>{calcAvgCadence()}</ThemeText>
-            </View>
-          </Card.Content>
-        </Card>
-
-        <Card style={styles.cardContainer}>
-          <Card.Content style={styles.cardContent}>
-            <Image
-              style={{width: 35, height: 35, borderRadius: 70}}
-              source={{
-                uri: 'https://reactnative.dev/img/tiny_logo.png',
-              }}
-            />
-            <View style={{marginLeft: 40}}>
-              <ThemeText >Average Calories burned per Session</ThemeText>
-              <ThemeText style={{marginTop: 5}}>{calcAvgCals()}</ThemeText>
-            </View>
-          </Card.Content>
-        </Card>
+        <StatCard
+          imageUri='https://reactnative.dev/img/tiny_logo.png'
+          label='Average steps per session'
+          stat={calcAvgNum()}
+        />
+        <StatCard
+          imageUri='https://reactnative.dev/img/tiny_logo.png'
+          label='Average cadence per Session'
+          stat={calcAvgCadence()}
+        />
+        <StatCard
+          imageUri='https://reactnative.dev/img/tiny_logo.png'
+          label='Average Calories burned per Session'
+          stat={calcAvgCals()}
+        />
       </View>
     </View>
-    
   )
 }
 const styles = StyleSheet.create({

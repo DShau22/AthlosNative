@@ -5,10 +5,12 @@ import { PieChart, LineChart, Grid } from 'react-native-svg-charts'
 import { Text } from 'react-native-svg'
 import ThemeText from '../../generic/ThemeText'
 
-const RunDonut = (props) => {
-  const { data, labelToShow, colors } = props;
+const DistributionDonut = (props) => {
+  // data should be just a simple array of values
+  // indexToActivity is a map for array index to the corresponding label
+  const { data, indexToLabel, colors, activity, labelUnit } = props;
   const [slicePressed, setSlicePressed] = React.useState(null);
-  const indexToActivity = {0: 'Running', 1: 'Walking', 2: 'Resting'}
+  // const indexToActivity = {0: 'Running', 1: 'Walking', 2: 'Resting'}
   const pieData = data.map((value, index) => ({
     value,
     svg: {
@@ -33,14 +35,14 @@ const RunDonut = (props) => {
           stroke={'black'}
           strokeWidth={0.2}
         >
-          {index === slicePressed ? `${data.value}% ${indexToActivity[index]}` : ''}
+          {index === slicePressed ? `${data.value}${labelUnit} ${indexToLabel[index]}` : ''}
         </Text>
       )
     })
   }
   if (data.length === 0) {
     const noData = [{
-      key: "Didn't run this day :(",
+      key: ":(",
       value: 1,
       svg: {
         fill: '#e5e5e5'
@@ -49,7 +51,7 @@ const RunDonut = (props) => {
     return (
       <>
         <View style={{alignItems: 'center', marginTop: 20, marginBottom: 20}}>
-          <ThemeText>Looks like you didn't run this day</ThemeText>
+          <ThemeText>{`Looks like you didn't ${activity} this day`}</ThemeText>
         </View>
         <PieChart
           style={props.style}
@@ -74,7 +76,7 @@ const RunDonut = (props) => {
   )
 }
 
+export default DistributionDonut;
 const styles = StyleSheet.create({
 
 })
-export default RunDonut;

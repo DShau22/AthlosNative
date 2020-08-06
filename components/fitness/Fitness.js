@@ -15,6 +15,12 @@ import PROFILE_CONSTANTS from '../profile/ProfileConstants'
 import ENDPOINTS from '../endpoints'
 import axios from 'axios';
 import FITNESS_CONSTANTS from './FitnessConstants'
+import {
+  getData,
+  storeData,
+  storeDataObj,
+  getDataObj
+} from '../utils/storage';
 
 const Fitness = (props) => {
   const userDataContext = React.useContext(UserDataContext);
@@ -30,6 +36,7 @@ const Fitness = (props) => {
   const [jumpJson, setJumpJson] = React.useState(userDataContext.jumpJson)
   
   const { settings, relationshipStatus } = profileContext
+  const { setAppState } = appFunctionsContext
   const { _id } = props
 
   const getFitnessFromServer = React.useCallback(async () => {
@@ -57,6 +64,29 @@ const Fitness = (props) => {
         action: FITNESS_CONSTANTS.JUMP,
         imageUrl: FITNESS_CONSTANTS.JUMP
       })
+      // if this is the current user, save it to async storage and update the context
+      setAppState(prevState => {
+        const newAppState = {
+        ...prevState,
+        runJson: {
+          activityData: runsTracked,
+          action: FITNESS_CONSTANTS.RUN,
+          imageUrl: FITNESS_CONSTANTS.RUN
+        },
+        swimJson: {
+          activityData: swimsTracked,
+          action: FITNESS_CONSTANTS.SWIM,
+          imageUrl: FITNESS_CONSTANTS.SWIM
+        },
+        jumpJson: {
+          activityData: jumpsTracked,
+          action: FITNESS_CONSTANTS.JUMP,
+          imageUrl: FITNESS_CONSTANTS.JUMP
+        }}
+        storeDataObj(newAppState)
+        return newAppState
+      })
+
     } catch(e) {
       console.log(e)
       Alert.alert('Oh No :(', 'Something went wrong with the connection to the server. Please refresh and try again.', [{text: 'Ok'}])

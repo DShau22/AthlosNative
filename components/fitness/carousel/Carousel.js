@@ -55,13 +55,13 @@ const Carousel = (props) => {
         disabled={dropDownItems.length === 0}
         placeholder={initialDropdownText}
         containerStyle={{height: 40}}
-        style={[styles.dropdownStyle, {backgroundColor: colors.dropdown}]}
+        style={{...styles.dropdownStyle, backgroundColor: colors.dropdown}}
         labelStyle={{
           fontSize: 14,
           textAlign: 'left',
           color: colors.textColor
         }}
-        dropDownStyle={{backgroundColor: '#fafafa'}}
+        dropDownStyle={{backgroundColor: colors.dropdown}}
         onChangeItem={item => {
           // set the activity index to what it should be (item.value)
           dropdownItemClick(item.value)
