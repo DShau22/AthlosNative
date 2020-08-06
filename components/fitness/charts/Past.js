@@ -74,6 +74,7 @@ const Past = (props) => {
       chartConfig={chartConfig}
       verticalLabelRotation={25}
       fromZero
+      withHorizontalLabels={data.length > 0}
       // showBarTops={false}
       // showValuesOnTopOfBars
     />

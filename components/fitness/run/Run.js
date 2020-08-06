@@ -12,7 +12,7 @@ import StatCard from '../StatCard'
 import ThemeText from '../../generic/ThemeText'
 import { UserDataContext } from "../../../Context"
 import { COLOR_THEMES } from '../../ColorThemes'
-import CadenceLineProgression from "./CadenceLineProgression"
+import LineProgression from "../charts/LineProgression"
 import DistributionDonut from '../charts/DistributionDonut'
 
 // btw restPaceMin and walkPaceMax is walking
@@ -66,28 +66,17 @@ const Run = (props) => {
     return (count === 0) ? 0 : Math.floor(avg / count)
   }
 
-  const estimateDistanceRun = (style) => {
-    var { unitSystem } = settings
-    // this means the person's height is in cm, display km
-    if (unitSystem === "metric") {
-
-    } else {
-      // person's height in inches, display miles
-    }
-    return (<Text style={style}>estimated dist</Text>)
-  }
-
   // returns an array of time labels for a given cadences array
   // and the total time the user spent on running mode. Only displays
   // the label for every 5 minutes
   const makeCadenceLabels = (cadences, totalTime) => {
     let timeInterval = Math.floor(totalTime / cadences.length)
-    let timeSeries = Array(cadences.length)
+    let timeSeries   = []
 
     // add 1 to length of cadences array cuz you wanna start with 0
     // on the display chart
     for (let i = 0; i < cadences.length + 1; i+=5) {
-      timeSeries[i] = `${Math.floor(timeInterval * i)}`
+      timeSeries.push(`${Math.floor(timeInterval * i)}`)
     }
     return timeSeries
   }
@@ -105,16 +94,22 @@ const Run = (props) => {
     calcAvgCals,
     isNullOrUndefined
   } = props
+  // this could be undefined if user has no recorded data
   var currentStatDisplay = runJson.activityData[activityIndex]
   return (
     <View style={styles.container}>
       <View style={{alignItems: 'center'}}>
         <ThemeText h4>Cadence Progression</ThemeText>
       </View>
-      <ScrollView horizontal style={{marginTop: 20}}>
-        <CadenceLineProgression
-          activity="Cadence Progression"
-          data={[0, ...currentStatDisplay.cadences]} // add 0 to beginning of cadences array to indicate 0 cadence at time 0
+      <ScrollView
+        horizontal
+        style={{marginTop: 20}}
+        contentContainerStyle={[styles.sideScrollContent, {marginLeft: runJson.activityData.length === 0 ? -20 : 0}]}
+      >
+        <LineProgression
+          activityColor={COLOR_THEMES.RUN_THEME}
+          yAxisInterval='5'
+          data={runJson.activityData.length === 0 ? [] : [0, ...currentStatDisplay.cadences]}
           labels={makeCadenceLabels(currentStatDisplay.cadences, currentStatDisplay.time)}
         />
       </ScrollView>
@@ -205,6 +200,10 @@ const styles = StyleSheet.create({
     marginTop: 5,
     // alignItems: 'center',
     // justifyContent: 'center',
+  },
+  sideScrollContent: {
+    alignItems:'center',
+    width: '100%'
   }
 })
 export default gestureHandlerRootHOC(withFitnessPage(Run))

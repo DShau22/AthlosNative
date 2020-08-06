@@ -8,6 +8,7 @@ import Calories from './Calories'
 import Duration from './Duration'
 import { PieChart } from 'react-native-svg-charts'
 
+import FITNESS_CONTANTS from '../fitness/FitnessConstants'
 // HOC for run, swim, jump fitness pages.
 // reuses label and data getting for:
 // 1. past laps/jumps/steps (num)
@@ -74,10 +75,18 @@ export default function withFitnessPage( WrappedComponent ) {
 
     const makePastGraphData = () => {
       var pastGraphData = []
-      activityJson.activityData.forEach((session, idx) => {
-        var { num } = session
-        pastGraphData.push(num)
-      })
+      // for Jump data, people probably only really care about how high they jumped
+      if (activityJson.action === FITNESS_CONTANTS.JUMP) {
+        activityJson.activityData.forEach((session, idx) => {
+          var { heights } = session
+          pastGraphData.push(Math.max(...heights))
+        })
+      } else {
+        activityJson.activityData.forEach((session, idx) => {
+          var { num } = session
+          pastGraphData.push(num)
+        })
+      }
       reverse(pastGraphData)
       setState(prevState => ({ ...prevState, pastGraphData }))
     }
@@ -180,7 +189,6 @@ export default function withFitnessPage( WrappedComponent ) {
           />
         </View>
         <Divider style={{width: '95%'}}/>
-        {/* DO A PROPS.CHILDREN THING HERE INSTEAD AND SEE IF THAT SOLVES THE FUCKING ISSUE */}
         <WrappedComponent
           pastGraphData={pastGraphData}
           pastGraphLabels={pastGraphLabels}

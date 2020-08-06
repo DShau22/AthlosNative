@@ -6,10 +6,10 @@ import { useTheme } from '@react-navigation/native';
 import { COLOR_THEMES } from '../../ColorThemes' 
 const screenWidth = Dimensions.get("window").width;
 
-const CadenceLineProgression = (props) => {
-  const { labels, data } = props
+const LineProgression = (props) => {
+  const { labels, data, activityColor, yAxisInterval, yAxisUnits } = props
   const { colors } = useTheme();
-  const chartWidth = Math.max(screenWidth, data.length / 20 * screenWidth)
+  const chartWidth = Math.max(.9 * screenWidth, data.length / 20 * screenWidth)
   const chartData = {
     labels,
     datasets: [
@@ -28,7 +28,7 @@ const CadenceLineProgression = (props) => {
     // backgroundGradientToOpacity: 0.5,
     useShadowColorFromDataset: false, // optional
     decimalPlaces: 0, // optional, defaults to 2dp
-    color: (opacity = 1) => COLOR_THEMES.RUN_THEME, // controls bar colors
+    color: (opacity = 1) => activityColor, // controls bar colors
     labelColor: (opacity = 1) => colors.textColor,
     style: {
       borderRadius: 16,
@@ -40,12 +40,21 @@ const CadenceLineProgression = (props) => {
       strokeWidth: '1',
     },
   };
+  const zeroData = {
+    labels: [],
+    datasets: [{
+      data: [0]
+    }]
+  }
   return (
     <LineChart
-      data={chartData}
+      fromZero
+      data={data.length === 0 ? zeroData : chartData}
       width={chartWidth}
       height={300}
-      yAxisInterval='5'
+      withHorizontalLabels={data.length > 0}
+      yAxisInterval={yAxisInterval}
+      yAxisSuffix={yAxisUnits ? yAxisUnits : ''}
       chartConfig={chartConfig}
       xLabelsOffset={5}
       yLabelsOffset={20}
@@ -53,7 +62,7 @@ const CadenceLineProgression = (props) => {
   )
 }
 
-export default CadenceLineProgression;
+export default LineProgression;
 const styles = StyleSheet.create({
 
 })

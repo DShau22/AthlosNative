@@ -3,19 +3,15 @@ import React, { Component } from 'react'
 import { View, StyleSheet, Text, ScrollView } from 'react-native'
 import { Divider } from 'react-native-elements'
 
-import Carousel from "../carousel/Carousel"
-import Calories from "../Calories"
-import Duration from "../Duration"
-
 import Details from "../Details"
-import SwimDoughnut from "./SwimDoughnut"
-import PieChartWithDynamicSlices from "./PieChartWithDynamicSlices"
 import StatCard from '../StatCard'
 import ThemeText from '../../generic/ThemeText'
 import { UserDataContext } from '../../../Context'
 import Past from "../charts/Past"
 import withFitnessPage from "../withFitnessPage"
 import DistributionDonut from '../charts/DistributionDonut'
+import LineProgression from '../charts/LineProgression'
+import { COLOR_THEMES } from '../../ColorThemes'
 const metersToYards = 1.0 / 1.09361
 const yardsToMeters = 1.0 / 0.9144
 const swimLink = "/app/swimDetails"
@@ -128,6 +124,14 @@ const Swim = (props) => {
     })
     return [flyCount, backCount, breastCount, freeCount]     
   }
+
+  const makeTimeLabels = (currentStatDisplay, inc) => {
+    res = []
+    for (i = 0; i < currentStatDisplay.lapTimes.length; i+=inc) {
+      res.push(i === 0 ? 1 : i)
+    }
+    return res
+  }
   
   var { unitSystem } = settings
   var {
@@ -147,6 +151,22 @@ const Swim = (props) => {
   // 50m, 25yd, or 25m
   return (
     <View style={styles.container}>
+      <View style={{alignItems: 'center'}}>
+        <ThemeText h4>Lap Times</ThemeText>
+      </View>
+      <ScrollView
+        horizontal
+        style={{marginTop: 20}}
+        contentContainerStyle={[styles.sideScrollContent, {marginLeft: swimJson.activityData.length === 0 ? -20 : 0}]}
+      >
+        <LineProgression
+          activityColor={COLOR_THEMES.SWIM_THEME}
+          yAxisInterval='5'
+          yAxisUnits='s'
+          data={swimJson.activityData.length === 0 ? [] : currentStatDisplay.lapTimes.map(({lapTime}, _) => lapTime)}
+          labels={makeTimeLabels(currentStatDisplay, 4)}
+        />
+      </ScrollView>
       <View style={{alignItems: 'center'}}>
         <ThemeText h4>Distribution</ThemeText>
       </View>
@@ -239,6 +259,10 @@ const styles = StyleSheet.create({
     marginTop: 5,
     // alignItems: 'center',
     // justifyContent: 'center',
+  },
+  sideScrollContent: {
+    alignItems:'center',
+    width: '100%'
   }
 })
 
