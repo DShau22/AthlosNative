@@ -7,6 +7,7 @@ import COMMUNITY_CONSTANTS from '../../CommunityConstants'
 import ENDPOINTS from '../../../endpoints'
 import { UserDataContext } from '../../../../Context'
 import { getData, storeDataObj } from '../../../utils/storage'
+import Background from '../../../nativeLogin/Background';
 const defaultProfile = require('../../../assets/profile.png')
 const { FOLLOWERS, REQUESTS, DISAPPEAR_TIME } = COMMUNITY_CONSTANTS
 
@@ -172,13 +173,12 @@ class Follower extends Component {
     }
   }
   render() {
-    console.log('render: ', this.state.animation)
 
     const { item, section, onItemPress, showActionButton } = this.props;
     return (
       <Animated.View
         style={{
-          opacity: this.state.animation
+          opacity: this.state.animation,
         }}
       >
         <ListItem

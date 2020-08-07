@@ -55,7 +55,7 @@ const Carousel = (props) => {
         disabled={dropDownItems.length === 0}
         placeholder={initialDropdownText}
         containerStyle={{height: 40}}
-        style={{...styles.dropdownStyle, backgroundColor: colors.dropdown}}
+        style={{...styles.dropdownStyle, backgroundColor: colors.header}}
         labelStyle={{
           fontSize: 14,
           textAlign: 'left',

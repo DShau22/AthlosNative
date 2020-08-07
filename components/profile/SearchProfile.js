@@ -140,7 +140,7 @@ const SearchProfile = (props) => {
         _id={_id}
         relationshipStatus={relationshipStatus}
         rootNav={props.rootNav}
-
+        setId={props.setId}
         refreshing={refreshing}
         onRefresh={onRefresh}
 

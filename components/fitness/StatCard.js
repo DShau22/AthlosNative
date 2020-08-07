@@ -17,8 +17,8 @@ const StatCard = (props) => {
           }}
         />
         <View style={{marginLeft: 40}}>
-          <ThemeText >{label}</ThemeText>
-          <ThemeText style={{marginTop: 5}}>{stat}</ThemeText>
+          <ThemeText {...props.labelProps}>{label}</ThemeText>
+          <ThemeText {...props.statProps} style={{marginTop: 5}}>{stat}</ThemeText>
         </View>
       </Card.Content>
     </Card>
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   cardContent: {
     flexDirection: 'row',
     marginTop: 5,
-    // alignItems: 'center',
+    alignItems: 'center',
     // justifyContent: 'center',
   }
 })

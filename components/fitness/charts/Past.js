@@ -9,7 +9,7 @@ import { COLOR_THEMES } from '../../ColorThemes'
 const screenWidth = Dimensions.get("window").width;
 
 const Past = (props) => {
-  const { labels, data, activity } = props
+  const { labels, data, activity, yAxisUnits } = props
   const chartWidth = Math.max(.9 * screenWidth, data.length / 7 * screenWidth)
   const { colors } = useTheme();
   const getColorTheme = () => {
@@ -74,6 +74,7 @@ const Past = (props) => {
       chartConfig={chartConfig}
       verticalLabelRotation={25}
       fromZero
+      yAxisSuffix={yAxisUnits ? yAxisUnits : ''}
       withHorizontalLabels={data.length > 0}
       // showBarTops={false}
       // showValuesOnTopOfBars

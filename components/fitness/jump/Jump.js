@@ -79,7 +79,7 @@ const Jump = (props) => {
         <LineProgression
           activityColor={COLOR_THEMES.JUMP_THEME}
           yAxisInterval='4'
-          yAxisUnits={unitSystem === GLOBAL_CONSTANTS.METRIC ? 'cm' : 'in'}
+          yAxisUnits={unitSystem === GLOBAL_CONSTANTS.METRIC ? ' cm' : ' in'}
           data={jumpJson.activityData.length === 0 ? [] : currentStatDisplay.heights}
           labels={makeTimeLabels(4)}
         />
@@ -92,6 +92,7 @@ const Jump = (props) => {
           labels={pastGraphLabels}
           data={pastGraphData}
           activity="Jumps"
+          yAxisUnits={unitSystem === GLOBAL_CONSTANTS.METRIC ? ' cm' : ' in'}
         />
       </ScrollView>
       <View style={{alignItems: 'center', width: '100%'}}>

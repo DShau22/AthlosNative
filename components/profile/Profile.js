@@ -23,10 +23,10 @@ import { useTheme } from '@react-navigation/native';
 
 const Profile = (props) => {
   // this is the user's own id
-  const { _id, test } = props.route.params;
+  const { _id } = props.route.params;
   const userDataContext = React.useContext(UserDataContext)
-  // console.log('route props: ', props.route.state)
-  // console.log('navigation props: ', props.navigation)
+  console.log('route state props: ', props.route.state)
+  console.log("profile id: ", id)
   const [id, setId] = React.useState(_id)
 
   // whenever the id changes, check if it matches the id of the user. If it does,
@@ -53,8 +53,8 @@ const Profile = (props) => {
   // console.log('returning the profile props, id is: ', _id);
   return (
     <>
-      { _id === userDataContext._id ? 
-        <UserProfile rootNav={props.navigation} /> : <SearchProfile rootNav={props.navigation} _id={_id} />
+      { id === userDataContext._id ? 
+        <UserProfile setId={setId} rootNav={props.navigation} /> : <SearchProfile setId={setId} rootNav={props.navigation} _id={id} />
       } 
     </>
   )

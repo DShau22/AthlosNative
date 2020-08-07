@@ -33,7 +33,7 @@ const UserProfile = (props) => {
       _id={context._id}
       relationshipStatus={PROFILE_CONSTANTS.IS_SELF}
       rootNav={props.rootNav}
-
+      setId={props.setId}
       refreshing={refreshing}
       onRefresh={onRefresh}
 

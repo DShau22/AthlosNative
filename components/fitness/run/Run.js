@@ -1,12 +1,9 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
-import React, { Component } from 'react'
+import React from 'react'
 import { Divider } from 'react-native-elements'
-import { Card } from 'react-native-paper'
-import { PieChart } from 'react-native-svg-charts'
 import { View, Text, StyleSheet, ScrollView, FlatList, Dimensions, Image } from 'react-native'
 import Past from "../charts/Past"
-import RunDonut from "./RunDonut"
 import withFitnessPage from "../withFitnessPage"
 import StatCard from '../StatCard'
 import ThemeText from '../../generic/ThemeText'
@@ -203,7 +200,6 @@ const styles = StyleSheet.create({
   },
   sideScrollContent: {
     alignItems:'center',
-    width: '100%'
   }
 })
 export default gestureHandlerRootHOC(withFitnessPage(Run))

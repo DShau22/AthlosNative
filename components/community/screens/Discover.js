@@ -5,16 +5,19 @@ import { View, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 import { Text, ListItem } from 'react-native-elements';
 import COMMUNITY_CONSTANTS from '../CommunityConstants'
+import { useTheme } from '@react-navigation/native';
 const Discover = (props) => {
+  const { colors } = useTheme()
   const [searchText, setSearchText] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
+  console.log(props.users)
   const renderItem = ({ item }) => {
     if (props.users[0] === COMMUNITY_CONSTANTS.NO_SEARCH_RESULTS) {
       return (
         <ListItem 
           key='NO SEARCH RESULTS'
           title='Aw man :('
-          subtitle='your search yielded no results :('
+          subtitle='your search yielded no results'
         />
       )
     }
@@ -36,6 +39,11 @@ const Discover = (props) => {
         placeholder="Search athletes..."
         onChangeText={setSearchText}
         value={searchText}
+        containerStyle={{backgroundColor: colors.background, borderTopColor: colors.background, borderBottomColor: colors.header}}
+        inputContainerStyle={{backgroundColor: colors.background}}
+        inputStyle={styles.searchInputStyle}
+        leftIconContainerStyle={{}}
+        round
         onSubmitEditing={() => {
           console.log("searched: ", searchText);
           props.search(searchText, setIsLoading);
@@ -59,7 +67,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center'
-  }
+  },
 })
 
 export default gestureHandlerRootHOC(Discover)

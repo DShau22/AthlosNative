@@ -19,7 +19,7 @@ const TROPIC_THEME = {
     gradientLeft: '#197CCB',
     gradientRight: '#5CE7EA',
     gradientMiddle: '#16BAEF',
-    dropdown: '#E6EBF5',
+    header: '#E6EBF5',
     textButtonColor: '#F2FFFF',
     textColor: '#252526',
     cardBackground: 'white'

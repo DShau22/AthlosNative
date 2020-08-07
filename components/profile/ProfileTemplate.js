@@ -34,10 +34,10 @@ const ProfileTemplate = (props) => {
     _id,
     relationshipStatus,
     profileContext,
-
+    setId,
     refreshing,
     onRefresh,
-    // rootNav
+    rootNav
   } = props
   const { settings } = profileContext
 
@@ -76,7 +76,7 @@ const ProfileTemplate = (props) => {
   const Stack = createStackNavigator();
   const profileScreenName = relationshipStatus === IS_SELF ? USER_PROFILE : SEARCH_PROFILE
   return (
-    <ProfileContext.Provider value={{...profileContext, relationshipStatus}}>
+    <ProfileContext.Provider value={{...profileContext, relationshipStatus, setId}}>
       <Stack.Navigator initialRouteName={profileScreenName}>
         <Stack.Screen
           name={profileScreenName}
@@ -128,8 +128,8 @@ const ProfileTemplate = (props) => {
         >
           {props => (
             <Community
-              navigation={props.navigation}
-              // rootNav={rootNav}
+              {...props}
+              rootNav={rootNav}
             />
           )}
         </Stack.Screen>

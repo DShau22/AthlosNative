@@ -1,17 +1,16 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
-
-import {
-  getData,
-} from '../utils/storage';
-
 import React from 'react'
 import axios from 'axios';
 import { View, Alert, StyleSheet, Text, Dimensions, PixelRatio } from 'react-native'
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationActions } from 'react-navigation';
+import { CommonActions } from '@react-navigation/native';
 
+import {
+  getData,
+} from '../utils/storage';
 import Discover from './screens/Discover'
-
 import { UserDataContext, ProfileContext } from '../../Context'
 import ENDPOINTS from "../endpoints"
 import CommunityList from './screens/CommunityList';
@@ -21,6 +20,7 @@ import Rival from './screens/listItems/Rival'
 import COMMUNITY_CONSTANTS from './CommunityConstants'
 import GLOBAL_CONSTANTS from '../GlobalConstants'
 import PROFILE_CONSTANTS from '../profile/ProfileConstants'
+import { useTheme } from '@react-navigation/native';
 const { FOLLOWERS, FOLLOWING, RIVALS, PENDING, DISCOVER, NO_SEARCH_RESULTS } = COMMUNITY_CONSTANTS
 
 const searchURL = ENDPOINTS.searchUser
@@ -31,7 +31,9 @@ const acceptFriendURL = ENDPOINTS.acceptFriendReq
 const imgAlt = "default"
 
 const Community = (props) => {
+  const { colors } = useTheme();
   const { navigation } = props;
+  console.log(props.route.state)
   const userDataContext = React.useContext(UserDataContext);
   const profileContext  = React.useContext(ProfileContext);
   const [searches, setSearches] = React.useState([]);
@@ -86,7 +88,7 @@ const Community = (props) => {
         var { users } = json
         if (users === undefined || users.length === 0) {
           // set searches to a sad message of not being able to find anything :(
-          setSearches([NO_SEARCH_RESULTS])
+          setSearches(NO_SEARCH_RESULTS)
         } else {
           setSearches(users);
         }
@@ -100,45 +102,43 @@ const Community = (props) => {
   }
 
   const toUserProfile = (user) => {
-    const screen = user._id === userDataContext ? PROFILE_CONSTANTS.USER_PROFILE : PROFILE_CONSTANTS.SEARCH_PROFILE
-    console.log("redirect to this user: ", user)
-    navigation.navigate(
-      GLOBAL_CONSTANTS.PROFILE,
-      { _id: user._id, screen: screen},
-    );
-    // have to do this cuz for some reason it doesn't actually navigate to the root screen
-    navigation.popToTop();
-    // props.rootNav.push(
-    //   GLOBAL_CONSTANTS.PROFILE,
-    //   { _id: user._id, screen: screen },
-    // );
+    const { _id } = user;
+    const screen = _id === userDataContext._id ? PROFILE_CONSTANTS.USER_PROFILE : PROFILE_CONSTANTS.SEARCH_PROFILE
+    // ok this is super hacky. Try to find a better solution later
+    // issue is that when in community, if you click ANY of the tabs after going into commmunity,
+    // it'll navigate to the Community of the other person EVEN with popToTop. This is cuz 
+    // the props.route.state is undefined until you click on a tab in the community topTab, so
+    // we force the props.route.state field to be undefined again...
+    props.route.state = undefined
+    profileContext.setId(_id)
+    navigation.popToTop()
   }
 
   const createFollowerSectionList = () => {
     const followerSections = []
-    followerSections.push({ title: FOLLOWERS, data: followers })
     if (relationshipStatus === PROFILE_CONSTANTS.IS_SELF) {
       followerSections.push({ title: 'Follower Requests', data: followerRequests })
     }
+    followerSections.push({ title: FOLLOWERS, data: followers })
     return followerSections
   }
 
   const createFollowingSectionList = () => {
     const followingSections = []
-    followingSections.push({ title: FOLLOWING, data: following })
     if (relationshipStatus === PROFILE_CONSTANTS.IS_SELF) {
       followingSections.push({ title: 'Pending Requests', data: followingPending })
     }
+    followingSections.push({ title: FOLLOWING, data: following })
     return followingSections
   }
 
   const createRivalSectionList = () => {
     const rivalSections = []
-    rivalSections.push({ title: RIVALS, data: rivals })
     if (relationshipStatus === PROFILE_CONSTANTS.IS_SELF) {
       rivalSections.push({ title: 'Rival Requests', data: rivalRequests })
       rivalSections.push({ title: 'Rivals Pending', data: rivalsPending })
     }
+    rivalSections.push({ title: RIVALS, data: rivals })
     return rivalSections
   }
 
@@ -146,8 +146,8 @@ const Community = (props) => {
   return (
     <TopTab.Navigator
       tabBarOptions={{
-        labelStyle: { fontSize: 11 },
-        style: { backgroundColor: 'powderblue' },
+        labelStyle: { fontSize: 12, color: colors.textColor },
+        style: { backgroundColor: colors.header, paddingTop: 8, paddingBottom: 8 },
       }}
     >
       { relationshipStatus === PROFILE_CONSTANTS.IS_SELF ?
