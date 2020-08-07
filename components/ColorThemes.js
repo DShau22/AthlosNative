@@ -20,6 +20,8 @@ const TROPIC_THEME = {
     gradientRight: '#5CE7EA',
     gradientMiddle: '#16BAEF',
     header: '#E6EBF5',
+    border: '#B1B5BD',
+    button: '#3C4F76',
     textButtonColor: '#F2FFFF',
     textColor: '#252526',
     cardBackground: 'white'

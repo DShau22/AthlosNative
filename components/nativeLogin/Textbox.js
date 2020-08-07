@@ -10,14 +10,13 @@ import { useTheme } from 'react-native-paper';
 import * as Animatable from 'react-native-animatable';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
+import ThemeText from '../generic/ThemeText';
 
 export default function Textbox(props) {
   const { colors } = useTheme();
   return (
-    <>
-      <Text style={[styles.text_footer, {
-        marginTop: 35
-      }]}>{props.headerText}</Text>
+    <View>
+      <ThemeText style={[styles.text_footer]}>{props.headerText}</ThemeText>
       <View style={styles.action}>
         <Feather 
           name={props.icon}
@@ -27,7 +26,7 @@ export default function Textbox(props) {
         <TextInput 
           placeholder={props.placeholder}
           style={[styles.textInput, {
-            color: colors.text
+            color: colors.textColor
           }]}
           placeholderTextColor="#666666"
           autoCapitalize="none"
@@ -73,7 +72,7 @@ export default function Textbox(props) {
           <Text style={styles.errorMsg}>{props.errMsg}</Text>
         </Animatable.View>
       }
-    </>
+    </View>
   )
 }
 const styles = StyleSheet.create({

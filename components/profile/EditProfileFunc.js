@@ -29,6 +29,7 @@ import ENDPOINTS from "../endpoints"
 import editProfileSchema from "./EditProfileSchema"
 import Textbox from "../nativeLogin/Textbox"
 import Spinner from 'react-native-loading-spinner-overlay';
+import { useTheme } from '@react-navigation/native'
 
 const updateProfileURL = ENDPOINTS.updateProfile
 const checkDuplicateURL = ENDPOINTS.checkDuplicatePic
@@ -38,9 +39,9 @@ const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 
 export default function EditProfileFunc(props) {
   const context = React.useContext(UserDataContext);
+  const { colors } = useTheme();
   const { updateLocalUserInfo, setAppState } = React.useContext(AppFunctionsContext);
   const { unitSystem } = context.settings
-
   const [isLoading, setIsLoading] = React.useState(false);
   const [uploadImageTitle, setUploadImageTitle] = React.useState('upload an image');
   const [updateProfilePic, setUpdateProfilePic] = React.useState(null);
@@ -450,77 +451,92 @@ export default function EditProfileFunc(props) {
             textContent={'Loading...'}
             textStyle={styles.spinnerTextStyle}
           />
-          <Textbox 
-            headerText={"First Name"}
-            placeholder="Your first name..."
-            icon="user"
-            defaultValue={state.updateFirstName}
-            handleChange={handleFirstNameChange}
-            didChange={state.firstNameChange}
-            errMsg={state.firstNameMsg}
-          />
-          <Textbox 
-            headerText={"Last Name"}
-            placeholder="Your last name..."
-            icon="user"
-            defaultValue={state.updateLastName}
-            handleChange={handleLastNameChange}
-            didChange={state.lastNameChange}
-            errMsg={state.lastNameMsg}
-          />
-          <Textbox 
-            headerText={"Bio"}
-            placeholder="Your first name..."
-            icon="user"
-            defaultValue={state.updateBio}
-            handleChange={handleBioChange}
-            didChange={state.bioChange}
-            errMsg={state.bioMsg}
-          />
-          <Textbox 
-            headerText={"Age"}
-            placeholder="Your age..."
-            icon="user"
-            keyboardType='numeric'
-            defaultValue={state.updateAge.toString(10)}
-            handleChange={handleAgeChange}
-            didChange={state.ageChange}
-            errMsg={state.ageMsg}
-          />
-          <Textbox 
-            headerText={"Location"}
-            placeholder="Your city..."
-            icon="user"
-            defaultValue={state.updateLocation}
-            handleChange={handleLocationChange}
-            didChange={state.locationChange}
-            errMsg={state.locationMsg}
-          />
-          <Textbox 
-            headerText={"Gender"}
-            placeholder="Your gender..."
-            icon="user"
-            defaultValue={state.updateGender}
-            handleChange={handleGenderChange}
-            didChange={state.genderChange}
-            errMsg={state.genderMsg}
-          />
-          {renderHeightInput()}
-          <Textbox 
-            headerText={'Weight'}
-            placeholder={`Your weight in ${unitSystem === METRIC ? 'kg' : 'lbs'}`}
-            icon="user"
-            keyboardType='numeric'
-            defaultValue={state.updateWeight.toString(10)}
-            handleChange={handleWeightChange}
-            didChange={state.weightChange}
-            errMsg={state.weightMsg}
-          />
+          <View style={[styles.textContainer, {borderColor: colors.border}]}>
+            <Textbox 
+              headerText={"First Name"}
+              placeholder="Your first name..."
+              icon="user"
+              defaultValue={state.updateFirstName}
+              handleChange={handleFirstNameChange}
+              didChange={state.firstNameChange}
+              errMsg={state.firstNameMsg}
+            />
+          </View>
+          <View style={[styles.textContainer, {borderColor: colors.border}]}>
+            <Textbox 
+              headerText={"Last Name"}
+              placeholder="Your last name..."
+              icon="user"
+              defaultValue={state.updateLastName}
+              handleChange={handleLastNameChange}
+              didChange={state.lastNameChange}
+              errMsg={state.lastNameMsg}
+            />
+          </View>
+          <View style={[styles.textContainer, {borderColor: colors.border}]}>
+            <Textbox 
+              headerText={"Bio"}
+              placeholder="Your first name..."
+              icon="user"
+              defaultValue={state.updateBio}
+              handleChange={handleBioChange}
+              didChange={state.bioChange}
+              errMsg={state.bioMsg}
+            />
+          </View>
+          <View style={[styles.textContainer, {borderColor: colors.border}]}>
+            <Textbox 
+              headerText={"Age"}
+              placeholder="Your age..."
+              icon="user"
+              keyboardType='numeric'
+              defaultValue={state.updateAge.toString(10)}
+              handleChange={handleAgeChange}
+              didChange={state.ageChange}
+              errMsg={state.ageMsg}
+            />
+          </View>
+          <View style={[styles.textContainer, {borderColor: colors.border}]}>
+            <Textbox 
+              headerText={"Location"}
+              placeholder="Your city..."
+              icon="user"
+              defaultValue={state.updateLocation}
+              handleChange={handleLocationChange}
+              didChange={state.locationChange}
+              errMsg={state.locationMsg}
+            />
+          </View>
+          <View style={[styles.textContainer, {borderColor: colors.border}]}>
+            <Textbox 
+              headerText={"Gender"}
+              placeholder="Your gender..."
+              icon="user"
+              defaultValue={state.updateGender}
+              handleChange={handleGenderChange}
+              didChange={state.genderChange}
+              errMsg={state.genderMsg}
+            />
+          </View>
+          <View style={[styles.textContainer, {borderColor: colors.border}]}>
+            {renderHeightInput()}
+          </View>
+          <View style={[styles.textContainer, {borderColor: colors.border}]}>
+            <Textbox 
+              headerText={'Weight'}
+              placeholder={`Your weight in ${unitSystem === METRIC ? 'kg' : 'lbs'}`}
+              icon="user"
+              keyboardType='numeric'
+              defaultValue={state.updateWeight.toString(10)}
+              handleChange={handleWeightChange}
+              didChange={state.weightChange}
+              errMsg={state.weightMsg}
+            />
+          </View>
           <Button 
             title={uploadImageTitle}
-            style={{
-              backgroundColor: 'red'
-            }}
+            buttonStyle={styles.uploadImageButton}
+            titleStyle={{color: colors.textColor}}
             onPress={() => {
               ImagePicker.showImagePicker(imagePickerOptions, (response) => {
                 if (response.didCancel) {
@@ -551,6 +567,7 @@ export default function EditProfileFunc(props) {
             }}
           />
           <Button
+            buttonStyle={[styles.saveButton, {backgroundColor: colors.button}]}
             title="Save changes"
             onPress={updateProfile}
           />
@@ -573,6 +590,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: '100%',
   },
+  textContainer: {
+    borderWidth: 1,
+    justifyContent: 'center',
+    padding: 15,
+    borderRadius: 5,
+    marginTop: 15,
+    marginBottom: 15,
+  },
   scrollView: {
     marginHorizontal: 20,
   },
@@ -586,5 +611,12 @@ const styles = StyleSheet.create({
   englishHeightContainer: {
     flexDirection: 'column',
     // alignItems: 'center',
+  },
+  uploadImageButton: {
+    color: 'black',
+    backgroundColor: '#DDDBF1'
+  },
+  saveButton: {
+    marginTop: 30,
   }
 })
