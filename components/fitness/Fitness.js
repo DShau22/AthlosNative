@@ -8,7 +8,7 @@ import { UserDataContext, ProfileContext, AppFunctionsContext } from "../../Cont
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import LoadingScreen from '../generic/LoadingScreen';
 import { View, StyleSheet, Alert, ScrollView, RefreshControl } from "react-native";
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useTheme } from '@react-navigation/native';
 
 import WithRefresh from '../generic/WithRefresh'
 import PROFILE_CONSTANTS from '../profile/ProfileConstants'
@@ -26,7 +26,7 @@ const Fitness = (props) => {
   const userDataContext = React.useContext(UserDataContext);
   const appFunctionsContext = React.useContext(AppFunctionsContext)
   const profileContext = React.useContext(ProfileContext);
-
+  const { colors } = useTheme()
   const [isLoading, setIsLoading] = React.useState(false);  
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -137,7 +137,7 @@ const Fitness = (props) => {
   const TopTab = createMaterialTopTabNavigator();
   return (
     <ScrollView
-      style={{height: '100%'}}
+      style={{height: '100%', backgroundColor: colors.header}}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -146,7 +146,12 @@ const Fitness = (props) => {
       }
     >
       { isLoading ? <LoadingScreen /> :
-        <TopTab.Navigator style={styles.topTab}>
+        <TopTab.Navigator
+          tabBarOptions={{
+            labelStyle: { fontSize: 12, color: colors.textColor },
+            style: { backgroundColor: colors.header, paddingTop: 8, paddingBottom: 8 },
+          }}
+        >
           <TopTab.Screen
             name={FITNESS_CONSTANTS.RUN}
             component={Run}

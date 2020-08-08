@@ -25,9 +25,8 @@ const Profile = (props) => {
   // this is the user's own id
   const { _id } = props.route.params;
   const userDataContext = React.useContext(UserDataContext)
-  console.log('route state props: ', props.route.state)
-  console.log("profile id: ", id)
   const [id, setId] = React.useState(_id)
+  console.log("profile id: ", id)
 
   // whenever the id changes, check if it matches the id of the user. If it does,
   // set the state based on the context. If not, do a fetch and set state based on

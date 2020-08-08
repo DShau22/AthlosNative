@@ -7,8 +7,9 @@ import COMMUNITY_CONSTANTS from '../../CommunityConstants'
 import ENDPOINTS from '../../../endpoints'
 import { UserDataContext } from '../../../../Context'
 import { getData, storeDataObj } from '../../../utils/storage'
+import {cancelFollowRequest, unfollow, storeNewFollowing} from '../../communityFunctions/following'
 const defaultProfile = require('../../../assets/profile.png')
-const { FOLLOWING, PENDING, DISAPPEAR_TIME } = COMMUNITY_CONSTANTS
+const { FOLLOWING, PENDING, CANCEL_FOLLOW_REQUEST, UNFOLLOW, DISAPPEAR_TIME } = COMMUNITY_CONSTANTS
 
 class Following extends Component {
   constructor(props) {
@@ -30,6 +31,31 @@ class Following extends Component {
       }),
     ];
     Animated.sequence(disappearAnimations).start()
+  }
+
+  async followAction(action, user, setIsButtonLoading) {
+    setIsButtonLoading(true)
+    const { setAppState } = this.props;
+    // var newState;
+    try {
+      if (action === UNFOLLOW) {
+        await unfollow(user);
+      } else {
+        await cancelFollowRequest(user);
+      }
+      var newState = await storeNewFollowing(user, action, this.context);
+    } catch(e) {
+      console.log(e)
+      setIsButtonLoading(false)
+    }
+    this.disappear()
+    // delay setting app state so diappear animation can complete
+    console.log('new state: ', newState)
+    setTimeout(() => {
+      console.log("done!")
+      setAppState(newState)
+      setIsButtonLoading(false)
+    }, DISAPPEAR_TIME + 100);
   }
 
   // cancels the follow request that the user sent to this person
@@ -180,14 +206,14 @@ class Following extends Component {
                 return (
                   <ActionButton
                     initialTitle='Cancel'
-                    onPress={(setIsButtonLoading) => this.cancelFollowRequest(item, setIsButtonLoading)}
+                    onPress={(setIsButtonLoading) => this.followAction(CANCEL_FOLLOW_REQUEST, item, setIsButtonLoading)}
                   />
                 )
               case(FOLLOWING):
                 return (
                   <ActionButton
                     initialTitle='Unfollow'
-                    onPress={(setIsButtonLoading) => this.unfollow(item, setIsButtonLoading)}
+                    onPress={(setIsButtonLoading) => this.followAction(UNFOLLOW, item, setIsButtonLoading)}
                   />
                 )
             }

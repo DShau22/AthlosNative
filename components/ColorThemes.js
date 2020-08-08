@@ -24,7 +24,7 @@ const TROPIC_THEME = {
     button: '#3C4F76',
     textButtonColor: '#F2FFFF',
     textColor: '#252526',
-    cardBackground: 'white'
+    cardBackground: '#FFFFFF'
   },
 };
 

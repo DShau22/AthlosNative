@@ -76,7 +76,7 @@ const SearchProfile = (props) => {
       const { success, settings, firstName, lastName, relationshipStatus, profilePicture } = searchUserJson
       if (!success) {
         console.log("not success: ", searchUserJson)
-        throw new Error(searchJson.message)
+        throw new Error(searchUserJson.message)
       }
       setState(prevState => ({ ...prevState, settings, firstName, lastName, relationshipStatus, profilePicture }))
       // need to pass in settings, follows cuz setState is asynchronous
@@ -90,6 +90,8 @@ const SearchProfile = (props) => {
     } catch(e) {
       console.log(e)
       Alert.alert(`Oh No :(`, e.toString(), [{ text: "Okay" }]);
+      // causes memory leak!
+      props.setId(userDataContext._id)
       setIsLoading(false);
       return;
     }

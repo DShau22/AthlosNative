@@ -2,8 +2,9 @@
 // has many holes that need to be filled with a shit ton of props
 // oassed in from the profile component
 import React, { Component } from 'react'
-import { View, ScrollView, StyleSheet, RefreshControl } from 'react-native'
+import { View, ScrollView, StyleSheet, RefreshControl, Image } from 'react-native'
 import { Text, Button, Divider } from 'react-native-elements'
+import {Card} from 'react-native-paper'
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from '@react-navigation/native';
 
@@ -24,6 +25,8 @@ import ProfileAggregates from './sections/ProfileAggregates'
 import EditProfile from './EditProfileFunc'
 import GradientButton from '../generic/GradientButton'
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import StatCard from '../fitness/StatCard';
+import ThemeText from '../generic/ThemeText';
 
 // replace with default avatar link
 const imgAlt = "./default_profile.png"
@@ -40,7 +43,7 @@ const ProfileTemplate = (props) => {
     rootNav
   } = props
   const { settings } = profileContext
-
+  const { colors } = useTheme();
   const navigateToFitness = (navigation) => {
     if (relationshipStatus === PROFILE_CONSTANTS.IS_SELF) {
       navigation.navigate(GLOBAL_CONSTANTS.FITNESS, {_id: userDataContext._id})
@@ -90,9 +93,11 @@ const ProfileTemplate = (props) => {
             >
               <View style={styles.container}>
                 {relationshipStatus !== IS_SELF ? 
-                  <Button 
+                  <Button
+                    containerStyle={{alignSelf: 'flex-start', marginBottom: 10, marginLeft: 10}}
+                    buttonStyle={{backgroundColor: colors.button}}
                     title='back to your profile'
-                    onPress={() => props.navigation.navigate(GLOBAL_CONSTANTS.PROFILE, {_id: userDataContext._id})}
+                    onPress={() => setId(userDataContext._id)}
                   /> : null
                 }
                 <ProfileHeader
@@ -101,19 +106,32 @@ const ProfileTemplate = (props) => {
                 />
                 <View style={styles.routeButtons}>
                   {canViewFitness() ?
-                    // <TouchableOpacity>
-                    //   <Text>Fitness</Text>
-                    // </TouchableOpacity> : null
-                    <GradientButton 
-                      buttonText='Fitness'
+                    <Card
                       onPress={() => navigateToFitness(props.navigation)}
-                    /> : null
+                      style={[styles.routeButtonCard, {backgroundColor: colors.cardBackground}]}
+                    >
+                      <Card.Content style={styles.routeButtonCardContent}>
+                        <Image
+                          style={styles.cardImage}
+                          source={{uri: 'https://reactnative.dev/img/tiny_logo.png'}}
+                        />
+                        <ThemeText h4>Fitness</ThemeText>
+                      </Card.Content>
+                    </Card> : null
                   }
                   {canViewBasicInfo() ?
-                    <GradientButton 
-                      buttonText='Basic Info'
+                    <Card
                       onPress={() => props.navigation.navigate(PROFILE_CONSTANTS.BASIC_INFO)}
-                    /> : null
+                      style={[styles.routeButtonCard, {backgroundColor: colors.cardBackground}]}
+                    >
+                      <Card.Content style={[styles.routeButtonCardContent]}>
+                        <Image
+                          style={styles.cardImage}
+                          source={{uri: 'https://reactnative.dev/img/tiny_logo.png'}}
+                          />
+                        <ThemeText h4>Info</ThemeText>
+                      </Card.Content>
+                    </Card> : null
                   }
                 </View>
                 {canViewBests() ? <ProfileBests /> : null}
@@ -184,7 +202,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
   },
   row: {
     flexDirection: 'row',
@@ -194,6 +212,25 @@ const styles = StyleSheet.create({
   editButton: {
     backgroundColor: 'red',
     width: '80%'
+  },
+  routeButtonCard: {
+    flex: 1,
+    // backgroundColor: 'red',
+    margin: 10,
+    elevation: 4,
+    height: 80
+  },
+  routeButtonCardContent: {
+    height: 80,
+    // backgroundColor: 'blue',
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  cardImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 60,
+    marginRight: 10
   }
 });
 

@@ -103,6 +103,7 @@ const Community = (props) => {
 
   const toUserProfile = (user) => {
     const { _id } = user;
+    console.log('nav to: ', user)
     const screen = _id === userDataContext._id ? PROFILE_CONSTANTS.USER_PROFILE : PROFILE_CONSTANTS.SEARCH_PROFILE
     // ok this is super hacky. Try to find a better solution later
     // issue is that when in community, if you click ANY of the tabs after going into commmunity,

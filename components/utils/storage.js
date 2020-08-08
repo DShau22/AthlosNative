@@ -44,11 +44,23 @@ const getDataObj = async () => {
   }
 }
 
+// adds these new fields to the previous state and stores it in async storage
+// newFields should be an ojbect
+const storeNewState = async (prevState, newFields) => {
+  const newState = {
+    ...prevState,
+    ...newFields
+  }
+  await storeDataObj(newState);
+  return newState
+}
+
 module.exports = {
   TOKEN_KEY,
   DATA_KEY,
   storeData,
   storeDataObj,
   getData,
-  getDataObj
+  getDataObj,
+  storeNewState
 }

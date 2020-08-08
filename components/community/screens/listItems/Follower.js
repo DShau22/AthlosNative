@@ -8,12 +8,16 @@ import ENDPOINTS from '../../../endpoints'
 import { UserDataContext } from '../../../../Context'
 import { getData, storeDataObj } from '../../../utils/storage'
 import Background from '../../../nativeLogin/Background';
+import { followerAction, storeNewFollowers } from '../../communityFunctions/followers'
 const defaultProfile = require('../../../assets/profile.png')
-const { FOLLOWERS, REQUESTS, DISAPPEAR_TIME } = COMMUNITY_CONSTANTS
-
-const ACCEPT_FOLLOWER_REQUEST = 'accept follower request'
-const REJECT_FOLLOWER_REQUEST = 'reject follower request'
-const REMOVE_FOLLOWER         = 'remove follower'
+const { 
+  FOLLOWERS,
+  REQUESTS,
+  DISAPPEAR_TIME,
+  ACCEPT_FOLLOWER_REQUEST,
+  REJECT_FOLLOWER_REQUEST,
+  REMOVE_FOLLOWER
+} = COMMUNITY_CONSTANTS
 
 class Follower extends Component {
   constructor(props) {
@@ -35,58 +39,6 @@ class Follower extends Component {
     ];
     Animated.sequence(disappearAnimations).start()
   }
-  // generates the error message based on what action the user performed
-  errorMsg(action, requester) {
-    switch(action) {
-      case ACCEPT_FOLLOWER_REQUEST:
-        return `Something went wrong with accepting ${requester.firstName} ${requester.lastName}'s request. Please try again.`
-      case REJECT_FOLLOWER_REQUEST:
-        return `Something went wrong with rejecting ${requester.firstName} ${requester.lastName}'s request. Please try again.`
-      case REMOVE_FOLLOWER:
-        return `Something went wrong with removing ${requester.firstName} ${requester.lastName} from your followers. Please try again.`
-    }
-  }
-
-  // returns new app state after accepting a follower
-  accpetFollowerNewState(requester) {
-    const newFollowerRequests = this.context.followerRequests.filter(user => {
-      return user._id !== requester._id
-    })
-    const newFollower = {
-      _id: requester._id,
-      firstName: requester.firstName,
-      lastName: requester.lastName,
-      profilePicUrl: requester.profilePicUrl
-    }
-    return {
-      ...this.context,
-      followers: [...this.context.followers, newFollower],
-      followerRequests: newFollowerRequests
-    }
-  }
-
-  // returns new app state after rejecting a follower
-  rejectFollowerNewState(requester) {
-    const newFollowerRequests = this.context.followerRequests.filter(user => {
-      return user._id !== requester._id
-    })
-    return {
-      ...this.context,
-      followerRequests: newFollowerRequests
-    }
-  }
-
-  // updates async storage after removing a follower
-  removeFollowerNewState(requester) {
-    const newFollowers = this.context.followers.filter(user => {
-      return user._id !== requester._id
-    })
-    return {
-      ...this.context,
-      followers: newFollowers
-    }
-  }
-
   // will accept/reject follower request or remove the follower 
   // setButtonText is passed as a useState function from action button.
   // it will set the text of the action button once the request is complete
@@ -95,85 +47,24 @@ class Follower extends Component {
     setIsButtonLoading(true)
     const { setAppState } = this.props;
     console.log("action taken: ", action, requester)
-    var endPoint;
-    switch(action) {
-      case ACCEPT_FOLLOWER_REQUEST:
-        endPoint = ENDPOINTS.acceptFollowerRequest;
-        break;
-      case REJECT_FOLLOWER_REQUEST:
-        endPoint = ENDPOINTS.rejectFollowerRequest;
-        break;
-      case REMOVE_FOLLOWER:
-        endPoint = ENDPOINTS.removeFollower;
-    }
     try {
-      const userToken = await getData();
-      const requestBody = {
-        userToken,
-        receiverFirstName: this.context.firstName,
-        receiverLastName: this.context.lastName,
-        receiverProfilePicUrl: this.context.profilePicture.profileUrl,
-        
-        requesterID: requester._id,
-        requesterFirstName: requester.firstName,
-        requesterLastName: requester.lastName,
-        requesterProfilePicUrl: requester.profilePicUrl
-      }
-      var res = await fetch(endPoint, {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      })
-      var resJson = await res.json()
-      if (!resJson.success) {
-        console.log("resJson.success is false: ", resJson.message);
-        throw new Error("resJson.success is false")
-      }
+      await followerAction(requester, action, this.context, setAppState)
+      var newState = await storeNewFollowers(requester, action, this.context)
     } catch(e) {
       console.log(e)
-      Alert.alert(
-        'Oh No :(',
-        this.errorMsg(action, requester),
-        [{ text: "Okay" }]
-      );
-      setIsButtonLoading(false)
-      return;
-    }
-    // set the app state and update async storage separately hear, and throw error
-    // asking for refresh if this fails
-    try {
-      var newState;
-      switch(action) {
-        case ACCEPT_FOLLOWER_REQUEST:
-          newState = this.accpetFollowerNewState(requester);
-          break;
-        case REJECT_FOLLOWER_REQUEST:
-          newState = this.rejectFollowerNewState(requester);
-          break;
-        case REMOVE_FOLLOWER:
-          newState = this.removeFollowerNewState(requester);
-      }
-      console.log('setting new state: ', newState)
-      await storeDataObj(newState)
-      // start the disappearing animation
-      this.disappear()
-      // delay setting app state so diappear animation can complete
-      setTimeout(() => {
-        console.log("done!")
-        setAppState(newState)
-      }, DISAPPEAR_TIME + 100);
-    } catch(e) {
-      console.log(e)
-      Alert.alert(
-        'Oh No :(',
-        `Something went wrong updating the app storage. Please refresh.`,
-        [{ text: "Okay" }]
-      );
+      Alert.alert('Oh No :(', e.toString(), [{text: 'Ok'}])
       setIsButtonLoading(false)
     }
+    // start the disappearing animation
+    this.disappear()
+    // delay setting app state so diappear animation can complete
+    setTimeout(() => {
+      console.log("done!")
+      setAppState(newState)
+      setIsButtonLoading(false)
+    }, DISAPPEAR_TIME + 100);
   }
   render() {
-
     const { item, section, onItemPress, showActionButton } = this.props;
     return (
       <Animated.View

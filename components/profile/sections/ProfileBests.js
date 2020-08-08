@@ -75,7 +75,7 @@ const ProfileBests = (props) => {
           />
         </ModalContent>
       </Modal>
-      <Divider style={styles.divider}/>
+      {/* <Divider style={styles.divider}/> */}
       <View style={styles.row}>
         <View style={styles.gridBox}>
           <Icon name='long-arrow-up' size={30} color={colors.textColor}/>

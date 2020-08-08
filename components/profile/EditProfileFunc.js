@@ -1,6 +1,5 @@
 import React from 'react'
-import { UserDataContext, AppFunctionsContext } from "../../Context"
-import { View, StyleSheet, Alert, ScrollView, SafeAreaView } from 'react-native'
+import { View, StyleSheet, Alert, ScrollView, SafeAreaView, Image } from 'react-native'
 import { Button } from 'react-native-elements'
 import { Text } from 'react-native-elements'
 import GLOBAL_CONSTANTS from '../GlobalConstants'
@@ -8,9 +7,11 @@ import * as Yup from 'yup';
 import ImagePicker from 'react-native-image-picker';
 import axios from 'axios';
 
+import { UserDataContext, AppFunctionsContext } from "../../Context"
 import {
   getData,
 } from '../utils/storage';
+import ThemeText from '../generic/ThemeText'
 const imagePickerOptions = {
   title: 'Select a photo',
   storageOptions: {
@@ -45,6 +46,7 @@ export default function EditProfileFunc(props) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [uploadImageTitle, setUploadImageTitle] = React.useState('upload an image');
   const [updateProfilePic, setUpdateProfilePic] = React.useState(null);
+  const [displayProfilePicUrl, setDisplayProfilePicUrl] = React.useState(context.profilePicture.profileURL)
   const [state, setState] = React.useState({
     updateFirstName: context.firstName,
     updateLastName: context.lastName,
@@ -441,147 +443,144 @@ export default function EditProfileFunc(props) {
     }
     asyncUpdateProfile();
   }
-
-  if (context.mounted) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollView}>
-          <Spinner
-            visible={isLoading}
-            textContent={'Loading...'}
-            textStyle={styles.spinnerTextStyle}
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollView}>
+        <Spinner
+          visible={isLoading}
+          textContent={'Loading...'}
+          textStyle={styles.spinnerTextStyle}
+        />
+        <View style={{alignItems: 'center', marginTop: 15}}>
+          <Image 
+            style={{width: 140, height: 140, borderRadius: 140}}
+            source={{uri: displayProfilePicUrl}}
           />
-          <View style={[styles.textContainer, {borderColor: colors.border}]}>
-            <Textbox 
-              headerText={"First Name"}
-              placeholder="Your first name..."
-              icon="user"
-              defaultValue={state.updateFirstName}
-              handleChange={handleFirstNameChange}
-              didChange={state.firstNameChange}
-              errMsg={state.firstNameMsg}
-            />
-          </View>
-          <View style={[styles.textContainer, {borderColor: colors.border}]}>
-            <Textbox 
-              headerText={"Last Name"}
-              placeholder="Your last name..."
-              icon="user"
-              defaultValue={state.updateLastName}
-              handleChange={handleLastNameChange}
-              didChange={state.lastNameChange}
-              errMsg={state.lastNameMsg}
-            />
-          </View>
-          <View style={[styles.textContainer, {borderColor: colors.border}]}>
-            <Textbox 
-              headerText={"Bio"}
-              placeholder="Your first name..."
-              icon="user"
-              defaultValue={state.updateBio}
-              handleChange={handleBioChange}
-              didChange={state.bioChange}
-              errMsg={state.bioMsg}
-            />
-          </View>
-          <View style={[styles.textContainer, {borderColor: colors.border}]}>
-            <Textbox 
-              headerText={"Age"}
-              placeholder="Your age..."
-              icon="user"
-              keyboardType='numeric'
-              defaultValue={state.updateAge.toString(10)}
-              handleChange={handleAgeChange}
-              didChange={state.ageChange}
-              errMsg={state.ageMsg}
-            />
-          </View>
-          <View style={[styles.textContainer, {borderColor: colors.border}]}>
-            <Textbox 
-              headerText={"Location"}
-              placeholder="Your city..."
-              icon="user"
-              defaultValue={state.updateLocation}
-              handleChange={handleLocationChange}
-              didChange={state.locationChange}
-              errMsg={state.locationMsg}
-            />
-          </View>
-          <View style={[styles.textContainer, {borderColor: colors.border}]}>
-            <Textbox 
-              headerText={"Gender"}
-              placeholder="Your gender..."
-              icon="user"
-              defaultValue={state.updateGender}
-              handleChange={handleGenderChange}
-              didChange={state.genderChange}
-              errMsg={state.genderMsg}
-            />
-          </View>
-          <View style={[styles.textContainer, {borderColor: colors.border}]}>
-            {renderHeightInput()}
-          </View>
-          <View style={[styles.textContainer, {borderColor: colors.border}]}>
-            <Textbox 
-              headerText={'Weight'}
-              placeholder={`Your weight in ${unitSystem === METRIC ? 'kg' : 'lbs'}`}
-              icon="user"
-              keyboardType='numeric'
-              defaultValue={state.updateWeight.toString(10)}
-              handleChange={handleWeightChange}
-              didChange={state.weightChange}
-              errMsg={state.weightMsg}
-            />
-          </View>
-          <Button 
-            title={uploadImageTitle}
-            buttonStyle={styles.uploadImageButton}
-            titleStyle={{color: colors.textColor}}
-            onPress={() => {
-              ImagePicker.showImagePicker(imagePickerOptions, (response) => {
-                if (response.didCancel) {
-                  console.log('User cancelled image picker');
-                } else if (response.error) {
-                  console.log('ImagePicker Error: ', response.error);
-                } else if (response.customButton) {
-                  console.log('User tapped custom button: ', response.customButton);
-                } else {
-                  // if (response.type !== 'image/jpeg') {
-                  //   Alert.alert(`Oh No :(`, `Image must be`, [{ text: "Okay" }]);
-                  //   return;
-                  // }
-                  const photo = {
-                    uri:  Platform.OS === "android" ? response.uri : response.uri.replace("file://", ""),
-                    // uri: response.uri,
-                    name: response.fileName === null ? "newProfilePicture" : response.fileName,
-                    type: response.type
-                  };
-                  console.log(Object.keys(response))
-                  console.log('uploaded photo: ', photo)
-                  setUploadImageTitle(`uploaded a new photo`);
-                  setUpdateProfilePic(photo);
-                  // You can also display the image using data:
-                  // const source = { uri: 'data:image/jpeg;base64,' + response.data };
-                }
-              });
-            }}
+        </View>
+        <View style={[styles.textContainer, {borderColor: colors.border}]}>
+          <Textbox 
+            headerText={"First Name"}
+            placeholder="Your first name..."
+            icon="user"
+            defaultValue={state.updateFirstName}
+            handleChange={handleFirstNameChange}
+            didChange={state.firstNameChange}
+            errMsg={state.firstNameMsg}
           />
-          <Button
-            buttonStyle={[styles.saveButton, {backgroundColor: colors.button}]}
-            title="Save changes"
-            onPress={updateProfile}
+        </View>
+        <View style={[styles.textContainer, {borderColor: colors.border}]}>
+          <Textbox 
+            headerText={"Last Name"}
+            placeholder="Your last name..."
+            icon="user"
+            defaultValue={state.updateLastName}
+            handleChange={handleLastNameChange}
+            didChange={state.lastNameChange}
+            errMsg={state.lastNameMsg}
           />
-        </ScrollView>
-      </SafeAreaView>
-    )
-  } else {
-    // spa hasn't mounted and established context yet
-    return (
-      <View className="profile-loading-container">
-        <Text>loading...</Text>
-      </View>
-    )
-  }
+        </View>
+        <View style={[styles.textContainer, {borderColor: colors.border}]}>
+          <Textbox 
+            headerText={"Bio"}
+            placeholder="Your first name..."
+            icon="user"
+            defaultValue={state.updateBio}
+            handleChange={handleBioChange}
+            didChange={state.bioChange}
+            errMsg={state.bioMsg}
+          />
+        </View>
+        <View style={[styles.textContainer, {borderColor: colors.border}]}>
+          <Textbox 
+            headerText={"Age"}
+            placeholder="Your age..."
+            icon="user"
+            keyboardType='numeric'
+            defaultValue={state.updateAge.toString(10)}
+            handleChange={handleAgeChange}
+            didChange={state.ageChange}
+            errMsg={state.ageMsg}
+          />
+        </View>
+        <View style={[styles.textContainer, {borderColor: colors.border}]}>
+          <Textbox 
+            headerText={"Location"}
+            placeholder="Your city..."
+            icon="user"
+            defaultValue={state.updateLocation}
+            handleChange={handleLocationChange}
+            didChange={state.locationChange}
+            errMsg={state.locationMsg}
+          />
+        </View>
+        <View style={[styles.textContainer, {borderColor: colors.border}]}>
+          <Textbox 
+            headerText={"Gender"}
+            placeholder="Your gender..."
+            icon="user"
+            defaultValue={state.updateGender}
+            handleChange={handleGenderChange}
+            didChange={state.genderChange}
+            errMsg={state.genderMsg}
+          />
+        </View>
+        <View style={[styles.textContainer, {borderColor: colors.border}]}>
+          {renderHeightInput()}
+        </View>
+        <View style={[styles.textContainer, {borderColor: colors.border}]}>
+          <Textbox 
+            headerText={'Weight'}
+            placeholder={`Your weight in ${unitSystem === METRIC ? 'kg' : 'lbs'}`}
+            icon="user"
+            keyboardType='numeric'
+            defaultValue={state.updateWeight.toString(10)}
+            handleChange={handleWeightChange}
+            didChange={state.weightChange}
+            errMsg={state.weightMsg}
+          />
+        </View>
+        <Button 
+          title={uploadImageTitle}
+          buttonStyle={styles.uploadImageButton}
+          titleStyle={{color: colors.textColor}}
+          onPress={() => {
+            ImagePicker.showImagePicker(imagePickerOptions, (response) => {
+              if (response.didCancel) {
+                console.log('User cancelled image picker');
+              } else if (response.error) {
+                console.log('ImagePicker Error: ', response.error);
+              } else if (response.customButton) {
+                console.log('User tapped custom button: ', response.customButton);
+              } else {
+                // if (response.type !== 'image/jpeg') {
+                //   Alert.alert(`Oh No :(`, `Image must be`, [{ text: "Okay" }]);
+                //   return;
+                // }
+                const photo = {
+                  uri:  Platform.OS === "android" ? response.uri : response.uri.replace("file://", ""),
+                  // uri: response.uri,
+                  name: response.fileName === null ? "newProfilePicture" : response.fileName,
+                  type: response.type
+                };
+                console.log(Object.keys(response))
+                console.log('uploaded photo: ', photo)
+                setUploadImageTitle(`uploaded a new photo`);
+                setUpdateProfilePic(photo);
+                setDisplayProfilePicUrl(photo.uri)
+                // You can also display the image using data:
+                // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+              }
+            });
+          }}
+        />
+        <Button
+          buttonStyle={[styles.saveButton, {backgroundColor: colors.button}]}
+          title="Save changes"
+          onPress={updateProfile}
+        />
+      </ScrollView>
+    </SafeAreaView>
+  )
 }
 const styles = StyleSheet.create({
   container: {

@@ -12,6 +12,7 @@ const {
   IS_FOLLOWER_PENDING,
   IS_FOLLOWING_PENDING,
   IS_RIVAL_PENDING,
+  UNRELATED
 } = PROFILE_CONSTANTS
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import COMMUNITY_CONSTANTS from '../../community/CommunityConstants'
@@ -39,22 +40,47 @@ const ProfileHeader = (props) => {
   } = profileContext
   const { profileURL } = profileContext.profilePicture
   const { colors } = useTheme();
+  // tracks whether or not the user tapped on the friend action button
+  // button will be disabled or will load after this
+  const [buttonLoading, setButtonLoading] = React.useState(false)
+
+  // map for relationship status to button text
+  const relationshipMap = {}
+  console.log(relationshipStatus)
+  relationshipMap[IS_SELF] = {
+    text: 'Edit Profile',
+    action: () => props.navigation.push(PROFILE_CONSTANTS.EDIT_PROFILE),
+  }
+  relationshipMap[IS_FOLLOWER] = {
+    text: 'Remove Follower',
+    action: () => props.navigation.push(PROFILE_CONSTANTS.EDIT_PROFILE),
+  }
+  relationshipMap[IS_FOLLOWING] = {
+    text: 'Unfollow',
+    action: () => console.log("unfollow"),
+  }
+  relationshipMap[IS_FOLLOWER_PENDING] = {
+    text: 'Accept Request',
+    action: () => console.log("accept"),
+  }
+  relationshipMap[IS_FOLLOWING_PENDING] = {
+    text: 'Request Sent',
+  }
+  relationshipMap[UNRELATED] = {
+    text: 'Follow',
+    action: () => console.log("accept"),
+  }
   // renders either a follow button, edit profile button, 
   // or an inactive following/follower button (challenge later)
   const renderRelationshipAction = () => {
-    switch(relationshipStatus) {
-      case IS_SELF:
-        return (
-          <GradientButton 
-            buttonText='Edit Profile'
-            onPress={() => {
-              props.navigation.navigate(PROFILE_CONSTANTS.EDIT_PROFILE)
-            }}
-          />
-        )
-      default:
-        return <Text>Unknown relationship?</Text> 
-    }
+    return (
+      <Button
+        title='Edit Profile'
+        containerStyle={{width: '90%', alignSelf: 'center', marginTop: 10, marginBottom: 10}}
+        buttonStyle={{backgroundColor: colors.button}}
+        onPress={relationshipToAction[relationshipStatus]}
+      />
+    )
   }
   const renderCommunityButton = (toScreen, topText, bottomText) => (
     <TouchableOpacity
@@ -85,7 +111,14 @@ const ProfileHeader = (props) => {
         </View>
       </View>
       <Text h4 style={[styles.nameText, {color: colors.textColor}]}>{`${firstName} ${lastName}`}</Text>
-      { renderRelationshipAction() }
+      <Button
+        title={relationshipMap[relationshipStatus].text}
+        containerStyle={{width: '90%', alignSelf: 'center', marginTop: 10, marginBottom: 10}}
+        buttonStyle={{backgroundColor: colors.button}}
+        onPress={relationshipMap[relationshipStatus].action}
+        loading={buttonLoading}
+        disabled={!relationshipMap[relationshipStatus].action}
+      />
       <Divider style={styles.divider}/>
     </View>
   )

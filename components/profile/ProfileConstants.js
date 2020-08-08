@@ -4,16 +4,16 @@ const PROFILE_CONSTANTS = {
   USER_PROFILE: 'User Profile',
 
   // different relationship statuses
-  IS_FOLLOWER: 'Follower',
-  IS_FOLLOWING: 'Following',
-  IS_RIVAL: 'Rival',
+  IS_FOLLOWER: 'follower',
+  IS_FOLLOWING: 'following',
+  IS_RIVAL: 'rival',
   IS_SELF: 'You',
   FOLLOWS_YOU: 'Follows You',
   YOU_FOLLOW: 'You Follow',
-  UNRELATED: 'Follow',
-  IS_FOLLOWER_PENDING: 'Accept Request',
-  IS_FOLLOWING_PENDING: 'Request Sent',
-  IS_RIVAL_PENDING: 'Rivalry Pending...',
+  UNRELATED: 'unrelated',
+  IS_FOLLOWER_PENDING: 'is follower pending',
+  IS_FOLLOWING_PENDING: 'is following pending',
+  IS_RIVAL_PENDING: 'rivalry Pending...',
 
   EDIT_PROFILE: "Edit Profile",
   BASIC_INFO: 'Basic Info',
