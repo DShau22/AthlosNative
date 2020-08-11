@@ -1,8 +1,9 @@
 import React from 'react'
 import { View, StyleSheet, Image } from 'react-native'
 import { Text, Button, Divider } from 'react-native-elements'
-import { UserDataContext, ProfileContext } from '../../../Context'
+import { UserDataContext, ProfileContext, AppFunctionsContext } from '../../../Context'
 import PROFILE_CONSTANTS from '../ProfileConstants'
+import COMMUNITY_CONSTANTS from '../../community/CommunityConstants'
 const { 
   IS_RIVAL,
   IS_FOLLOWER,
@@ -14,14 +15,26 @@ const {
   IS_RIVAL_PENDING,
   UNRELATED
 } = PROFILE_CONSTANTS
+const {
+  UNFOLLOW,
+  REMOVE_FOLLOWER,
+  REJECT_FOLLOWER_REQUEST,
+  CANCEL_FOLLOW_REQUEST,
+  ACCEPT_FOLLOWER_REQUEST,
+} = COMMUNITY_CONSTANTS
+
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
-import COMMUNITY_CONSTANTS from '../../community/CommunityConstants'
 import ThemeText from '../../generic/ThemeText'
 
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import GradientButton from '../../generic/GradientButton'
 import { useTheme } from '@react-navigation/native';
-
+import { followerAction, storeNewFollowers } from '../../community/communityFunctions/followers'
+import { cancelFollowRequest, unfollow, storeNewFollowing } from '../../community/communityFunctions/following'
+import FollowerButton from '../actionButtons/FollowerButton'
+import SelfButton from '../actionButtons/SelfButton'
+import UnrelatedButton from '../actionButtons/UnrelatedButton'
+import FollowingButton from '../actionButtons/FollowingButton'
 // consists of
 // 1. profile picture
 // 2. Number of followers, following, and rivals => 
@@ -29,7 +42,9 @@ import { useTheme } from '@react-navigation/native';
 // 3. Relationship status/action (follower, following rival) => on tap bring up modal from bottom for more actions
 
 const ProfileHeader = (props) => {
+  const userDataContext = React.useContext(UserDataContext)
   const profileContext = React.useContext(ProfileContext);
+  const appFunctionsContext = React.useContext(AppFunctionsContext);
   const {
     firstName,
     lastName,
@@ -37,39 +52,56 @@ const ProfileHeader = (props) => {
     following,
     rivals,
     relationshipStatus,
+    profilePicture,
+
+    _id
   } = profileContext
   const { profileURL } = profileContext.profilePicture
+  const { setAppState } = appFunctionsContext
   const { colors } = useTheme();
+  const searchUserInfo = {
+    _id: _id,
+    firstName: firstName,
+    lastName: lastName,
+    profilePicUrl: profilePicture.profileURL
+  }
+  console.log('user info: ', searchUserInfo)
   // tracks whether or not the user tapped on the friend action button
   // button will be disabled or will load after this
   const [buttonLoading, setButtonLoading] = React.useState(false)
-
+  
+  //  these are specifically only for follower requests
+  const [acceptButtonLoading, setAcceptButtonLoading] = React.useState(false)
+  const [rejectButtonLoading, setRejectButtonLoading] = React.useState(false)
   // map for relationship status to button text
   const relationshipMap = {}
-  console.log(relationshipStatus)
-  relationshipMap[IS_SELF] = {
-    text: 'Edit Profile',
-    action: () => props.navigation.push(PROFILE_CONSTANTS.EDIT_PROFILE),
-  }
-  relationshipMap[IS_FOLLOWER] = {
-    text: 'Remove Follower',
-    action: () => props.navigation.push(PROFILE_CONSTANTS.EDIT_PROFILE),
-  }
+  relationshipMap[IS_SELF] = <SelfButton navigation={props.navigation}/>
+  relationshipMap[IS_FOLLOWER] = <FollowerButton follower={searchUserInfo}/>
   relationshipMap[IS_FOLLOWING] = {
-    text: 'Unfollow',
-    action: () => console.log("unfollow"),
+    initText: 'Following',
+    action: async () => {
+      setButtonLoading(true);
+      try {
+        await unfollow({_id: _id})
+        const newAppState = await storeNewFollowing({_id: _id}, UNFOLLOW, userDataContext)
+        setAppState(newAppState)
+      } catch(e) {
+        console.log(e)
+      } finally {
+        setButtonLoading(false);
+      }
+    },
   }
   relationshipMap[IS_FOLLOWER_PENDING] = {
-    text: 'Accept Request',
+    initText: 'Sent you a request',
     action: () => console.log("accept"),
   }
-  relationshipMap[IS_FOLLOWING_PENDING] = {
-    text: 'Request Sent',
-  }
-  relationshipMap[UNRELATED] = {
-    text: 'Follow',
-    action: () => console.log("accept"),
-  }
+  relationshipMap[IS_FOLLOWING] = <FollowingButton searchUser={searchUserInfo} relationshipStatus={IS_FOLLOWING} />
+  relationshipMap[IS_FOLLOWING_PENDING] = <FollowingButton searchUser={searchUserInfo} relationshipStatus={IS_FOLLOWING_PENDING} />
+  relationshipMap[UNRELATED] = <UnrelatedButton searchUser={searchUserInfo}/>
+  // intial text on the button
+  const [buttonText, setButtonText] = React.useState(relationshipMap[relationshipStatus].initText)
+
   // renders either a follow button, edit profile button, 
   // or an inactive following/follower button (challenge later)
   const renderRelationshipAction = () => {
@@ -82,6 +114,7 @@ const ProfileHeader = (props) => {
       />
     )
   }
+
   const renderCommunityButton = (toScreen, topText, bottomText) => (
     <TouchableOpacity
       style={styles.communityButton}
@@ -93,6 +126,10 @@ const ProfileHeader = (props) => {
       <ThemeText>{bottomText}</ThemeText>
     </TouchableOpacity>
   )
+
+  const renderModals = () => {
+
+  }
 
   return (
     <View style={[styles.container]}>
@@ -111,14 +148,15 @@ const ProfileHeader = (props) => {
         </View>
       </View>
       <Text h4 style={[styles.nameText, {color: colors.textColor}]}>{`${firstName} ${lastName}`}</Text>
-      <Button
-        title={relationshipMap[relationshipStatus].text}
+      {relationshipMap[relationshipStatus]}
+      {/* <Button
+        title={relationshipMap[relationshipStatus].initText}
         containerStyle={{width: '90%', alignSelf: 'center', marginTop: 10, marginBottom: 10}}
         buttonStyle={{backgroundColor: colors.button}}
         onPress={relationshipMap[relationshipStatus].action}
         loading={buttonLoading}
         disabled={!relationshipMap[relationshipStatus].action}
-      />
+      /> */}
       <Divider style={styles.divider}/>
     </View>
   )

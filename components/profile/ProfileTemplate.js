@@ -12,8 +12,17 @@ import { UserDataContext, ProfileContext } from '../../Context';
 import { poundsToKg, inchesToCm } from "../utils/unitConverter"
 import PROFILE_CONSTANTS from "./ProfileConstants"
 const {
-  IS_SELF, IS_FOLLOWER, IS_FOLLOWING, IS_RIVAL, USER_PROFILE, SEARCH_PROFILE
-} =  PROFILE_CONSTANTS
+  USER_PROFILE,
+  SEARCH_PROFILE,
+  IS_RIVAL,
+
+  IS_SELF,
+  UNRELATED,
+  IS_FOLLOWER,
+  IS_FOLLOWING,
+  IS_FOLLOWER_PENDING,
+  IS_FOLLOWING_PENDING,
+} = PROFILE_CONSTANTS
 import GLOBAL_CONSTANTS from '../GlobalConstants'
 const { METRIC, ENGLISH, EVERYONE, FOLLOWERS, ONLY_ME } = GLOBAL_CONSTANTS
 import Community from '../community/Community'
@@ -34,8 +43,14 @@ const imgAlt = "./default_profile.png"
 const ProfileTemplate = (props) => {
   const userDataContext = React.useContext(UserDataContext)
   const {
+    followers,
+    following,
+    followerRequests,
+    followingPending
+  } = userDataContext
+  const {
     _id,
-    relationshipStatus,
+    // relationshipStatus,
     profileContext,
     setId,
     refreshing,
@@ -44,12 +59,42 @@ const ProfileTemplate = (props) => {
   } = props
   const { settings } = profileContext
   const { colors } = useTheme();
-  const navigateToFitness = (navigation) => {
-    if (relationshipStatus === PROFILE_CONSTANTS.IS_SELF) {
-      navigation.navigate(GLOBAL_CONSTANTS.FITNESS, {_id: userDataContext._id})
-    } else {
-      navigation.navigate(GLOBAL_CONSTANTS.FITNESS, {_id: _id})
+
+  const getRelationshipStatus = () => {
+    // CHECK THE PROFILE CONSTANTS TO MAKE SURE THESE ENUMS MATCH
+    if (_id === userDataContext._id) {
+      return IS_SELF;
     }
+    // ORDER MATTERS
+    // for now, can unfollow someone, and then remove them as follower
+    // but not the other direction. Add that in later 
+    for (i = 0; i < following.length; i++) {
+      if (following[i]._id === _id) {
+        return IS_FOLLOWING;
+      }
+    }
+    for (i = 0; i < followers.length; i++) {
+      if (followers[i]._id === _id) {
+        return IS_FOLLOWER;
+      }
+    }
+    for (i = 0; i < followerRequests.length; i++) {
+      if (followerRequests[i]._id === _id) {
+        return IS_FOLLOWER_PENDING;
+      }
+    }
+    for (i = 0; i < followingPending.length; i++) {
+      if (followingPending[i]._id === _id) {
+        return IS_FOLLOWING_PENDING;
+      }
+    }
+    return UNRELATED
+  }
+  const relationshipStatus = getRelationshipStatus()
+  // const [relationshipStatus, setRelationshipStatus] = React.useState(getRelationshipStatus())
+
+  const navigateToFitness = (navigation) => {
+    navigation.navigate(GLOBAL_CONSTANTS.FITNESS, {_id: _id})
   }
 
   const canViewFitness = () => (
@@ -79,7 +124,7 @@ const ProfileTemplate = (props) => {
   const Stack = createStackNavigator();
   const profileScreenName = relationshipStatus === IS_SELF ? USER_PROFILE : SEARCH_PROFILE
   return (
-    <ProfileContext.Provider value={{...profileContext, relationshipStatus, setId}}>
+    <ProfileContext.Provider value={{...profileContext, relationshipStatus, setId, _id}}>
       <Stack.Navigator initialRouteName={profileScreenName}>
         <Stack.Screen
           name={profileScreenName}

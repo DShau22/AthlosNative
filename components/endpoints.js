@@ -25,6 +25,7 @@ const ENDPOINTS = {
     cancelFollowRequest: `${serverURL}/cancelFollowRequest`,
     stopFollowing: `${serverURL}/stopFollowing`,
     unfollow: `${serverURL}/unfollow`,
+    follow: `${serverURL}/follow`,
 
     // search stuff
     getSearchUser: `${serverURL}/getSearchUser`,

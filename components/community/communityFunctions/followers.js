@@ -70,6 +70,9 @@ const storeNewFollowers = async (requester, action, userDataContext) => {
         break;
       case REMOVE_FOLLOWER:
         newState = removeFollowerNewState(requester, userDataContext);
+        break;
+      default:
+        throw new Error(`action ${action} is not a valid action`)
     }
     console.log('setting new state: ', newState)
     await storeDataObj(newState)

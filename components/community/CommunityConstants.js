@@ -13,8 +13,8 @@ const COMMUNITY_CONSTANTS = {
   ACCEPT_FOLLOWER_REQUEST: 'accept follower request',
   REJECT_FOLLOWER_REQUEST: 'reject follower request',
   REMOVE_FOLLOWER: 'remove follower',
-
   UNFOLLOW: 'unfollow',
+  FOLLOW: 'follow',
   CANCEL_FOLLOW_REQUEST: 'cancel follow request',
 
   // time it takes for user disappear / add animation to complete

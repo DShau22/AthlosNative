@@ -14,11 +14,6 @@ const ActionButton = (props) => {
     <Button
       title={initialTitle}
       loading={isLoading}
-      // linearGradientProps={{
-      //   colors: ['red', 'pink'],
-      //   start: { x: 0, y: 0.5 },
-      //   end: { x: 1, y: 0.5 },
-      // }}
       onPress={() => {
         props.onPress(setIsLoading)
       }}

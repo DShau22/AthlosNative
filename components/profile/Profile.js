@@ -4,18 +4,13 @@ import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import React, { Component } from 'react';
 import { View, RefreshControl, SafeAreaView, ScrollView, StyleSheet, Button } from 'react-native'
 import { Text } from 'react-native-elements'
-// import {
-//   withRouter
-// } from "react-router-dom";
-// import UserProfile from "./UserProfile"
-// import SearchProfile from "./SearchProfile"
+import PROFILE_CONSTANTS from './ProfileConstants'
 import { UserDataContext } from '../../Context';
 import Fitness from '../fitness/Fitness'
 import UserProfile from './UserProfile'
 import EditProfileFunc from './EditProfileFunc';
 import LoadingScreen from '../generic/LoadingScreen';
 import { createStackNavigator } from '@react-navigation/stack';
-import PROFILE_CONSTANTS from "./ProfileConstants"
 import WithRefresh from '../generic/WithRefresh'
 import SearchProfile from './SearchProfile';
 import LinearGradient from 'react-native-linear-gradient';
@@ -25,6 +20,7 @@ const Profile = (props) => {
   // this is the user's own id
   const { _id } = props.route.params;
   const userDataContext = React.useContext(UserDataContext)
+
   const [id, setId] = React.useState(_id)
   console.log("profile id: ", id)
 
@@ -37,23 +33,13 @@ const Profile = (props) => {
     setId(_id)
   }, [_id])
 
-  const wait = (timeout) => {
-    return new Promise(resolve => {
-      setTimeout(resolve, timeout);
-    });
-  }
-
-  const onRefresh = () => {
-    return wait(2000);
-  }
-
   const Stack = createStackNavigator();
   const { colors } = useTheme();
   // console.log('returning the profile props, id is: ', _id);
   return (
     <>
       { id === userDataContext._id ? 
-        <UserProfile setId={setId} rootNav={props.navigation} /> : <SearchProfile setId={setId} rootNav={props.navigation} _id={id} />
+        <UserProfile setId={setId} rootNav={props.navigation} _id={id}/> : <SearchProfile setId={setId} rootNav={props.navigation} _id={id} />
       } 
     </>
   )
