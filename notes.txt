@@ -3,11 +3,14 @@ Runnning on iOS:
   If you wanna install a native library cd into ios folder and run pod install
 
 Running on Android:
-  Open Android studio, go to AVD manager, and launch a device emulator
+  Open Android studio, go to configure > AVD manager, and launch a device emulator
   Run npx react-native run-android
 
 Any new screens created should be wrapped in the gestureHandlerRootHOC Higher order component
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
+Android doesnt recognize 'localhost' but does 10.0.2.2. Ios Doesnt recognize 10.0.2.2 though.
+  run adb reverse tcp:8080 tcp:8080 to get android to connect to localhost port 8080. Change the port # if this changes
+  
 To edit boilerplate template, go to:
 Code > preferences > user snippets
