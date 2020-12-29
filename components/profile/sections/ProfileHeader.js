@@ -102,19 +102,6 @@ const ProfileHeader = (props) => {
   // intial text on the button
   const [buttonText, setButtonText] = React.useState(relationshipMap[relationshipStatus].initText)
 
-  // renders either a follow button, edit profile button, 
-  // or an inactive following/follower button (challenge later)
-  const renderRelationshipAction = () => {
-    return (
-      <Button
-        title='Edit Profile'
-        containerStyle={{width: '90%', alignSelf: 'center', marginTop: 10, marginBottom: 10}}
-        buttonStyle={{backgroundColor: colors.button}}
-        onPress={relationshipToAction[relationshipStatus]}
-      />
-    )
-  }
-
   const renderCommunityButton = (toScreen, topText, bottomText) => (
     <TouchableOpacity
       style={styles.communityButton}
@@ -141,11 +128,11 @@ const ProfileHeader = (props) => {
             // defaultSource={{uri: imgAlt}}
           />
         </View>
-        <View style={styles.communityContainer}>
+        {/* <View style={styles.communityContainer}>
           { renderCommunityButton(COMMUNITY_CONSTANTS.FOLLOWERS, followers.length, 'Followers') }
           { renderCommunityButton(COMMUNITY_CONSTANTS.FOLLOWING, following.length, 'Following') }
           { renderCommunityButton(COMMUNITY_CONSTANTS.RIVALS, rivals.length, 'Rivals') }
-        </View>
+        </View> */}
       </View>
       <Text h4 style={[styles.nameText, {color: colors.textColor}]}>{`${firstName} ${lastName}`}</Text>
       {relationshipMap[relationshipStatus]}
@@ -157,7 +144,7 @@ const ProfileHeader = (props) => {
         loading={buttonLoading}
         disabled={!relationshipMap[relationshipStatus].action}
       /> */}
-      <Divider style={styles.divider}/>
+      {/* <Divider style={styles.divider}/> */}
     </View>
   )
 }
@@ -166,6 +153,7 @@ const styles = StyleSheet.create({
     // paddingTop: 20,
     flex: 1,
     flexDirection: 'column',
+    alignItems: 'center',
     width: '100%',
   },
   divider: {
@@ -183,13 +171,12 @@ const styles = StyleSheet.create({
   },
   topContainer: {
     flexDirection: 'row',
-    // justifyContent: 'space-around'
   },
   imageContainer: {
-    flexDirection: 'column',
+    // flexDirection: 'column',
     // alignItems: 'center',
-    flex: 1,
-    marginLeft: 20,
+    // flex: 1,
+    // marginLeft: 20,
     // backgroundColor: 'blue'
   },
   communityContainer: {

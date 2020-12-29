@@ -1,12 +1,18 @@
-import React from 'react'
-import { View, StyleSheet, Text } from "react-native"
-import { UserDataContext } from "../../../Context"
-import {COLOR_THEMES} from "../../ColorThemes"
+import React from 'react';
+import { View, StyleSheet, Text } from "react-native";
+import { UserDataContext } from "../../../Context";
+import { COLOR_THEMES } from "../../ColorThemes";
 import * as Animatable from 'react-native-animatable';
+import { ProgressCircle } from 'react-native-svg-charts';
+
+import FITNESS_CONSTANTS from '../../fitness/FitnessConstants';
+import ThemeText from '../../generic/ThemeText';
+
+import CustomIcons from '../../../CustomIcons';
+CustomIcons.loadFont();
+import Icon from 'react-native-vector-icons/dist/Feather';
 
 const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES
-import { ProgressCircle } from 'react-native-svg-charts'
-import FITNESS_CONSTANTS from '../../fitness/FitnessConstants'
 const ImageSlide = (props) => {
   const getLabels = (action) => {
     var { unitSystem } = React.useContext(UserDataContext).settings
@@ -29,12 +35,17 @@ const ImageSlide = (props) => {
     }
   }
 
+  const actionToIcon = {};
+  actionToIcon[FITNESS_CONSTANTS.RUN]  = <CustomIcons name='running' style={{position: 'absolute', top: '35%', color: 'white'}} size={50}/>
+  actionToIcon[FITNESS_CONSTANTS.SWIM] = <CustomIcons name='swimmer' style={{position: 'absolute', top: '35%', color: 'white'}} size={50}/>
+  actionToIcon[FITNESS_CONSTANTS.JUMP] = <Icon name='chevrons-up' style={{position: 'absolute', top: '35%', color: 'white'}} size={50}/>
+
   const renderNum = (stats, indexDisplay, style) => {
     var { activityData } = stats
     var labels = getLabels(stats.action)
     var num = activityData.length === 0 ? 0 : activityData[indexDisplay].num
     return (
-      <Text style={style}> {`${num} ${labels.numLabel}`} </Text>
+      <ThemeText style={style}> {`${num} ${labels.numLabel}`} </ThemeText>
       // <Animatable.Text animation="slideInLeft">{`${num} ${labels.numLabel}`}</Animatable.Text>
     )
   }
@@ -54,7 +65,8 @@ const ImageSlide = (props) => {
   return (
     <View style={styles.imageSlide}> 
       <ProgressCircle style={{ height: '100%', width: '100%' }} progress={0.7} progressColor={getActivityColor()} />
-      <Text style={{ position: 'absolute', top: '35%'}}>Img should go here!</Text>
+      {actionToIcon[stats.action]}
+      {/* <ThemeText style={{ position: 'absolute', top: '35%'}}>Img should go here!</ThemeText> */}
       {/* add data through props */}
       {/* <img src={stats.imageUrl} alt="loading..."/> */}
       {renderNum(stats, indexDisplay, styles.number)}
@@ -79,7 +91,8 @@ const styles = StyleSheet.create({
   },
   number: {
     position: 'absolute',
-    top: '65%'
+    top: '65%',
+    fontSize: 20
   },
   run:  { borderColor: RUN_THEME },
   swim: { borderColor: SWIM_THEME },

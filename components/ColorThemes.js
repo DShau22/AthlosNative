@@ -8,7 +8,7 @@ const COLOR_THEMES = {
 };
 
 // supposed to emulate tropical water colors and vibes
-const TROPIC_THEME = {
+const LIGHT_THEME = {
   ...DefaultTheme,
   dark: false,
   colors: {
@@ -32,18 +32,21 @@ const DARK_THEME = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    background: '#001E2E',
+    background: '#0C1947',
     card: '#08102E',
+    header: '#08102E',
     gradientLeft: '#16E8EF',
     gradientMiddle: '#197CCB',
     gradientRight: '#36EA8E',
     textButtonColor: '#F2FFFF',
-    textColor: '#2DC7ED'
+    textColor: '#FFFFFF',
+    // ...DarkTheme.colors,
+    // background: '#001E2E',
   },
 };
 
 module.exports = {
   COLOR_THEMES,
-  TROPIC_THEME,
+  LIGHT_THEME,
   DARK_THEME
 }

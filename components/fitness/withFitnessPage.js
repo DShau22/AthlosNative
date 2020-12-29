@@ -179,10 +179,6 @@ export default function withFitnessPage( WrappedComponent ) {
             cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
             activity={activityJson.action}
           />
-          <Button 
-            title='Past'
-            onPress={() => console.log('pressed past')}
-          />
           <Duration 
             duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
             activity={activityJson.action}

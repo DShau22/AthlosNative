@@ -24,10 +24,10 @@ import {
 
 const Fitness = (props) => {
   const userDataContext = React.useContext(UserDataContext);
-  const appFunctionsContext = React.useContext(AppFunctionsContext)
+  const appFunctionsContext = React.useContext(AppFunctionsContext);
   const profileContext = React.useContext(ProfileContext);
   const { colors } = useTheme()
-  const [isLoading, setIsLoading] = React.useState(false);  
+  const [isLoading, setIsLoading] = React.useState(true);  
 
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -39,9 +39,13 @@ const Fitness = (props) => {
   const { setAppState } = appFunctionsContext
   const { _id } = props
 
-  const getFitnessFromServer = React.useCallback(async () => {
-    setIsLoading(true)
-    console.log('getting fitness with use id: ', _id)
+  const getFitness = React.useCallback(async () => {
+    setIsLoading(true);
+    if (relationshipStatus === PROFILE_CONSTANTS.IS_SELF) {
+      setIsLoading(false);
+      return;
+    }
+    console.log('getting fitness with user id: ', _id)
     // fetch jsons
     try {
       const [jumpsTracked, swimsTracked, runsTracked] = await Promise.all([
@@ -100,7 +104,7 @@ const Fitness = (props) => {
     console.log("using fitness effect")
     // if this is another user, must get the fitness from the server. Otherwise can just use
     // local async storage (the defaults used in the state)
-    if (relationshipStatus !== PROFILE_CONSTANTS.IS_SELF) getFitnessFromServer();
+    getFitness();
     return () => {
       console.log("Fitness requests are being canceled")
       source.cancel()
@@ -141,19 +145,25 @@ const Fitness = (props) => {
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
-          onRefresh={getFitnessFromServer}
+          onRefresh={getFitness}
         />
       }
     >
       { isLoading ? <LoadingScreen /> :
         <TopTab.Navigator
           tabBarOptions={{
-            labelStyle: { fontSize: 12, color: colors.textColor },
+            activeTintColor: colors.textColor,
+            inactiveTintColor: '#9DA0A3',
+            labelStyle: { fontSize: 12 },
+            indicatorStyle: {
+              backgroundColor: colors.textColor,
+              height: 2,
+            },
             style: { backgroundColor: colors.header, paddingTop: 8, paddingBottom: 8 },
           }}
         >
           <TopTab.Screen
-            name={FITNESS_CONSTANTS.RUN}
+            name={'Runs'}
             component={Run}
             initialParams={{
               id: FITNESS_CONSTANTS.RUN,
@@ -162,7 +172,7 @@ const Fitness = (props) => {
             }}
           />
           <TopTab.Screen
-            name={FITNESS_CONSTANTS.SWIM}
+            name={'Swims'}
             component={Swim}
             initialParams={{
               id: FITNESS_CONSTANTS.SWIM,
@@ -171,7 +181,7 @@ const Fitness = (props) => {
             }}
           />
           <TopTab.Screen
-            name={FITNESS_CONSTANTS.JUMP}
+            name={'Jumps'}
             component={Jump}
             initialParams={{
               id: FITNESS_CONSTANTS.JUMP,

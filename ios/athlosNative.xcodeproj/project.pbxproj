@@ -20,6 +20,7 @@
 		4CE9C845DA15BC9E24E4642A /* libPods-athlosNative-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE69CE8A0591100B1E86B612 /* libPods-athlosNative-tvOS.a */; };
 		C3AD70271DB7615822E79D00 /* libPods-athlosNative-athlosNativeTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2FDAD100E4A0911574642B04 /* libPods-athlosNative-athlosNativeTests.a */; };
 		D502584FC1DE89B38A398920 /* libPods-athlosNative-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F4BB7CC8BA53A4404D87C02C /* libPods-athlosNative-tvOSTests.a */; };
+		D9A6B512EDF94B02BC706FDA /* icomoon.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4395F78CB0644F92BB994A86 /* icomoon.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +68,7 @@
 		F242C0571FF8C23FCC417583 /* Pods-athlosNative-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-athlosNative-tvOS.release.xcconfig"; path = "Target Support Files/Pods-athlosNative-tvOS/Pods-athlosNative-tvOS.release.xcconfig"; sourceTree = "<group>"; };
 		F4BB7CC8BA53A4404D87C02C /* libPods-athlosNative-tvOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-athlosNative-tvOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF0372F4C27DC4D8FB05C11B /* Pods-athlosNative-athlosNativeTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-athlosNative-athlosNativeTests.release.xcconfig"; path = "Target Support Files/Pods-athlosNative-athlosNativeTests/Pods-athlosNative-athlosNativeTests.release.xcconfig"; sourceTree = "<group>"; };
+		4395F78CB0644F92BB994A86 /* icomoon.ttf */ = {isa = PBXFileReference; name = "icomoon.ttf"; path = "../assets/fonts/icomoon.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -202,6 +204,7 @@
 		D0968441EEE242AC8EED3CB2 /* Resources */ = {
 			isa = "PBXGroup";
 			children = (
+				4395F78CB0644F92BB994A86 /* icomoon.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -351,6 +354,7 @@
 			files = (
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
+				D9A6B512EDF94B02BC706FDA /* icomoon.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

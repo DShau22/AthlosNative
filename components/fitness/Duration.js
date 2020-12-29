@@ -1,11 +1,10 @@
-import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { useTheme } from '@react-navigation/native';
-import { COLOR_THEMES } from '../ColorThemes'
+import { COLOR_THEMES } from '../ColorThemes';
+import ThemeText from '../generic/ThemeText';
 
 export default function Duration( props ) {
-  const { colors } = useTheme();
   const { duration, activity } = props;
   const getColorTheme = () => {
     switch(activity.toLowerCase()) {
@@ -21,8 +20,8 @@ export default function Duration( props ) {
   }
   return (
     <View style={[styles.durationCircle, {borderColor: getColorTheme()}]}>
-      <Icon name="clock" style={styles.clock}/>
-      <Text style={styles.text}>{duration / 10}</Text>
+      <Icon name="clock" style={[styles.clock, {color: getColorTheme()}]}/>
+      <ThemeText style={styles.text}>{duration / 10}</ThemeText>
     </View>
   )
 }
@@ -39,5 +38,7 @@ const styles = StyleSheet.create({
   text: {
 
   },
-  clock: { fontSize: 25 }
+  clock: {
+    fontSize: 25,
+  }
 })

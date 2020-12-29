@@ -1,13 +1,11 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useTheme } from '@react-navigation/native';
 import { COLOR_THEMES } from '../ColorThemes'
 import ThemeText from '../generic/ThemeText'
 
 MaterialCommunityIcons.loadFont()
 export default function Calories( props ) {
-  const { colors } = useTheme();
   const { cals, activity } = props;
   const getColorTheme = () => {
     switch(activity.toLowerCase()) {

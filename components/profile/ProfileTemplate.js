@@ -124,7 +124,8 @@ const ProfileTemplate = (props) => {
   const Stack = createStackNavigator();
   const profileScreenName = relationshipStatus === IS_SELF ? USER_PROFILE : SEARCH_PROFILE
   return (
-    <ProfileContext.Provider value={{...profileContext, relationshipStatus, setId, _id}}>
+    // context for when fitness was part of profile
+    <ProfileContext.Provider value={{...profileContext, relationshipStatus, setId, _id}}> 
       <Stack.Navigator initialRouteName={profileScreenName}>
         <Stack.Screen
           name={profileScreenName}
@@ -149,7 +150,16 @@ const ProfileTemplate = (props) => {
                   navigation={props.navigation}
                   relationshipStatus={relationshipStatus}
                 />
-                <View style={styles.routeButtons}>
+                <View style={styles.viewFitness}>
+                  {canViewFitness() ?
+                    <Button
+                      title='View Fitness'
+                      containerStyle={{width: '90%', alignSelf: 'center', marginTop: 10, marginBottom: 10}}
+                      buttonStyle={{backgroundColor: colors.button}}
+                      onPress={() => navigateToFitness(props.navigation)}
+                    /> : null }
+                </View>
+                {/* <View style={styles.routeButtons}>
                   {canViewFitness() ?
                     <Card
                       onPress={() => navigateToFitness(props.navigation)}
@@ -178,7 +188,7 @@ const ProfileTemplate = (props) => {
                       </Card.Content>
                     </Card> : null
                   }
-                </View>
+                </View> */}
                 {canViewBests() ? <ProfileBests /> : null}
                 {canViewTotals() ? <ProfileAggregates /> : null}
               </View>
@@ -207,7 +217,7 @@ const ProfileTemplate = (props) => {
             />
           )}
         </Stack.Screen>
-        <Stack.Screen
+        {/* <Stack.Screen
           name={PROFILE_CONSTANTS.BASIC_INFO}
           options={{ title: relationshipStatus === IS_SELF ? 'Your Basic Info' : `${profileContext.firstName}'s Basic Info` }}
         >
@@ -218,7 +228,7 @@ const ProfileTemplate = (props) => {
               relationshipStatus={relationshipStatus}
             />
           )}
-        </Stack.Screen>
+        </Stack.Screen> */}
         <Stack.Screen
           name={PROFILE_CONSTANTS.EDIT_PROFILE}
           options={{ title: 'Edit Your Profile' }}
@@ -276,6 +286,9 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 60,
     marginRight: 10
+  },
+  viewFitness: {
+    width: '100%',
   }
 });
 

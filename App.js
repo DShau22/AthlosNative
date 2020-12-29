@@ -20,7 +20,7 @@ import Athlos from "./components/home/Athlos"
 import AsyncStorage from '@react-native-community/async-storage';
 
 import { AppContext } from "./Context"
-import { TROPIC_THEME, DARK_THEME } from './components/ColorThemes'
+import { LIGHT_THEME, DARK_THEME } from './components/ColorThemes'
 
 function App() {
   
@@ -46,7 +46,7 @@ function App() {
   return (
     <MenuProvider>
       <AppContext.Provider value={setToken}>
-        <NavigationContainer theme={TROPIC_THEME}>
+        <NavigationContainer theme={DARK_THEME}>
           { token ? <Athlos token={token} /> : <RootStackScreen /> }
         </NavigationContainer>
       </AppContext.Provider>

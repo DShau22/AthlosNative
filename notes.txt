@@ -14,3 +14,8 @@ Android doesnt recognize 'localhost' but does 10.0.2.2. Ios Doesnt recognize 10.
   
 To edit boilerplate template, go to:
 Code > preferences > user snippets
+
+"swimmer" icon: by freepick at https://www.flaticon.com/free-icon/swimmer_2932355?term=pool&page=1&position=5&related_item_id=2932355
+"running" shoe icon: by photo3idea_studio at https://www.flaticon.com/free-icon/running_1108869?term=run&page=1&position=14&related_item_id=1108869
+
+For icons, if you ever get "cannot recognize font family" the do a Icon.loadFont() right below the import.

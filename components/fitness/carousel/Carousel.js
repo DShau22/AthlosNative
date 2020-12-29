@@ -7,6 +7,7 @@ import React from 'react'
 import { parseDate } from "../../utils/unitConverter"
 import { ProgressCircle } from 'react-native-svg-charts'
 import { useTheme } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/dist/Feather';
 
 const Carousel = (props) => {
   const { colors } = useTheme();
@@ -39,7 +40,12 @@ const Carousel = (props) => {
       var dayMonth = parsed[0] + ", " + parsed[1] + " " + parsed[2]
       result.push({
         label: dayMonth,
-        value: idx
+        value: idx,
+        icon: () => {
+          return activityIndex === idx ? 
+            <Icon name="check" size={14} color={colors.textColor} />
+          : null
+        }
       })
     })
     return result
@@ -51,17 +57,46 @@ const Carousel = (props) => {
     <View style={styles.carousel}>
       <DropDownPicker
         items={dropDownItems}
-        defaultValue={activityIndex}
+        // defaultValue={activityIndex}
         disabled={dropDownItems.length === 0}
         placeholder={initialDropdownText}
-        containerStyle={{height: 40}}
-        style={{...styles.dropdownStyle, backgroundColor: colors.header}}
+        arrowColor={colors.textColor}
+        arrowSize={21}
+        containerStyle={{
+          height: 40
+        }}
+        style={{
+          width: '100%',
+          height: 100,
+          borderWidth: 0,
+          backgroundColor: colors.header,
+          // backgroundColor: 'orange',
+        }}
         labelStyle={{
           fontSize: 14,
-          textAlign: 'left',
-          color: colors.textColor
+          color: colors.textColor,
+          // backgroundColor: 'green'
         }}
-        dropDownStyle={{backgroundColor: colors.dropdown}}
+        itemStyle={{
+          // shifts the text all the way to the left
+          flexDirection: 'row',
+          justifyContent: 'flex-start',
+
+          width: '100%',
+          backgroundColor: colors.header,
+          paddingLeft: 3,
+          // backgroundColor: 'red',
+        }}
+        dropDownStyle={{
+          backgroundColor: colors.header,
+          // backgroundColor: 'white',
+          borderWidth: 1,
+          margin: 0,
+          padding: 0,
+        }}
+        // activeItemStyle={{
+        //   backgroundColor: '#67EDFF'
+        // }}
         onChangeItem={item => {
           // set the activity index to what it should be (item.value)
           dropdownItemClick(item.value)
@@ -96,11 +131,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-  },
-  dropdownStyle: {
-    // backgroundColor: 'red',
-    width: '100%',
-    height: 100,
   },
   activitiesDropdown: {
     height: 'auto',

@@ -43,7 +43,7 @@ const imgAlt = "../profile/default_profile.png"
 const dataURL = ENDPOINTS.getData
 
 function Athlos(props) {
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
   // const [rivals, setRivals] = React.useState([]);
   // const [rivalsPending, setRivalsPending] = React.useState([]);
   // const [rivalRequests, setRivalRequests] = React.useState([]);
@@ -114,7 +114,7 @@ function Athlos(props) {
 
       // first check if info is in Async storage
       const token = await getData();
-      const userData = await getDataObj()
+      const userData = await getDataObj();
       if (!token) {
         console.log("This is weird. Somehow log them out and redirect to login page")
       }
@@ -139,16 +139,7 @@ function Athlos(props) {
       }
       console.log('user json: ', userJson);
 
-      // var { numFriendsDisplay } = state;
-      // try {
-      //   var friendTableRows = await addFriendRows(userJson.friends, numFriendsDisplay)
-      // } catch(e) {
-      //   console.error(e)
-      //   setIsLoading(false);
-      // }
-
       // get user's fitness data for jumps, runs, swims
-      // MAKE AWAIT PROMISES.ALL LATER
       try {
         var [jumpsTracked, swimsTracked, runsTracked] = await Promise.all([
           getActivityJson("jump"),
@@ -281,99 +272,6 @@ function Athlos(props) {
     return trackedFitness
   }
 
-  // async componentDidMount() {
-  //   this._isMounted = true
-  //   // if there is no token then user hasn't logged in...
-  //   // log them out and redirect them back to login page,
-  //   // and don't run the rest of this method cuz it involves setting
-  //   // up stuff as if the user had logged in
-  //   var userToken = getToken()
-  //   if (!userToken) {
-  //     this.setState({
-  //       logout: true
-  //     })
-  //     this.props.history.push("/")
-  //     return
-  //   }
-
-  //   // set up the web socket connection to server
-  //   // var socket = await this.setUpSocket()
-
-  //   // get the user's information here from database
-  //   // make request to server to user information and set state
-  //   var headers = new Headers()
-  //   headers.append("authorization", `Bearer ${userToken}`)
-  //   try {
-  //     var res = await fetch(getUserInfoURL, { method: "GET", headers })
-  //     var userJson = await res.json()
-  //   } catch(e) {
-  //     console.error(e)
-  //   }
-  //   console.log(userJson)
-
-  //   var { numFriendsDisplay } = this.state
-  //   try {
-  //     var friendTableRows = await this.addFriendRows(userJson.friends, numFriendsDisplay)
-  //   } catch(e) {
-  //     console.error(e)
-  //   }
-
-  //   // get user's fitness data for jumps, runs, swims
-  //   // MAKE AWAIT PROMISES.ALL LATER
-  //   try {
-  //     var jumpsTracked = await this.getActivityJson("jump")
-  //     var swimsTracked = await this.getActivityJson("swim")
-  //     var runsTracked = await this.getActivityJson("run")
-  //   } catch(e) {
-  //     console.error(e)
-  //   }
-  //   var gotAllInfo = userJson.success && jumpsTracked.success && swimsTracked.success && runsTracked.success
-  //   if (gotAllInfo && this._isMounted) {
-  //     // one bug that could come up is if another setState occurred outside this function before
-  //     // the fetch response finished running. This delayed setState would then
-  //     // run after the other setState which could cause some mixups in which state is correct
-  //     // Shouldn't be a problem thoughsince the socket field is only updated here and users can't see it.
-  //     this.setState(prevState => ({
-  //       ...userJson,
-  //       // socket,
-  //       mounted: true,
-  //       friendTableRows,
-  //       jumpJson: {
-  //         ...prevState.jumpJson,
-  //         activityData: jumpsTracked.activityData 
-  //       },
-  //       runJson: {
-  //         ...prevState.runJson,
-  //         activityData: runsTracked.activityData 
-  //       },
-  //       swimJson: {
-  //         ...prevState.swimJson,
-  //         activityData: swimsTracked.activityData 
-  //       }
-  //     }))
-  //   } else {
-  //     alert("not success")
-  //   }
-  // }
-
-  // logout() {
-  //   console.log("logging out...")
-  //   // var { socket } = this.state
-  //   // console.log(socket)
-  //   removeFromLocalStorage(storageKey)
-  //   removeFromSessionStorage(storageKey)
-  //   // remove socket id from session storage
-  //   this.setState({
-  //     isLoading: true,
-  //     logout: true,
-  //   });
-  //   this.props.history.push("/")
-  //   // emit logout event to server
-  //   // var userToken = getToken()
-  //   // var data = { userToken }
-  //   // socket.emit("logoutServer", data)
-  // }
-
   // updates the state and therefore the context if the user info is suspected
   // to change. For example if the user changes their settings we want the new
   // settings to be applied automatically. For now only used for settings.
@@ -429,12 +327,12 @@ function Athlos(props) {
             rightComponent={{ icon: 'home', color: '#fff' }}
           /> */}
           <BottomTab.Navigator>
-            <BottomTab.Screen name={HOME} component={Home} />
-            {/* <BottomTab.Screen name={FITNESS} component={Fitness} /> */}
+            {/* <BottomTab.Screen name={HOME} component={Home} /> */}
             {/* <BottomTab.Screen name={PROFILE}>
               {props => <Profile {...props} initialId={state._id}/>}
             </BottomTab.Screen> */}
-            <BottomTab.Screen name={PROFILE} component={Profile} initialParams={{_id: state._id,}}/>
+            <BottomTab.Screen name={PROFILE} component={Profile} initialParams={{_id: state._id,}} />
+            {/* <BottomTab.Screen name={FITNESS} component={Fitness} initialParams={{_id: state._id,}} /> */}
             {/* something like this for passing the navigation props and other props too */}
             {/* <Stack.Screen name={COMMUNITY_CONSTANTS.COMMUNITY}>
               {(props) => <CommunityNav {...props} />}

@@ -1,16 +1,16 @@
 import React from 'react';
 import { View, Image, StyleSheet } from 'react-native';
 import { Button } from 'react-native-elements';
-import { PieChart, LineChart, Grid } from 'react-native-svg-charts'
-import { Text } from 'react-native-svg'
-import ThemeText from '../../generic/ThemeText'
+import { PieChart, LineChart, Grid } from 'react-native-svg-charts';
+import { Text as SvgText } from 'react-native-svg';
+import ThemeText from '../../generic/ThemeText';
+import { useTheme } from '@react-navigation/native';
 
 const DistributionDonut = (props) => {
   // data should be just a simple array of values
-  // indexToActivity is a map for array index to the corresponding label
   const { data, indexToLabel, colors, activity, labelUnit } = props;
   const [slicePressed, setSlicePressed] = React.useState(null);
-  // const indexToActivity = {0: 'Running', 1: 'Walking', 2: 'Resting'}
+  const themeColors = useTheme().colors;
   const pieData = data.map((value, index) => ({
     value,
     svg: {
@@ -24,19 +24,19 @@ const DistributionDonut = (props) => {
     return slices.map((slice, index) => {
       const { labelCentroid, pieCentroid, data } = slice;
       return (
-        <Text
+        <SvgText
           key={index}
           x={pieCentroid[ 0 ]}
           y={pieCentroid[ 1 ]}
-          fill={'black'}
+          fill={themeColors.textColor}
           textAnchor={'middle'}
           alignmentBaseline={'middle'}
           fontSize={24}
-          stroke={'black'}
+          stroke={themeColors.textColor}
           strokeWidth={0.2}
         >
           {index === slicePressed ? `${data.value}${labelUnit} ${indexToLabel[index]}` : ''}
-        </Text>
+        </SvgText>
       )
     })
   }
@@ -77,6 +77,3 @@ const DistributionDonut = (props) => {
 }
 
 export default DistributionDonut;
-const styles = StyleSheet.create({
-
-})
