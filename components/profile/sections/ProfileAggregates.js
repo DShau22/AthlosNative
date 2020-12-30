@@ -16,6 +16,12 @@ const ProfileAggregates = (props) => {
   const { totals } = profileContext
   return (
     <View style={styles.container}>
+      <View style={{ marginTop: 20, }}>
+        <ThemeText style={{
+          fontSize: 24,
+          marginLeft: 10,
+        }}>Totals</ThemeText>
+      </View>
       <View style={styles.row}>
         <View style={styles.gridBox}>
           <Icon name='long-arrow-up' size={30} color={colors.textColor}/>

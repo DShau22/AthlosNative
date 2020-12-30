@@ -106,26 +106,22 @@ const Run = (props) => {
         <LineProgression
           activityColor={COLOR_THEMES.RUN_THEME}
           yAxisInterval='5'
-          data={runJson.activityData.length === 0 ? [] : [0, ...currentStatDisplay.cadences]}
-          labels={makeCadenceLabels(currentStatDisplay.cadences, currentStatDisplay.time)}
+          data={currentStatDisplay ? [0, ...currentStatDisplay.cadences] : []}
+          labels={currentStatDisplay ? makeCadenceLabels(currentStatDisplay.cadences, currentStatDisplay.time) : []}
         />
       </ScrollView>
       <View style={{alignItems: 'center'}}>
         <Divider style={{width: '95%', marginBottom: 10, marginTop: 10}}/>
-        <ThemeText h4>Distribution</ThemeText>
+        <ThemeText h4>Activity Distribution</ThemeText>
       </View>
       <View>
         <DistributionDonut
+          activity='run'
           style={{height: 250}}
           data={makeDonutData()}
-          indexToLabel={{0: 'Running', 1: 'Walking', 2: 'Resting'}}
+          indexToLabel={['Running', 'Walking', 'Resting']}
           labelUnit='%'
-          // data={[]}
-          colors={[
-            'rgba(102, 255, 102, 0.4)',
-            'rgba(255, 255, 0, 0.4)',
-            'rgba(255, 51, 0, 0.4)',
-          ]}
+          gradients={COLOR_THEMES.RUN_DONUT_GRADIENTS}
         />
       </View>
       <View style={{alignItems: 'center'}}>

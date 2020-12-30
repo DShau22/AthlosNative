@@ -144,7 +144,6 @@ const ProfileHeader = (props) => {
         loading={buttonLoading}
         disabled={!relationshipMap[relationshipStatus].action}
       /> */}
-      {/* <Divider style={styles.divider}/> */}
     </View>
   )
 }
@@ -155,10 +154,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     width: '100%',
-  },
-  divider: {
-    marginLeft: 8,
-    marginRight: 8,
   },
   editButtonContainer: {
     margin: 15,

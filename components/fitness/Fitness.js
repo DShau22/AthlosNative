@@ -10,7 +10,6 @@ import LoadingScreen from '../generic/LoadingScreen';
 import { View, StyleSheet, Alert, ScrollView, RefreshControl } from "react-native";
 import { useFocusEffect, useTheme } from '@react-navigation/native';
 
-import WithRefresh from '../generic/WithRefresh'
 import PROFILE_CONSTANTS from '../profile/ProfileConstants'
 import ENDPOINTS from '../endpoints'
 import axios from 'axios';
@@ -38,7 +37,8 @@ const Fitness = (props) => {
   const { settings, relationshipStatus } = profileContext
   const { setAppState } = appFunctionsContext
   const { _id } = props
-
+  // if this is another user, must get the fitness from the server. Otherwise can just use
+  // local async storage (the defaults used in the state)
   const getFitness = React.useCallback(async () => {
     setIsLoading(true);
     if (relationshipStatus === PROFILE_CONSTANTS.IS_SELF) {
@@ -46,76 +46,68 @@ const Fitness = (props) => {
       return;
     }
     console.log('getting fitness with user id: ', _id)
-    // fetch jsons
-    try {
-      const [jumpsTracked, swimsTracked, runsTracked] = await Promise.all([
-        getSearchActivityJson("jump", _id),
-        getSearchActivityJson("swim", _id),
-        getSearchActivityJson("run", _id)
-      ])
-      setRunJson({
-        activityData: runsTracked,
-        action: FITNESS_CONSTANTS.RUN,
-        imageUrl: FITNESS_CONSTANTS.RUN
-      })
-      setSwimJson({
-        activityData: swimsTracked,
-        action: FITNESS_CONSTANTS.SWIM,
-        imageUrl: FITNESS_CONSTANTS.SWIM
-      })
-      setJumpJson({
-        activityData: jumpsTracked,
-        action: FITNESS_CONSTANTS.JUMP,
-        imageUrl: FITNESS_CONSTANTS.JUMP
-      })
-      // if this is the current user, save it to async storage and update the context
-      setAppState(prevState => {
-        const newAppState = {
-        ...prevState,
-        runJson: {
-          activityData: runsTracked,
-          action: FITNESS_CONSTANTS.RUN,
-          imageUrl: FITNESS_CONSTANTS.RUN
-        },
-        swimJson: {
-          activityData: swimsTracked,
-          action: FITNESS_CONSTANTS.SWIM,
-          imageUrl: FITNESS_CONSTANTS.SWIM
-        },
-        jumpJson: {
-          activityData: jumpsTracked,
-          action: FITNESS_CONSTANTS.JUMP,
-          imageUrl: FITNESS_CONSTANTS.JUMP
-        }}
-        storeDataObj(newAppState)
-        return newAppState
-      })
+    // fetch jsons THIS SHOULD NOT BE RUN YET SINCE THERES NO COMMUNITY FEATURES
+    // try {
+    //   const [jumpsTracked, swimsTracked, runsTracked] = await Promise.all([
+    //     getSearchActivityJson("jump", _id),
+    //     getSearchActivityJson("swim", _id),
+    //     getSearchActivityJson("run", _id)
+    //   ])
+    //   setRunJson({
+    //     activityData: runsTracked,
+    //     action: FITNESS_CONSTANTS.RUN,
+    //     imageUrl: FITNESS_CONSTANTS.RUN
+    //   })
+    //   setSwimJson({
+    //     activityData: swimsTracked,
+    //     action: FITNESS_CONSTANTS.SWIM,
+    //     imageUrl: FITNESS_CONSTANTS.SWIM
+    //   })
+    //   setJumpJson({
+    //     activityData: jumpsTracked,
+    //     action: FITNESS_CONSTANTS.JUMP,
+    //     imageUrl: FITNESS_CONSTANTS.JUMP
+    //   })
+    //   // if this is the current user, save it to async storage and update the context
+    //   setAppState(prevState => {
+    //     const newAppState = {
+    //     ...prevState,
+    //     runJson: {
+    //       activityData: runsTracked,
+    //       action: FITNESS_CONSTANTS.RUN,
+    //       imageUrl: FITNESS_CONSTANTS.RUN
+    //     },
+    //     swimJson: {
+    //       activityData: swimsTracked,
+    //       action: FITNESS_CONSTANTS.SWIM,
+    //       imageUrl: FITNESS_CONSTANTS.SWIM
+    //     },
+    //     jumpJson: {
+    //       activityData: jumpsTracked,
+    //       action: FITNESS_CONSTANTS.JUMP,
+    //       imageUrl: FITNESS_CONSTANTS.JUMP
+    //     }}
+    //     storeDataObj(newAppState)
+    //     return newAppState
+    //   })
 
-    } catch(e) {
-      console.log(e)
-      Alert.alert('Oh No :(', 'Something went wrong with the connection to the server. Please refresh and try again.', [{text: 'Ok'}])
-    } finally {
-      console.log("finally")
-      setIsLoading(false)
-    }
+    // } catch(e) {
+    //   console.log(e)
+    //   Alert.alert('Oh No :(', 'Something went wrong with the connection to the server. Please refresh and try again.', [{text: 'Ok'}])
+    // } finally {
+    //   console.log("finally")
+    //   setIsLoading(false)
+    // }
   }, [])
 
   React.useEffect(() => {
     console.log("using fitness effect")
-    // if this is another user, must get the fitness from the server. Otherwise can just use
-    // local async storage (the defaults used in the state)
     getFitness();
     return () => {
       console.log("Fitness requests are being canceled")
       source.cancel()
     };
   }, [_id])
-  // console.log("is loading is: ", isLoading)
-  // console.log('settings is: ', settings)
-  // console.log("run json is: ", runJson)
-  // console.log("swim json is: ", swimJson)
-  // console.log("jump json is: ", jumpJson)
-
 
   // cancel token for cancelling Axios requests on unmount
   const CancelToken = axios.CancelToken;

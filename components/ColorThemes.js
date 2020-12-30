@@ -1,10 +1,54 @@
 import { DefaultTheme, DarkTheme } from '@react-navigation/native';
 
+// nice gradients and colors
+// #757f9a to #d7dde8 like a gray mystic
+// #2bc0e4 to #eaecc6 bora bora
+// #404E7C offsets the dark theme background color nicely
+
 // activity color themes
 const COLOR_THEMES = {
   RUN_THEME: '#9cf0b1',
   SWIM_THEME: '#B3F2FF',
   JUMP_THEME: '#FAB6F8',
+  RUN_DONUT_GRADIENTS: [
+    {
+      key: 'Running',
+      startColor: '#1D976C',
+      endColor: '#93F9B9',
+    },
+    {
+      key: 'Walking',
+      startColor: '#F09819',
+      endColor: '#EDDE5D',
+    },
+    {
+      key: 'Resting',
+      startColor: '#ff5f6d',
+      endColor: '#ffc371',
+    },
+  ],
+  SWIM_DONUT_GRADIENTS: [
+    {
+      key: 'fly',
+      startColor: 'rgb(226, 52, 137)',
+      endColor: 'rgb(168, 49, 213)',
+    },
+    {
+      key: 'back',
+      startColor: 'rgb(63,94,251,1)',
+      endColor: 'rgb(252,70,107,1)',
+    },
+    {
+      key: 'breast',
+      startColor: 'rgb(2, 170, 176)',
+      endColor: 'rgb(0, 205, 172)',
+    },
+    {
+      key: 'free',
+      startColor: 'rgb(66, 194, 244)',
+      endColor: 'rgb(134, 65, 244)',
+    },
+  ], // gradients for each of the four strokes
 };
 
 // supposed to emulate tropical water colors and vibes
@@ -15,6 +59,7 @@ const LIGHT_THEME = {
     ...DefaultTheme.colors,
     secondary: '#CFFAF7',
     background: '#F7F8FF',
+    backgroundOffset: 'gray',
     profileHeader: '#BFB3FF',
     gradientLeft: '#197CCB',
     gradientRight: '#5CE7EA',
@@ -33,6 +78,8 @@ const DARK_THEME = {
   colors: {
     ...DarkTheme.colors,
     background: '#0C1947',
+    backgroundOffset: '#404E7C',
+    button: '#404E7C',
     card: '#08102E',
     header: '#08102E',
     gradientLeft: '#16E8EF',

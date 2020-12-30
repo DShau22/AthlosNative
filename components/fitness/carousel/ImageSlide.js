@@ -4,16 +4,17 @@ import { UserDataContext } from "../../../Context";
 import { COLOR_THEMES } from "../../ColorThemes";
 import * as Animatable from 'react-native-animatable';
 import { ProgressCircle } from 'react-native-svg-charts';
+import { useTheme } from '@react-navigation/native';
 
 import FITNESS_CONSTANTS from '../../fitness/FitnessConstants';
 import ThemeText from '../../generic/ThemeText';
-
 import CustomIcons from '../../../CustomIcons';
 CustomIcons.loadFont();
 import Icon from 'react-native-vector-icons/dist/Feather';
 
-const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES
+const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES;
 const ImageSlide = (props) => {
+  const { colors } = useTheme();
   const getLabels = (action) => {
     var { unitSystem } = React.useContext(UserDataContext).settings
     if (action === FITNESS_CONSTANTS.RUN) {
@@ -64,7 +65,13 @@ const ImageSlide = (props) => {
   var { stats, indexDisplay } = props
   return (
     <View style={styles.imageSlide}> 
-      <ProgressCircle style={{ height: '100%', width: '100%' }} progress={0.7} progressColor={getActivityColor()} />
+      <ProgressCircle 
+        style={{ height: '100%', width: '100%' }}
+        progress={stats.action === FITNESS_CONSTANTS.SWIM ? 0.20 : 0.7}
+        progressColor={getActivityColor()}
+        backgroundColor={colors.backgroundOffset}
+        strokeWidth={8}
+      />
       {actionToIcon[stats.action]}
       {/* <ThemeText style={{ position: 'absolute', top: '35%'}}>Img should go here!</ThemeText> */}
       {/* add data through props */}

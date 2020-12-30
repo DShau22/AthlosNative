@@ -26,7 +26,7 @@ const Swim = (props) => {
     const { roundToNDecimals, isNullOrUndefined } = props
     unitSystem = unitSystem.toLowerCase()
     if (isNullOrUndefined(currentStatDisplay)) {
-      return 0
+      return 0;
     }
     var { num } = currentStatDisplay
     if (swimLap === "50 m") {
@@ -52,7 +52,7 @@ const Swim = (props) => {
     var { activityData } = props.activityJson
     var { swimLap, unitSystem } = settings
     const { roundToNDecimals, isNullOrUndefined } = props
-    if (isNullOrUndefined(activityData)) {
+    if (isNullOrUndefined(activityData) || activityData.length === 0) {
       return 0
     }
     // returns [50/25, m/yd] both as strings
@@ -87,7 +87,7 @@ const Swim = (props) => {
   const calcAvgTimePerLap = () => {
     var { activityData } = props.activityJson
     const { roundToNDecimals, isNullOrUndefined } = props
-    if (isNullOrUndefined(activityData)) {
+    if (isNullOrUndefined(activityData) || activityData.length === 0) {
       return 0
     }
     var totalTime = 0; var totalNumLaps = 0;
@@ -101,8 +101,8 @@ const Swim = (props) => {
   const makeDonutData = () => {
     var { activityData } = props.activityJson
     const { isNullOrUndefined } = props
-    if (isNullOrUndefined(activityData)) {
-      return 0
+    if (isNullOrUndefined(activityData) || activityData.length === 0) {
+      return [];
     }
     var flyCount    = 0, 
         backCount   = 0,
@@ -163,28 +163,26 @@ const Swim = (props) => {
           activityColor={COLOR_THEMES.SWIM_THEME}
           yAxisInterval='5'
           yAxisUnits='s'
-          data={swimJson.activityData.length === 0 ? [] : currentStatDisplay.lapTimes.map(({lapTime}, _) => lapTime)}
-          labels={makeTimeLabels(currentStatDisplay, 4)}
+          data={currentStatDisplay ? currentStatDisplay.lapTimes.map(({lapTime}, _) => lapTime) : []}
+          labels={currentStatDisplay ? makeTimeLabels(currentStatDisplay, 4) : []}
         />
       </ScrollView>
       <View style={{alignItems: 'center'}}>
-        <ThemeText h4>Distribution</ThemeText>
+        <ThemeText h4>Stroke Distribution</ThemeText>
       </View>
       <View>
         <DistributionDonut
+          activity='swim'
           style={{height: 250}}
           data={makeDonutData()}
-          indexToLabel={{0: 'Fly', 1: 'Back', 2: 'Breast', 3: 'Free'}}
+          indexToLabel={['Fly', 'Back', 'Breast', 'Free']}
           labelUnit=' laps'
-          colors={[
-            'rgba(102, 255, 102, 0.4)',
-            'rgba(255, 255, 0, 0.4)',
-            'rgba(255, 51, 0, 0.4)',
-            'rgba(255, 153, 0, 0.4)',
-          ]}
+          gradients={COLOR_THEMES.SWIM_DONUT_GRADIENTS}
         />
       </View>
-      <Divider style={{width: '95%'}}/>
+      <View style={{alignItems: 'center'}}>
+        <Divider style={{width: '95%', marginBottom: 10, marginTop: 10}}/>
+      </View>
       <View style={{alignItems: 'center'}}>
         <ThemeText h4>Past Swims</ThemeText>
       </View>

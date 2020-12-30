@@ -3,8 +3,16 @@ import { View, StyleSheet, FlatList } from 'react-native';
 import { Text, Divider } from 'react-native-elements';
 import { UserDataContext, ProfileContext } from '../../../Context';
 import { useTheme } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-Icon.loadFont();
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+FontAwesome.loadFont();
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+MaterialIcon.loadFont();
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+MaterialCommunityIcon.loadFont();
+import Feather from 'react-native-vector-icons/dist/Feather';
+Feather.loadFont();
+import CustomIcon from '../../../CustomIcons';
+CustomIcon.loadFont();
 
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import { inchesToCm } from '../../utils/unitConverter'
@@ -75,17 +83,22 @@ const ProfileBests = (props) => {
           />
         </ModalContent>
       </Modal>
-      {/* <Divider style={styles.divider}/> */}
+      <View style={{ marginTop: 20, }}>
+        <ThemeText style={{
+          fontSize: 24,
+          marginLeft: 10,
+        }}>Session Bests</ThemeText>
+      </View>
       <View style={styles.row}>
         <View style={styles.gridBox}>
-          <Icon name='long-arrow-up' size={30} color={colors.textColor}/>
+          <Feather name='chevrons-up' size={30} color={colors.textColor}/>
           <View style={styles.gridTextBox}>
             <ThemeText h4>{`${jumpDisplay} ${inchesOrCm}`}</ThemeText>
             <ThemeText>Highest Jump</ThemeText>
           </View>
         </View>
         <View style={styles.gridBox}>
-          <Icon name='long-arrow-up' size={30} color={colors.textColor}/>
+          <MaterialCommunityIcon name='shoe-print' size={30} color={colors.textColor}/>
           <View style={styles.gridTextBox}>
             <ThemeText h4>{mostSteps}</ThemeText>
             <ThemeText>Most Steps</ThemeText>
@@ -95,7 +108,7 @@ const ProfileBests = (props) => {
 
       <View style={styles.row}>
         <View style={styles.gridBox}>
-          <Icon name='long-arrow-up' size={30} color={colors.textColor}/>
+          <CustomIcon name='swimmer' size={30} color={colors.textColor}/>
           <View style={styles.gridTextBox}>
             <ThemeText h4>{mostLaps}</ThemeText>
             <ThemeText>Most Laps</ThemeText>
@@ -106,7 +119,7 @@ const ProfileBests = (props) => {
             style={{flexDirection: 'row', alignItems: 'center'}}
             onPress={() => setShowSplits(true)}
           >
-            <Icon name='long-arrow-up' size={30} color={colors.textColor}/>
+            <MaterialIcon name='timer' size={30} color={colors.textColor}/>
             <View style={styles.gridTextBox}>
               <ThemeText h4>{bestEvent.time}</ThemeText>
               <ThemeText>{eventTitle}</ThemeText>

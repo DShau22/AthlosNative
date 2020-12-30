@@ -4,7 +4,7 @@
 import React, { Component } from 'react'
 import { View, ScrollView, StyleSheet, RefreshControl, Image } from 'react-native'
 import { Text, Button, Divider } from 'react-native-elements'
-import {Card} from 'react-native-paper'
+import { Card } from 'react-native-paper'
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from '@react-navigation/native';
 
@@ -155,9 +155,14 @@ const ProfileTemplate = (props) => {
                     <Button
                       title='View Fitness'
                       containerStyle={{width: '90%', alignSelf: 'center', marginTop: 10, marginBottom: 10}}
-                      buttonStyle={{backgroundColor: colors.button}}
+                      buttonStyle={{
+                        backgroundColor: colors.button
+                      }}
                       onPress={() => navigateToFitness(props.navigation)}
                     /> : null }
+                </View>
+                <View style={{alignItems: 'center', width: '100%'}}>
+                  <Divider style={{width: '95%', marginTop: 8 }}/>
                 </View>
                 {/* <View style={styles.routeButtons}>
                   {canViewFitness() ?

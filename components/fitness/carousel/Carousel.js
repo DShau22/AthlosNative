@@ -4,51 +4,50 @@ import ImageSlide from "./ImageSlide"
 // import "./Carousel.css"
 import Arrow from "./Arrow"
 import React from 'react'
-import { parseDate } from "../../utils/unitConverter"
+import { parseDate } from "../../utils/dates"
 import { ProgressCircle } from 'react-native-svg-charts'
 import { useTheme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/dist/Feather';
 
 const Carousel = (props) => {
   const { colors } = useTheme();
-  const getDropdownDates = () => {
-    var { dropdownItemClick, stats } = props
-    var dropdownItems = []
-    stats.activityData.forEach((session, idx) => {
-      var parsed = parseDate(new Date(session.uploadDate))
-      var dayMonth = parsed[0] + ", " + parsed[1] + " " + parsed[2]
-      dropdownItems.push(
-        <TouchableOpacity
-          onPress={() => dropdownItemClick(idx)}
-          className="dropdown-item"
-          key={"dropdown_" + idx}
-          id={idx}
-        >
-          <Text> {dayMonth} </Text>
-        </TouchableOpacity>
-      )
-    })
-    return dropdownItems
-  }
 
-  var { stats, previousSlide, nextSlide, activityIndex, displayDate, renderSecondary, dropdownItemClick } = props
+  var { stats, previousSlide, nextSlide, activityIndex, renderSecondary, dropdownItemClick } = props
 
+  // get the past 26 weeks since today including the week of today
   const createDropdownItems = () => {
-    let result = []
-    stats.activityData.forEach((session, idx) => {
-      var parsed = parseDate(new Date(session.uploadDate))
-      var dayMonth = parsed[0] + ", " + parsed[1] + " " + parsed[2]
-      result.push({
+    let weeks = [];
+    let lastMonday = new Date();
+    let nextSunday = new Date();
+    lastMonday.setDate(lastMonday.getDate() - lastMonday.getDay() + 1); // should be the monday of this week
+    nextSunday.setDate(lastMonday.getDate() + 6);
+    for (let i = 0; i < 26; i++) {
+      let parsedMonday = parseDate(lastMonday);
+      let parsedSunday = parseDate(nextSunday);
+      let dayMonth = `${parsedMonday[1]} ${parsedMonday[2]} - ${parsedSunday[1]} ${parsedSunday[2]}, ${parsedSunday[3]}`
+      weeks.push({
+        timeStamp: lastMonday,
         label: dayMonth,
-        value: idx,
-        icon: () => {
-          return activityIndex === idx ? 
-            <Icon name="check" size={14} color={colors.textColor} />
-          : null
-        }
-      })
-    })
-    return result
+        value: i,
+      });
+      lastMonday.setDate(lastMonday.getDate() - 7);
+      nextSunday.setDate(nextSunday.getDate() - 7);
+    }
+
+    // stats.activityData.forEach((session, idx) => {
+    //   var parsed = parseDate(new Date(session.uploadDate))
+    //   var dayMonth = `${parsed[0]}, ${parsed[1]} ${parsed[2]} ${parsed[3]}`
+    //   weeks.push({
+    //     label: dayMonth,
+    //     value: idx,
+    //     icon: () => {
+    //       return activityIndex === idx ? 
+    //         <Icon name="check" size={14} color={colors.textColor} />
+    //       : null
+    //     }
+    //   })
+    // })
+    return weeks;
   }
   const dropDownItems = createDropdownItems();
   const initialDropdownText = dropDownItems.length === 0 ? 
@@ -57,7 +56,7 @@ const Carousel = (props) => {
     <View style={styles.carousel}>
       <DropDownPicker
         items={dropDownItems}
-        // defaultValue={activityIndex}
+        defaultValue={activityIndex} // this is needed for the dropdown date to change with the arrows
         disabled={dropDownItems.length === 0}
         placeholder={initialDropdownText}
         arrowColor={colors.textColor}
@@ -94,12 +93,13 @@ const Carousel = (props) => {
           margin: 0,
           padding: 0,
         }}
-        // activeItemStyle={{
-        //   backgroundColor: '#67EDFF'
-        // }}
+        activeItemStyle={{
+          backgroundColor: colors.backgroundOffset,
+        }}
         onChangeItem={item => {
-          // set the activity index to what it should be (item.value)
-          dropdownItemClick(item.value)
+          // update the weekly activity data objects by passing in the start date of the week
+          // dropdownItemClick(item.value)
+          dropdownItemClick(item.timeStamp);
         }}
       />
       <View style={styles.slideShow}>

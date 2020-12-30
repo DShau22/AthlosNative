@@ -1,20 +1,20 @@
 import React from 'react';
-import { View, Image, StyleSheet } from 'react-native';
-import { Button } from 'react-native-elements';
-import { PieChart, LineChart, Grid } from 'react-native-svg-charts';
+import { View, StyleSheet } from 'react-native';
+import { PieChart } from 'react-native-svg-charts';
+import { Defs, LinearGradient, Stop } from 'react-native-svg';
 import { Text as SvgText } from 'react-native-svg';
 import ThemeText from '../../generic/ThemeText';
 import { useTheme } from '@react-navigation/native';
 
 const DistributionDonut = (props) => {
   // data should be just a simple array of values
-  const { data, indexToLabel, colors, activity, labelUnit } = props;
+  const { data, indexToLabel, colors, activity, labelUnit, gradients } = props;
   const [slicePressed, setSlicePressed] = React.useState(null);
   const themeColors = useTheme().colors;
   const pieData = data.map((value, index) => ({
     value,
     svg: {
-      fill: colors[index],
+      fill: `url(#${gradients[index].key})`,
       onPress: () => setSlicePressed(index === slicePressed ? null : index),
     },
     key: `pie-${index}-${value}`,
@@ -22,7 +22,7 @@ const DistributionDonut = (props) => {
   }))
   const Labels = ({ slices, height, width }) => {
     return slices.map((slice, index) => {
-      const { labelCentroid, pieCentroid, data } = slice;
+      const { labelCentroid, pieCentroid, data } = slice
       return (
         <SvgText
           key={index}
@@ -45,7 +45,7 @@ const DistributionDonut = (props) => {
       key: ":(",
       value: 1,
       svg: {
-        fill: '#e5e5e5'
+        fill: themeColors.backgroundOffset
       }
     }]
     return (
@@ -72,6 +72,16 @@ const DistributionDonut = (props) => {
       innerRadius='35%'
     >
       <Labels />
+      {gradients.map((gradientObject, idx) => {
+        return (
+          <Defs key={gradientObject.key}>
+            <LinearGradient id={gradientObject.key} x1={'0%'} y1={'0%'} x2={'0%'} y2={'100%'}>
+              <Stop offset={'0%'} stopColor={gradientObject.startColor} />
+              <Stop offset={'100%'} stopColor={gradientObject.endColor} />
+            </LinearGradient>
+          </Defs>
+        )
+      })}
     </PieChart>
   )
 }

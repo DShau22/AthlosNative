@@ -15,8 +15,14 @@ import {
   getProfile,
   getUsername
 } from "../utils/userInfo"
+import {
+  getLastMonday,
+  getNextSunday,
+  parseDate,
+  sameDate,
+} from "../utils/dates"
 import LoadingSpin from '../generic/LoadingSpin';
-import Fitness from "../fitness/Fitness"
+import Fitness from "../fitness/Fitness";
 import { UserDataContext, AppFunctionsContext } from "../../Context"
 import Home from "./Home"
 import Settings from "../settings/Settings"
@@ -35,15 +41,10 @@ const {
   DEVICE_CONFIG,
 } = GLOBAL_CONSTANTS
 import FITNESS_CONTANTS from '../fitness/FitnessConstants'
-// server url
-const defaultProfile = "./profile/default_profile.png"
-
-const imgAlt = "../profile/default_profile.png"
-
-const dataURL = ENDPOINTS.getData
 
 function Athlos(props) {
   const [isLoading, setIsLoading] = React.useState(true);
+  const [isError, setIsError] = React.useState(false); // controls when to set an error screen
   // const [rivals, setRivals] = React.useState([]);
   // const [rivalsPending, setRivalsPending] = React.useState([]);
   // const [rivalRequests, setRivalRequests] = React.useState([]);
@@ -108,7 +109,6 @@ function Athlos(props) {
     const prepareData = async () => {
       console.log("Athlos component using effect")
       setIsLoading(true);
-      console.log("just set isloading")
       // set up the web socket connection to server
       // var socket = await this.setUpSocket()
 
@@ -127,68 +127,13 @@ function Athlos(props) {
 
       // get the user's information here from database
       // make request to server to user information and set state
-      var headers = new Headers();
-      headers.append("authorization", `Bearer ${props.token}`);
       try {
-        var res = await fetch(ENDPOINTS.getUserInfo, { method: "GET", headers });
-        var userJson = await res.json();
+        await updateLocalUserInfo();
       } catch(e) {
         console.error(e);
+        setIsError(true);
         Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
-        setIsLoading(false);
-      }
-      console.log('user json: ', userJson);
-
-      // get user's fitness data for jumps, runs, swims
-      try {
-        var [jumpsTracked, swimsTracked, runsTracked] = await Promise.all([
-          getActivityJson("jump"),
-          getActivityJson("swim"),
-          getActivityJson("run")
-        ]);
-      } catch(e) {
-        console.error(e)
-        Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
-        setIsLoading(false);
-      }
-      var gotAllInfo = userJson.success && jumpsTracked.success && swimsTracked.success && runsTracked.success
-      if (gotAllInfo) {
-        console.log("successfully got all user info");
-        const userData = {
-          ...state,
-          ...userJson,
-          mounted: true,
-          // friendTableRows,
-          jumpJson: {
-            ...state.jumpJson,
-            activityData: jumpsTracked.activityData 
-          },
-          runJson: {
-            ...state.runJson,
-            activityData: runsTracked.activityData 
-          },
-          swimJson: {
-            ...state.swimJson,
-            activityData: swimsTracked.activityData 
-          },
-        }
-        // one bug that could come up is if another setState occurred outside this function before
-        // the fetch response finished running. This delayed setState would then
-        // run after the other setState which could cause some mixups in which state is correct
-        // Shouldn't be a problem thoughsince the socket field is only updated here and users can't see it.
-        setState(userData);
-        // store in Async storage so no need to request every time
-        // probably change this later so this refreshes every now and then?
-        // adding a service worker or background process would be good
-        storeDataObj(userData);
-        setIsLoading(false);        
-      } else {
-        console.log("one of the requests to get fitness data or user info didn't work");
-        console.log("user: ", userJson);
-        console.log("jumps: ", jumpsTracked);
-        console.log("swims: ", swimsTracked);
-        console.log("runs: ", runsTracked);
-        Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
+      } finally {
         setIsLoading(false);
       }
     }
@@ -257,19 +202,31 @@ function Athlos(props) {
   //   return prom
   // }
 
-  const getActivityJson = async (activity) => {
-    // CHANGE TO GET THE FIRST 10-50 ENTRIES MAYBE
-    var headers = new Headers()
-    var token = await getData()
-    headers.append("authorization", `Bearer ${token}`)
-    headers.append("activity", activity)
+  // Keeps the past 26 weeks of activity data updated. Only query the missing weeks of data.
+  const getActivityJson = async (activity, lastUpdated) => {
+    // If it's completely updated, then don't do anything
+    const lastMonday = getLastMonday();
+    if (sameDate(lastUpdated, lastMonday)) {
+      console.log("fitness already fully updated: ", parseDate(lastUpdated));
+      return {
+        success: true,
+        activityData: [] // no additional activityData to append
+      };
+    }
+    var headers = new Headers();
+    var token = await getData();
+    if (!token) { token = props.token; }
+    headers.append("authorization", `Bearer ${token}`);
+    headers.append("activity", activity);
+    console.log(lastUpdated.getTime().toString());
+    headers.append("last_updated", lastUpdated.getTime().toString()); // apparently the backend can't handle camel case with middleware
 
-    var res = await fetch(dataURL, {
+    var res = await fetch(ENDPOINTS.getData, {
       method: "GET",
       headers: headers,
     })
-    var trackedFitness = await res.json()
-    return trackedFitness
+    var additionalActivityData = await res.json();
+    return additionalActivityData
   }
 
   // updates the state and therefore the context if the user info is suspected
@@ -284,34 +241,109 @@ function Athlos(props) {
   const updateLocalUserInfo = async () => {
     // get the user's information here from database
     // make request to server to user information and set state
-    var userToken = await getData()
+    var userToken = await getData();
+    if (!userToken) { // this means it's probably right after a login
+      userToken = props.token; 
+    }
     var headers = new Headers()
     headers.append("authorization", `Bearer ${userToken}`)
     try {
       var res = await fetch(ENDPOINTS.getUserInfo, { method: "GET", headers })
       var userJson = await res.json()
       if (!userJson.success) {
-        console.log(userJson)
+        console.log("get user info failed: ", userJson);
         Alert.alert(`Oh No :(`, "Something went wrong with the request to the server. Please refresh.", [{ text: "Okay" }]);
+        return;
       }
-      const newState = {
-        ...userJson,
-        // socket: prevState.socket,
-        mounted: true,
-        jumpJson: state.jumpJson,
-        runJson: state.runJson,
-        swimJson: state.swimJson,
+
+      // GET USER FITNESS. These should get the last 26 weeks of tracked data
+      const userData = await getDataObj();
+      const lastMonday = getLastMonday();
+      const halfYearAgo = new Date();
+      halfYearAgo.setDate(halfYearAgo.getDate() - 26 * 7);
+      console.log("last monday: ", lastMonday.getDate())
+      // figure out the latest locally updated week. Assume jumpJson, swimJson, runJson are accurate
+      var lastJumpUpdated = new Date();
+      if (userData && userData.jumpJson && userData.jumpJson.activityData.length > 0) {
+        lastJumpUpdated = new Date(userData.jumpJson.activityData[0].uploadDate);
+      } else {
+        // if userData does not exist, then get the Monday 26 weeks ago and start from there
+        lastJumpUpdated = halfYearAgo;
       }
-      setState(newState);
-      storeDataObj(newState);
+      var lastSwimUpdated = new Date();
+      if (userData && userData.swimJson && userData.swimJson.activityData.length > 0) {
+        lastSwimUpdated = new Date(userData.swimJson.activityData[0].uploadDate);
+      } else {
+        // if userData does not exist, then get the Monday 26 weeks ago and start from there
+        lastSwimUpdated = halfYearAgo;
+      }
+      var lastRunUpdated = new Date();
+      if (userData && userData.runJson && userData.runJson.activityData.length > 0) {
+        lastRunUpdated = new Date(userData.runJson.activityData[0].uploadDate);
+      } else {
+        // if userData does not exist, then get the Monday 26 weeks ago and start from there
+        console.log("user data does not exist!");
+        lastRunUpdated = halfYearAgo;
+      }
+      console.log("last updated jump was: ", lastJumpUpdated.getDate());
+      console.log("last updated swim was: ", lastSwimUpdated.getDate());
+      console.log("last updated run was: ", lastRunUpdated.getDate());
+      var [additionalJumpData, additionalSwimData, additionalRunData] = await Promise.all([
+        getActivityJson("jump", lastJumpUpdated),
+        getActivityJson("swim", lastSwimUpdated),
+        getActivityJson("run",  lastRunUpdated)
+      ]);
+
+      var gotAllInfo = userJson.success && additionalJumpData.success && additionalSwimData.success && additionalRunData.success
+      if (gotAllInfo) {
+        console.log("successfully got all user info");
+        const newState = {
+          ...state,
+          ...userJson,
+          // socket: prevState.socket,
+          mounted: true,
+          // NOTE THAT FITNESS ISN'T UPDATED. THIS SHOULD CHANGE
+          jumpJson: {
+            ...state.jumpJson,
+            activityData: [
+              ...state.jumpJson.activityData,
+              ...additionalJumpData.activityData
+            ].slice(Math.max(state.jumpJson.length - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST, 0), state.jumpJson.length)
+          },
+          runJson: {
+            ...state.runJson,
+            activityData: [
+              ...state.runJson.activityData,
+              ...additionalRunData.activityData
+            ].slice(Math.max(state.runJson.length - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST, 0), state.runJson.length)
+          },
+          swimJson: {
+            ...state.swimJson,
+            activityData: [
+              ...state.swimJson.activityData,
+              ...additionalSwimData.activityData
+            ].slice(Math.max(state.swimJson.length - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST, 0), state.swimJson.length)
+          },
+        }
+        setState(newState);
+        storeDataObj(newState);
+      } else {
+        console.log(additionalSwimData);
+        console.log(additionalRunData);
+        console.log(additionalJumpData);
+        throw new Error("failed to get all user info");
+      }
     } catch(e) {
-      console.log("error in updateLocalUserInfo: ", e)
+      console.log("error in updateLocalUserInfo: ", e);
       Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
     }
   }
 
   const BottomTab = createBottomTabNavigator();
-  console.log("Athlos context: ", state)
+  console.log("Athlos context: ", state);
+  if (isError) {
+    return (<View><Text>shit something went wrong with the server :(</Text></View>)
+  }
   return (
     <UserDataContext.Provider value={state}>
       <AppFunctionsContext.Provider

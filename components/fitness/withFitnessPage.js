@@ -2,11 +2,10 @@ import React from 'react'
 import { Divider, Button } from 'react-native-elements'
 import { View, StyleSheet, ScrollView } from 'react-native'
 import { UserDataContext } from "../../Context"
-import { parseDate } from "../utils/unitConverter"
+import { parseDate } from "../utils/dates"
 import Carousel from './carousel/Carousel'
 import Calories from './Calories'
 import Duration from './Duration'
-import { PieChart } from 'react-native-svg-charts'
 
 import FITNESS_CONTANTS from '../fitness/FitnessConstants'
 // HOC for run, swim, jump fitness pages.
@@ -41,14 +40,14 @@ export default function withFitnessPage( WrappedComponent ) {
       pastGraphData: [],
       progressionLabels: [],
       progressionDate: [], 
-    })
+    });
 
     React.useEffect(() => {
       makePastGraphLabels()
       makePastGraphData()
-    }, [])
+    }, []);
     
-    const { activityJson, id } = props.route.params
+    const { activityJson, id } = props.route.params;
 
     const roundToNDecimals = (num, decimals) => {
       return parseFloat(num).toFixed(decimals)
@@ -64,27 +63,27 @@ export default function withFitnessPage( WrappedComponent ) {
       // can be either run, jump or swimming json
       activityJson.activityData.forEach((session, idx) => {
         var { uploadDate } = session
-        var stringToDate = new Date(uploadDate)
         // this is an array
-        var dateInfo = parseDate(stringToDate)
-        pastGraphLabels.push(dateInfo[0] + ", " + dateInfo[1] + " " + dateInfo[2])
+        var dateInfo = parseDate(uploadDate)
+        pastGraphLabels.push(`${dateInfo[0]}, ${dateInfo[1]} ${dateInfo[2]}`);
       })
       reverse(pastGraphLabels)
       setState(prevState => ({ ...prevState, pastGraphLabels }))
     }
 
+    // Once the user selects a date, then get the week containing that day for this graph
     const makePastGraphData = () => {
       var pastGraphData = []
       // for Jump data, people probably only really care about how high they jumped
       if (activityJson.action === FITNESS_CONTANTS.JUMP) {
         activityJson.activityData.forEach((session, idx) => {
-          var { heights } = session
-          pastGraphData.push(Math.max(...heights))
+          var { heights, uploadDate } = session;
+          pastGraphData.push(Math.max(...heights));
         })
       } else {
         activityJson.activityData.forEach((session, idx) => {
-          var { num } = session
-          pastGraphData.push(num)
+          var { num, uploadDate } = session;
+          pastGraphData.push(num);
         })
       }
       reverse(pastGraphData)
@@ -104,9 +103,10 @@ export default function withFitnessPage( WrappedComponent ) {
       return date
     }
 
+    // on dropdown date click, display that week on the dropdown,
+    // and switch the image slider to display that week. Also must update the 
+    // activityData array for that week 
     const dropdownItemClick = (activityIndex) => {
-      // on dropdown date click, display that date on the dropdown,
-      // and switch the image slider to display that date
       setState(prevState => ({ ...prevState, activityIndex }))
     }
 
@@ -171,7 +171,6 @@ export default function withFitnessPage( WrappedComponent ) {
           previousSlide={previousSlide}
           nextSlide={nextSlide}
           activityIndex={activityIndex}
-          displayDate={displayDate}
           dropdownItemClick={dropdownItemClick}
         />
         <View style={styles.calsAndTimeContainer}>

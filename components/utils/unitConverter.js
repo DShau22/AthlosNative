@@ -99,19 +99,10 @@ function rawHeightConvert(system, verticalHeight) {
   return parseFloat(converted).toFixed(2)
 }
 
-function parseDate(date) {
-  // parses the UTC date object
-  var dateString = date.toString()
-  // [Day, Month, month date, year, time, Standard, Standard (written out)]
-  var parsed = dateString.split(" ")
-  return parsed
-}
-
 export { 
   weightConvert,
   heightConvert,
   englishHeight,
-  parseDate,
   rawHeightConvert,
   toEnglishWeight,
   toEnglishHeight,
