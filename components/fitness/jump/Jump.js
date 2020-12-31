@@ -5,67 +5,72 @@ import { View, StyleSheet, Text, ScrollView } from 'react-native'
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import { COLOR_THEMES } from '../../ColorThemes'
 import { UserDataContext } from '../../../Context'
-import Past from "../charts/Past"
+import WeeklyBarChart from "../charts/WeeklyBarChart"
 import withFitnessPage from "../withFitnessPage"
 import { rawHeightConvert } from "../../utils/unitConverter" 
 import StatCard from '../StatCard';
 import ThemeText from '../../generic/ThemeText'
 import LineProgression from '../charts/LineProgression'
 const Jump = (props) => {
-  const context = React.useContext(UserDataContext);
-  const { activityJson, settings } = props
+  const {
+    weekIndex,
+    dayIndex,
+    currentDay,
+    weeklyGraphData,
+    weeklyGraphLabels,
+    calcAvgNum,
+    calcAvgCals,
+    
+    activityJson,
+    settings
+  } = props;
+  console.log(weeklyGraphData);
+  console.log(weeklyGraphLabels);
+  const { unitSystem } = settings;
   const jumpJson = activityJson;
 
+  // weekly basis
   const calcAvgHeight = () => {
-    var { activityData } = jumpJson
-    var avg = 0
-    var count = 0
-    activityData.forEach((session, i) => {
+    const { activityData } = jumpJson;
+    var avg = 0;
+    var count = 0;
+    activityData[weekIndex].forEach((session, i) => {
       session.heights.forEach((height, j) => {
         avg += height; count += 1;
       })
     })
     // show only 2 decimal digits
-    return (count === 0) ? 0 : parseFloat(avg / count).toFixed(2)
+    return (count === 0) ? 0 : parseFloat(avg / count).toFixed(2);
   }
 
-  const getCurrentBestHeight = () => {
-    var { unitSystem } = settings
-    var { activityData } = jumpJson
-    var { activityIndex } = props
-    if (activityData.length === 0) { return null }
-    var session = activityData[activityIndex]
-    var best = Math.max(...session.heights)
-    return unitSystem === GLOBAL_CONSTANTS.METRIC ? rawHeightConvert(unitSystem, best) : best
+  const getWeekBestHeight = () => {
+    const { unitSystem } = settings;
+    const { activityData } = jumpJson;
+    const { weekIndex } = props;
+    if (activityData.length === 0) { return null };
+    const week = activityData[weekIndex];
+    var best = 0;
+    week.forEach((session, _) => {
+      best = Math.max(best, ...session.heights);
+    })
+    return unitSystem === GLOBAL_CONSTANTS.METRIC ? rawHeightConvert(unitSystem, best) : best;
   }
 
+  // daily basis
   const makeTimeLabels = (inc) => {
-    const { activityData } = jumpJson
+    const { activityData } = jumpJson;
     if (activityData.length === 0) {
-      return []
+      return [];
     }
-    res = []
-    for (i = 0; i < activityData[activityIndex].heights.length; i+=inc) {
-      res.push(i === 0 ? 1 : i)
+    res = [];
+    for (i = 0; i < activityData[weekIndex][dayIndex].heights.length; i+=inc) {
+      res.push(i === 0 ? 1 : i);
     }
-    return res
+    return res;
   }
 
-  var { unitSystem } = settings
-  var {
-    activityIndex,
-    pastGraphData,
-    pastGraphLabels,
-    dropdownItemClick,
-    displayDate,
-    nextSlide,
-    previousSlide,
-    calcAvgNum,
-    calcAvgCals,
-    isNullOrUndefined
-  } = props
+
   // this could be undefined if user has no recorded data
-  var currentStatDisplay = jumpJson.activityData[activityIndex]
   return (
     <View style={styles.container}>
       <View style={{alignItems: 'center'}}>
@@ -80,17 +85,17 @@ const Jump = (props) => {
           activityColor={COLOR_THEMES.JUMP_THEME}
           yAxisInterval='4'
           yAxisUnits={unitSystem === GLOBAL_CONSTANTS.METRIC ? ' cm' : ' in'}
-          data={currentStatDisplay ? currentStatDisplay.heights : []}
-          labels={currentStatDisplay ? makeTimeLabels(4) : []}
+          data={currentDay ? currentDay.heights : []}
+          labels={currentDay ? makeTimeLabels(4) : []}
         />
       </ScrollView>
       <View style={{alignItems: 'center'}}>
-        <ThemeText h4>Past Sessions</ThemeText>
+        <ThemeText h4>Weekly Bests</ThemeText>
       </View>
       <ScrollView horizontal contentContainerStyle={{alignItems: 'center', marginTop: 15}}>
-        <Past
-          labels={pastGraphLabels}
-          data={pastGraphData}
+        <WeeklyBarChart
+          labels={weeklyGraphLabels}
+          data={weeklyGraphData}
           activity="Jumps"
           yAxisUnits={unitSystem === GLOBAL_CONSTANTS.METRIC ? ' cm' : ' in'}
         />

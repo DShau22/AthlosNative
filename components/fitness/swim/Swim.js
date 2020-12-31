@@ -7,100 +7,107 @@ import Details from "../Details"
 import StatCard from '../StatCard'
 import ThemeText from '../../generic/ThemeText'
 import { UserDataContext } from '../../../Context'
-import Past from "../charts/Past"
+import WeeklyBarChart from "../charts/WeeklyBarChart"
 import withFitnessPage from "../withFitnessPage"
 import DistributionDonut from '../charts/DistributionDonut'
 import LineProgression from '../charts/LineProgression'
 import { COLOR_THEMES } from '../../ColorThemes'
 const metersToYards = 1.0 / 1.09361
 const yardsToMeters = 1.0 / 0.9144
-const swimLink = "/app/swimDetails"
 
 const Swim = (props) => {
-  const context = React.useContext(UserDataContext);
-  const { settings, activityJson } = props
-  const swimJson = activityJson
+  const {
+    weekIndex,
+    dayIndex,
+    currentDay,
+    weeklyGraphData,
+    weeklyGraphLabels,
+    calcAvgNum,
+    calcAvgCals,
 
-  const calculateDistance = (currentStatDisplay) => {
-    var { swimLap, unitSystem } = settings
-    const { roundToNDecimals, isNullOrUndefined } = props
-    unitSystem = unitSystem.toLowerCase()
-    if (isNullOrUndefined(currentStatDisplay)) {
-      return 0;
-    }
-    var { num } = currentStatDisplay
-    if (swimLap === "50 m") {
-      let distanceInMeters = 50 * num
-      return (unitSystem === "metric" ? 
-              <Text>{distanceInMeters}</Text> : 
-              <Text>{roundToNDecimals(distanceInMeters * metersToYards, 2)}</Text>)
-    } else if (swimLap === "25 m") {
-      let distanceInMeters = 25 * num
-      return (unitSystem === "metric" ? 
-              <Text>{distanceInMeters}</Text> : 
-              <Text>{roundToNDecimals(distanceInMeters * metersToYards, 2)}</Text>)
-    } else {
-      // 25yd
-      let distanceInYards = 25 * num
-      return (unitSystem === "english" ? 
-              <Text>{distanceInYards}</Text> : 
-              <Text>{roundToNDecimals(distanceInYards * yardsToMeters, 2)}</Text>)
-    }
-  }
+    settings,
+    activityJson,
+    roundToNDecimals,
+    isNullOrUndefined
+  } = props;
+
+  // const calculateDistance = (currentStatDisplay) => {
+  //   var { swimLap, unitSystem } = settings
+  //   const { roundToNDecimals, isNullOrUndefined } = props
+  //   unitSystem = unitSystem.toLowerCase()
+  //   if (isNullOrUndefined(currentStatDisplay)) {
+  //     return 0;
+  //   }
+  //   var { num } = currentStatDisplay
+  //   if (swimLap === "50 m") {
+  //     let distanceInMeters = 50 * num
+  //     return (unitSystem === "metric" ? 
+  //             <Text>{distanceInMeters}</Text> : 
+  //             <Text>{roundToNDecimals(distanceInMeters * metersToYards, 2)}</Text>)
+  //   } else if (swimLap === "25 m") {
+  //     let distanceInMeters = 25 * num
+  //     return (unitSystem === "metric" ? 
+  //             <Text>{distanceInMeters}</Text> : 
+  //             <Text>{roundToNDecimals(distanceInMeters * metersToYards, 2)}</Text>)
+  //   } else {
+  //     // 25yd
+  //     let distanceInYards = 25 * num
+  //     return (unitSystem === "english" ? 
+  //             <Text>{distanceInYards}</Text> : 
+  //             <Text>{roundToNDecimals(distanceInYards * yardsToMeters, 2)}</Text>)
+  //   }
+  // }
 
   const calcAvgSpeed = () => {
-    var { activityData } = props.activityJson
-    var { swimLap, unitSystem } = settings
-    const { roundToNDecimals, isNullOrUndefined } = props
+    const { activityData } = activityJson;
+    const { swimLap, unitSystem } = settings;
     if (isNullOrUndefined(activityData) || activityData.length === 0) {
-      return 0
+      return 0;
     }
     // returns [50/25, m/yd] both as strings
-    var distMetric = swimLap.split(" ")
+    var distMetric = swimLap.split(" ");
     var distance = 0; var time = 0;
-    // var incrementDistance = (distance, distMetric) => {
-    //   return distance + distMetric
-    // }
-    activityData.forEach((session, i) => {
-      var { lapTimes, num } = session
+    const week = activityData[weekIndex];
+    week.forEach((session, _) => {
+      var { lapTimes, num } = session;
       // sum over all times in the lapTimes array
-      time += lapTimes.reduce((a, b) => a + b, 0)
+      time += lapTimes.reduce((a, b) => a + b, 0);
       // add 50/25 * the number of laps done
-      distance = distMetric[0] * num
-    })
+      distance = distMetric[0] * num;
+    });
     // now have average distance / time in either m/s or yd/s
-    var avgSpeed = (distance === 0 ? 0 : distance / time)
+    var avgSpeed = (distance === 0 ? 0 : distance / time);
 
     if (distMetric[1] === "yd") {
       // avg speed is in yds / s
       return (unitSystem === "metric" ?
               roundToNDecimals(avgSpeed * yardsToMeters, 2) :
-              avgSpeed)
+              avgSpeed);
     } else {
       // avg speed is in meters / s
       return (unitSystem === "metric" ?
               avgSpeed :
-              roundToNDecimals(avgSpeed * metersToYards, 2))
+              roundToNDecimals(avgSpeed * metersToYards, 2));
     }
   }
 
   const calcAvgTimePerLap = () => {
-    var { activityData } = props.activityJson
-    const { roundToNDecimals, isNullOrUndefined } = props
+    var { activityData } = activityJson;
     if (isNullOrUndefined(activityData) || activityData.length === 0) {
-      return 0
+      return 0;
     }
     var totalTime = 0; var totalNumLaps = 0;
-    activityData.forEach((session, idx) => {
-      totalTime += session.lapTimes.reduce((a, b) => a + b, 0)
-      totalNumLaps += session.num
-    })
-    return roundToNDecimals(totalTime / totalNumLaps, 2)
+    const week = activityData[weekIndex];
+    week.forEach((session, _) => {
+      totalTime += session.lapTimes.reduce((a, b) => a + b, 0);
+      totalNumLaps += session.num;
+    });
+    return roundToNDecimals(totalTime / totalNumLaps, 2);
   }
 
+  // this is daily
   const makeDonutData = () => {
-    var { activityData } = props.activityJson
-    const { isNullOrUndefined } = props
+    const { activityData } = activityJson;
     if (isNullOrUndefined(activityData) || activityData.length === 0) {
       return [];
     }
@@ -108,46 +115,32 @@ const Swim = (props) => {
         backCount   = 0,
         breastCount = 0,
         freeCount   = 0;
-    activityData.forEach((session, i) => {
-      session.strokes.forEach((stroke, j) => {
-        let lowerCaseStroke = stroke.toLowerCase()
-        if (lowerCaseStroke === "u") {
-          flyCount += 1
-        } else if (lowerCaseStroke === "b") {
-          backCount += 1
-        } else if (lowerCaseStroke === "r") {
-          breastCount += 1
-        } else if (lowerCaseStroke === "f") {
-          freeCount += 1
-        }
-      })
-    })
-    return [flyCount, backCount, breastCount, freeCount]     
+    currentDay.strokes.forEach((stroke, _) => {
+      let lowerCaseStroke = stroke.toLowerCase()
+      if (lowerCaseStroke === "u") {
+        flyCount += 1
+      } else if (lowerCaseStroke === "b") {
+        backCount += 1
+      } else if (lowerCaseStroke === "r") {
+        breastCount += 1
+      } else if (lowerCaseStroke === "f") {
+        freeCount += 1
+      }
+    });
+    if (flyCount + backCount + breastCount + freeCount === 0) return [];
+    return [flyCount, backCount, breastCount, freeCount];
   }
 
-  const makeTimeLabels = (currentStatDisplay, inc) => {
-    res = []
-    for (i = 0; i < currentStatDisplay.lapTimes.length; i+=inc) {
-      res.push(i === 0 ? 1 : i)
+  const makeTimeLabels = (inc) => {
+    res = [];
+    for (i = 0; i < currentDay.lapTimes.length; i+=inc) {
+      res.push(i === 0 ? 1 : i);
     }
-    return res
+    return res;
   }
   
-  var { unitSystem } = settings
-  var {
-    activityIndex,
-    pastGraphData,
-    pastGraphLabels,
-    dropdownItemClick,
-    displayDate,
-    nextSlide,
-    previousSlide,
-    calcAvgNum,
-    calcAvgCals,
-    isNullOrUndefined,
-  } = props
-  // this could be undefined if user has no recorded data
-  var currentStatDisplay = swimJson.activityData[activityIndex]
+  const { unitSystem } = settings
+
   // 50m, 25yd, or 25m
   return (
     <View style={styles.container}>
@@ -157,14 +150,14 @@ const Swim = (props) => {
       <ScrollView
         horizontal
         style={{marginTop: 20}}
-        contentContainerStyle={[styles.sideScrollContent, {marginLeft: swimJson.activityData.length === 0 ? -20 : 0}]}
+        contentContainerStyle={[styles.sideScrollContent, {marginLeft: activityJson.activityData.length === 0 ? -20 : 0}]}
       >
         <LineProgression
           activityColor={COLOR_THEMES.SWIM_THEME}
           yAxisInterval='5'
           yAxisUnits='s'
-          data={currentStatDisplay ? currentStatDisplay.lapTimes.map(({lapTime}, _) => lapTime) : []}
-          labels={currentStatDisplay ? makeTimeLabels(currentStatDisplay, 4) : []}
+          data={currentDay ? currentDay.lapTimes.map(({lapTime}, _) => lapTime) : []}
+          labels={currentDay ? makeTimeLabels(4) : []}
         />
       </ScrollView>
       <View style={{alignItems: 'center'}}>
@@ -184,15 +177,15 @@ const Swim = (props) => {
         <Divider style={{width: '95%', marginBottom: 10, marginTop: 10}}/>
       </View>
       <View style={{alignItems: 'center'}}>
-        <ThemeText h4>Past Swims</ThemeText>
+        <ThemeText h4>Weekly Swims</ThemeText>
       </View>
       <ScrollView horizontal contentContainerStyle={{alignItems: 'center', marginTop: 15}}>
-        <Past
-          labels={pastGraphLabels}
-          data={pastGraphData}
+        <WeeklyBarChart
+          labels={weeklyGraphLabels}
+          data={weeklyGraphData}
           activity="Swims"
           yAxisMin={0}
-          yAxisMax={Math.max(...pastGraphData)}
+          yAxisMax={Math.max(...weeklyGraphData)}
         />
       </ScrollView>
       <View style={{alignItems: 'center'}}>

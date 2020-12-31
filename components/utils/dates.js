@@ -7,20 +7,30 @@ function parseDate(uploadDate) {
   return parsed
 }
 
-// returns a date object representing last Monday from today
-function getLastMonday() {
-  let lastMonday = new Date();
+// returns a date object representing last Monday from the day that is passed in
+function getLastMonday(day) { // if day isn't passed in, assume its the actual today
+  var lastMonday = day;
+  if (!day) {
+    lastMonday = new Date();
+  }
   lastMonday.setDate(lastMonday.getDate() - lastMonday.getDay() + 1); // should be the monday of this week
+  lastMonday.setHours(0,0,0,0);
   return lastMonday;
 }
 
-// returns a date object representing next Sunday from today
-function getNextSunday() {
-  let lastMonday = new Date();
-  let nextSunday = new Date();
+// returns a date object representing next Sunday from the day that is passed in
+function getNextSunday(day) {
+  var lastMonday = day;
+  if (!day) {
+    lastMonday = new Date();
+  }
   lastMonday.setDate(lastMonday.getDate() - lastMonday.getDay() + 1); // should be the monday of this week
+  lastMonday.setHours(0,0,0,0);
+
+  let nextSunday = new Date();
   nextSunday.setDate(lastMonday.getDate() + 6);
-  return lastSunday;
+  nextSunday.setHours(0,0,0,0);
+  return nextSunday;
 }
 
 function sameDate(day1, day2) {

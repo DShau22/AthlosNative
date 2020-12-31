@@ -5,15 +5,19 @@ import { COLOR_THEMES } from "../../ColorThemes";
 import * as Animatable from 'react-native-animatable';
 import { ProgressCircle } from 'react-native-svg-charts';
 import { useTheme } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/dist/Feather';
+import CustomIcons from '../../../CustomIcons';
+CustomIcons.loadFont();
 
 import FITNESS_CONSTANTS from '../../fitness/FitnessConstants';
 import ThemeText from '../../generic/ThemeText';
-import CustomIcons from '../../../CustomIcons';
-CustomIcons.loadFont();
-import Icon from 'react-native-vector-icons/dist/Feather';
+import { parseDate } from "../../utils/dates";
+
 
 const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES;
 const ImageSlide = (props) => {
+  const { stats, weekIndex, dayIndex } = props;
+  const { uploadDate } = stats.activityData[weekIndex][dayIndex];
   const { colors } = useTheme();
   const getLabels = (action) => {
     var { unitSystem } = React.useContext(UserDataContext).settings
@@ -41,18 +45,32 @@ const ImageSlide = (props) => {
   actionToIcon[FITNESS_CONSTANTS.SWIM] = <CustomIcons name='swimmer' style={{position: 'absolute', top: '35%', color: 'white'}} size={50}/>
   actionToIcon[FITNESS_CONSTANTS.JUMP] = <Icon name='chevrons-up' style={{position: 'absolute', top: '35%', color: 'white'}} size={50}/>
 
-  const renderNum = (stats, indexDisplay, style) => {
-    var { activityData } = stats
-    var labels = getLabels(stats.action)
-    var num = activityData.length === 0 ? 0 : activityData[indexDisplay].num
+  const renderNum = (style) => {
+    var { activityData } = stats;
+    var labels = getLabels(stats.action);
+    var num = activityData.length === 0 ? 0 : activityData[weekIndex][dayIndex].num;
     return (
       <ThemeText style={style}> {`${num} ${labels.numLabel}`} </ThemeText>
       // <Animatable.Text animation="slideInLeft">{`${num} ${labels.numLabel}`}</Animatable.Text>
-    )
+    );
+  }
+
+  const renderDate = () => {
+    const parsed = parseDate(uploadDate);
+    const dateDisplay = `${parsed[0]}, ${parsed[1]} ${parsed[2]}`;
+    return (
+      <ThemeText style={{
+        position: 'absolute',
+        top: '20%',
+        fontSize: 16,
+      }}>
+        {dateDisplay}
+      </ThemeText>
+    );
   }
 
   const getActivityColor = () => {
-    switch (props.stats.action) {
+    switch (stats.action) {
       case FITNESS_CONSTANTS.RUN:
         return RUN_THEME;
       case FITNESS_CONSTANTS.SWIM:
@@ -61,8 +79,6 @@ const ImageSlide = (props) => {
         return JUMP_THEME;
     }
   }
-
-  var { stats, indexDisplay } = props
   return (
     <View style={styles.imageSlide}> 
       <ProgressCircle 
@@ -72,11 +88,12 @@ const ImageSlide = (props) => {
         backgroundColor={colors.backgroundOffset}
         strokeWidth={8}
       />
+      {renderDate()}
       {actionToIcon[stats.action]}
       {/* <ThemeText style={{ position: 'absolute', top: '35%'}}>Img should go here!</ThemeText> */}
       {/* add data through props */}
       {/* <img src={stats.imageUrl} alt="loading..."/> */}
-      {renderNum(stats, indexDisplay, styles.number)}
+      {renderNum(styles.number)}
     </View>
   )
 }

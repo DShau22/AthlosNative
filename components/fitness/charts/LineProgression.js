@@ -49,7 +49,7 @@ const LineProgression = (props) => {
   return (
     <LineChart
       fromZero
-      data={data.length === 0 ? zeroData : chartData}
+      data={data.length <= 1 ? zeroData : chartData}
       width={chartWidth}
       height={300}
       withHorizontalLabels={data.length > 0}

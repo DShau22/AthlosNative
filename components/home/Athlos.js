@@ -218,7 +218,6 @@ function Athlos(props) {
     if (!token) { token = props.token; }
     headers.append("authorization", `Bearer ${token}`);
     headers.append("activity", activity);
-    console.log(lastUpdated.getTime().toString());
     headers.append("last_updated", lastUpdated.getTime().toString()); // apparently the backend can't handle camel case with middleware
 
     var res = await fetch(ENDPOINTS.getData, {
@@ -226,7 +225,10 @@ function Athlos(props) {
       headers: headers,
     })
     var additionalActivityData = await res.json();
-    return additionalActivityData
+    if (!additionalActivityData.success) {
+      throw new Error(additionalActivityData.message);
+    }
+    return additionalActivityData;
   }
 
   // updates the state and therefore the context if the user info is suspected
@@ -247,95 +249,92 @@ function Athlos(props) {
     }
     var headers = new Headers()
     headers.append("authorization", `Bearer ${userToken}`)
-    try {
-      var res = await fetch(ENDPOINTS.getUserInfo, { method: "GET", headers })
-      var userJson = await res.json()
-      if (!userJson.success) {
-        console.log("get user info failed: ", userJson);
-        Alert.alert(`Oh No :(`, "Something went wrong with the request to the server. Please refresh.", [{ text: "Okay" }]);
-        return;
-      }
+    var res = await fetch(ENDPOINTS.getUserInfo, { method: "GET", headers })
+    var userJson = await res.json()
+    if (!userJson.success) {
+      console.log("get user info failed: ", userJson);
+      Alert.alert(`Oh No :(`, "Something went wrong with the request to the server. Please refresh.", [{ text: "Okay" }]);
+      return;
+    }
 
-      // GET USER FITNESS. These should get the last 26 weeks of tracked data
-      const userData = await getDataObj();
-      const lastMonday = getLastMonday();
-      const halfYearAgo = new Date();
-      halfYearAgo.setDate(halfYearAgo.getDate() - 26 * 7);
-      console.log("last monday: ", lastMonday.getDate())
-      // figure out the latest locally updated week. Assume jumpJson, swimJson, runJson are accurate
-      var lastJumpUpdated = new Date();
-      if (userData && userData.jumpJson && userData.jumpJson.activityData.length > 0) {
-        lastJumpUpdated = new Date(userData.jumpJson.activityData[0].uploadDate);
-      } else {
-        // if userData does not exist, then get the Monday 26 weeks ago and start from there
-        lastJumpUpdated = halfYearAgo;
-      }
-      var lastSwimUpdated = new Date();
-      if (userData && userData.swimJson && userData.swimJson.activityData.length > 0) {
-        lastSwimUpdated = new Date(userData.swimJson.activityData[0].uploadDate);
-      } else {
-        // if userData does not exist, then get the Monday 26 weeks ago and start from there
-        lastSwimUpdated = halfYearAgo;
-      }
-      var lastRunUpdated = new Date();
-      if (userData && userData.runJson && userData.runJson.activityData.length > 0) {
-        lastRunUpdated = new Date(userData.runJson.activityData[0].uploadDate);
-      } else {
-        // if userData does not exist, then get the Monday 26 weeks ago and start from there
-        console.log("user data does not exist!");
-        lastRunUpdated = halfYearAgo;
-      }
-      console.log("last updated jump was: ", lastJumpUpdated.getDate());
-      console.log("last updated swim was: ", lastSwimUpdated.getDate());
-      console.log("last updated run was: ", lastRunUpdated.getDate());
-      var [additionalJumpData, additionalSwimData, additionalRunData] = await Promise.all([
-        getActivityJson("jump", lastJumpUpdated),
-        getActivityJson("swim", lastSwimUpdated),
-        getActivityJson("run",  lastRunUpdated)
-      ]);
+    // GET USER FITNESS. These should get the last 26 weeks of tracked data
+    const today = new Date();
+    const userData = await getDataObj();
+    const lastMonday = getLastMonday(today);
+    const halfYearAgo = new Date();
+    halfYearAgo.setDate(lastMonday.getDate() - 26 * 7); // make sure its from that monday
+    // console.log("last Monday:", lastMonday.getMonth(), lastMonday.getDate(), lastMonday.getFullYear());
+    // console.log("half year ago:", halfYearAgo.getMonth(), halfYearAgo.getDate(), halfYearAgo.getFullYear());
+    // figure out the latest locally updated week. Assume jumpJson, swimJson, runJson are accurate
+    var lastJumpUpdated = new Date();
+    if (userData && userData.jumpJson && userData.jumpJson.activityData.length > 0) {
+      lastJumpUpdated = new Date(userData.jumpJson.activityData[0].uploadDate);
+    } else {
+      // if userData does not exist, then get the Monday 26 weeks ago and start from there
+      lastJumpUpdated = halfYearAgo;
+    }
+    var lastSwimUpdated = new Date();
+    if (userData && userData.swimJson && userData.swimJson.activityData.length > 0) {
+      lastSwimUpdated = new Date(userData.swimJson.activityData[0].uploadDate);
+    } else {
+      // if userData does not exist, then get the Monday 26 weeks ago and start from there
+      lastSwimUpdated = halfYearAgo;
+    }
+    var lastRunUpdated = new Date();
+    if (userData && userData.runJson && userData.runJson.activityData.length > 0) {
+      lastRunUpdated = new Date(userData.runJson.activityData[0].uploadDate);
+    } else {
+      // if userData does not exist, then get the Monday 26 weeks ago and start from there
+      console.log("user data does not exist!");
+      lastRunUpdated = halfYearAgo;
+    }
+    // console.log("last updated jump was: ", lastJumpUpdated.getMonth(), lastJumpUpdated.getDate());
+    // console.log("last updated swim was: ", lastSwimUpdated.getMonth(), lastSwimUpdated.getDate());
+    // console.log("last updated run was: ", lastRunUpdated.getMonth(), lastRunUpdated.getDate());
+    var [additionalJumpData, additionalSwimData, additionalRunData] = await Promise.all([
+      getActivityJson("jump", lastJumpUpdated),
+      getActivityJson("swim", lastSwimUpdated),
+      getActivityJson("run",  lastRunUpdated)
+    ]);
 
-      var gotAllInfo = userJson.success && additionalJumpData.success && additionalSwimData.success && additionalRunData.success
-      if (gotAllInfo) {
-        console.log("successfully got all user info");
-        const newState = {
-          ...state,
-          ...userJson,
-          // socket: prevState.socket,
-          mounted: true,
-          // NOTE THAT FITNESS ISN'T UPDATED. THIS SHOULD CHANGE
-          jumpJson: {
-            ...state.jumpJson,
-            activityData: [
-              ...state.jumpJson.activityData,
-              ...additionalJumpData.activityData
-            ].slice(Math.max(state.jumpJson.length - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST, 0), state.jumpJson.length)
-          },
-          runJson: {
-            ...state.runJson,
-            activityData: [
-              ...state.runJson.activityData,
-              ...additionalRunData.activityData
-            ].slice(Math.max(state.runJson.length - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST, 0), state.runJson.length)
-          },
-          swimJson: {
-            ...state.swimJson,
-            activityData: [
-              ...state.swimJson.activityData,
-              ...additionalSwimData.activityData
-            ].slice(Math.max(state.swimJson.length - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST, 0), state.swimJson.length)
-          },
-        }
-        setState(newState);
-        storeDataObj(newState);
-      } else {
-        console.log(additionalSwimData);
-        console.log(additionalRunData);
-        console.log(additionalJumpData);
-        throw new Error("failed to get all user info");
+    var gotAllInfo = userJson.success && additionalJumpData.success && additionalSwimData.success && additionalRunData.success
+    if (gotAllInfo) {
+      console.log("successfully got all user info");
+      const newState = {
+        ...state,
+        ...userJson,
+        // socket: prevState.socket,
+        mounted: true,
+        // NOTE THAT FITNESS ISN'T UPDATED. THIS SHOULD CHANGE
+        jumpJson: {
+          ...state.jumpJson,
+          activityData: [
+            ...state.jumpJson.activityData,
+            ...additionalJumpData.activityData
+          ].slice(Math.max(state.jumpJson.length - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST, 0), state.jumpJson.length)
+        },
+        runJson: {
+          ...state.runJson,
+          activityData: [
+            ...state.runJson.activityData,
+            ...additionalRunData.activityData
+          ].slice(Math.max(state.runJson.length - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST, 0), state.runJson.length)
+        },
+        swimJson: {
+          ...state.swimJson,
+          activityData: [
+            ...state.swimJson.activityData,
+            ...additionalSwimData.activityData
+          ].slice(Math.max(state.swimJson.length - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST, 0), state.swimJson.length)
+        },
       }
-    } catch(e) {
-      console.log("error in updateLocalUserInfo: ", e);
-      Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
+      setState(newState);
+      storeDataObj(newState);
+    } else {
+      console.log("additional swim data: ", additionalSwimData);
+      console.log("additional run data: ", additionalRunData);
+      console.log("additional jump data: ", additionalJumpData);
+      throw new Error("failed to get all user info");
     }
   }
 

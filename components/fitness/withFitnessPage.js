@@ -34,18 +34,15 @@ function reverse(array) {
 export default function withFitnessPage( WrappedComponent ) {  
   const WithFitnessPage = (props) => {
     const context = React.useContext(UserDataContext);
-    const [state, setState] = React.useState({
-      activityIndex: 0,
-      pastGraphLabels: [],
-      pastGraphData: [],
-      progressionLabels: [],
-      progressionDate: [], 
-    });
+    const [weekIndex, setWeekIndex] = React.useState(0);
+    const [dayIndex, setDayIndex] = React.useState(0);
 
+    const [weeklyGraphLabels, setWeeklyGraphLabels] = React.useState([]);
+    const [weeklyGraphData, setWeeklyGraphData] = React.useState([]);
     React.useEffect(() => {
-      makePastGraphLabels()
-      makePastGraphData()
-    }, []);
+      makeWeeklyGraphLabels();
+      makeWeeklyGraphData();
+    }, [weekIndex]);
     
     const { activityJson, id } = props.route.params;
 
@@ -58,110 +55,96 @@ export default function withFitnessPage( WrappedComponent ) {
     }
 
     // gets the labels for the graph that displays num field over past upload dates
-    const makePastGraphLabels = () => {
-      var pastGraphLabels = []
-      // can be either run, jump or swimming json
-      activityJson.activityData.forEach((session, idx) => {
-        var { uploadDate } = session
-        // this is an array
-        var dateInfo = parseDate(uploadDate)
-        pastGraphLabels.push(`${dateInfo[0]}, ${dateInfo[1]} ${dateInfo[2]}`);
-      })
-      reverse(pastGraphLabels)
-      setState(prevState => ({ ...prevState, pastGraphLabels }))
+    const makeWeeklyGraphLabels = () => {
+      const weeklyGraphLabels = []
+      const week = activityJson.activityData[weekIndex];
+      week.forEach((session, idx) => {
+        const { uploadDate } = session;
+        const dateInfo = parseDate(uploadDate);
+        const month = new Date(uploadDate).getMonth() + 1;
+        weeklyGraphLabels.push(`${dateInfo[0]}, ${month}/${dateInfo[2]}`);
+      });
+      console.log('weekly graph labels: ', weeklyGraphLabels);
+      setWeeklyGraphLabels(weeklyGraphLabels);
     }
 
     // Once the user selects a date, then get the week containing that day for this graph
-    const makePastGraphData = () => {
-      var pastGraphData = []
+    const makeWeeklyGraphData = () => {
+      const weeklyGraphData = [];
+      const week = activityJson.activityData[weekIndex];
       // for Jump data, people probably only really care about how high they jumped
       if (activityJson.action === FITNESS_CONTANTS.JUMP) {
-        activityJson.activityData.forEach((session, idx) => {
-          var { heights, uploadDate } = session;
-          pastGraphData.push(Math.max(...heights));
+        week.forEach((session, idx) => {
+          const { heights } = session;
+          weeklyGraphData.push(Math.max(0, ...heights));
         })
       } else {
-        activityJson.activityData.forEach((session, idx) => {
-          var { num, uploadDate } = session;
-          pastGraphData.push(num);
+        week.forEach((session, idx) => {
+          const { num } = session;
+          weeklyGraphData.push(num);
         })
       }
-      reverse(pastGraphData)
-      setState(prevState => ({ ...prevState, pastGraphData }))
-    }
-
-    // returns Day of week, month day (num) in a string format
-    // i.e Sat, Jul 20
-    const displayDate = () => {
-      var { activityIndex } = state
-      if (activityJson.activityData.length === 0) {
-        return "No uploads yet"
-      }
-      var { uploadDate } = activityJson.activityData[activityIndex]
-      var parsed = parseDate(new Date(uploadDate))
-      var date = parsed[0] + ", " + parsed[1] + " " + parsed[2]
-      return date
+      console.log('weekly graph data: ', weeklyGraphData);
+      setWeeklyGraphData(weeklyGraphData);
     }
 
     // on dropdown date click, display that week on the dropdown,
     // and switch the image slider to display that week. Also must update the 
     // activityData array for that week 
-    const dropdownItemClick = (activityIndex) => {
-      setState(prevState => ({ ...prevState, activityIndex }))
+    const dropdownItemClick = (newWeekIndex) => {
+      console.log("new week idx: ", newWeekIndex);
+      setWeekIndex(newWeekIndex);
+      setDayIndex(0);
     }
 
     const calcAvgNum = () => {
       // Activity json contains all the queried activity data
       // NOTE THIS IS NOT THE TRUE AVG SINCE THE QUERY IS AT MAX
       // (50) DOCUMENTS OF ACTIVITY DATA
-      var { activityData } = activityJson
-      var avg = 0
-      var count = 0
-      activityData.forEach((session, idx) => {
-        avg += session.num
-        count += 1
-      })
-      return (count === 0) ? 0 : Math.round(avg / count)
+      var { activityData } = activityJson;
+      var avg = 0;
+      var count = 0;
+      activityData.forEach((week, _) => {
+        week.forEach((session, _) => {
+          avg += session.num;
+          count += 1;
+        });
+      });
+      return (count === 0) ? 0 : Math.round(avg / count);
     }
 
     const calcAvgCals = () => {
-      var { activityData } = activityJson
-      var avg = 0
-      var count = 0
-      activityData.forEach((session, idx) => {
-        avg += session.calories
-        count += 1
-      })
-      return (count === 0) ? 0 : Math.round(avg / count)
+      var { activityData } = activityJson;
+      var avg = 0;
+      var count = 0;
+      activityData.forEach((week, _) => {
+        week.forEach((session, _) => {
+          avg += session.calories;
+          count += 1;
+        });
+      });
+      return (count === 0) ? 0 : Math.round(avg / count);
     }
 
-    const previousSlide = () => {
-      const { activityData } = activityJson
-      const lowestIndex = Math.max(0, activityData.length - 1)
-      const nextIndex = Math.min((state.activityIndex + 1), lowestIndex)
-      setState(prevState => ({ ...prevState, activityIndex: nextIndex }))
-      console.log("previous pressed! ", state.activityIndex)
+    const nextSlide = () => {
+      const week = activityJson.activityData[weekIndex];
+      const lowestIndex = Math.max(0, week.length - 1);
+      const nextIndex = Math.min(dayIndex + 1, lowestIndex);
+      setDayIndex(nextIndex);
+      console.log("next pressed! ", nextIndex);
     }
   
-    const nextSlide = () => {
+    const previousSlide = () => {
       // 0 represents the most recent upload date
-      const nextIndex = Math.max((state.activityIndex - 1), 0)
-      setState(prevState => ({ ...prevState, activityIndex: nextIndex }))
-      console.log("next pressed! ", state.activityIndex)
+      const nextIndex = Math.max((dayIndex - 1), 0);
+      setDayIndex(nextIndex);
+      console.log("previous pressed! ", nextIndex);
     }
 
-    const { activityIndex, pastGraphData, pastGraphLabels } = state
-    const currentStatDisplay = activityJson.activityData[activityIndex]
-    // console.log('fitness page state: ', id, state)
-    data = [15, 15, 15]
-    const pieData = data.map((value, index) => ({
-      value,
-      svg: {
-        fill: 'red',
-        onPress: () => console.log('press', index),
-      },
-      key: `pie-${index}-${value}`,
-    }))
+    var sessionDay;
+    if (activityJson.activityData.length > 0 && activityJson.activityData[weekIndex].length >= dayIndex) {
+      sessionDay = activityJson.activityData[weekIndex][dayIndex];
+    }
     return (
       <View
         style={styles.container}
@@ -170,32 +153,31 @@ export default function withFitnessPage( WrappedComponent ) {
           stats={activityJson}
           previousSlide={previousSlide}
           nextSlide={nextSlide}
-          activityIndex={activityIndex}
+          weekIndex={weekIndex}
+          dayIndex={dayIndex}
           dropdownItemClick={dropdownItemClick}
         />
         <View style={styles.calsAndTimeContainer}>
           <Calories 
-            cals={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.calories}
+            cals={sessionDay ? 0 : sessionDay.calories}
             activity={activityJson.action}
           />
           <Duration 
-            duration={isNullOrUndefined(currentStatDisplay) ? 0 : currentStatDisplay.time}
+            duration={sessionDay ? 0 : sessionDay.time}
             activity={activityJson.action}
           />
         </View>
         <Divider style={{width: '95%'}}/>
         <WrappedComponent
-          pastGraphData={pastGraphData}
-          pastGraphLabels={pastGraphLabels}
-          activityIndex={activityIndex}
-          dropdownItemClick={dropdownItemClick}
-          displayDate={displayDate}
-          nextSlide={nextSlide}
-          previousSlide={previousSlide}
+          weeklyGraphData={weeklyGraphData}
+          weeklyGraphLabels={weeklyGraphLabels}
+          weekIndex={weekIndex}
+          dayIndex={dayIndex}
+          currentDay={sessionDay}
           calcAvgNum={calcAvgNum}
           calcAvgCals={calcAvgCals}
-          isNullOrUndefined={isNullOrUndefined}
           roundToNDecimals={roundToNDecimals}
+          isNullOrUndefined={isNullOrUndefined}
           {...props.route.params}
         />
       </View>

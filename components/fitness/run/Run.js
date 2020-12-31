@@ -3,7 +3,7 @@ import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 import React from 'react'
 import { Divider } from 'react-native-elements'
 import { View, Text, StyleSheet, ScrollView, FlatList, Dimensions, Image } from 'react-native'
-import Past from "../charts/Past"
+import WeeklyBarChart from "../charts/WeeklyBarChart"
 import withFitnessPage from "../withFitnessPage"
 import StatCard from '../StatCard'
 import ThemeText from '../../generic/ThemeText'
@@ -19,80 +19,74 @@ const walkCadenceMax = 130// 130 steps per minute is a fast walk, which is 2.16 
 const restCadenceMin = 50 // say 60 steps per minute is basically resting. 1 step/sec, 5 (.2sec) / step
 
 const Run = (props) => {
-  const context = React.useContext(UserDataContext)
-  const { settings, activityJson } = props
+  const {
+    weekIndex,
+    dayIndex,
+    currentDay,
+    weeklyGraphData,
+    weeklyGraphLabels,
+    calcAvgNum,
+    calcAvgCals,
+
+    settings,
+    activityJson
+  } = props;
   const runJson = activityJson;
   // returns an array of percentages for the distribution of walking, running, and resting.
   // returns an empty array if there is no fitness data
+  // on a daily basis
   const makeDonutData = () => {
-    var runCount = 0
-    var walkCount = 0
-    var count = 0
-    var { activityData } = runJson
-    if (activityData.length === 0) return []
-    activityData.forEach((session, i) => {
-      session.cadences.forEach((cadence, j) => {
-        // if cadence is somehow undefined or NaN or null then skip
-        if (!(!cadence || isNaN(cadence))) {
-          if (cadence > walkCadenceMax) {
-            runCount += 1
-          } else if (cadence <= walkCadenceMax && cadence > restCadenceMin) {
-            walkCount += 1
-          }
-          count += 1
-        } else {
-          console.log("this cadence entry is corrupted somehow...")
+    var runCount = 0;
+    var walkCount = 0;
+    var count = 0;
+    if (!currentDay) return [];
+    currentDay.cadences.forEach((cadence, _) => {
+      // if cadence is somehow undefined or NaN or null then skip
+      if (!(!cadence || isNaN(cadence))) {
+        if (cadence > walkCadenceMax) {
+          runCount += 1;
+        } else if (cadence <= walkCadenceMax && cadence > restCadenceMin) {
+          walkCount += 1;
         }
-      })
-    })
-    var runPercent = Math.floor(100 * runCount / count)
-    var walkPercent = Math.floor(100 * walkCount / count)
-    return [runPercent, walkPercent, 100 - (runPercent + walkPercent)]
+        count += 1;
+      } else {
+        console.log("this cadence entry is corrupted somehow...");
+      }
+    });
+    if (count === 0) return [];
+    const runPercent = Math.floor(100 * runCount / count);
+    const walkPercent = Math.floor(100 * walkCount / count);
+    return [runPercent, walkPercent, 100 - (runPercent + walkPercent)];
   }
 
+  // weekly basis
   const calcAvgCadence = () => {
-    var { activityData } = runJson
-    var avg = 0
-    var count = 0
-    activityData.forEach((session, i) => {
-      session.cadences.forEach((cadence, j) => {
-        avg += cadence
-        count += 1
+    var { activityData } = runJson;
+    var avg = 0;
+    var count = 0;
+    activityData[weekIndex].forEach((session, _) => {
+      session.cadences.forEach((cadence, _) => {
+        avg += cadence;
+        count += 1;
       })
     })
-    return (count === 0) ? 0 : Math.floor(avg / count)
+    return (count === 0) ? 0 : Math.floor(avg / count);
   }
 
   // returns an array of time labels for a given cadences array
   // and the total time the user spent on running mode. Only displays
   // the label for every 5 minutes
-  const makeCadenceLabels = (cadences, totalTime) => {
-    let timeInterval = Math.floor(totalTime / cadences.length)
-    let timeSeries   = []
+  const makeCadenceLabels = () => {
+    let timeInterval = Math.floor(currentDay.time / currentDay.cadences.length);
+    let timeSeries   = [];
 
     // add 1 to length of cadences array cuz you wanna start with 0
     // on the display chart
-    for (let i = 0; i < cadences.length + 1; i+=5) {
-      timeSeries.push(`${Math.floor(timeInterval * i)}`)
+    for (let i = 0; i < currentDay.cadences.length + 1; i+=5) {
+      timeSeries.push(`${Math.floor(timeInterval * i)}`);
     }
-    return timeSeries
+    return timeSeries;
   }
-
-  // from withFitnessPage
-  var {
-    activityIndex,
-    pastGraphData,
-    pastGraphLabels,
-    dropdownItemClick,
-    displayDate,
-    nextSlide,
-    previousSlide,
-    calcAvgNum,
-    calcAvgCals,
-    isNullOrUndefined
-  } = props
-  // this could be undefined if user has no recorded data
-  var currentStatDisplay = runJson.activityData[activityIndex]
   return (
     <View style={styles.container}>
       <View style={{alignItems: 'center'}}>
@@ -106,8 +100,8 @@ const Run = (props) => {
         <LineProgression
           activityColor={COLOR_THEMES.RUN_THEME}
           yAxisInterval='5'
-          data={currentStatDisplay ? [0, ...currentStatDisplay.cadences] : []}
-          labels={currentStatDisplay ? makeCadenceLabels(currentStatDisplay.cadences, currentStatDisplay.time) : []}
+          data={currentDay ? [0, ...currentDay.cadences] : []}
+          labels={currentDay ? makeCadenceLabels() : []}
         />
       </ScrollView>
       <View style={{alignItems: 'center'}}>
@@ -128,12 +122,12 @@ const Run = (props) => {
         <Divider style={{width: '95%', marginBottom: 10, marginTop: 10}}/>
       </View>
       <View style={{alignItems: 'center'}}>
-        <ThemeText h4>Past Runs</ThemeText>
+        <ThemeText h4>Weekly Runs</ThemeText>
       </View>
       <ScrollView horizontal contentContainerStyle={{alignItems: 'center', marginTop: 15}}>
-        <Past
-          labels={pastGraphLabels}
-          data={pastGraphData}
+        <WeeklyBarChart
+          labels={weeklyGraphLabels}
+          data={weeklyGraphData}
           activity="Runs"
         />
       </ScrollView>

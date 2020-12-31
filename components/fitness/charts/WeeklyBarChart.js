@@ -8,7 +8,7 @@ import { useTheme } from '@react-navigation/native';
 import { COLOR_THEMES } from '../../ColorThemes' 
 const screenWidth = Dimensions.get("window").width;
 
-const Past = (props) => {
+const WeeklyBarChart = (props) => {
   const { labels, data, activity, yAxisUnits } = props
   const chartWidth = Math.max(.9 * screenWidth, data.length / 7 * screenWidth)
   const { colors } = useTheme();
@@ -61,32 +61,37 @@ const Past = (props) => {
       strokeWidth: '1',
     },
   };
-  const graphStyle = {
-    // backgroundColor: 'red',
-    marginLeft: 20
-  };
+
   return (
-    <BarChart
-      style={graphStyle}
-      data={chartData}
-      width={chartWidth}
-      height={300}
-      chartConfig={chartConfig}
-      verticalLabelRotation={25}
-      fromZero
-      yAxisSuffix={yAxisUnits ? yAxisUnits : ''}
-      withHorizontalLabels={data.length > 0}
-      // showBarTops={false}
-      // showValuesOnTopOfBars
-    />
+    <View style={styles.cardContainer}>
+      <BarChart
+        style={styles.graphStyle}
+        data={chartData}
+        width={600}
+        height={300}
+        chartConfig={chartConfig}
+        verticalLabelRotation={25}
+        horizontalLabelRotation={0}
+        fromZero
+        yAxisSuffix={yAxisUnits ? yAxisUnits : ''}
+        withHorizontalLabels={data.length > 0}
+        // showBarTops={false}
+        // showValuesOnTopOfBars
+      />
+    </View>
   )
 }
 const styles = StyleSheet.create({
   cardContainer: {
+    // backgroundColor: 'red',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '90%',
-    padding: 20,
-  }
+    width: '95%',
+    padding: 5,
+  },
+  graphStyle: {
+    // backgroundColor: 'red',
+    marginLeft: 5,
+  },
 })
-export default Past
+export default WeeklyBarChart

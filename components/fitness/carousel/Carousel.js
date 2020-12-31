@@ -12,7 +12,7 @@ import Icon from 'react-native-vector-icons/dist/Feather';
 const Carousel = (props) => {
   const { colors } = useTheme();
 
-  var { stats, previousSlide, nextSlide, activityIndex, renderSecondary, dropdownItemClick } = props
+  const { stats, previousSlide, nextSlide, weekIndex, dayIndex, dropdownItemClick } = props
 
   // get the past 26 weeks since today including the week of today
   const createDropdownItems = () => {
@@ -56,7 +56,7 @@ const Carousel = (props) => {
     <View style={styles.carousel}>
       <DropDownPicker
         items={dropDownItems}
-        defaultValue={activityIndex} // this is needed for the dropdown date to change with the arrows
+        defaultValue={weekIndex} // this is needed for the dropdown date to change with the arrows
         disabled={dropDownItems.length === 0}
         placeholder={initialDropdownText}
         arrowColor={colors.textColor}
@@ -98,8 +98,7 @@ const Carousel = (props) => {
         }}
         onChangeItem={item => {
           // update the weekly activity data objects by passing in the start date of the week
-          // dropdownItemClick(item.value)
-          dropdownItemClick(item.timeStamp);
+          dropdownItemClick(item.value);
         }}
       />
       <View style={styles.slideShow}>
@@ -112,7 +111,8 @@ const Carousel = (props) => {
 
         <ImageSlide
           stats={stats}
-          indexDisplay={activityIndex}
+          weekIndex={weekIndex}
+          dayIndex={dayIndex}
         />
 
         <Arrow
