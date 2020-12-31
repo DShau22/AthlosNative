@@ -37,6 +37,11 @@ const inchesToCm = (inches) => {
   return parseFloat(inches) * inToCm
 }
 
+const cmToInches = (cm) => {
+  if (cm === '') cm = 0
+  return parseFloat(cm) * cmToIn
+}
+
 // converts pounds to kilograms
 const poundsToKg = (lbs) => {
   if (lbs === '') lbs = 0
@@ -110,4 +115,5 @@ export {
   toInches,
   inchesToCm,
   poundsToKg,
+  cmToInches
 }

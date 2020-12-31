@@ -29,7 +29,6 @@ import Settings from "../settings/Settings"
 import Community from "../community/Community"
 import Profile from '../profile/Profile'
 import DeviceConfig from '../configure/DeviceConfig'
-import Example from '../configure/Example'
 
 import GLOBAL_CONSTANTS from '../GlobalConstants'
 const {
@@ -88,20 +87,24 @@ function Athlos(props) {
     mounted: false,
     friendTableRows: [],
     numFriendsDisplay: 25,
+    goals: {
+      goalSteps: 1,
+      goalLaps: 1,
+      goalVertical: 1,
+      goalCaloriesBurned: 1,
+      goalWorkoutTime: 1,
+    },
     jumpJson: {
       activityData: [],
       action: FITNESS_CONTANTS.JUMP,
-      imageUrl: FITNESS_CONTANTS.JUMP_ICON
     },
     runJson: {
       activityData: [],
       action: FITNESS_CONTANTS.RUN,
-      imageUrl: FITNESS_CONTANTS.RUN_ICON
     },
     swimJson: {
       activityData: [],
       action: FITNESS_CONTANTS.SWIM,
-      imageUrl: FITNESS_CONTANTS.SWIM_ICON
     },
   });
   
@@ -247,10 +250,10 @@ function Athlos(props) {
     if (!userToken) { // this means it's probably right after a login
       userToken = props.token; 
     }
-    var headers = new Headers()
-    headers.append("authorization", `Bearer ${userToken}`)
-    var res = await fetch(ENDPOINTS.getUserInfo, { method: "GET", headers })
-    var userJson = await res.json()
+    var headers = new Headers();
+    headers.append("authorization", `Bearer ${userToken}`);
+    var res = await fetch(ENDPOINTS.getUserInfo, { method: "GET", headers });
+    var userJson = await res.json();
     if (!userJson.success) {
       console.log("get user info failed: ", userJson);
       Alert.alert(`Oh No :(`, "Something went wrong with the request to the server. Please refresh.", [{ text: "Okay" }]);
@@ -268,29 +271,29 @@ function Athlos(props) {
     // figure out the latest locally updated week. Assume jumpJson, swimJson, runJson are accurate
     var lastJumpUpdated = new Date();
     if (userData && userData.jumpJson && userData.jumpJson.activityData.length > 0) {
-      lastJumpUpdated = new Date(userData.jumpJson.activityData[0].uploadDate);
+      lastJumpUpdated = new Date(userData.jumpJson.activityData[0][0].uploadDate); // get upload date of the monday of most recent week
     } else {
       // if userData does not exist, then get the Monday 26 weeks ago and start from there
       lastJumpUpdated = halfYearAgo;
     }
     var lastSwimUpdated = new Date();
     if (userData && userData.swimJson && userData.swimJson.activityData.length > 0) {
-      lastSwimUpdated = new Date(userData.swimJson.activityData[0].uploadDate);
+      lastSwimUpdated = new Date(userData.swimJson.activityData[0][0].uploadDate);
     } else {
       // if userData does not exist, then get the Monday 26 weeks ago and start from there
       lastSwimUpdated = halfYearAgo;
     }
     var lastRunUpdated = new Date();
     if (userData && userData.runJson && userData.runJson.activityData.length > 0) {
-      lastRunUpdated = new Date(userData.runJson.activityData[0].uploadDate);
+      lastRunUpdated = new Date(userData.runJson.activityData[0][0].uploadDate);
     } else {
       // if userData does not exist, then get the Monday 26 weeks ago and start from there
       console.log("user data does not exist!");
       lastRunUpdated = halfYearAgo;
     }
-    // console.log("last updated jump was: ", lastJumpUpdated.getMonth(), lastJumpUpdated.getDate());
-    // console.log("last updated swim was: ", lastSwimUpdated.getMonth(), lastSwimUpdated.getDate());
-    // console.log("last updated run was: ", lastRunUpdated.getMonth(), lastRunUpdated.getDate());
+    console.log("last updated jump was: ", lastJumpUpdated.getMonth(), lastJumpUpdated.getDate());
+    console.log("last updated swim was: ", lastSwimUpdated.getMonth(), lastSwimUpdated.getDate());
+    console.log("last updated run was: ", lastRunUpdated.getMonth(), lastRunUpdated.getDate());
     var [additionalJumpData, additionalSwimData, additionalRunData] = await Promise.all([
       getActivityJson("jump", lastJumpUpdated),
       getActivityJson("swim", lastSwimUpdated),

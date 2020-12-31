@@ -19,3 +19,10 @@ Code > preferences > user snippets
 "running" shoe icon: by photo3idea_studio at https://www.flaticon.com/free-icon/running_1108869?term=run&page=1&position=14&related_item_id=1108869
 
 For icons, if you ever get "cannot recognize font family" the do a Icon.loadFont() right below the import.
+
+Sometimes things get stale in cache after installing updating modules. Run 
+  rm -rf node_modules/
+  rm -rf package.lock.json
+  npm i
+  react-native start --reset-cache
+to reset the cache

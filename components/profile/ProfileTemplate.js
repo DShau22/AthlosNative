@@ -1,15 +1,13 @@
 // A template for the general structure and style of a profile
 // has many holes that need to be filled with a shit ton of props
 // oassed in from the profile component
-import React, { Component } from 'react'
+import React from 'react'
 import { View, ScrollView, StyleSheet, RefreshControl, Image } from 'react-native'
 import { Text, Button, Divider } from 'react-native-elements'
-import { Card } from 'react-native-paper'
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from '@react-navigation/native';
 
 import { UserDataContext, ProfileContext } from '../../Context';
-import { poundsToKg, inchesToCm } from "../utils/unitConverter"
 import PROFILE_CONSTANTS from "./ProfileConstants"
 const {
   USER_PROFILE,
@@ -29,13 +27,14 @@ import Community from '../community/Community'
 import Fitness from '../fitness/Fitness'
 import ProfileHeader from './sections/ProfileHeader'
 import ProfileBests from './sections/ProfileBests'
-import ProfileInfo from './sections/ProfileInfo'
+import ProfileGoals from './sections/ProfileGoals'
 import ProfileAggregates from './sections/ProfileAggregates'
-import EditProfile from './EditProfileFunc'
-import GradientButton from '../generic/GradientButton'
+import EditProfile from './EditProfile'
+import EditGoals from './EditGoals'
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import StatCard from '../fitness/StatCard';
 import ThemeText from '../generic/ThemeText';
+import ProfileAboutYou from './sections/ProfileAboutYou';
 
 // replace with default avatar link
 const imgAlt = "./default_profile.png"
@@ -55,8 +54,8 @@ const ProfileTemplate = (props) => {
     setId,
     refreshing,
     onRefresh,
-    rootNav
-  } = props
+    rootNav,
+  } = props;
   const { settings } = profileContext
   const { colors } = useTheme();
 
@@ -158,7 +157,7 @@ const ProfileTemplate = (props) => {
                       buttonStyle={{
                         backgroundColor: colors.button
                       }}
-                      onPress={() => navigateToFitness(props.navigation)}
+                      onPress={() => props.navigation.navigate(GLOBAL_CONSTANTS.FITNESS, {_id: _id})}
                     /> : null }
                 </View>
                 <View style={{alignItems: 'center', width: '100%'}}>
@@ -194,6 +193,8 @@ const ProfileTemplate = (props) => {
                     </Card> : null
                   }
                 </View> */}
+                {<ProfileAboutYou onEditPress={() => props.navigation.push(PROFILE_CONSTANTS.EDIT_PROFILE)}/>}
+                {<ProfileGoals onEditPress={() => props.navigation.push(PROFILE_CONSTANTS.GOALS)}/>}
                 {canViewBests() ? <ProfileBests /> : null}
                 {canViewTotals() ? <ProfileAggregates /> : null}
               </View>
@@ -201,15 +202,16 @@ const ProfileTemplate = (props) => {
           )}
         </Stack.Screen>
         <Stack.Screen
-          name={GLOBAL_CONSTANTS.COMMUNITY}
-          options={{ title: relationshipStatus === IS_SELF ? 'Your Community' : `${profileContext.firstName}'s Community` }}
+          name={PROFILE_CONSTANTS.EDIT_PROFILE}
+          options={{ title: 'About You' }}
         >
-          {props => (
-            <Community
-              {...props}
-              rootNav={rootNav}
-            />
-          )}
+          {props => ( <EditProfile navigation={props.navigation}/> )}
+        </Stack.Screen>
+        <Stack.Screen
+          name={PROFILE_CONSTANTS.GOALS}
+          options={{ title: 'Weekly Goals' }}
+        >
+          {props => ( <EditGoals navigation={props.navigation} /> )}
         </Stack.Screen>
         <Stack.Screen
           name={GLOBAL_CONSTANTS.FITNESS}
@@ -223,6 +225,17 @@ const ProfileTemplate = (props) => {
           )}
         </Stack.Screen>
         {/* <Stack.Screen
+          name={GLOBAL_CONSTANTS.COMMUNITY}
+          options={{ title: relationshipStatus === IS_SELF ? 'Your Community' : `${profileContext.firstName}'s Community` }}
+        >
+          {props => (
+            <Community
+              {...props}
+              rootNav={rootNav}
+            />
+          )}
+        </Stack.Screen> */}
+        {/* <Stack.Screen
           name={PROFILE_CONSTANTS.BASIC_INFO}
           options={{ title: relationshipStatus === IS_SELF ? 'Your Basic Info' : `${profileContext.firstName}'s Basic Info` }}
         >
@@ -234,12 +247,7 @@ const ProfileTemplate = (props) => {
             />
           )}
         </Stack.Screen> */}
-        <Stack.Screen
-          name={PROFILE_CONSTANTS.EDIT_PROFILE}
-          options={{ title: 'Edit Your Profile' }}
-        >
-          {props => ( <EditProfile navigation={props.navigation}/> )}
-        </Stack.Screen>
+
       </Stack.Navigator>
     </ProfileContext.Provider>
   )

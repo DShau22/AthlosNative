@@ -1,5 +1,6 @@
 const PROFILE_CONSTANTS = {
   PROFILE: "Profile",
+  GOALS: "Goals",
   SEARCH_PROFILE: 'Search profile',
   USER_PROFILE: 'User Profile',
 

@@ -38,7 +38,7 @@ const uploadPicURL = ENDPOINTS.uploadProfilePic
 const imgAlt = "./default_profile.png"
 const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 
-export default function EditProfileFunc(props) {
+export default function EditProfile(props) {
   const context = React.useContext(UserDataContext);
   const { colors } = useTheme();
   const { updateLocalUserInfo, setAppState } = React.useContext(AppFunctionsContext);
@@ -310,26 +310,31 @@ export default function EditProfileFunc(props) {
       // text boxes for ft and in
       return (
         <View style={styles.englishHeightContainer}>
-          <Textbox 
-            headerText="Height (Ft)"
-            placeholder="Ft..."
-            icon="user"
-            keyboardType='numeric'
-            defaultValue={state.updateHeightFt.toString(10)}
-            handleChange={handleHeightFtChange}
-            didChange={state.heightFtChange}
-            errMsg={state.heightFtMsg}
-          />
-          <Textbox 
-            headerText="Height (In)"
-            placeholder="Inches..."
-            icon="user"
-            keyboardType='numeric'
-            defaultValue={state.updateHeightIn.toString(10)}
-            handleChange={handleHeightInChange}
-            didChange={state.heightInChange}
-            errMsg={state.heightInMsg}
-          />
+          <View style={{marginBottom: 20}}>
+            <Textbox 
+              headerText="Height (Ft)"
+              placeholder="Ft..."
+              icon="user"
+              keyboardType='numeric'
+              defaultValue={state.updateHeightFt.toString(10)}
+              handleChange={handleHeightFtChange}
+              didChange={state.heightFtChange}
+              errMsg={state.heightFtMsg}
+            />
+          </View>
+          <View>
+            <Textbox
+              style={{}}
+              headerText="Height (In)"
+              placeholder="Inches..."
+              icon="user"
+              keyboardType='numeric'
+              defaultValue={state.updateHeightIn.toString(10)}
+              handleChange={handleHeightInChange}
+              didChange={state.heightInChange}
+              errMsg={state.heightInMsg}
+            />
+          </View>
         </View>
       )
     } else {
@@ -480,14 +485,18 @@ export default function EditProfileFunc(props) {
           />
         </View>
         <View style={[styles.textContainer, {borderColor: colors.border}]}>
+          {renderHeightInput()}
+        </View>
+        <View style={[styles.textContainer, {borderColor: colors.border}]}>
           <Textbox 
-            headerText={"Bio"}
-            placeholder="Your first name..."
+            headerText={'Weight'}
+            placeholder={`Your weight in ${unitSystem === METRIC ? 'kg' : 'lbs'}`}
             icon="user"
-            defaultValue={state.updateBio}
-            handleChange={handleBioChange}
-            didChange={state.bioChange}
-            errMsg={state.bioMsg}
+            keyboardType='numeric'
+            defaultValue={state.updateWeight.toString(10)}
+            handleChange={handleWeightChange}
+            didChange={state.weightChange}
+            errMsg={state.weightMsg}
           />
         </View>
         <View style={[styles.textContainer, {borderColor: colors.border}]}>
@@ -504,17 +513,6 @@ export default function EditProfileFunc(props) {
         </View>
         <View style={[styles.textContainer, {borderColor: colors.border}]}>
           <Textbox 
-            headerText={"Location"}
-            placeholder="Your city..."
-            icon="user"
-            defaultValue={state.updateLocation}
-            handleChange={handleLocationChange}
-            didChange={state.locationChange}
-            errMsg={state.locationMsg}
-          />
-        </View>
-        <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          <Textbox 
             headerText={"Gender"}
             placeholder="Your gender..."
             icon="user"
@@ -524,24 +522,31 @@ export default function EditProfileFunc(props) {
             errMsg={state.genderMsg}
           />
         </View>
-        <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          {renderHeightInput()}
-        </View>
-        <View style={[styles.textContainer, {borderColor: colors.border}]}>
+        {/* <View style={[styles.textContainer, {borderColor: colors.border}]}>
           <Textbox 
-            headerText={'Weight'}
-            placeholder={`Your weight in ${unitSystem === METRIC ? 'kg' : 'lbs'}`}
+            headerText={"Bio"}
+            placeholder="Your first name..."
             icon="user"
-            keyboardType='numeric'
-            defaultValue={state.updateWeight.toString(10)}
-            handleChange={handleWeightChange}
-            didChange={state.weightChange}
-            errMsg={state.weightMsg}
+            defaultValue={state.updateBio}
+            handleChange={handleBioChange}
+            didChange={state.bioChange}
+            errMsg={state.bioMsg}
           />
-        </View>
+        </View> */}
+        {/* <View style={[styles.textContainer, {borderColor: colors.border}]}>
+          <Textbox 
+            headerText={"Location"}
+            placeholder="Your city..."
+            icon="user"
+            defaultValue={state.updateLocation}
+            handleChange={handleLocationChange}
+            didChange={state.locationChange}
+            errMsg={state.locationMsg}
+          />
+        </View> */}
         <Button 
           title={uploadImageTitle}
-          buttonStyle={styles.uploadImageButton}
+          buttonStyle={[styles.uploadImageButton, {backgroundColor: colors.button}]}
           titleStyle={{color: colors.textColor}}
           onPress={() => {
             ImagePicker.showImagePicker(imagePickerOptions, (response) => {
@@ -613,7 +618,6 @@ const styles = StyleSheet.create({
   },
   uploadImageButton: {
     color: 'black',
-    backgroundColor: '#DDDBF1'
   },
   saveButton: {
     marginTop: 30,

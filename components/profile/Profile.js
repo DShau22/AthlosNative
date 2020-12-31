@@ -8,7 +8,7 @@ import PROFILE_CONSTANTS from './ProfileConstants'
 import { UserDataContext } from '../../Context';
 import Fitness from '../fitness/Fitness'
 import UserProfile from './UserProfile'
-import EditProfileFunc from './EditProfileFunc';
+import EditProfile from './EditProfile';
 import LoadingScreen from '../generic/LoadingScreen';
 import { createStackNavigator } from '@react-navigation/stack';
 import WithRefresh from '../generic/WithRefresh'

@@ -50,6 +50,7 @@ const ENDPOINTS = {
     getUsername: `${serverURL}/getUsername`,
     updateSettings: `${serverURL}/updateSettings`,
     upload: `${serverURL}/upload`,
+    updateWeeklyGoals: `${serverURL}/updateWeeklyGoals`
 }
 
 export default ENDPOINTS

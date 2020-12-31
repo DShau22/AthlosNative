@@ -41,7 +41,7 @@ import {
   removeFromSessionStorage,
   storageKey,
 } from '../utils/storage';
-import EditProfileFunc from "../profile/EditProfileFunc";
+import EditProfile from "../profile/EditProfile";
 import ENDPOINTS from "../endpoints"
 // server url
 const getUserInfoURL = ENDPOINTS.getUserInfo
