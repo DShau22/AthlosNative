@@ -152,7 +152,7 @@ const ProfileTemplate = (props) => {
                 <View style={styles.viewFitness}>
                   {canViewFitness() ?
                     <Button
-                      title='View Fitness'
+                      title='View Your Fitness'
                       containerStyle={{width: '90%', alignSelf: 'center', marginTop: 10, marginBottom: 10}}
                       buttonStyle={{
                         backgroundColor: colors.button

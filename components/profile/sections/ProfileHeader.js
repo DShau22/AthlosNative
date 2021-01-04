@@ -135,7 +135,7 @@ const ProfileHeader = (props) => {
         </View> */}
       </View>
       <Text h4 style={[styles.nameText, {color: colors.textColor}]}>{`${firstName} ${lastName}`}</Text>
-      {relationshipMap[relationshipStatus]}
+      {/* {relationshipMap[relationshipStatus]} */}
       {/* <Button
         title={relationshipMap[relationshipStatus].initText}
         containerStyle={{width: '90%', alignSelf: 'center', marginTop: 10, marginBottom: 10}}

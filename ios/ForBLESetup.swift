@@ -1,0 +1,1 @@
+// An empty Swift file is required to setup React-native BLE

@@ -131,7 +131,7 @@ const Run = (props) => {
           activity="Runs"
         />
       </ScrollView>
-      <View style={{alignItems: 'center'}}>
+      {/* <View style={{alignItems: 'center'}}>
         <StatCard
           imageUri='https://reactnative.dev/img/tiny_logo.png'
           label='Average steps per session'
@@ -147,7 +147,7 @@ const Run = (props) => {
           label='Average Calories burned per Session'
           stat={calcAvgCals()}
         />
-      </View>
+      </View> */}
     </View>
   )
 }

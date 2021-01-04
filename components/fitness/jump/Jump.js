@@ -100,7 +100,7 @@ const Jump = (props) => {
           yAxisUnits={unitSystem === GLOBAL_CONSTANTS.METRIC ? ' cm' : ' in'}
         />
       </ScrollView>
-      <View style={{alignItems: 'center', width: '100%'}}>
+      {/* <View style={{alignItems: 'center', width: '100%'}}>
         <StatCard
           imageUri='https://reactnative.dev/img/tiny_logo.png'
           label='Average number per Session'
@@ -116,7 +116,7 @@ const Jump = (props) => {
           label='Average Calories burned per session'
           stat={calcAvgCals()}
         />
-      </View>
+      </View> */}
     </View>
   )
 }

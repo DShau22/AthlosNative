@@ -159,11 +159,11 @@ export default function withFitnessPage( WrappedComponent ) {
         />
         <View style={styles.calsAndTimeContainer}>
           <Calories 
-            cals={sessionDay ? 0 : sessionDay.calories}
+            cals={sessionDay ? sessionDay.calories : 0}
             activity={activityJson.action}
           />
           <Duration 
-            duration={sessionDay ? 0 : sessionDay.time}
+            duration={sessionDay ? sessionDay.time : 0}
             activity={activityJson.action}
           />
         </View>

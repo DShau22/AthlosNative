@@ -31,6 +31,16 @@ const Swim = (props) => {
     isNullOrUndefined
   } = props;
 
+  React.useEffect(() => {
+    // const ogLen = currentDay.lapTimes.length;
+    // currentDay.lapTimes[0] = {lapTime: 0}
+    // for sake of demo
+    // for (let i = ogLen; i < ogLen * 5; i++) {
+    //   console.log(i);
+    //   currentDay.lapTimes.push({lapTime: 22});
+    // }
+  }, []);
+
   // const calculateDistance = (currentStatDisplay) => {
   //   var { swimLap, unitSystem } = settings
   //   const { roundToNDecimals, isNullOrUndefined } = props
@@ -131,15 +141,23 @@ const Swim = (props) => {
     return [flyCount, backCount, breastCount, freeCount];
   }
 
-  const makeTimeLabels = (inc) => {
-    res = [];
-    for (i = 0; i < currentDay.lapTimes.length; i+=inc) {
-      res.push(i === 0 ? 1 : i);
+  const makeTimeLabels = () => {
+    var inc;
+    if (currentDay.lapTimes.length < 20) {
+      inc = 1;
+    } else {
+      inc = Math.ceil(currentDay.lapTimes.length / 20);
+    }
+    let res = [];
+    for (let i = 0; i < currentDay.lapTimes.length; i+=inc) {
+      console.log(i);
+      // res.push(i === 0 ? 1 : i);
+      res.push(i);
     }
     return res;
   }
   
-  const { unitSystem } = settings
+  const { unitSystem } = settings;
 
   // 50m, 25yd, or 25m
   return (
@@ -155,9 +173,10 @@ const Swim = (props) => {
         <LineProgression
           activityColor={COLOR_THEMES.SWIM_THEME}
           yAxisInterval='5'
+          xAxisInterval='5'
           yAxisUnits='s'
           data={currentDay ? currentDay.lapTimes.map(({lapTime}, _) => lapTime) : []}
-          labels={currentDay ? makeTimeLabels(4) : []}
+          labels={currentDay ? makeTimeLabels() : []}
         />
       </ScrollView>
       <View style={{alignItems: 'center'}}>
@@ -188,7 +207,7 @@ const Swim = (props) => {
           yAxisMax={Math.max(...weeklyGraphData)}
         />
       </ScrollView>
-      <View style={{alignItems: 'center'}}>
+      {/* <View style={{alignItems: 'center'}}>
         <StatCard
           imageUri='https://reactnative.dev/img/tiny_logo.png'
           label='Average laps per session'
@@ -209,7 +228,7 @@ const Swim = (props) => {
           label='Avg Cals burned per Session'
           stat={calcAvgCals()}
         />
-      </View>
+      </View> */}
     </View>
   )
 }
@@ -253,7 +272,6 @@ const styles = StyleSheet.create({
   },
   sideScrollContent: {
     alignItems:'center',
-    width: '100%'
   }
 })
 
