@@ -300,26 +300,22 @@ function Athlos(props) {
       lastRunUpdated = new Date(halfYearAgo);
     }
     // dates to get activity data from and onwards
-    console.log("jump monday: ", lastJumpUpdated.getMonth(), lastJumpUpdated.getDate());
-    console.log("swim monday: ", lastSwimUpdated.getMonth(), lastSwimUpdated.getDate());
-    console.log("run  monday: ", lastRunUpdated.getMonth(), lastRunUpdated.getDate());
+    // console.log("jump monday: ", lastJumpUpdated.getMonth(), lastJumpUpdated.getDate());
+    // console.log("swim monday: ", lastSwimUpdated.getMonth(), lastSwimUpdated.getDate());
+    // console.log("run  monday: ", lastRunUpdated.getMonth(), lastRunUpdated.getDate());
     var [additionalJumpData, additionalSwimData, additionalRunData] = await Promise.all([
       getActivityJson("jump", lastJumpUpdated),
       getActivityJson("swim", lastSwimUpdated),
       getActivityJson("run",  lastRunUpdated)
     ]);
-    console.log("more jumps: ", additionalJumpData.activityData[0]);
-    console.log("more swims: ", additionalSwimData.activityData[0]);
-    console.log("more runs: ", additionalRunData.activityData[0]);
+    // console.log("more jumps: ", additionalJumpData.activityData[0]);
+    // console.log("more swims: ", additionalSwimData.activityData[0]);
+    // console.log("more runs: ", additionalRunData.activityData[0]);
 
     var gotAllInfo = userJson.success && additionalJumpData.success && additionalSwimData.success && additionalRunData.success;
     if (gotAllInfo) {
       console.log("successfully got all user info");
-      const combinedJumpLength = state.jumpJson.activityData.length + additionalJumpData.activityData.length;
-      const combinedRunLength  = state.runJson.activityData.length + additionalRunData.activityData.length;
-      const combinedSwimLength = state.swimJson.activityData.length + additionalSwimData.activityData.length;
-      console.log(combinedJumpLength, combinedRunLength, combinedSwimLength);
-      console.log(additionalJumpData.activityData.length, additionalRunData.activityData.length, additionalSwimData.activityData.length);
+      // console.log(additionalJumpData.activityData.length, additionalRunData.activityData.length, additionalSwimData.activityData.length);
       const newState = {
         ...state,
         ...userJson,

@@ -150,7 +150,7 @@ export default function withFitnessPage( WrappedComponent ) {
         style={styles.container}
       >
         <Carousel
-          stats={activityJson}
+          activityJson={activityJson}
           previousSlide={previousSlide}
           nextSlide={nextSlide}
           weekIndex={weekIndex}

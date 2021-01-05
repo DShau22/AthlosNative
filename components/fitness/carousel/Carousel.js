@@ -12,46 +12,27 @@ import Icon from 'react-native-vector-icons/dist/Feather';
 const Carousel = (props) => {
   const { colors } = useTheme();
 
-  const { stats, previousSlide, nextSlide, weekIndex, dayIndex, dropdownItemClick } = props
+  const { activityJson, previousSlide, nextSlide, weekIndex, dayIndex, dropdownItemClick } = props
 
-  // get the past 26 weeks since today including the week of today
+  // get each week in the activityData
   const createDropdownItems = () => {
+    const { activityData } = activityJson;
     let weeks = [];
-    let lastMonday = new Date();
-    let nextSunday = new Date();
-    lastMonday.setDate(lastMonday.getDate() - lastMonday.getDay() + 1); // should be the monday of this week
-    nextSunday.setDate(lastMonday.getDate() + 6);
-    for (let i = 0; i < 26; i++) {
-      let parsedMonday = parseDate(lastMonday);
-      let parsedSunday = parseDate(nextSunday);
-      let dayMonth = `${parsedMonday[1]} ${parsedMonday[2]} - ${parsedSunday[1]} ${parsedSunday[2]}, ${parsedSunday[3]}`
+    activityData.forEach((week, i) => {
+      let monday = parseDate(week[0].uploadDate);
+      let sunday = parseDate(week[week.length - 1].uploadDate);
+      let dayMonth = `${monday[1]} ${monday[2]} - ${sunday[1]} ${sunday[2]}, ${sunday[3]}`
       weeks.push({
-        timeStamp: lastMonday,
+        timeStamp: monday,
         label: dayMonth,
         value: i,
       });
-      lastMonday.setDate(lastMonday.getDate() - 7);
-      nextSunday.setDate(nextSunday.getDate() - 7);
-    }
-
-    // stats.activityData.forEach((session, idx) => {
-    //   var parsed = parseDate(new Date(session.uploadDate))
-    //   var dayMonth = `${parsed[0]}, ${parsed[1]} ${parsed[2]} ${parsed[3]}`
-    //   weeks.push({
-    //     label: dayMonth,
-    //     value: idx,
-    //     icon: () => {
-    //       return activityIndex === idx ? 
-    //         <Icon name="check" size={14} color={colors.textColor} />
-    //       : null
-    //     }
-    //   })
-    // })
+    });
     return weeks;
   }
   const dropDownItems = createDropdownItems();
   const initialDropdownText = dropDownItems.length === 0 ? 
-    `You have no recorded ${stats.action.toLowerCase()} sessions`: dropDownItems[0].label
+    `You have no recorded ${activityJson.action.toLowerCase()} sessions`: dropDownItems[0].label
   return (
     <View style={styles.carousel}>
       <DropDownPicker
@@ -106,11 +87,11 @@ const Carousel = (props) => {
           direction="left"
           clickFunction={ previousSlide }
           glyph="&#8249;"
-          activity={stats.action}
+          activity={activityJson.action}
         />
 
         <ImageSlide
-          stats={stats}
+          activityJson={activityJson}
           weekIndex={weekIndex}
           dayIndex={dayIndex}
         />
@@ -119,7 +100,7 @@ const Carousel = (props) => {
           direction="right"
           clickFunction={ nextSlide }
           glyph="&#8250;"
-          activity={stats.action}
+          activity={activityJson.action}
         />
       </View>
     </View>
