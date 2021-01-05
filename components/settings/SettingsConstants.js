@@ -3,8 +3,18 @@ const {
   EVERYONE,
   FOLLOWERS,
   ONLY_ME
-} = GLOBAL_CONSTANTS
+} = GLOBAL_CONSTANTS;
 const SETTINGS_CONSTANTS = {
+  POOL_LENGTH_CHOICES: {
+    NCAA: '25 yd',
+    OLYMPIC: '50 m',
+    THIRD: '33 yd',
+  },
+  UNIT_SYSTEM_CHOICES: {
+    METRIC: 'Metric',
+    ENGLISH: 'English'
+  },
+
   SETTINGS_MENU: 'Settings Menu',
   COMMUNITY_SETTINGS: 'Community Settings',
   FITNESS_SETTINGS: 'Fitness Settings',
@@ -95,16 +105,20 @@ const SETTINGS_CONSTANTS = {
   ],
   SWIM_SETTINGS_LIST: [
     {
-      title: EVERYONE,
-      subtitle: 'SWIM_SETTINGS_LIST',  
+      title: '25 yd',
+      subtitle: 'Standard NCAA pool length',  
     },
     {
-      title: FOLLOWERS,
-      subtitle: 'SWIM_SETTINGS_LIST',
+      title: '50 m',
+      subtitle: 'Standard Olympic pool length',
     },
     {
-      title: ONLY_ME,
-      subtitle: 'SWIM_SETTINGS_LIST', 
+      title: '33.3 yd',
+      subtitle: 'Rarer pool length but still standard', 
+    },
+    {
+      title: '33.3 m',
+      subtitle: 'Typically for water polo needs', 
     },
   ],
 }

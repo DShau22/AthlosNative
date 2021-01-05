@@ -1,10 +1,10 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
-import React from 'react'
-import { View, ScrollView, StyleSheet, Alert, FlatList } from 'react-native'
+import React from 'react';
+import { View, ScrollView, StyleSheet, Alert, FlatList } from 'react-native';
 import { Tooltip, Text, ListItem } from 'react-native-elements';
-import { UserDataContext, SettingsContext, AppFunctionsContext } from "../../Context"
-import LoadingScreen from "../generic/LoadingScreen"
+import { UserDataContext, SettingsContext, AppFunctionsContext } from "../../Context";
+import LoadingScreen from "../generic/LoadingScreen";
 import { createStackNavigator } from '@react-navigation/stack';
 import axios from 'axios';
 
@@ -14,10 +14,13 @@ import {
   storeDataObj,
 } from '../utils/storage';
 
-import SettingsMenu from "./settingScreens/SettingsMenu"
-import GLOBAL_CONSTANTS from '../GlobalConstants'
-import SETTINGS_CONSTANTS from './SettingsConstants'
+import SettingsMenu from "./settingScreens/SettingsMenu";
+import GLOBAL_CONSTANTS from '../GlobalConstants';
+import SETTINGS_CONSTANTS from './SettingsConstants';
 const {
+  POOL_LENGTH_CHOICES,
+  UNIT_SYSTEM_CHOICES,
+
   COMMUNITY_SETTINGS_LIST,
   FITNESS_SETTINGS_LIST,
   BASIC_INFO_SETTINGS_LIST,
@@ -34,15 +37,17 @@ const {
   BASIC_INFO_SETTINGS,
   UNIT_SYSTEM_SETTINGS,
   SWIM_SETTINGS,
-} = SETTINGS_CONSTANTS
-const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS
+} = SETTINGS_CONSTANTS;
+const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS;
 
-import ENDPOINTS from '../endpoints'
+import ENDPOINTS from '../endpoints';
 import PrivacySetting from './settingScreens/PrivacySetting';
+import GeneralSetting from './settingScreens/GeneralSetting';
+import ThemeText from '../generic/ThemeText';
 
 const Settings = (props) => {
   const context = React.useContext(UserDataContext);
-  let { settings } = context;
+  const { settings } = context;
   const { setAppState } = React.useContext(AppFunctionsContext); 
 
   const [isLoading, setIsLoading] = React.useState(false);
@@ -55,7 +60,7 @@ const Settings = (props) => {
   const [bestsChoice, setBestsChoice] = React.useState(settings.seeBests);
   const [totalsChoice, setTotalsChoice] = React.useState(settings.seeTotals);
   const [unitDisplayChoice, setUnitDisplayChoice] = React.useState(settings.unitSystem);
-  const [swimLengthChoice, setSwimLengthChoice] = React.useState(settings.swimLap);
+  const [swimLengthChoice, setSwimLengthChoice] = React.useState(settings.poolLength);
 
   // cancel token for cancelling Axios requests on unmount
   const CancelToken = axios.CancelToken;
@@ -101,7 +106,7 @@ const Settings = (props) => {
           seeTotals: totalsChoice,
           seeBasicInfo: basicInfoChoice,
           unitSystem: unitDisplayChoice,
-          swimLap: swimLengthChoice
+          poolLength: swimLengthChoice
         }, config)
         var json = res.data
         console.log("axios response: ", json)
@@ -127,7 +132,7 @@ const Settings = (props) => {
           seeBests: bestsChoice,
           seeTotals: totalsChoice,
           seeCommunity: communityChoice,
-          swimLap: swimLengthChoice,
+          poolLength: swimLengthChoice,
           unitSystem: unitDisplayChoice
         }
       }
@@ -163,7 +168,6 @@ const Settings = (props) => {
           textContent={'Saving...'}
           textStyle={styles.spinnerTextStyle}
         />
-        <Text>CHANGE IT SO UNIT SYSTEM AND SWIM LAP WORK LATER</Text>
         <Stack.Navigator>
           <Stack.Screen
             name={SETTINGS_MENU}
@@ -171,7 +175,28 @@ const Settings = (props) => {
           >
             {props => <SettingsMenu {...props} saveSettings={saveSettings}/>}
           </Stack.Screen>
-          <Stack.Screen name={COMMUNITY_SETTINGS}>
+          <Stack.Screen name={UNIT_SYSTEM_SETTINGS}>
+            {props => (
+              <GeneralSetting
+                initialChoice={settings.unitSystem}
+                settingsList={UNIT_SYSTEM_SETTINGS_LIST}
+                updateSettings={setUnitDisplayChoice}
+                defaultOption={unitDisplayChoice}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name={SWIM_SETTINGS}>
+            {props => (
+              <GeneralSetting
+                {...props}
+                initialChoice={settings.poolLength}
+                settingsList={SWIM_SETTINGS_LIST}
+                updateSettings={setSwimLengthChoice}
+                defaultOption={swimLengthChoice}
+              />
+            )}
+          </Stack.Screen>
+          {/* <Stack.Screen name={COMMUNITY_SETTINGS}>
             {props => (
               <PrivacySetting
                 settingsList={COMMUNITY_SETTINGS_LIST}
@@ -179,8 +204,8 @@ const Settings = (props) => {
                 defaultOption={communityChoice}
               />
             )}
-          </Stack.Screen>
-          <Stack.Screen name={FITNESS_SETTINGS}>
+          </Stack.Screen> */}
+          {/* <Stack.Screen name={FITNESS_SETTINGS}>
             {props => (
               <PrivacySetting
                 settingsList={FITNESS_SETTINGS_LIST}
@@ -215,26 +240,7 @@ const Settings = (props) => {
                 defaultOption={basicInfoChoice}
               />
             )}
-          </Stack.Screen>
-          <Stack.Screen name={UNIT_SYSTEM_SETTINGS}>
-            {props => (
-              <PrivacySetting
-                settingsList={UNIT_SYSTEM_SETTINGS_LIST}
-                updateSettings={setUnitDisplayChoice}
-                defaultOption={unitDisplayChoice}
-              />
-            )}
-          </Stack.Screen>
-          <Stack.Screen name={SWIM_SETTINGS}>
-            {props => (
-              <PrivacySetting
-                {...props}
-                settingsList={SWIM_SETTINGS_LIST}
-                updateSettings={setSwimLengthChoice}
-                defaultOption={swimLengthChoice}
-              />
-            )}
-          </Stack.Screen>
+          </Stack.Screen> */}
         </Stack.Navigator>
       </SettingsContext.Provider>
     )

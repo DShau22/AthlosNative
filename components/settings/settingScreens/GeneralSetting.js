@@ -6,47 +6,43 @@ import { RadioButton } from 'react-native-paper';
 import { Text, ListItem } from 'react-native-elements';
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
 import { useTheme } from '@react-navigation/native';
+import ThemeText from '../../generic/ThemeText';
 
 const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS
 
-const PrivacySetting = (props) => {
+const GeneralSetting = (props) => {
   const { colors } = useTheme();
-  const { defaultOption, settingsList, updateSettings } = props;
-  var initialChoice = defaultOption;
-  // this is just in case the backend names don't line up with the frontend
-  if (defaultOption !== ONLY_ME && defaultOption !== FOLLOWERS && defaultOption !== EVERYONE) initialChoice = ONLY_ME;
+  const { initialChoice, choices, settingsList, updateSettings } = props;
+  console.log(initialChoice);
 
-  const [buttonPressed, setButtonPressed] = React.useState(initialChoice);
+  const [buttonPressed, setButtonPressed] = React.useState(initialChoice.toLowerCase());
   return (
     <FlatList
       style={styles.container}
-      data={props.settingsList}
+      data={settingsList}
       keyExtractor={(obj, idx) => obj.title}
       renderItem={({ item }) => (
         <ListItem
+          containerStyle={{backgroundColor: colors.background}}
           key={item.title}
           bottomDivider
-          // rightElement={() => (
-          //   <RadioButton
-          //     value={item.title}
-          //     status={buttonPressed === item.title ? 'checked' : 'unchecked'}
-          //     onPress={() => {
-          //       setButtonPressed(item.title);
-          //       props.updateSettings(item.title);
-          //     }}
-          //   />
-          // )}
           onPress={() => {
-            setButtonPressed(item.title);
-            props.updateSettings(item.title);
+            setButtonPressed(item.title.toLowerCase());
+            props.updateSettings(item.title.toLowerCase());
           }}
         >
           <ListItem.Content>
-            <ListItem.Title>{item.title}</ListItem.Title>
-            <ListItem.Subtitle>{item.subtitle}</ListItem.Subtitle>
+            <ListItem.Title>
+              <ThemeText>{item.title}</ThemeText>
+            </ListItem.Title>
+            <ListItem.Subtitle>
+              <ThemeText>
+                {item.subtitle}
+              </ThemeText>
+            </ListItem.Subtitle>
           </ListItem.Content>
           <ListItem.CheckBox
-            checked={buttonPressed === item.title}
+            checked={buttonPressed === item.title.toLowerCase()}
             checkedColor={colors.textColor}
           />
         </ListItem>
@@ -75,4 +71,4 @@ const styles = StyleSheet.create({
 
   },
 })
-export default gestureHandlerRootHOC(PrivacySetting)
+export default gestureHandlerRootHOC(GeneralSetting)
