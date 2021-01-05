@@ -24,8 +24,6 @@ const Jump = (props) => {
     activityJson,
     settings
   } = props;
-  console.log(weeklyGraphData);
-  console.log(weeklyGraphLabels);
   const { unitSystem } = settings;
   const jumpJson = activityJson;
 

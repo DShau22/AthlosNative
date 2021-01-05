@@ -218,12 +218,15 @@ function Athlos(props) {
         activityData: [] // no additional activityData to append
       };
     }
+    // if we already have weekly data starting from lastUpdated, we needa get the next week's data and onwards.
+    const oneWeekAhead = new Date(lastUpdated); 
+    oneWeekAhead.setDate(oneWeekAhead.getDate() + 7);
     var headers = new Headers();
     var token = await getData();
     if (!token) { token = props.token; }
     headers.append("authorization", `Bearer ${token}`);
     headers.append("activity", activity);
-    headers.append("last_updated", lastUpdated.getTime().toString()); // apparently the backend can't handle camel case with middleware
+    headers.append("last_updated", oneWeekAhead.getTime().toString()); // apparently the backend can't handle camel case with middleware
 
     var res = await fetch(ENDPOINTS.getData, {
       method: "GET",
@@ -267,44 +270,56 @@ function Athlos(props) {
     const userData = await getDataObj();
     const lastMonday = getLastMonday(today);
     const halfYearAgo = new Date();
-    halfYearAgo.setDate(lastMonday.getDate() - 26 * 7); // make sure its from that monday
-    // console.log("last Monday:", lastMonday.getMonth(), lastMonday.getDate(), lastMonday.getFullYear());
-    // console.log("half year ago:", halfYearAgo.getMonth(), halfYearAgo.getDate(), halfYearAgo.getFullYear());
+    halfYearAgo.setDate(lastMonday.getDate() - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST * 7); // make sure its from that monday
     // figure out the latest locally updated week. Assume jumpJson, swimJson, runJson are accurate
-    var lastJumpUpdated = new Date();
+    var lastJumpUpdated;
     if (userData && userData.jumpJson && userData.jumpJson.activityData.length > 0) {
       lastJumpUpdated = new Date(userData.jumpJson.activityData[0][0].uploadDate); // get upload date of the monday of most recent week
+      lastJumpUpdated = lastJumpUpdated < halfYearAgo ? new Date(halfYearAgo) : lastJumpUpdated;
+      lastJumpUpdated.setHours(0,0,0,0);
     } else {
       // if userData does not exist, then get the Monday 26 weeks ago and start from there
-      lastJumpUpdated = halfYearAgo;
+      lastJumpUpdated = new Date(halfYearAgo);
     }
-    var lastSwimUpdated = new Date();
+    var lastSwimUpdated;
     if (userData && userData.swimJson && userData.swimJson.activityData.length > 0) {
       lastSwimUpdated = new Date(userData.swimJson.activityData[0][0].uploadDate);
+      lastSwimUpdated = lastSwimUpdated < halfYearAgo ? new Date(halfYearAgo) : lastSwimUpdated;
+      lastSwimUpdated.setHours(0,0,0,0);
     } else {
-      // if userData does not exist, then get the Monday 26 weeks ago and start from there
-      lastSwimUpdated = halfYearAgo;
+      lastSwimUpdated = new Date(halfYearAgo);
     }
-    var lastRunUpdated = new Date();
+    var lastRunUpdated;
     if (userData && userData.runJson && userData.runJson.activityData.length > 0) {
+      console.log("user data does exist!");
       lastRunUpdated = new Date(userData.runJson.activityData[0][0].uploadDate);
+      lastRunUpdated = lastRunUpdated < halfYearAgo ? new Date(halfYearAgo) : lastRunUpdated;
+      lastRunUpdated.setHours(0,0,0,0);
     } else {
-      // if userData does not exist, then get the Monday 26 weeks ago and start from there
       console.log("user data does not exist!");
-      lastRunUpdated = halfYearAgo;
+      lastRunUpdated = new Date(halfYearAgo);
     }
-    console.log("last updated jump was: ", lastJumpUpdated.getMonth(), lastJumpUpdated.getDate());
-    console.log("last updated swim was: ", lastSwimUpdated.getMonth(), lastSwimUpdated.getDate());
-    console.log("last updated run was: ", lastRunUpdated.getMonth(), lastRunUpdated.getDate());
+    // dates to get activity data from and onwards
+    console.log("jump monday: ", lastJumpUpdated.getMonth(), lastJumpUpdated.getDate());
+    console.log("swim monday: ", lastSwimUpdated.getMonth(), lastSwimUpdated.getDate());
+    console.log("run  monday: ", lastRunUpdated.getMonth(), lastRunUpdated.getDate());
     var [additionalJumpData, additionalSwimData, additionalRunData] = await Promise.all([
       getActivityJson("jump", lastJumpUpdated),
       getActivityJson("swim", lastSwimUpdated),
       getActivityJson("run",  lastRunUpdated)
     ]);
+    console.log("more jumps: ", additionalJumpData.activityData[0]);
+    console.log("more swims: ", additionalSwimData.activityData[0]);
+    console.log("more runs: ", additionalRunData.activityData[0]);
 
-    var gotAllInfo = userJson.success && additionalJumpData.success && additionalSwimData.success && additionalRunData.success
+    var gotAllInfo = userJson.success && additionalJumpData.success && additionalSwimData.success && additionalRunData.success;
     if (gotAllInfo) {
       console.log("successfully got all user info");
+      const combinedJumpLength = state.jumpJson.activityData.length + additionalJumpData.activityData.length;
+      const combinedRunLength  = state.runJson.activityData.length + additionalRunData.activityData.length;
+      const combinedSwimLength = state.swimJson.activityData.length + additionalSwimData.activityData.length;
+      console.log(combinedJumpLength, combinedRunLength, combinedSwimLength);
+      console.log(additionalJumpData.activityData.length, additionalRunData.activityData.length, additionalSwimData.activityData.length);
       const newState = {
         ...state,
         ...userJson,
@@ -314,23 +329,23 @@ function Athlos(props) {
         jumpJson: {
           ...state.jumpJson,
           activityData: [
+            ...additionalJumpData.activityData,
             ...state.jumpJson.activityData,
-            ...additionalJumpData.activityData
-          ].slice(Math.max(state.jumpJson.length - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST, 0), state.jumpJson.length)
+          ].slice(0, FITNESS_CONTANTS.NUM_WEEKS_IN_PAST) // 0 is the most recent date
         },
         runJson: {
           ...state.runJson,
           activityData: [
+            ...additionalRunData.activityData,
             ...state.runJson.activityData,
-            ...additionalRunData.activityData
-          ].slice(Math.max(state.runJson.length - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST, 0), state.runJson.length)
+          ].slice(0, FITNESS_CONTANTS.NUM_WEEKS_IN_PAST)
         },
         swimJson: {
           ...state.swimJson,
           activityData: [
+            ...additionalSwimData.activityData,
             ...state.swimJson.activityData,
-            ...additionalSwimData.activityData
-          ].slice(Math.max(state.swimJson.length - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST, 0), state.swimJson.length)
+          ].slice(0, FITNESS_CONTANTS.NUM_WEEKS_IN_PAST)
         },
       }
       setState(newState);

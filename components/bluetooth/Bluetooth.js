@@ -1,17 +1,23 @@
 import React from 'react'
 import { BleManager } from 'react-native-ble-plx';
-import { View, Text, Alert, BackHandler, DeviceEventEmitter } from 'react-native';
+import { View, Text, Alert, BackHandler, DeviceEventEmitter, Button } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
 import LocationServicesDialogBox from "react-native-android-location-services-dialog-box";
 import ThemeText from '../generic/ThemeText';
 import { connect } from 'formik';
 
+import { BLEHandler } from './transmitter';
 const Buffer = require('buffer/').Buffer;
 const SERVICE_UUID = 'e49a25f0-f69a-11e8-8eb2-f2801f1b9fd1';
 const TX = 'e49a25f1-f69a-11e8-8eb2-f2801f1b9fd1';
 const RX = 'e49a28f2-f69a-11e8-8eb2-f2801f1b9fd1';
 
+const SA_INIT = Buffer.from([0xff, 0xff, 0xff, 0xff]);
+const MAX_PKG_LEN = 200;
+// first three package bytes are pkg type, pkg id, total num pkgs in document,
+// and the last 2 are id, checksum. 5 bytes of metadata total
+const METADATA_SIZE = 5; 
 
 const calcChecksum = (bytes, start, end) => {
   let res = 0;
@@ -24,10 +30,10 @@ const calcChecksum = (bytes, start, end) => {
 }
 
 export default function Bluetooth(props) {
-  const [athlosDevice, setAthlosDevice] = React.useState(null); // controlled with state cuz this should change the UI
-  const notifyListenerRef = React.useRef();
+  const [connected, setConnected] = React.useState(false);
   const managerRef = React.useRef();
   const scanSubscriptionRef = React.useRef();
+  const bleHandler = React.useRef();
   // for when screen is focused/unfocused;
   useFocusEffect(
     React.useCallback(() => {
@@ -41,9 +47,6 @@ export default function Bluetooth(props) {
         if (managerRef.current) {
           managerRef.current.stopDeviceScan();
         }
-        // if (notifyListenerRef.current) {
-        //   notifyListenerRef.current.remove();
-        // }
       };
     }, [])
   );
@@ -117,88 +120,23 @@ export default function Bluetooth(props) {
         try {
           const connectedDevice = await device.connect();
           const deviceWithServices = await connectedDevice.discoverAllServicesAndCharacteristics();
-          console.log("after getting services", deviceWithServices);
-          var characteristic = await device.readCharacteristicForService(SERVICE_UUID, RX);
-          characteristic.monitor(async (err, c) => {
-            console.log("MONITOR CALLBACK");
-            characteristic.isNotifying = true;
-            console.log("new value: ", c.value);
-            var readValueInRawBytes = Buffer.from(c.value, 'base64');
-            const len = readValueInRawBytes.length;
-            console.log("num bytes: ", len);
-            const checkSum = calcChecksum(readValueInRawBytes, 0, len - 1);
-            console.log("checksum is: ", checkSum);
-            console.log("below is all the stuff in base 64");
-            console.log('checkSum: ', readValueInRawBytes[len - 1]);
-            console.log('package id: ', readValueInRawBytes[len - 2]);
-            console.log('first byte: ', readValueInRawBytes[0]);
-            console.log('second byte: ', readValueInRawBytes[1]);
-
-            var resPackage = Buffer.from([readValueInRawBytes[len - 2], checkSum]).toString('base64');
-            console.log('response: ', resPackage);
-            const writeChar = await device.writeCharacteristicWithoutResponseForService(SERVICE_UUID, TX, resPackage);
-            characteristic.isNotifying = false;
-          });
-          // var readValueInBase64 = characteristic.value
-          // var readValueInRawBytes = Buffer.from(readValueInBase64, 'base64');
-          // console.log("characteristic uuid: ", characteristic.uuid);
-          // console.log("service uuid: ", characteristic.serviceUUID);
-          // console.log("plain read value: ", readValueInBase64);
-          // console.log("value in Raw Bytes: ", readValueInRawBytes);
-          // console.log("num bytes: ", readValueInRawBytes.length);
-
-          // const resPackage = Buffer.from([readValueInRawBytes[1], readValueInRawBytes[0]]).toString('base64');
-          // const writeChar = await device.writeCharacteristicWithoutResponseForService(SERVICE_UUID, TX, resPackage);
-          // console.log("AFTER WRITE WITHOUT RESPONSE");
-          // console.log("characteristic uuid: ", writeChar.uuid);
-          // console.log("service uuid: ", writeChar.serviceUUID);
-          // console.log("value: ", writeChar.value);
-
-          // characteristic = await device.readCharacteristicForService(SERVICE_UUID, RX);
-          // readValueInBase64 = characteristic.value
-          // readValueInRawBytes = Buffer.from(readValueInBase64, 'base64');
-          // console.log("characteristic uuid: ", characteristic.uuid);
-          // console.log("service uuid: ", characteristic.serviceUUID);
-          // console.log("plain read value: ", readValueInBase64);
-          // console.log("value in Raw Bytes: ", readValueInRawBytes);
-          // console.log("num bytes: ", readValueInRawBytes.length);
-
-
-
-          // const services = await deviceWithServices.services();
-          // console.log("services: ", services);
-          // services.forEach(async (service, idx) => {
-          //   const characteristics = await service.characteristics();
-          //   characteristics.forEach((characteristic) => {
-          //     console.log("characteristic uuid: ", characteristic.uuid);
-          //     console.log("service uuid: ", characteristic.serviceUUID);
-          //     console.log("readable: ", characteristic.isReadable);
-          //     console.log("writeable with response: ", characteristic.isWritableWithResponse);
-          //     console.log("writeable without response: ", characteristic.isWritableWithoutResponse);
-          //   });
-          // });
+          bleHandler.current = new BLEHandler(managerRef.current, deviceWithServices);
+          bleHandler.current.setUpNotifyListener(); // for now just handle reading
+          setConnected(true);
         } catch(e) {
-          console.log("something went wrong with trying to connect athlos: ", e);
+          console.log("error connecting device and discovering services: ", e);
         }
-
-          // .then((device) => {
-          //   return device.discoverAllServicesAndCharacteristics();
-          // })
-          // .then((device) => {
-          //   // Do work on device with services and characteristics
-          //   const services = await device.services();
-          //   console.log("services: ", services);
-          //   setAthlosDevice(device);
-          // })
-          // .catch((error) => {
-          //     // Handle errors
-          // });
       }
     });
   }
   return (
     <View>
-      {athlosDevice ? <ThemeText>Found device!</ThemeText> : null}
+      {connected ? <ThemeText>Found device!</ThemeText> : null}
+      <Button title="send sainit" onPress={async () => {
+        if (bleHandler.current) {
+          await bleHandler.current.sendByteArray(bleHandler.current.sainit);
+        }
+      }}/>
     </View>
   )
 }

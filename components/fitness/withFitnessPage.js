@@ -39,24 +39,24 @@ export default function withFitnessPage( WrappedComponent ) {
 
     const [weeklyGraphLabels, setWeeklyGraphLabels] = React.useState([]);
     const [weeklyGraphData, setWeeklyGraphData] = React.useState([]);
+    const { activityJson, id } = props.route.params;
     React.useEffect(() => {
       makeWeeklyGraphLabels();
       makeWeeklyGraphData();
     }, [weekIndex]);
     
-    const { activityJson, id } = props.route.params;
 
     const roundToNDecimals = (num, decimals) => {
-      return parseFloat(num).toFixed(decimals)
+      return parseFloat(num).toFixed(decimals);
     }
 
     const isNullOrUndefined = (input) => {
-      return (input == null)
+      return (input == null);
     }
 
     // gets the labels for the graph that displays num field over past upload dates
     const makeWeeklyGraphLabels = () => {
-      const weeklyGraphLabels = []
+      const weeklyGraphLabels = [];
       const week = activityJson.activityData[weekIndex];
       week.forEach((session, idx) => {
         const { uploadDate } = session;
@@ -128,15 +128,15 @@ export default function withFitnessPage( WrappedComponent ) {
 
     const nextSlide = () => {
       const week = activityJson.activityData[weekIndex];
-      const lowestIndex = Math.max(0, week.length - 1);
-      const nextIndex = Math.min(dayIndex + 1, lowestIndex);
+      const nextIndex = (dayIndex + 1) % week.length;
       setDayIndex(nextIndex);
       console.log("next pressed! ", nextIndex);
     }
   
     const previousSlide = () => {
       // 0 represents the most recent upload date
-      const nextIndex = Math.max((dayIndex - 1), 0);
+      const week = activityJson.activityData[weekIndex];
+      const nextIndex = (dayIndex - 1 + week.length) % week.length;
       setDayIndex(nextIndex);
       console.log("previous pressed! ", nextIndex);
     }

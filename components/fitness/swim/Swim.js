@@ -150,7 +150,6 @@ const Swim = (props) => {
     }
     let res = [];
     for (let i = 0; i < currentDay.lapTimes.length; i+=inc) {
-      console.log(i);
       // res.push(i === 0 ? 1 : i);
       res.push(i);
     }
