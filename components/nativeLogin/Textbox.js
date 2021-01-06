@@ -13,21 +13,16 @@ import Feather from 'react-native-vector-icons/Feather';
 import ThemeText from '../generic/ThemeText';
 
 export default function Textbox(props) {
-  // const { colors } = useTheme(); // this don't work here
+  const { colors } = useTheme();
   return (
-    <View>
+    <View style={props.containerStyle}>
       <ThemeText style={[styles.text_footer]}>{props.headerText}</ThemeText>
       <View style={styles.action}>
-        <Feather 
-          name={props.icon}
-          color="#05375a"
-          size={20}
-        />
+        {props.icon}
         <TextInput 
           placeholder={props.placeholder}
           style={[styles.textInput, {
-            // color: colors.textColor
-            color: 'white'
+            color: colors.textColor
           }]}
           placeholderTextColor="#666666"
           autoCapitalize="none"

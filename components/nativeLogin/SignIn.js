@@ -2,14 +2,14 @@ import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
 import React from 'react';
 import { 
-    View, 
-    Text, 
-    TouchableOpacity, 
-    TextInput,
-    Platform,
-    StyleSheet,
-    StatusBar,
-    Alert
+  View, 
+  Text, 
+  TouchableOpacity, 
+  TextInput,
+  Platform,
+  StyleSheet,
+  StatusBar,
+  Alert
 } from 'react-native';
 import {
   storeData
@@ -25,12 +25,13 @@ import Feather from 'react-native-vector-icons/Feather';
 FontAwesome.loadFont();
 Feather.loadFont();
 
+import LoginButton from './LoginButton';
 import { useTheme } from 'react-native-paper';
-import { AppContext } from "../../Context"
-import ENDPOINTS from '../endpoints'
-import LOGIN_CONSTANTS from './LoginConstants'
-const { SIGNUP, FORGOT_PASSWORD } = LOGIN_CONSTANTS
-const signInURL = ENDPOINTS.signIn
+import { AppContext } from "../../Context";
+import ENDPOINTS from '../endpoints';
+import LOGIN_CONSTANTS from './LoginConstants';
+const { SIGNUP, FORGOT_PASSWORD } = LOGIN_CONSTANTS;
+const signInURL = ENDPOINTS.signIn;
 
 const SignIn = ({ navigation }) => {
   const [data, setData] = React.useState({
@@ -44,7 +45,6 @@ const SignIn = ({ navigation }) => {
   });
 
   const { colors } = useTheme();
-
   const setToken = React.useContext(AppContext);
 
   const textInputChange = (val) => {
@@ -157,7 +157,7 @@ const SignIn = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <LinearGradient style={styles.container} colors={['#000046', '#1CB5E0']}>
       <Spinner
         visible={data.isSignInLoading}
         textContent={'Loading...'}
@@ -165,7 +165,7 @@ const SignIn = ({ navigation }) => {
       />
       <StatusBar backgroundColor='#009387' barStyle="light-content"/>
       <View style={styles.header}>
-        <Text style={styles.text_header}>Welcome!</Text>
+        <Text style={styles.text_header}>Sign In!</Text>
       </View>
       <Animatable.View 
         animation="fadeInUpBig"
@@ -259,36 +259,32 @@ const SignIn = ({ navigation }) => {
         >
           <Text style={{color: '#009387', marginTop:15}}>Forgot password?</Text>
         </TouchableOpacity>
-        <View style={styles.button}>
-          <TouchableOpacity
-            style={styles.signIn}
-            onPress={() => {loginHandle( data.username, data.password )}}
-          >
-            <LinearGradient
-              colors={['#08d4c4', '#01ab9d']}
-              style={styles.signIn}
-            >
-              <Text style={[styles.textSign, {
-                color:'#fff'
-              }]}>Sign In</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate(SIGNUP)}
-            style={[styles.signIn, {
-              borderColor: '#009387',
-              borderWidth: 1,
-              marginTop: 15
-            }]}
-          >
-            <Text style={[styles.textSign, {
-              color: '#009387'
-            }]}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
+        <LoginButton
+          containerStyle={[styles.buttonContainer, {marginTop: 50}]}
+          style={styles.button}
+          buttonTextStyle={styles.buttonTextStyle}
+          filled={true}
+          text='Sign In'
+          onPress={() => loginHandle(data.username, data.password)}
+          icon={null}
+        />
+        <LoginButton
+          containerStyle={styles.buttonContainer}
+          style={[styles.button, {
+            borderColor: '#009387',
+            borderWidth: 1,
+            marginTop: 15
+          }]}
+          buttonTextStyle={[styles.buttonTextStyle, {
+            color: '#009387'
+          }]}
+          filled={false}
+          text='Sign Up'
+          onPress={() => navigation.navigate(SIGNUP)}
+          icon={null}
+        />
       </Animatable.View>
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -344,20 +340,22 @@ const styles = StyleSheet.create({
     color: '#FF0000',
     fontSize: 14,
   },
-  button: {
-    alignItems: 'center',
-    marginTop: 50
-  },
-  signIn: {
+  buttonContainer: {
     width: '100%',
-    height: 50,
+    // height: 50,
     justifyContent: 'center',
-    alignItems: 'center',
     borderRadius: 10
   },
-  textSign: {
-    fontSize: 18,
-    fontWeight: 'bold'
+  button: {
+    width: '100%',
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10
+  },
+  buttonTextStyle: {
+    fontWeight: 'bold',
+    fontSize: 18
   },
   spinnerTextStyle: {
     color: "black"

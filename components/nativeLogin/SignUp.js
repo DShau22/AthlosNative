@@ -16,10 +16,12 @@ import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
 import Spinner from 'react-native-loading-spinner-overlay';
 import * as Yup from 'yup';
+import Feather from 'react-native-vector-icons/Feather';
 
 import { signUpValidationSchema } from "./validationSchema";
 import ENDPOINTS from "../endpoints"
 import LOGIN_CONSTANTS from './LoginConstants'
+import LoginButton from './LoginButton';
 const { SIGNIN } = LOGIN_CONSTANTS
 
 const SignUp = ({navigation}) => {
@@ -272,7 +274,7 @@ const SignUp = ({navigation}) => {
   }
 
   return (
-    <View style={styles.container}>
+    <LinearGradient style={styles.container} colors={['#000046', '#1CB5E0']}>
       <Spinner
         visible={data.isLoading}
         textContent={'Loading...'}
@@ -287,46 +289,51 @@ const SignUp = ({navigation}) => {
         style={styles.footer}
       >
         <ScrollView>
-          <Textbox 
+          <Textbox
+            containerStyle={{marginBottom: 30}}
             headerText={"Email"}
             placeholder="Your email..."
-            icon="mail"
+            icon={<Feather name='mail' color="#05375a" size={20}/>}
             handleChange={handleEmailChange}
             didChange={data.emailChange}
             errMsg={data.emailMsg}
           />
 
-          <Textbox 
+          <Textbox
+            containerStyle={{marginBottom: 30}}
             headerText={"First Name"}
             placeholder="Your first name..."
-            icon="user"
+            icon={<Feather name='user' color="#05375a" size={20}/>}
             handleChange={handleFirstNameChange}
             didChange={data.firstNameChange}
             errMsg={data.firstNameMsg}
           />
 
-          <Textbox 
+          <Textbox
+            containerStyle={{marginBottom: 30}}
             headerText={"Last Name"}
             placeholder="Your last name..."
-            icon="user"
+            icon={<Feather name='user' color="#05375a" size={20}/>}
             handleChange={handleLastNameChange}
             didChange={data.lastNameChange}
             errMsg={data.lastNameMsg}
           />
 
-          <Textbox 
+          <Textbox
+            containerStyle={{marginBottom: 30}}
             headerText={"Username"}
             placeholder="A username..."
-            icon="user"
+            icon={<Feather name='user' color="#05375a" size={20}/>}
             handleChange={handleUsernameChange}
             didChange={data.usernameChange}
             errMsg={data.usernameMsg}
           />
 
-          <Textbox 
+          <Textbox
+            containerStyle={{marginBottom: 30}}
             headerText={"Password"}
             placeholder="Confirm your password..."
-            icon="lock"
+            icon={<Feather name='lock' color="#05375a" size={20}/>}
             handleChange={handlePasswordChange}
             didChange={data.passwordChange}
             errMsg={data.passwordMsg}
@@ -334,10 +341,10 @@ const SignUp = ({navigation}) => {
             secureTextEntry={data.secureTextEntry}
           />
 
-          <Textbox 
+          <Textbox
             headerText={"Confirm Password"}
             placeholder="Same password..."
-            icon="lock"
+            icon={<Feather name='lock' color="#05375a" size={20}/>}
             handleChange={handleConfirmPasswordChange}
             didChange={data.passwordConfChange}
             errMsg={data.passwordConfMsg}
@@ -353,37 +360,33 @@ const SignUp = ({navigation}) => {
             <Text style={styles.color_textPrivate}>{" "}and</Text>
             <Text style={[styles.color_textPrivate, {fontWeight: 'bold'}]}>{" "}Privacy policy</Text>
           </View>
-          <View style={styles.button}>
-            <TouchableOpacity
-              style={styles.signUp}
-              onPress={() => {handleSignUp()}}
-            >
-              <LinearGradient
-                colors={['#08d4c4', '#01ab9d']}
-                style={styles.signUp}
-              >
-                <Text style={[styles.textSign, {
-                  color:'#fff'
-                }]}>Sign Up</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => navigation.navigate(SIGNIN)}
-              style={[styles.signUp, {
-                borderColor: '#009387',
-                borderWidth: 1,
-                marginTop: 15
-              }]}
-            >
-              <Text style={[styles.textSign, {
-                color: '#009387'
-              }]}>Sign In</Text>
-            </TouchableOpacity>
-          </View>
+          <LoginButton
+            containerStyle={[styles.buttonContainer, {marginTop: 20}]}
+            style={styles.button}
+            buttonTextStyle={styles.buttonTextStyle}
+            filled={true}
+            text='Sign Up'
+            onPress={() => handleSignUp()}
+            icon={null}
+          />
+          <LoginButton
+            containerStyle={[styles.buttonContainer]}
+            style={[styles.button, {
+              borderColor: '#009387',
+              borderWidth: 1,
+              marginTop: 15
+            }]}
+            buttonTextStyle={[styles.buttonTextStyle, {
+              color: '#009387'
+            }]}
+            filled={false}
+            text='Sign In'
+            onPress={() => navigation.navigate(SIGNIN)}
+            icon={null}
+          />
         </ScrollView>
       </Animatable.View>
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -428,20 +431,22 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     color: '#05375a',
   },
-  button: {
-    alignItems: 'center',
-    marginTop: 50
-  },
-  signUp: {
+  buttonContainer: {
     width: '100%',
-    height: 50,
+    // height: 50,
     justifyContent: 'center',
-    alignItems: 'center',
     borderRadius: 10
   },
-  textSign: {
-    fontSize: 18,
-    fontWeight: 'bold'
+  button: {
+    width: '100%',
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10
+  },
+  buttonTextStyle: {
+    fontWeight: 'bold',
+    fontSize: 18
   },
   textPrivate: {
     flexDirection: 'row',

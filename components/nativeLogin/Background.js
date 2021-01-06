@@ -18,6 +18,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 
 import LOGIN_CONSTANTS from './LoginConstants'
+import LoginButton from './LoginButton';
 const { SIGNIN } = LOGIN_CONSTANTS
 
 MaterialIcons.loadFont();
@@ -25,11 +26,10 @@ Ionicons.loadFont();
 
 const Background = ({ navigation }) => {
   const { colors } = useTheme();
-  console.log("colors: ", colors)
   return (
-    <View style={styles.container}>
+    <LinearGradient style={styles.container} colors={['#000046', '#1CB5E0']}>
       <StatusBar backgroundColor='#009387' barStyle="light-content"/>
-      <View style={styles.header}>
+      <View style={[styles.header]}>
         <Animatable.Image 
           animation="bounceIn"
           duraton="1500"
@@ -40,31 +40,33 @@ const Background = ({ navigation }) => {
       </View>
       <Animatable.View 
         style={[styles.footer, {
-          backgroundColor: colors.background
+          backgroundColor: colors.header,
+          borderTopLeftRadius: 30,
+          borderTopRightRadius: 30,
         }]}
         animation="fadeInUpBig"
       >
-        <Text style={[styles.title, {
-          color: colors.text
-        }]}>View your Athlos fitness and connect with other athletes!</Text>
-        {/* <Text style={styles.text}>Sign in with your account</Text> */}
-        <View style={styles.button}>
-          <TouchableOpacity onPress={() => navigation.navigate(SIGNIN)}>
-            <LinearGradient
-              colors={['#08d4c4', '#01ab9d']}
-              style={styles.signIn}
-            >
-              <Text style={styles.textSign}>Get Started</Text>
-              <MaterialIcons 
-                name="navigate-next"
-                color="#fff"
-                size={20}
-              />
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+        {/* '#000046', '#1CB5E0' */}
+        <LinearGradient colors={['#F4F5FC', '#F4F5FC']} style={{
+          width: '100%',
+          height: '100%',
+          flexDirection: 'column',
+          borderTopLeftRadius: 30,
+          borderTopRightRadius: 30,
+        }}>
+          <Text style={[styles.title, {color: colors.header}]}>Track your fitness and customize your device!</Text>
+          <LoginButton
+            containerStyle={styles.button}
+            style={styles.signIn}
+            buttonTextStyle={styles.buttonTextStyle}
+            filled={true}
+            text='Get Started'
+            onPress={() => navigation.navigate(SIGNIN)}
+            icon={<MaterialIcons name="navigate-next" color="#fff" size={20}/>}
+          />
+        </LinearGradient>
       </Animatable.View>
-    </View>
+    </LinearGradient>
   )
 }
 
@@ -74,7 +76,6 @@ const height_logo = height * 0.28;
 const styles = StyleSheet.create({
   container: {
     flex: 1, 
-    backgroundColor: '#009387'
   },
   header: {
     flex: 2,
@@ -82,20 +83,17 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   footer: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    paddingVertical: 50,
-    paddingHorizontal: 30
+    height: '45%',
   },
   logo: {
     width: height_logo,
     height: height_logo
   },
   title: {
-    color: '#05375a',
+    marginLeft: 30,
+    marginTop: 30,
     fontSize: 30,
+    // color: 'black',
     fontWeight: 'bold'
   },
   text: {
@@ -104,7 +102,8 @@ const styles = StyleSheet.create({
   },
   button: {
     alignItems: 'flex-end',
-    marginTop: 30
+    marginRight: 20,
+    marginTop: 20,
   },
   signIn: {
     width: 150,
@@ -113,6 +112,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 50,
     flexDirection: 'row'
+  },
+  buttonTextStyle: {
+    fontWeight: 'bold',
+    fontSize: 14
   },
   textSign: {
     color: 'white',

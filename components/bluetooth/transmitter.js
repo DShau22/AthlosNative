@@ -48,16 +48,15 @@ class BLEHandler {
   async sendResponse(readValueInRawBytes) {
     console.log("********SENDING RESPONSE********")
     const len = readValueInRawBytes.length;
+    const pkgId = readValueInRawBytes[len - 2];
     console.log("num bytes: ", len);
     console.log("readable value: ", readValueInRawBytes.toString('utf8'));
-    const checkSum = calcChecksum(readValueInRawBytes, 0, len - 1);
-    console.log("calculated checksum is: ", checkSum);
     console.log("below is all the stuff in base 64");
     console.log('checkSum: ', readValueInRawBytes[len - 1]);
-    console.log('package id: ', readValueInRawBytes[len - 2]);
+    console.log('package id: ', pkgId);
     console.log('first byte: ', readValueInRawBytes[0]);
     console.log('second byte: ', readValueInRawBytes[1]);
-    var resPackage = Buffer.from([readValueInRawBytes[len - 2], checkSum]).toString('base64');
+    var resPackage = Buffer.from([pkgId, pkgId]).toString('base64');
     try {
       await this.device.writeCharacteristicWithoutResponseForService(SERVICE_UUID, TX, resPackage);
     } catch(e) {
@@ -73,6 +72,10 @@ class BLEHandler {
     }
     this.readSubscription = readChar.monitor(async (err, c) => {
       console.log("******MONITOR CALLBACK******");
+      if (err) {
+        console.log(err);
+        return;
+      }
       readChar.isNotifying = true;
       var readValueInRawBytes = Buffer.from(c.value, 'base64');
       console.log("Buffer contents: ", readValueInRawBytes);
@@ -107,14 +110,8 @@ class BLEHandler {
     }
     const expectedChecksum = calcChecksum(readValueInRawBytes, 0, readValueInRawBytes - 1);
     if (checksum !== expectedChecksum) {
-      console.log(`Invalid checksum: the package must've gotten tampered with or it's 
-        one of those response messages that just gets sent back for some reason.
+      console.log(`Invalid checksum: the package must've gotten tampered with.
         Expected ${expectedChecksum} but got ${checksum}`);
-      return;
-    }
-    if (checksum !== calcChecksum(this.currItem.data, 0, this.currItem.data.length - 1)) {
-      console.log(`checksum doesn't match that of the previously trasmitted package.
-        Expected ${calcChecksum(this.currItem.data, 0, this.currItem.data.length - 1)} got ${checksum}`);
       return;
     }
     // if both checks pass, then we resolve the promise so that sendAndWaitResponse ends
@@ -159,7 +156,7 @@ class BLEHandler {
         pkg[j] = bytes[j - 3];
       }
       pkg[packageSize - 2] = this.writePkgId;
-      pkg[packageSize - 1] = calcChecksum(bytes, 0, bytes.length);
+      pkg[packageSize - 1] = calcChecksum(pkg, 0, pkg.length - 1);
       this.lastPkgId = this.writePkgId;
       this.writePkgId += 1; // HANDLE OVERFLOW LATER
       console.log("sending: ", pkg);

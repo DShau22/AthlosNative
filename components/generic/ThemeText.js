@@ -7,7 +7,7 @@ const ThemeText = (props) => {
   const { colors } = useTheme();
   return (
     <Text
-      style={[props.style, {color: colors.textColor}]}
+      style={[{color: colors.textColor}, props.style]} // color goes first so it can be overriden
       h4={props.h4}
       h3={props.h3}
       h2={props.h2}

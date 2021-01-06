@@ -1,16 +1,20 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
-import React from 'react'
-import { View, StyleSheet, Alert, TouchableOpacity, StatusBar } from 'react-native'
-import { Text } from 'react-native-elements'
-import Textbox from "./Textbox"
+import React from 'react';
+import { View, StyleSheet, Alert, TouchableOpacity, StatusBar } from 'react-native';
+import { Text } from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
 import Spinner from 'react-native-loading-spinner-overlay';
 import * as Yup from 'yup';
+import Feather from 'react-native-vector-icons/Feather';
+import axios from 'axios';
+
+import Textbox from "./Textbox";
 import { signUpValidationSchema } from "./validationSchema";
-import ENDPOINTS from '../endpoints'
-import axios from 'axios'
+import ENDPOINTS from '../endpoints';
+import ThemeText from '../generic/ThemeText';
+import LoginButton from './LoginButton';
 const PasswordReset = () => {
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -40,6 +44,14 @@ const PasswordReset = () => {
   }
 
   const onPasswordResetRequest = async () => {
+    if (email.length === 0) {
+      Alert.alert(
+        'Whoops!',
+        "Email cannot be empty",
+        [{ text: "Okay" }]
+      )
+      return;
+    }
     setIsLoading(true);
     try {
       var res = await axios.post(ENDPOINTS.forgotPassword, { email }, {
@@ -64,7 +76,7 @@ const PasswordReset = () => {
   }
 
   return (
-    <View style={styles.largeContainer}>
+    <LinearGradient style={styles.largeContainer} colors={['#000046', '#1CB5E0']}>
       <Spinner
         visible={isLoading}
         textContent={'Loading...'}
@@ -78,30 +90,30 @@ const PasswordReset = () => {
         style={styles.footer}
       >
         <Textbox 
-          headerText={"Email you used to sign up"}
-          placeholder="Your email..."
-          icon="mail"
+          headerText={"Email"}
+          placeholder="Your registered email..."
+          icon={<Feather name='mail' color="#05375a" size={20}/>}
           handleChange={handleEmailChange}
           didChange={emailChange}
           errMsg={emailMsg}
         />
-        <View style={styles.button}>
-          <TouchableOpacity
-            style={styles.smallContainer}
-            onPress={() => onPasswordResetRequest()}
-          >
-            <LinearGradient
-              colors={['#08d4c4', '#01ab9d']}
-              style={styles.smallContainer}
-            >
-              <Text style={[styles.textSign, {
-                color:'#fff'
-              }]}>Request Password Reset</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+        <View style={styles.textPrivate}>
+          <Text style={styles.color_textPrivate}>
+            Enter in the email address you used to sign up for an account, and we'll send an email with steps on
+            how to reset your password as soon as possible.
+          </Text>
         </View>
+        <LoginButton
+          containerStyle={[styles.buttonContainer, {marginTop: 20}]}
+          style={styles.button}
+          buttonTextStyle={styles.buttonTextStyle}
+          filled={true}
+          text='Request Password Reset'
+          onPress={() => onPasswordResetRequest()}
+          icon={null}
+        />
       </Animatable.View>
-    </View>
+    </LinearGradient>
   )
 }
 const styles = StyleSheet.create({
@@ -164,20 +176,22 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     color: '#05375a',
   },
-  button: {
-    alignItems: 'center',
-    marginTop: 50
-  },
-  signUp: {
+  buttonContainer: {
     width: '100%',
-    height: 50,
+    // height: 50,
     justifyContent: 'center',
-    alignItems: 'center',
     borderRadius: 10
   },
-  textSign: {
-    fontSize: 18,
-    fontWeight: 'bold'
+  button: {
+    width: '100%',
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10
+  },
+  buttonTextStyle: {
+    fontWeight: 'bold',
+    fontSize: 18
   },
   textPrivate: {
     flexDirection: 'row',
