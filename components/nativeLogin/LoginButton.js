@@ -1,13 +1,7 @@
 import React from 'react';
 import { 
   View, 
-  Text, 
   TouchableOpacity, 
-  TextInput,
-  Platform,
-  StyleSheet,
-  StatusBar,
-  Alert
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import ThemeText from '../generic/ThemeText';

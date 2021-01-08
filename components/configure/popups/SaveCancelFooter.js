@@ -1,34 +1,59 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { Text, Button } from 'react-native-elements'
-import LinearGradient from 'react-native-linear-gradient';
+import LoginButton from '../../nativeLogin/LoginButton';
+
 export default function SaveCancelFooter(props) {
   const { resetState, saveEdits } = props;
   return (
     <View style={styles.saveCancelContainer}>
-      <Button
-        style={styles.cancelButton}
-        title='Cancel'
-        type='outline'
+      <LoginButton
+        containerStyle={[styles.buttonContainer, {marginRight: 20}]}
+        style={[styles.button, {
+          borderColor: '#009387',
+          borderWidth: 1,
+        }]}
+        buttonTextStyle={[styles.buttonTextStyle, {color: '#009387'}]}
+        filled={false}
+        text='Cancel'
         onPress={resetState}
+        icon={null}
       />
-      <Button
-        style={styles.saveButton}
-        title='Save'
+      <LoginButton
+        containerStyle={[styles.buttonContainer]}
+        style={styles.button}
+        buttonTextStyle={styles.buttonTextStyle}
+        filled={true}
+        text='Save'
         onPress={saveEdits}
+        icon={null}
       />
     </View>
   )
 }
 const styles = StyleSheet.create({
-  container: {
-
-  },
   saveCancelContainer: {
-    marginTop: 50,
+    margin: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
+  },
+  buttonContainer: {
+    width: '30%',
+    // height: 50,
+    justifyContent: 'center',
+    borderRadius: 10
+  },
+  button: {
+    width: '100%',
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10
+  },
+  buttonTextStyle: {
+    fontWeight: 'bold',
+    fontSize: 18,
   },
   saveButton: {
     width: 80,

@@ -16,7 +16,7 @@ import DistributionDonut from '../charts/DistributionDonut'
 // greater that walkPaceMax is running
 const walkCadenceMax = 130// 130 steps per minute is a fast walk, which is 2.16 steps/sec, 2.314 (.2sec) / step
 // anything above restcadenceMax is resting
-const restCadenceMin = 50 // say 60 steps per minute is basically resting. 1 step/sec, 5 (.2sec) / step
+const restCadenceMin = 60 // say 60 steps per minute is basically resting. 1 step/sec, 5 (.2sec) / step
 
 const Run = (props) => {
   const {

@@ -13,19 +13,11 @@ const {
 } = DEVICE_CONFIG_CONSTANTS
 import { Dropdown } from 'react-native-material-dropdown';
 
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-Icon.loadFont()
-// popup stuff
-import Modal, {
-  ModalContent,
-  ModalTitle,
-  FadeAnimation,
-} from 'react-native-modals';
-
-import SaveCancelFooter from './SaveCancelFooter'
-import SplitInputs from './SplitInputs'
-const ANIMATION_DURATION = 150
+Icon.loadFont();
+import GenericModal from './GenericModal';
+import SplitInputs from './SplitInputs';
+const ANIMATION_DURATION = 150;
 
 // check out the docs, items can have icons too if we decide to do that
 // https://www.npmjs.com/package/react-native-dropdown-picker
@@ -74,7 +66,7 @@ export default function SwimEventEditPopup(props) {
   const [distance, setDistance] = React.useState(200);
   const [splits, setSplits] = React.useState([30, 30, 30, 30]);
 
-  // editModeItem is always {} initially, but these comps still render
+  // editModeItem is always {} initially, but these comps still render.
   // this is to make sure when props change the states get updated to
   // since state w/hooks doesnt update with props change
   React.useEffect(() => {
@@ -182,33 +174,18 @@ export default function SwimEventEditPopup(props) {
   }
   
   return (
-    <Modal
-      // the edit mode is not the empty string '' means it should be displayed
-      visible={visible}
-      onTouchOutside={() => setVisible(false)}
-      modalAnimation={new FadeAnimation({
-        initialValue: 0,
-        animationDuration: ANIMATION_DURATION,
-        useNativeDriver: true,
-      })}
-      modalTitle={
-        <ModalTitle
-          title={`Edit Swim Event`}
-          align="center"
-        />
-      }
-      width={.9}
+    <GenericModal
+      isVisible={visible}
+      setVisible={setVisible}
+      titleText='Edit Swim Settings'
+      height='80%'
+      resetState={resetState}
+      saveEdits={saveEdits}
     >
-      <ModalContent>
-        <View style={styles.container}>
-          {renderEditModalContent()}
-          <SaveCancelFooter 
-            resetState={resetState}
-            saveEdits={saveEdits}
-          />
-        </View>
-      </ModalContent>
-    </Modal>
+      <View style={styles.container}>
+        {renderEditModalContent()}
+      </View>
+    </GenericModal>
   )
 }
 

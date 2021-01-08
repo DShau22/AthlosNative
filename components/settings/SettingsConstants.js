@@ -7,8 +7,11 @@ const {
 const SETTINGS_CONSTANTS = {
   POOL_LENGTH_CHOICES: {
     NCAA: '25 yd',
+    BRITISH: '25 m',
     OLYMPIC: '50 m',
-    THIRD: '33 yd',
+    THIRD_YD: '33.3 yd',
+    THIRD_M: '33.3 m',
+    HOME: '15 yd' 
   },
   UNIT_SYSTEM_CHOICES: {
     METRIC: 'Metric',
@@ -113,12 +116,20 @@ const SETTINGS_CONSTANTS = {
       subtitle: 'Standard Olympic pool length',
     },
     {
+      title: '25 m',
+      subtitle: 'Common European pool length',  
+    },
+    {
       title: '33.3 yd',
       subtitle: 'Rarer pool length but still standard', 
     },
     {
       title: '33.3 m',
       subtitle: 'Typically for water polo needs', 
+    },
+    {
+      title: '15 yd',
+      subtitle: 'A typical backyard home pool length',  
     },
   ],
 }

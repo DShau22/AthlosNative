@@ -30,7 +30,7 @@ function App() {
   React.useEffect(() => {
     console.log('using effect for app.js')
     const getToken = async () => {
-      await AsyncStorage.clear();
+      // await AsyncStorage.clear();
       const userToken = await getData();
       setToken(userToken);
       setIsLoading(false);

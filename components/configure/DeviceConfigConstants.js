@@ -1,4 +1,12 @@
 const DEVICE_CONFIG_CONSTANTS = {
+  POOL_LENGTH_CHOICES: {
+    NCAA: '25 yd',
+    BRITISH: '25 m',
+    OLYMPIC: '50 m',
+    THIRD_YD: '33.3 yd',
+    THIRD_M: '33.3 m',
+    HOME: '15 yd' 
+  },
   // an array of objects representing the mode configs
 
   MODE_CONFIG: 'Mode Configurations',
@@ -44,17 +52,23 @@ const DEVICE_CONFIG_CONSTANTS = {
   LAPTIME: 'Lap time',
   TOTAL_LAP_COUNT: 'Total Lap Count',
   LAP_COUNT: 'Lap Count',
+  STROKE: 'Stroke',
 
   VERTICAL_HEIGHT: 'Vertical Height',
   HANGTIME: 'Hangtime',
+  BASKETBALL: 'basketball',
 
   BUTTERFLY: 'Butterfly',
   BACKSTROKE: 'Backstroke',
   BREASTROKE: 'Breastroke',
   FREESTYLE: 'Freestyle',
   IM: 'Individual Medley',
+
+  YARDS: 'yd',
+  METERS: 'm'
 }
 const {
+  POOL_LENGTH_CHOICES,
   MUSIC_ONLY,
   RUN,
   SWIM,
@@ -85,15 +99,31 @@ const {
   BREASTROKE,
   FREESTYLE,
   IM,
-} = DEVICE_CONFIG_CONSTANTS
+  YARDS,
+  METERS
+} = DEVICE_CONFIG_CONSTANTS;
 
-const DEFAULT_CONFIG = [
-  {
+const getDefaultConfig = () => {
+  return [
+    getDefaultMusicOnlyMode(),
+    getDefaultRunMode(),
+    getDefaultJumpMode(),
+    getDefaultSwimMode(),
+    getDefaultRaceMode(),
+    getDefaultTimedMode(),
+  ];
+};
+
+const getDefaultMusicOnlyMode = () => {
+  return {
     mode: MUSIC_ONLY,
     subtitle: MUSIC_ONLY_SUBTITLE,
     backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`
-  },
-  {
+  };
+};
+
+const getDefaultRunMode = () => {
+  return {
     // The device mode. Using make sure to make the keyExtractor take the mode
     mode: RUN,
     subtitle: RUN_SUBTITLE,
@@ -105,48 +135,81 @@ const DEFAULT_CONFIG = [
     trigger: TRIGGER_MIN,
     // how frequently these metrics are reported
     numUntilTrigger: 1
-  },
-  {
+  };
+};
+
+const getDefaultSwimMode = () => {
+  return {
+    mode: SWIM,
+    subtitle: SWIM_SUBTITLE,
+    backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
+    trigger: TRIGGER_LAP,
+    poolLength: POOL_LENGTH_CHOICES.NCAA,
+    // number of laps until the report is given. Number doesn't matter if 
+    // trigger is set to TRIGGER_ON_FINISH
+    numUntilTrigger: 1,
+    metrics: [ LAP_COUNT, LAPTIME ],
+  }
+};
+
+const getDefaultJumpMode = () => {
+  return {
     mode: JUMP,
     subtitle: JUMP_SUBTITLE,
     backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
     // this should always only be a one element array
     metric: VERTICAL_HEIGHT 
-  },
-  {
-    mode: SWIM,
-    subtitle: SWIM_SUBTITLE,
-    backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
-    trigger: TRIGGER_LAP,
-    // number of laps until the report is given. Number doesn't matter if 
-    // trigger is set to TRIGGER_ON_FINISH
-    numUntilTrigger: 1,
-    metrics: [ LAP_COUNT, LAPTIME ],
-  },
-  {
+  };
+};
+
+const getDefaultRaceMode = () => {
+  return {
     mode: SWIMMING_EVENT,
     subtitle: SWIMMING_EVENT_SUBTITLE,
     backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
     stroke: FREESTYLE,
     distance: 200,
+    poolLength: POOL_LENGTH_CHOICES.NCAA,
     // splits are for every 50. Can have up to 8.
     // any splits after 8 are just repeated (8 and after is what it'll show)
-    splits: ['24', '27', '28', '26']
-  },
-  {
+    splits: ['40', '45', '45', '45']
+  };
+};
+
+const getDefaultTimedMode = () => {
+  return {
     mode: TIMED_RUN, // lol this should have a better name
     subtitle: TIMED_RUN_SUBTITLE,
     backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
+  };
+};
+
+/**
+ * Takes in an enum for mode. Returns the default object for that mode when we are adding new modes.
+ * @param {String} mode 
+ */
+const getDefaultModeObject = (mode) => {
+  switch(mode) {
+    case MUSIC_ONLY:
+      return getDefaultMusicOnlyMode();
+    case RUN:
+      return getDefaultRunMode();
+    case SWIM:
+      return getDefaultSwimMode();
+    case JUMP:
+      return getDefaultJumpMode();
+    case SWIMMING_EVENT:
+      return getDefaultRaceMode();
+    case TIMED_RUN:
+      return getDefaultTimedMode();
+    default:
+      console.log(`mode ${mode} is not valid`);
+      return null;
   }
-]
+};
 
-// default mode objects
-const MODES = {}
-MODES[MUSIC_ONLY] = DEFAULT_CONFIG[0]
-MODES[RUN] = DEFAULT_CONFIG[1]
-MODES[JUMP] = DEFAULT_CONFIG[2]
-MODES[SWIM] = DEFAULT_CONFIG[3]
-MODES[SWIMMING_EVENT] = DEFAULT_CONFIG[4]
-MODES[TIMED_RUN] = DEFAULT_CONFIG[5]
-
-module.exports = { DEVICE_CONFIG_CONSTANTS, DEFAULT_CONFIG, MODES }
+module.exports = {
+  DEVICE_CONFIG_CONSTANTS,
+  getDefaultConfig,
+  getDefaultModeObject
+}

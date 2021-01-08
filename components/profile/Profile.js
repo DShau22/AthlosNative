@@ -1,19 +1,16 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
-import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 
 import React, { Component } from 'react';
 import { View, RefreshControl, SafeAreaView, ScrollView, StyleSheet, Button } from 'react-native'
 import { Text } from 'react-native-elements'
 import PROFILE_CONSTANTS from './ProfileConstants'
 import { UserDataContext } from '../../Context';
-import Fitness from '../fitness/Fitness'
 import UserProfile from './UserProfile'
 import EditProfile from './EditProfile';
 import LoadingScreen from '../generic/LoadingScreen';
 import { createStackNavigator } from '@react-navigation/stack';
 import WithRefresh from '../generic/WithRefresh'
 import SearchProfile from './SearchProfile';
-import LinearGradient from 'react-native-linear-gradient';
 import { useTheme } from '@react-navigation/native';
 
 const Profile = (props) => {

@@ -8,14 +8,7 @@ import SwitchSelector from "react-native-switch-selector";
 import UpDownButton from './UpDownButton'
 import Icon from 'react-native-vector-icons/AntDesign';
 Icon.loadFont()
-// popup stuff
-import Modal, {
-  ModalContent,
-  ModalTitle,
-  FadeAnimation,
-} from 'react-native-modals';
-
-import SaveCancelFooter from './SaveCancelFooter'
+import GenericModal from './GenericModal'
 
 const ANIMATION_DURATION = 150
 export default function RunEditPopup(props) {
@@ -31,7 +24,7 @@ export default function RunEditPopup(props) {
       setRunNumber(editModeItem.numUntilTrigger);
       setRunTrigger(editModeItem.trigger);
     }
-  }, [editModeItem])
+  }, [editModeItem]);
 
   const saveEdits = () => {
     // depending on the edit mode
@@ -47,7 +40,7 @@ export default function RunEditPopup(props) {
       prevConfig[index] = newModeSettings
       console.log('aiodwja', prevConfig)
       return [...prevConfig]
-    })
+    });
     setVisible(false);
   }
 
@@ -84,33 +77,18 @@ export default function RunEditPopup(props) {
   }
   
   return (
-    <Modal
-      // the edit mode is not the empty string '' means it should be displayed
-      visible={visible}
-      onTouchOutside={() => setVisible(false)}
-      modalAnimation={new FadeAnimation({
-        initialValue: 0,
-        animationDuration: ANIMATION_DURATION,
-        useNativeDriver: true,
-      })}
-      modalTitle={
-        <ModalTitle
-          title={`Edit Run Settings`}
-          align="center"
-        />
-      }
-      width={.9}
+    <GenericModal
+      isVisible={visible}
+      setVisible={setVisible}
+      titleText='Edit Run Settings'
+      height='50%'
+      resetState={resetState}
+      saveEdits={saveEdits}
     >
-      <ModalContent>
-        <View style={styles.container}>
-          {renderRunEditModalContent()}
-          <SaveCancelFooter 
-            resetState={resetState}
-            saveEdits={saveEdits}
-          />
-        </View>
-      </ModalContent>
-    </Modal>
+      <View style={styles.container}>
+        {renderRunEditModalContent()}
+      </View>
+    </GenericModal>
   )
 }
 

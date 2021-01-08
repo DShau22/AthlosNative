@@ -10,6 +10,7 @@ import SaveCancelFooter from './SaveCancelFooter'
 import { DEVICE_CONFIG_CONSTANTS, DEFAULT_CONFIG, MODES } from '../DeviceConfigConstants'
 const { MUSIC_ONLY, MUSIC_ONLY_SUBTITLE } = DEVICE_CONFIG_CONSTANTS
 const ANIMATION_DURATION = 150
+import GenericModal from './GenericModal'
 
 const templateSongs = [
   {
@@ -39,45 +40,16 @@ const MusicPopup = (props) => {
   }
 
   return (
-    <Modal
-      // the edit mode is not the empty string '' means it should be displayed
-      visible={visible}
-      onTouchOutside={() => setVisible(false)}
-      modalAnimation={new FadeAnimation({
-        initialValue: 0,
-        animationDuration: ANIMATION_DURATION,
-        useNativeDriver: true,
-      })}
-      modalTitle={
-        <ModalTitle
-          title={`Your Downloaded Music`}
-          align="center"
-        />
-      }
-      width={.9}
+    <GenericModal
+      isVisible={visible}
+      setVisible={setVisible}
+      titleText='Edit Music Settings'
+      height='40%'
     >
-      <ModalContent>
-        <View style={styles.container}>
-          <Text>Add shuffle or in order button here</Text>
-          <FlatList
-            contentContainerStyle={styles.flatList}
-            data={templateSongs}
-            keyExtractor={(item, idx) => `${item.title}-idx`}
-            // probably have another draggable flatlist for reordering songs
-            renderItem={({ item }) => (
-              <>
-                <Text>{item.title}</Text>
-                <Text>{item.artist}</Text>
-              </>
-            )}
-          />
-        </View>
-        <SaveCancelFooter
-          saveEdits={saveEdits}
-          resetState={resetState}
-        />
-      </ModalContent>
-    </Modal>
+      <View style={styles.container}>
+        <Text>Add shuffle or in order button here</Text>
+      </View>
+    </GenericModal>
   )
 }
 

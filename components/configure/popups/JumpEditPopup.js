@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, TouchableOpacity, FlatList } from 'react-native'
-import { Text, Button } from 'react-native-elements'
+import { Text } from 'react-native-elements'
 import { DEVICE_CONFIG_CONSTANTS, DEFAULT_CONFIG, MODES } from '../DeviceConfigConstants'
 const { HANGTIME, VERTICAL_HEIGHT, JUMP, JUMP_SUBTITLE } = DEVICE_CONFIG_CONSTANTS
 import LinearGradient from 'react-native-linear-gradient';
@@ -8,14 +8,7 @@ import SwitchSelector from "react-native-switch-selector";
 
 import Icon from 'react-native-vector-icons/AntDesign';
 Icon.loadFont()
-// popup stuff
-import Modal, {
-  ModalContent,
-  ModalTitle,
-  FadeAnimation,
-} from 'react-native-modals';
-import SaveCancelFooter from './SaveCancelFooter'
-const ANIMATION_DURATION = 150
+import GenericModal from './GenericModal'
 
 export default function JumpEditPopup(props) {
   const { visible, setVisible, setDeviceConfig, editModeItem, } = props;
@@ -71,33 +64,18 @@ export default function JumpEditPopup(props) {
     )
   }
   return (
-    <Modal
-      // the edit mode is not the empty string '' means it should be displayed
-      visible={visible}
-      onTouchOutside={() => setVisible(false)}
-      modalAnimation={new FadeAnimation({
-        initialValue: 0,
-        animationDuration: ANIMATION_DURATION,
-        useNativeDriver: true,
-      })}
-      modalTitle={
-        <ModalTitle
-          title={`Edit Jump Settings`}
-          align="center"
-        />
-      }
-      width={.9}
+    <GenericModal
+      isVisible={visible}
+      setVisible={setVisible}
+      titleText='Edit Jump Settings'
+      height='40%'
+      resetState={resetState}
+      saveEdits={saveEdits}
     >
-      <ModalContent>
-        <View style={styles.container}>
-          {renderJumpEditModalContent()}
-          <SaveCancelFooter
-            saveEdits={saveEdits}
-            resetState={resetState}
-          />
-        </View>
-      </ModalContent>
-    </Modal>
+      <View style={styles.container}>
+        {renderJumpEditModalContent()}
+      </View>
+    </GenericModal>
   )
 }
 
