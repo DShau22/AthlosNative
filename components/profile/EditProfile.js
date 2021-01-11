@@ -6,6 +6,7 @@ import GLOBAL_CONSTANTS from '../GlobalConstants'
 import * as Yup from 'yup';
 import ImagePicker from 'react-native-image-picker';
 import axios from 'axios';
+import Feather from 'react-native-vector-icons/Feather';
 
 import { UserDataContext, AppFunctionsContext } from "../../Context"
 import {
@@ -295,10 +296,11 @@ export default function EditProfile(props) {
     if (unitSystem === METRIC) {
       // single textbox for cm
       return (
-        <Textbox 
+        <Textbox
+          style={{}}
           headerText="Height (Cm)"
           placeholder="Your height in cm..."
-          icon="user"
+          icon={<Feather name='user' color="#05375a" size={20}/>}
           keyboardType='numeric'
           defaultValue={state.heightCm.toString(10)}
           handleChange={handleHeightCmChange}
@@ -311,10 +313,11 @@ export default function EditProfile(props) {
       return (
         <View style={styles.englishHeightContainer}>
           <View style={{marginBottom: 20}}>
-            <Textbox 
+            <Textbox
+              style={{}}
               headerText="Height (Ft)"
               placeholder="Ft..."
-              icon="user"
+              icon={<Feather name='user' color="#05375a" size={20}/>}
               keyboardType='numeric'
               defaultValue={state.updateHeightFt.toString(10)}
               handleChange={handleHeightFtChange}
@@ -327,7 +330,7 @@ export default function EditProfile(props) {
               style={{}}
               headerText="Height (In)"
               placeholder="Inches..."
-              icon="user"
+              icon={<Feather name='user' color="#05375a" size={20}/>}
               keyboardType='numeric'
               defaultValue={state.updateHeightIn.toString(10)}
               handleChange={handleHeightInChange}
@@ -464,9 +467,10 @@ export default function EditProfile(props) {
         </View>
         <View style={[styles.textContainer, {borderColor: colors.border}]}>
           <Textbox 
+            containerStyle={{}}
             headerText={"First Name"}
             placeholder="Your first name..."
-            icon="user"
+            icon={<Feather name='user' color="#05375a" size={20}/>}
             defaultValue={state.updateFirstName}
             handleChange={handleFirstNameChange}
             didChange={state.firstNameChange}
@@ -474,10 +478,11 @@ export default function EditProfile(props) {
           />
         </View>
         <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          <Textbox 
+          <Textbox
+            containerStyle={{}}
             headerText={"Last Name"}
             placeholder="Your last name..."
-            icon="user"
+            icon={<Feather name='user' color="#05375a" size={20}/>}
             defaultValue={state.updateLastName}
             handleChange={handleLastNameChange}
             didChange={state.lastNameChange}
@@ -489,9 +494,10 @@ export default function EditProfile(props) {
         </View>
         <View style={[styles.textContainer, {borderColor: colors.border}]}>
           <Textbox 
+            containerStyle={{}}
             headerText={'Weight'}
             placeholder={`Your weight in ${unitSystem === METRIC ? 'kg' : 'lbs'}`}
-            icon="user"
+            icon={<Feather name='user' color="#05375a" size={20}/>}
             keyboardType='numeric'
             defaultValue={state.updateWeight.toString(10)}
             handleChange={handleWeightChange}
@@ -500,10 +506,11 @@ export default function EditProfile(props) {
           />
         </View>
         <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          <Textbox 
+          <Textbox
+            containerStyle={{}}
             headerText={"Age"}
             placeholder="Your age..."
-            icon="user"
+            icon={<Feather name='user' color="#05375a" size={20}/>}
             keyboardType='numeric'
             defaultValue={state.updateAge.toString(10)}
             handleChange={handleAgeChange}
@@ -512,10 +519,11 @@ export default function EditProfile(props) {
           />
         </View>
         <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          <Textbox 
+          <Textbox
+            containerStyle={{}}
             headerText={"Gender"}
             placeholder="Your gender..."
-            icon="user"
+            icon={<Feather name='user' color="#05375a" size={20}/>}
             defaultValue={state.updateGender}
             handleChange={handleGenderChange}
             didChange={state.genderChange}

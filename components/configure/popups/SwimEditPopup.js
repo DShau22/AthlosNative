@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, StyleSheet, ScrollView, FlatList } from 'react-native'
-import { Text, Button } from 'react-native-elements'
-import { DEVICE_CONFIG_CONSTANTS, getDefaultModeObject, } from '../DeviceConfigConstants'
+import { Text, ListItem } from 'react-native-elements'
+import { DEVICE_CONFIG_CONSTANTS, } from '../DeviceConfigConstants'
 const { 
   POOL_LENGTH_CHOICES,
   TRIGGER_LAP, 
@@ -14,19 +14,64 @@ const {
   TOTAL_LAP_COUNT,
   LAP_COUNT,
   STROKE,
-} = DEVICE_CONFIG_CONSTANTS
-import SwitchSelector from "react-native-switch-selector";
+} = DEVICE_CONFIG_CONSTANTS;
 import { CheckBox } from 'react-native-elements';
-
-import UpDownButton from './UpDownButton'
 import Icon from 'react-native-vector-icons/AntDesign';
 Icon.loadFont()
 
-import GenericModal from './GenericModal'
+import GenericModal from './GenericModal';
+import { useTheme } from '@react-navigation/native';
+import ThemeText from '../../generic/ThemeText';
+import PoolLengthList from './PoolLengthList';
+const {
+  NCAA,
+  OLYMPIC,
+  BRITISH,
+  THIRD_M,
+  THIRD_YD,
+  HOME
+} = POOL_LENGTH_CHOICES;
+const POOL_LENGTH_LIST = [
+  {
+    title: NCAA,
+    subtitle: 'Standard NCAA pool length',  
+  },
+  {
+    title: OLYMPIC,
+    subtitle: 'Standard Olympic pool length',
+  },
+  {
+    title: BRITISH,
+    subtitle: 'Common European pool length',  
+  },
+  {
+    title: THIRD_YD,
+    subtitle: 'Rarer pool length but still standard', 
+  },
+  {
+    title: THIRD_M,
+    subtitle: 'Rarer pool length but still standard',
+  },
+  {
+    title: HOME,
+    subtitle: 'A typical backyard home pool length',  
+  },
+];
 
+const REPORT_LIST = [
+  {
+    title: 'Every Lap',
+    subtitle: 'Hear live feedback after every turn and when you finish a swim'
+  },
+  {
+    title: 'On finish',
+    subtitle: 'Only hear live feedback after you finish a swim'
+  }
+]
 // Report cal, lap time, speed, total lap count, curr lap count
 // when to report? Every 1/2/3/4 laps, on finish
 export default function SwimEditPopup(props) {
+  const { colors } = useTheme();
   const { visible, setVisible, setDeviceConfig, editModeItem, } = props;
 
   const [lapNumber, setLapNumber] = React.useState(editModeItem.numUntilTrigger);
@@ -105,114 +150,108 @@ export default function SwimEditPopup(props) {
     setVisible(false);
   }
 
+  const renderWhenToReport = () => {
+    return REPORT_LIST.map((reportObject, _) => (
+      <ListItem
+        containerStyle={{}}
+        key={reportObject.title}
+        bottomDivider
+        onPress={() => {
+          setReportTrigger(reportObject.title);
+        }}
+      >
+        <ListItem.Content>
+          <ListItem.Title>
+            <Text>{reportObject.title}</Text>
+          </ListItem.Title>
+          <ListItem.Subtitle>
+            <Text>
+              {reportObject.subtitle}
+            </Text>
+          </ListItem.Subtitle>
+        </ListItem.Content>
+        <ListItem.CheckBox
+          checked={reportTrigger === reportObject.title}
+          checkedColor={colors.background}
+          checkedIcon='dot-circle-o'
+          uncheckedIcon='circle-o'
+        />
+      </ListItem>
+    ));
+  }
+
   return (
     <GenericModal
       isVisible={visible}
       setVisible={setVisible}
-      titleText='Edit Swim Settings'
+      titleText='Lap Swim Mode'
       height='80%'
       resetState={resetState}
       saveEdits={saveEdits}
     >
-      <Text>What to report?</Text>
-      <View>
-        <CheckBox
-          title="Calories"
-          checked={calChecked}
-          onPress={() => setCalChecked(prev => !prev)}
-        />
-        <CheckBox
-          title="Lap Time"
-          checked={lapTimeChecked}
-          onPress={() => setLapTimeChecked(prev => !prev)}
-        />
-        <CheckBox
-          title="Lap Count"
-          checked={lapCountChecked}
-          onPress={() => setLapCountChecked(prev => !prev)}
-        />
-        <CheckBox
-          title="Stroke"
-          checked={strokeChecked}
-          onPress={() => setStrokeChecked(prev => !prev)}
-        />
-        {/* <CheckBox
-          title="Total Lap Count"
-          checked={totalLapCountChecked}
-          onPress={() => setTotalLapCountChecked(prev => !prev)}
-        /> */}
-        {/* <CheckBox
-          title="Speed"
-          checked={speedChecked}
-          onPress={() => setSpeedChecked(prev => !prev)}
-        /> */}
-      </View>
-      <Text>When to report?</Text>
-      <SwitchSelector
-        style={styles.triggerSwitch}
-        initial={editModeItem.trigger === TRIGGER_LAP ? 0 : 1}
-        onPress={value => setReportTrigger(value)}
-        textColor='#7a44cf' // purple
-        selectedColor='white'
-        buttonColor='#7a44cf'
-        borderColor='#7a44cf'
-        hasPadding
-        options={[
-          { label: "Laps", value: TRIGGER_LAP },
-          { label: "On Finish", value: TRIGGER_ON_FINISH }
-        ]}
-      />
-      { reportTrigger === TRIGGER_LAP ?
-        <UpDownButton
-          number={lapNumber}
-          // factor is positive or negative for increase/decrease
-          incNumber={() => { setLapNumber(prev => Math.min(4, prev + 1)) }}
-          decNumber={() => { setLapNumber(prev => Math.max(1, prev - 1)) }}
-        /> : null
-      }
-      <View>
-        <CheckBox
-          title="25 yd"
-          checkedIcon='dot-circle-o'
-          uncheckedIcon='circle-o'
-          checked={poolLength === POOL_LENGTH_CHOICES.NCAA}
-          onPress={() => setPoolLength(POOL_LENGTH_CHOICES.NCAA)}
-        />
-        <CheckBox
-          title="50 m"
-          checkedIcon='dot-circle-o'
-          uncheckedIcon='circle-o'
-          checked={poolLength === POOL_LENGTH_CHOICES.OLYMPIC}
-          onPress={() => setPoolLength(POOL_LENGTH_CHOICES.OLYMPIC)}
-        />
-        <CheckBox
-          title="25 m"
-          checkedIcon='dot-circle-o'
-          uncheckedIcon='circle-o'
-          checked={poolLength === POOL_LENGTH_CHOICES.BRITISH}
-          onPress={() => setPoolLength(POOL_LENGTH_CHOICES.BRITISH)}
-        />
-        <CheckBox
-          title="33.3 yd"
-          checkedIcon='dot-circle-o'
-          uncheckedIcon='circle-o'
-          checked={poolLength === POOL_LENGTH_CHOICES.THIRD_YD}
-          onPress={() => setPoolLength(POOL_LENGTH_CHOICES.THIRD_YD)}
-        />
-        <CheckBox
-          title="33.3 m"
-          checkedIcon='dot-circle-o'
-          uncheckedIcon='circle-o'
-          checked={poolLength === POOL_LENGTH_CHOICES.THIRD_M}
-          onPress={() => setPoolLength(POOL_LENGTH_CHOICES.THIRD_M)}
-        />
-        <CheckBox
-          title="15 yd"
-          checkedIcon='dot-circle-o'
-          uncheckedIcon='circle-o'
-          checked={poolLength === POOL_LENGTH_CHOICES.HOME}
-          onPress={() => setPoolLength(POOL_LENGTH_CHOICES.HOME)}
-        />
+      <View style={{backgroundColor: 'white', flexDirection: 'column', alignItems: 'center'}}>
+        <View style={{width: '100%', height: 200, backgroundColor: colors.background}}>
+          <ThemeText style={{alignSelf: 'center'}}>Add image here</ThemeText>
+        </View>
+        <Text style={{margin: 10, color: 'grey'}}>
+          Your device will track your lap count, lap times, swimming strokes, and calories burned in this mode.
+          Choose what stats will be reported while swimming, and let your device know the length of your pool.
+        </Text>
+        <Text style={{fontSize: 20, alignSelf: 'flex-start', margin: 10}}>
+          Stats to report:
+        </Text>
+        <View style={{width: '100%'}}>
+          <CheckBox
+            title="Calories"
+            checkedColor={colors.background}
+            checked={calChecked}
+            onPress={() => setCalChecked(prev => !prev)}
+          />
+          <CheckBox
+            title="Lap Time"
+            checkedColor={colors.background}
+            checked={lapTimeChecked}
+            onPress={() => setLapTimeChecked(prev => !prev)}
+          />
+          <CheckBox
+            title="Lap Count"
+            checkedColor={colors.background}
+            checked={lapCountChecked}
+            onPress={() => setLapCountChecked(prev => !prev)}
+          />
+          <CheckBox
+            title="Stroke"
+            checkedColor={colors.background}
+            checked={strokeChecked}
+            onPress={() => setStrokeChecked(prev => !prev)}
+          />
+          {/* <CheckBox
+            title="Total Lap Count"
+            checked={totalLapCountChecked}
+            onPress={() => setTotalLapCountChecked(prev => !prev)}
+          /> */}
+          {/* <CheckBox
+            title="Speed"
+            checked={speedChecked}
+            onPress={() => setSpeedChecked(prev => !prev)}
+          /> */}
+        </View>
+        {/* <Text style={{fontSize: 24, alignSelf: 'flex-start', margin: 10, marginTop: 20}}>
+          When to report:
+        </Text>
+        <View style={{width: '100%'}}>
+          {renderWhenToReport()}
+        </View> */}
+        <Text style={{fontSize: 24, alignSelf: 'flex-start', margin: 10, marginTop: 20}}>
+          Pool Length:
+        </Text>
+        <View style={{width: '100%'}}>
+          <PoolLengthList
+            poolLength={poolLength}
+            setPoolLength={setPoolLength}
+            choices={POOL_LENGTH_LIST}
+          />
+        </View>
       </View>
     </GenericModal>
   )
@@ -247,6 +286,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   triggerSwitch: {
+    margin: 10,
+    alignSelf: 'flex-start',
     width: '30%',
   },
 })

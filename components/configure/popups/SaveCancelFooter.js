@@ -1,33 +1,35 @@
+import { useTheme } from '@react-navigation/native';
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
-import { Text, Button } from 'react-native-elements'
-import LoginButton from '../../nativeLogin/LoginButton';
+import { View, StyleSheet, TouchableOpacity } from 'react-native'
+import LinearGradient from 'react-native-linear-gradient';
+import ThemeText from '../../generic/ThemeText';
 
 export default function SaveCancelFooter(props) {
+  const { colors } = useTheme();
   const { resetState, saveEdits } = props;
   return (
     <View style={styles.saveCancelContainer}>
-      <LoginButton
-        containerStyle={[styles.buttonContainer, {marginRight: 20}]}
-        style={[styles.button, {
-          borderColor: '#009387',
-          borderWidth: 1,
-        }]}
-        buttonTextStyle={[styles.buttonTextStyle, {color: '#009387'}]}
-        filled={false}
-        text='Cancel'
-        onPress={resetState}
-        icon={null}
-      />
-      <LoginButton
-        containerStyle={[styles.buttonContainer]}
-        style={styles.button}
-        buttonTextStyle={styles.buttonTextStyle}
-        filled={true}
-        text='Save'
-        onPress={saveEdits}
-        icon={null}
-      />
+      <View style={[styles.buttonContainer, {marginRight: 20}]}>
+        <TouchableOpacity onPress={resetState}>
+          <View style={[styles.button, {
+            borderColor: colors.header,
+            borderWidth: 1,
+          }]}>
+            <ThemeText style={[styles.buttonTextStyle, {color: colors.background}]}>Cancel</ThemeText>
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      <View style={[styles.buttonContainer]}>
+        <TouchableOpacity onPress={saveEdits}>
+          <LinearGradient
+            colors={[colors.backgroundOffset, colors.background]}
+            style={styles.button}
+          >
+            <ThemeText style={[styles.buttonTextStyle]}>Save</ThemeText>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
     </View>
   )
 }

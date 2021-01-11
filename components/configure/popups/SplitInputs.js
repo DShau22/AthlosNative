@@ -10,20 +10,15 @@ const {
   BREASTROKE,
   FREESTYLE,
   IM,
-} = DEVICE_CONFIG_CONSTANTS
+} = DEVICE_CONFIG_CONSTANTS;
+import * as Yup from 'yup';
 import { Dropdown } from 'react-native-material-dropdown';
-
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-Icon.loadFont()
-// popup stuff
-import Modal, {
-  ModalContent,
-  ModalTitle,
-  FadeAnimation,
-} from 'react-native-modals';
-import ValidatedTextInput from '../../generic/ValidatedTextInput'
-import SaveCancelFooter from './SaveCancelFooter'
+Icon.loadFont();
+import {splitValidationSchema} from './validationSchema';
+import { useTheme } from '@react-navigation/native';
+
+NUM_TO_WORD = ['First', 'Second', 'Third', 'Fouth', 'Fifth', 'Sixth', 'Seventh', 'Eigth'];
 
 // renders splits based on what the event distance is
 // 1 input for 50
@@ -31,76 +26,71 @@ import SaveCancelFooter from './SaveCancelFooter'
 // 4 inputs for 200
 // 8 inputs for 400 and above
 export default function SplitInputs(props) {
-  const { distance, setSplits, splits } = props;
-  const [textEditable, setTextEditable] = React.useState(true);
+  const { colors } = useTheme();
+  const { distance, setSplits, splits, errorMsgs, setErrorMsgs } = props;
   // sets the nth split (so the nth 50)
-  const setSpecificSplit = (n, newTime) => {
+  const setSpecificSplit = (idx, newTime) => {
     setSplits(prev => {
-      prev[n - 1] = newTime;
+      prev[idx] = newTime;
       return [...prev];
     })
   }
 
-  const handleInputChange = (textNumber, firstSplitNumber) => {
-    const isThreeDigitInteger = new RegExp('^[0-9]{0,3}$');
-    if (isThreeDigitInteger.test(textNumber)) {
-      setSpecificSplit(firstSplitNumber, textNumber)
-    } else {
-      // set editable to false to prevent flicker
-    }
+  const handleInputChange = (textNumber, idx) => {
+    console.log(splits);
+    textNumber = textNumber.replace(/\D/g,'');
+    const validationString = textNumber.length > 0 ? textNumber : '0'
+    Yup.reach(splitValidationSchema, "split").validate(parseInt(validationString))
+      .then(function(isValid) {
+        setSpecificSplit(idx, textNumber);
+        setErrorMsgs(prev => {
+          prev[idx] = '';
+          return [...prev];
+        })
+      })
+      .catch(function(e) {
+        console.log(e);
+        setSpecificSplit(idx, '');
+        setErrorMsgs(prev => {
+          prev[idx] = e.toString();
+          return [...prev];
+        })
+      });
   }
-  
-  // smol component for text input with side label
-  // split row is NOT 0 INDEXED IT STARTS AT 1
-  const splitInputRow = (splitRow) => {
-    // the split number of the first element in this row STARTING WITH 1
-    const firstSplitNumber = 2 * splitRow - 1
-    const isThreeDigitInteger = new RegExp('^[0-9]+$');
-    console.log("splits from split inputs: ", splits)
+
+  const splitInput = (num) => {
     return (
-      <View style={styles.splitsRow}>
-        <View style={{flexDirection: 'row'}}>
-          <Icon
-            name={`numeric-${firstSplitNumber}`}
-            size={24}
-            color='black'
-          />
-          {/* <ValidatedTextInput
-            {...SharedSplitInputProps}
-            validationRegex={isThreeDigitInteger}
-            value={`${splits[firstSplitNumber - 1]}`}
-            onChange={val => handleInputChange(val, firstSplitNumber)}
-          /> */}
-          <TextInput 
-            {...SharedSplitInputProps}
-            maxLength={3}
-            editable={textEditable}
-            value={`${splits[firstSplitNumber - 1]}`}
-            onChangeText={val => handleInputChange(val, firstSplitNumber)}
-          />
-        </View>
-        <View style={{flexDirection: 'row'}}>
-          <Icon
-            name={`numeric-${firstSplitNumber + 1}`}
-            size={24}
-            color='black'
-          />
-          <TextInput 
-            {...SharedSplitInputProps}
-            maxLength={3}
-            editable={textEditable}
-            value={`${splits[firstSplitNumber]}`}
-            borderColor={distance > 400 && splitRow === 4 ? 'red' : 'black'}
-            onChangeText={val => handleInputChange(val, firstSplitNumber + 1)}
-          />
-        </View>
+      <View style={{flexDirection: 'row'}}>
+        <Input
+          leftIcon={
+            <Icon
+              name='timer'
+              size={24}
+              color={colors.background}
+            />
+          }
+          style={styles.splitsInput}
+          label={`${NUM_TO_WORD[num]} 50${distance > 400 && num === 7 ? ' (repeats until finished)' : ''}`}
+          placeholderTextColor="#666666"
+          keyboardType='numeric'
+          maxLength={3}
+          value={`${splits[num]}`}
+          onChangeText={val => handleInputChange(val, num)}
+
+          errorMessage={errorMsgs[num]}
+          renderErrorMessage={errorMsgs[num].length > 0}
+        />
       </View>
     )
   }
 
   return (
     <View style={styles.splitsContainer}>
-      { distance === 50 ? 
+      {splitInput(0)}
+      {splitInput(1)}
+      {splitInput(2)}
+      {splitInput(3)}
+      {/* { distance === 50 ? 
         <View style={styles.splitsRow}>
           <View style={{flexDirection: 'row'}}>
             <Icon
@@ -114,12 +104,14 @@ export default function SplitInputs(props) {
             />
           </View>
         </View> : null
-      }
-      { distance >= 100 ? splitInputRow(1) : null }
+      } */}
+
+      
+      {/* { distance >= 100 ? splitInputRow(1) : null }
       { distance >= 200 ? splitInputRow(2) : null }
       { distance >= 400 ? splitInputRow(3) : null }
       { distance >= 400 ? splitInputRow(4) : null }
-      { distance >  400 ? <Text style={{position: 'absolute', right: 50, bottom: -25}}>Repeats until finish</Text> : null }
+      { distance >  400 ? <Text style={{position: 'absolute', right: 50, bottom: -25}}>Repeats until finish</Text> : null } */}
     </View>
   )
 }
@@ -149,8 +141,6 @@ const styles = StyleSheet.create({
     marginTop: Platform.OS === 'ios' ? 0 : -12,
     paddingLeft: 10,
     color: '#05375a',
-    borderWidth: 1,
-    borderColor: 'black',
     paddingTop: 8,
     paddingBottom: 8,
     width: '40%',

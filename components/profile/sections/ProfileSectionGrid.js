@@ -13,7 +13,7 @@ const ProfileSectionGrid = (props) => {
     const result = [];
     for (let i = 0; i < gridElements.length; i+=2) {
       result.push(
-        <View style={styles.row}>
+        <View style={styles.row} key={i}>
           <View style={styles.gridBox}>
             {gridElements[i].icon}
             <View style={styles.gridTextBox}>

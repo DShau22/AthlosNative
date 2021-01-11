@@ -1,9 +1,11 @@
+import { useTheme } from '@react-navigation/native';
 import React from 'react';
 import { View, StyleSheet, ScrollView, Text } from 'react-native'
 import Modal from 'react-native-modal';
 import SaveCancelFooter from './SaveCancelFooter'
 
 export default function GenericModal(props) {
+  const { colors } = useTheme();
   const { isVisible, setVisible, titleText, height, resetState, saveEdits } = props;
   return (
     <Modal
@@ -15,10 +17,23 @@ export default function GenericModal(props) {
       propagateSwipe
     >
       <View style={[styles.modalContent, {height: height ? height : '80%'}]}>
-        <View style={styles.title}>
-          <Text style={styles.titleText}>{titleText}</Text>
+        <View style={[styles.title, {backgroundColor: colors.background}]}>
+          <Text style={[styles.titleText, {color: colors.textColor}]}>{titleText}</Text>
         </View>
-        <ScrollView style={styles.scrollView}>
+        <ScrollView style={[styles.scrollView]}>
+          {/* below is so that for ios, the bounce will not show the white background */}
+          {Platform.OS === 'ios' && (
+            <View 
+              style={{
+                backgroundColor: colors.background,
+                height: 1000,
+                position: 'absolute',
+                top: -1000,
+                left: 0,
+                right: 0,
+              }} 
+            />
+          )}
           {props.children}
         </ScrollView>
         {saveEdits ?
@@ -32,25 +47,27 @@ export default function GenericModal(props) {
 }
 const styles = StyleSheet.create({
   title: {
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    backgroundColor: '#fafafa',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    // backgroundColor: '#fafafa',
     justifyContent: 'center',
     alignItems: 'center',
     height: 50,
-    borderBottomColor: '#c7c7c7',
-    borderBottomWidth: 1
+    // borderBottomColor: '#c7c7c7',
+    // borderBottomWidth: 1
   },
   titleText: {
     fontWeight: 'bold',
     fontSize: 24
   },
   modalContent: {
-    borderRadius: 8,
+    borderRadius: 16,
     backgroundColor: 'white'
   },
   scrollView: {
     width: '100%',
     height: '100%',
+    borderBottomRightRadius: 16,
+    borderBottomLeftRadius: 16,
   },
 })

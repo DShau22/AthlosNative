@@ -1,16 +1,29 @@
-import React from 'react'
-import { View, StyleSheet, TouchableOpacity, FlatList } from 'react-native'
-import { Text } from 'react-native-elements'
-import { DEVICE_CONFIG_CONSTANTS, DEFAULT_CONFIG, MODES } from '../DeviceConfigConstants'
-const { HANGTIME, VERTICAL_HEIGHT, JUMP, JUMP_SUBTITLE } = DEVICE_CONFIG_CONSTANTS
-import LinearGradient from 'react-native-linear-gradient';
-import SwitchSelector from "react-native-switch-selector";
+import React from 'react';
+import { View, StyleSheet, } from 'react-native';
+import { DEVICE_CONFIG_CONSTANTS, } from '../DeviceConfigConstants';
+import { Text, ListItem } from 'react-native-elements'
+import { useTheme } from '@react-navigation/native';
 
 import Icon from 'react-native-vector-icons/AntDesign';
-Icon.loadFont()
-import GenericModal from './GenericModal'
+Icon.loadFont();
+const { HANGTIME, VERTICAL_HEIGHT, JUMP, JUMP_SUBTITLE } = DEVICE_CONFIG_CONSTANTS;
+import SwitchSelector from "react-native-switch-selector";
+import GenericModal from './GenericModal';
+import ThemeText from '../../generic/ThemeText';
+
+REPORT_LIST = [
+  {
+    title: 'Vertical Height',
+    subtitle: 'Your device will report how high you jump in inches'
+  },
+  {
+    title: 'Hangtime',
+    subtitle: 'Your device will report how long you stay in the air to the hundredth of a second'
+  }
+];
 
 export default function JumpEditPopup(props) {
+  const { colors } = useTheme();
   const { visible, setVisible, setDeviceConfig, editModeItem, } = props;
   // report either vertical height or hangtime
   const [reportMetric, setReportMetric] = React.useState(editModeItem.metric);
@@ -20,6 +33,36 @@ export default function JumpEditPopup(props) {
   React.useEffect(() => {
     if (editModeItem.mode === JUMP) setReportMetric(editModeItem.metric)
   }, [editModeItem])
+
+  const renderReportMetric = () => {
+    return REPORT_LIST.map((reportObject, _) => (
+      <ListItem
+        containerStyle={{}}
+        key={reportObject.title}
+        bottomDivider
+        onPress={() => {
+          setReportMetric(reportObject.title);
+        }}
+      >
+        <ListItem.Content>
+          <ListItem.Title>
+            <Text>{reportObject.title}</Text>
+          </ListItem.Title>
+          <ListItem.Subtitle>
+            <Text>
+              {reportObject.subtitle}
+            </Text>
+          </ListItem.Subtitle>
+        </ListItem.Content>
+        <ListItem.CheckBox
+          checked={reportMetric === reportObject.title}
+          checkedColor={colors.background}
+          checkedIcon='dot-circle-o'
+          uncheckedIcon='circle-o'
+        />
+      </ListItem>
+    ));
+  }
 
   const saveEdits = () => {
     // depending on the edit mode
@@ -45,21 +88,18 @@ export default function JumpEditPopup(props) {
   const renderJumpEditModalContent = () => {
     return (
       <View style={styles.innerEditContainer}>
+        <View style={{width: '100%', height: 200, backgroundColor: colors.background}}>
+          <ThemeText style={{alignSelf: 'center'}}>Add image here</ThemeText>
+        </View>
+        <Text style={styles.description}>
+          Your device will track your vertical height and report it to you after every jump in this mode.
+          Choose to have either how high you jump (vertical height)
+          reported or the amount of time you spend in the air (hangtime)
+        </Text>
         <Text style={styles.reportMetricLabel}>What to report?</Text>
-        <SwitchSelector
-          style={styles.reportMetricSwitch}
-          initial={editModeItem.metric === VERTICAL_HEIGHT ? 0 : 1}
-          onPress={value => setReportMetric(value)}
-          textColor='#7a44cf' // purple
-          selectedColor='white'
-          buttonColor='#7a44cf'
-          borderColor='#7a44cf'
-          hasPadding
-          options={[
-            { label: "Vertical Height", value: VERTICAL_HEIGHT },
-            { label: "Hangtime", value: HANGTIME }
-          ]}
-        />
+        <View style={{width: '100%'}}>
+          {renderReportMetric()}
+        </View>
       </View>
     )
   }
@@ -68,7 +108,7 @@ export default function JumpEditPopup(props) {
       isVisible={visible}
       setVisible={setVisible}
       titleText='Edit Jump Settings'
-      height='40%'
+      height='80%'
       resetState={resetState}
       saveEdits={saveEdits}
     >
@@ -83,16 +123,22 @@ const styles = StyleSheet.create({
   container: {
 
   },
+  reportMetricSwitch: {
+    marginTop: 10,
+    width: '80%',
+  },
+  description: {
+    marginTop: 10,
+    marginLeft: 10,
+    color: 'grey'
+  },
   innerEditContainer: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   reportMetricLabel: {
     fontSize: 20,
-    marginTop: 20
-  },
-  reportMetricSwitch: {
-    marginTop: 30,
-    width: '80%',
+    margin: 10,
+    alignSelf: 'flex-start'
   },
 })

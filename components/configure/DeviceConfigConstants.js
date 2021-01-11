@@ -1,3 +1,5 @@
+import COLOR_THEMES from '../ColorThemes';
+const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES;
 const DEVICE_CONFIG_CONSTANTS = {
   POOL_LENGTH_CHOICES: {
     NCAA: '25 yd',
@@ -118,7 +120,6 @@ const getDefaultMusicOnlyMode = () => {
   return {
     mode: MUSIC_ONLY,
     subtitle: MUSIC_ONLY_SUBTITLE,
-    backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`
   };
 };
 
@@ -128,7 +129,6 @@ const getDefaultRunMode = () => {
     mode: RUN,
     subtitle: RUN_SUBTITLE,
     // background color of the list item
-    backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
     // what metrics are reported. 
     metrics: [ STEP_COUNT, CALORIES, CADENCE ],
     // whether it's reported based on time interval or number of steps
@@ -142,7 +142,6 @@ const getDefaultSwimMode = () => {
   return {
     mode: SWIM,
     subtitle: SWIM_SUBTITLE,
-    backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
     trigger: TRIGGER_LAP,
     poolLength: POOL_LENGTH_CHOICES.NCAA,
     // number of laps until the report is given. Number doesn't matter if 
@@ -156,7 +155,6 @@ const getDefaultJumpMode = () => {
   return {
     mode: JUMP,
     subtitle: JUMP_SUBTITLE,
-    backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
     // this should always only be a one element array
     metric: VERTICAL_HEIGHT 
   };
@@ -166,7 +164,6 @@ const getDefaultRaceMode = () => {
   return {
     mode: SWIMMING_EVENT,
     subtitle: SWIMMING_EVENT_SUBTITLE,
-    backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
     stroke: FREESTYLE,
     distance: 200,
     poolLength: POOL_LENGTH_CHOICES.NCAA,
@@ -180,7 +177,6 @@ const getDefaultTimedMode = () => {
   return {
     mode: TIMED_RUN, // lol this should have a better name
     subtitle: TIMED_RUN_SUBTITLE,
-    backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
   };
 };
 

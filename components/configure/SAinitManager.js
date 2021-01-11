@@ -262,7 +262,7 @@ class SAinit {
         console.log(`trigger of ${runObject.trigger} is not valid`);
         return;
     }
-    sainit[idx + 16] = `${runObject.numUntilTrigger}`.charCodeAt(0);
+    sainit[idx + 16] = runObject.numUntilTrigger + SAinit.ZERO;
     // set cadence thresholds
     console.log(`cadence thresholds: ${this.cadenceThresholds}`); // 30 65 80
     sainit[idx + 24] = this.cadenceThresholds[0];
@@ -289,22 +289,23 @@ class SAinit {
     // use the 8 bits to create a bitmap for which reporting options to include
     // rn just uses 4
     // order is lap time, lap count, calories, stroke,
+    // bit is 0 if that stat should be reported
     sainit[idx] = SAinit.ONE;
     const bitmap = Buffer.alloc(1);
     const metrics = new Set(swimObject.metrics);
-    if (metrics.has(DEVICE_CONFIG_CONSTANTS.LAPTIME)) {
+    if (!metrics.has(DEVICE_CONFIG_CONSTANTS.LAP_COUNT)) {
       bitmap[0] = bitmap[0] | 0x08;
     }
-    if (metrics.has(DEVICE_CONFIG_CONSTANTS.LAP_COUNT)) {
+    if (!metrics.has(DEVICE_CONFIG_CONSTANTS.LAPTIME)) {
       bitmap[0] = bitmap[0] | 0x04;
     }
-    if (metrics.has(DEVICE_CONFIG_CONSTANTS.CALORIES)) {
+    if (!metrics.has(DEVICE_CONFIG_CONSTANTS.CALORIES)) {
       bitmap[0] = bitmap[0] | 0x02;
     }
-    if (metrics.has(DEVICE_CONFIG_CONSTANTS.STROKE)) {
+    if (!metrics.has(DEVICE_CONFIG_CONSTANTS.STROKE)) {
       bitmap[0] = bitmap[0] | 0x01;
     }
-    sainit[idx + 8] = bitmap[0];
+    sainit[idx + 8] = bitmap[0] + SAinit.ZERO;
     // set swimming pool length
     const { poolLength } = swimObject;
     sainit[idx + 16] = SAinit.POOL_LENGTH_MAP[poolLength];

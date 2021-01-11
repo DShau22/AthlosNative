@@ -31,6 +31,9 @@ import MusicPopup from './popups/MusicPopup'
 
 import SAinit from './SAinitManager';
 import BLEHandler from '../bluetooth/transmitter';
+import ThemeText from '../generic/ThemeText';
+import { Divider } from 'react-native-paper';
+import { useTheme } from '@react-navigation/native';
 
 // CONSIDER USING REACT NATIVE PAPER FAB.GROUP INSTEAD OF A POPUP MODAL
 // WHEN ADDING A NEW MODE
@@ -41,7 +44,9 @@ import BLEHandler from '../bluetooth/transmitter';
 // FOR THE UP DOWN BUTTON STUFF
 
 const DeviceConfig = (props) => {
-  const userDataContext = React.useContext(UserDataContext)
+  const { colors } = useTheme();
+
+  const userDataContext = React.useContext(UserDataContext);
   const { settings, cadenceThresholds, referenceTimes, runEfforts, swimEfforts, bests } = userDataContext;
   const [deviceConfig, setDeviceConfig] = React.useState(getDefaultConfig());
   const [adding, setAdding] = React.useState(false);
@@ -64,10 +69,12 @@ const DeviceConfig = (props) => {
   // run this on the first render
   const asyncPrep = async () => {
     try {
+      // await AsyncStorage.removeItem(CONFIG_KEY);
       console.log("getting config from async storage");
       const initialConfig = await AsyncStorage.getItem(CONFIG_KEY);
-      if (initialConfig !== null) setDeviceConfig(JSON.parse(initialConfig));
+      console.log("config got: ", initialConfig);
       firstUpdate.current = false;
+      if (initialConfig !== null) setDeviceConfig(JSON.parse(initialConfig));
     } catch(e) {
       console.log(e);
       Alert.alert(
@@ -197,6 +204,9 @@ const DeviceConfig = (props) => {
     )
   }
   const Stack = createStackNavigator();
+  if (firstUpdate.current) {
+    return <Text>Loading...</Text>
+  }
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -205,7 +215,16 @@ const DeviceConfig = (props) => {
       >
         {props => 
           <View style={{ flex: 1 }}>
+            <ThemeText style={{ marginTop: 20, marginLeft: 10, fontSize: 20, fontWeight: 'bold' }}>
+              Tailor your device to your preferences:
+            </ThemeText>
+            <ThemeText style={{ margin: 10, fontSize: 14 }}>
+              Customize what stats your device will report to you in workouts and when to report them.
+              Add or remove activity tracking modes that your device can use when powered on.
+            </ThemeText>
+            <Divider style={{ alignSelf: 'center', width: '95%', marginTop: 10, backgroundColor: colors.textColor }}/>
             <AddPopup
+              deviceConfig={deviceConfig}
               adding={adding}
               setAdding={setAdding}
               setDeviceConfig={setDeviceConfig}
@@ -215,7 +234,17 @@ const DeviceConfig = (props) => {
               data={deviceConfig}
               renderItem={renderItem}
               keyExtractor={(item, index) => `draggable-item-${item.mode}-${index}`}
-              onDragEnd={({ data }) => setDeviceConfig(data)}
+              onDragEnd={({ data }) => {
+                if (data[0].mode !== MUSIC_ONLY) {
+                  Alert.alert(
+                    "Whoops",
+                    `The device must always start with Music Only mode when powered on.`,
+                    [{text: "Ok"}]
+                  );
+                } else {
+                  setDeviceConfig(data);
+                }
+              }}
             />
             <TouchableOpacity
               style={styles.addButton}
@@ -224,7 +253,7 @@ const DeviceConfig = (props) => {
               <Icon name="plus" size={30} color='black' />
             </TouchableOpacity>
 
-            <Button title='test make sainit' onPress={saveAndSendToDevice}/>
+            {/* <Button title='test make sainit' onPress={saveAndSendToDevice}/> */}
           </View>
         }
       </Stack.Screen>

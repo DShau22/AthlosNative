@@ -11,6 +11,8 @@ import { DEVICE_CONFIG_CONSTANTS, DEFAULT_CONFIG, MODES } from '../DeviceConfigC
 const { MUSIC_ONLY, MUSIC_ONLY_SUBTITLE } = DEVICE_CONFIG_CONSTANTS
 const ANIMATION_DURATION = 150
 import GenericModal from './GenericModal'
+import ThemeText from '../../generic/ThemeText';
+import { useTheme } from '@react-navigation/native';
 
 const templateSongs = [
   {
@@ -24,6 +26,7 @@ const templateSongs = [
 ]
 
 const MusicPopup = (props) => {
+  const { colors } = useTheme();
   const { editModeItem, setDeviceConfig, visible, setVisible } = props;
   React.useEffect(() => {
     // do some stuff here. This might be pretty special cuz this will just be a big array of song objects
@@ -43,11 +46,22 @@ const MusicPopup = (props) => {
     <GenericModal
       isVisible={visible}
       setVisible={setVisible}
-      titleText='Edit Music Settings'
-      height='40%'
+      titleText='Music Only mode'
+      height='60%'
     >
       <View style={styles.container}>
-        <Text>Add shuffle or in order button here</Text>
+        {/* add an icon or image here */}
+        <View style={{width: '100%', height: 200, backgroundColor: colors.background}}>
+          <ThemeText style={{alignSelf: 'center'}}>Add image here</ThemeText>
+        </View>
+        <ThemeText style={{marginTop: 10, fontSize: 16, color: 'black'}}>
+          Workout and enjoy your favorite songs without needing to carry your phone with you.
+          This mode plays the music stored on your device without tracking any activities. 
+        </ThemeText>
+        <ThemeText style={{marginTop: 10, fontSize: 14, color: 'grey'}}>
+          The device always defaults to this mode when powered on.
+          Visit ___ for instructions on how to store music on your device.
+        </ThemeText>
       </View>
     </GenericModal>
   )
