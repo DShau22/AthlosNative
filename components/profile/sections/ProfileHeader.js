@@ -1,6 +1,6 @@
 import React from 'react'
-import { View, StyleSheet, Image } from 'react-native'
-import { Text, Button, Divider } from 'react-native-elements'
+import { View, StyleSheet, Image, Dimensions, TouchableOpacity } from 'react-native'
+import { Text } from 'react-native-elements'
 import { UserDataContext, ProfileContext, AppFunctionsContext } from '../../../Context'
 import PROFILE_CONSTANTS from '../ProfileConstants'
 import COMMUNITY_CONSTANTS from '../../community/CommunityConstants'
@@ -26,8 +26,6 @@ const {
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import ThemeText from '../../generic/ThemeText'
 
-import { TouchableOpacity } from 'react-native-gesture-handler'
-import GradientButton from '../../generic/GradientButton'
 import { useTheme } from '@react-navigation/native';
 import { followerAction, storeNewFollowers } from '../../community/communityFunctions/followers'
 import { cancelFollowRequest, unfollow, storeNewFollowing } from '../../community/communityFunctions/following'
@@ -35,6 +33,9 @@ import FollowerButton from '../actionButtons/FollowerButton'
 import SelfButton from '../actionButtons/SelfButton'
 import UnrelatedButton from '../actionButtons/UnrelatedButton'
 import FollowingButton from '../actionButtons/FollowingButton'
+
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
+EvilIcons.loadFont();
 // consists of
 // 1. profile picture
 // 2. Number of followers, following, and rivals => 
@@ -120,6 +121,14 @@ const ProfileHeader = (props) => {
 
   return (
     <View style={[styles.container]}>
+      <TouchableOpacity
+        style={{position: 'absolute', right: 25}}
+        onPress={() => {
+          props.navigation.navigate(GLOBAL_CONSTANTS.SETTINGS)
+        }}
+      >
+        <EvilIcons name='gear' color={colors.textColor} size={45}/>
+      </TouchableOpacity>
       <View style={styles.topContainer}>
         <View style={styles.imageContainer}>
           <Image 
@@ -198,5 +207,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginLeft: 20,
   },
+  settingsButtonStyle: {
+    position: 'absolute',
+  }
 })
 export default ProfileHeader

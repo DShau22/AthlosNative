@@ -24,29 +24,29 @@ const signUpValidationSchema = Yup.object({
     .matches(
       /^(?=.*[A-Za-z])(?=.*\d)[!@#$%^&*-=.A-Za-z\d]{8,}$/,
       "Must contain 8 characters, one uppercase, one lowercase, one number. Only !@#$%^&*-=. special characters allowed."
-    ),
+    )
+    .max(200, 'Must be less than 200 characters long'),
   signUpPasswordConf: Yup.string()
     .required('Cannot be empty')
     .matches(
       /^(?=.*[A-Za-z])(?=.*\d)[!@#$%^&*-=.A-Za-z\d]{8,}/,
       "Must contain 8 characters, one uppercase, one lowercase, one number. Only !@#$%^&*-=. special characters allowed."
     )
-    .oneOf([Yup.ref('signUpPassword'), null], 'Passwords must match ya fool'),
+    .oneOf([Yup.ref('signUpPassword'), null], 'Passwords must match'),
   signUpFirstName: Yup.string()
     .required('Cannot be empty')
+    .max(50, 'Must be less than 50 characters long')
     .matches("^[a-zA-Z]+$", "Must only contains letters"),
   signUpLastName: Yup.string()
     .required('Cannot be empty')
+    .max(50, 'Must be less than 50 characters long')
     .matches("^[a-zA-Z]+$", "Must only contains letters"),
   signUpUsername: Yup.string()
     .required('Cannot be empty')
+    .max(50, 'Must be less than 50 characters long')
     .matches("^[a-zA-Z0-9.-]+$", "Must only contains letters, numbers, dashes, or periods"),
 })
 
-const passwordValidationSchema = Yup.object({
-  
-})
-
 module.exports = {
-  signUpValidationSchema
+  signUpValidationSchema,
 }

@@ -15,6 +15,7 @@ const {
   SWIM,
   JUMP,
   SWIMMING_EVENT,
+  INTERVAL,
   TIMED_RUN,
   MUSIC_ONLY,
   CONFIG_KEY,
@@ -217,8 +218,8 @@ class SAinit {
           case SWIMMING_EVENT:
             this._setSwimmingEventConfig(sainit, modeObject, idx);
             break;
-          case TIMED_RUN:
-            this._setTimerConfig(sainit, modeObject, idx);
+          case INTERVAL:
+            this._setIntervalConfig(sainit, modeObject, idx);
             break;
           default:
             // set it as unused
@@ -433,7 +434,7 @@ class SAinit {
    * @param {Object} runObject 
    * @param {int} idx 
    */
-  _setTimerConfig(sainit, raceObject, idx) {
+  _setIntervalConfig(sainit, raceObject, idx) {
 
   }
 }

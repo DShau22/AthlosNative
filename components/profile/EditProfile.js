@@ -6,13 +6,11 @@ import GLOBAL_CONSTANTS from '../GlobalConstants'
 import * as Yup from 'yup';
 import ImagePicker from 'react-native-image-picker';
 import axios from 'axios';
-import Feather from 'react-native-vector-icons/Feather';
 
 import { UserDataContext, AppFunctionsContext } from "../../Context"
 import {
   getData,
 } from '../utils/storage';
-import ThemeText from '../generic/ThemeText'
 const imagePickerOptions = {
   title: 'Select a photo',
   storageOptions: {
@@ -22,7 +20,8 @@ const imagePickerOptions = {
 };
 
 import {
-  toEnglishWeight,
+  poundsToKg,
+  roundToDecimal,
   toEnglishHeight,
   toInches,
   inchesToCm
@@ -32,6 +31,17 @@ import editProfileSchema from "./EditProfileSchema"
 import Textbox from "../nativeLogin/Textbox"
 import Spinner from 'react-native-loading-spinner-overlay';
 import { useTheme } from '@react-navigation/native'
+
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+FontAwesome.loadFont();
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+MaterialIcon.loadFont();
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+MaterialCommunityIcons.loadFont();
+import Feather from 'react-native-vector-icons/dist/Feather';
+Feather.loadFont();
+import CustomIcon from '../../CustomIcons';
+CustomIcon.loadFont();
 
 const updateProfileURL = ENDPOINTS.updateProfile
 const checkDuplicateURL = ENDPOINTS.checkDuplicatePic
@@ -55,7 +65,7 @@ export default function EditProfile(props) {
     updateAge: context.age,
     updateGender: context.gender,
     updateLocation: context.location,
-    updateWeight: context.weight,
+    updateWeight: unitSystem === METRIC ? roundToDecimal(poundsToKg(context.weight), 1) : context.weight,
 
     // for the sake of now, will change to respond to context and unit system
     updateHeightFt: Math.floor(context.height / 12),
@@ -297,12 +307,11 @@ export default function EditProfile(props) {
       // single textbox for cm
       return (
         <Textbox
-          style={{}}
           headerText="Height (Cm)"
           placeholder="Your height in cm..."
-          icon={<Feather name='user' color="#05375a" size={20}/>}
+          icon={<MaterialCommunityIcons name='human-male-height' size={20} color={colors.textColor}/>}
           keyboardType='numeric'
-          defaultValue={state.heightCm.toString(10)}
+          defaultValue={state.updateHeightCm.toString(10)}
           handleChange={handleHeightCmChange}
           didChange={state.heightCmChange}
           errMsg={state.heightCmMsg}
@@ -314,10 +323,9 @@ export default function EditProfile(props) {
         <View style={styles.englishHeightContainer}>
           <View style={{marginBottom: 20}}>
             <Textbox
-              style={{}}
               headerText="Height (Ft)"
               placeholder="Ft..."
-              icon={<Feather name='user' color="#05375a" size={20}/>}
+              icon={<MaterialCommunityIcons name='human-male-height' size={20} color={colors.textColor}/>}
               keyboardType='numeric'
               defaultValue={state.updateHeightFt.toString(10)}
               handleChange={handleHeightFtChange}
@@ -327,10 +335,9 @@ export default function EditProfile(props) {
           </View>
           <View>
             <Textbox
-              style={{}}
               headerText="Height (In)"
               placeholder="Inches..."
-              icon={<Feather name='user' color="#05375a" size={20}/>}
+              icon={<MaterialCommunityIcons name='human-male-height' size={20} color={colors.textColor}/>}
               keyboardType='numeric'
               defaultValue={state.updateHeightIn.toString(10)}
               handleChange={handleHeightInChange}
@@ -349,11 +356,10 @@ export default function EditProfile(props) {
     const asyncUpdateProfile = async () => {
       setIsLoading(true);
       console.log("updating profile...")
-      var { updateFirstName, updateLastName, updateBio, updateLocation, updateGender } = state
-      var { updateHeightFt, updateHeightIn, updateHeightCm, updateWeight, updateAge } = state
-      var { profilePicture } = context
-      var { unitSystem } = context.settings
-      unitSystem = unitSystem.toLowerCase()
+      var { updateFirstName, updateLastName, updateBio, updateLocation, updateGender } = state;
+      var { updateHeightFt, updateHeightIn, updateHeightCm, updateWeight, updateAge } = state;
+      var { unitSystem } = context.settings;
+      unitSystem = unitSystem.toLowerCase();
       var userToken = await getData();
 
       // turn this into a function that returns a promise later and await/.then it
@@ -465,71 +471,61 @@ export default function EditProfile(props) {
             source={{uri: displayProfilePicUrl}}
           />
         </View>
-        <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          <Textbox 
-            containerStyle={{}}
-            headerText={"First Name"}
-            placeholder="Your first name..."
-            icon={<Feather name='user' color="#05375a" size={20}/>}
-            defaultValue={state.updateFirstName}
-            handleChange={handleFirstNameChange}
-            didChange={state.firstNameChange}
-            errMsg={state.firstNameMsg}
-          />
-        </View>
-        <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          <Textbox
-            containerStyle={{}}
-            headerText={"Last Name"}
-            placeholder="Your last name..."
-            icon={<Feather name='user' color="#05375a" size={20}/>}
-            defaultValue={state.updateLastName}
-            handleChange={handleLastNameChange}
-            didChange={state.lastNameChange}
-            errMsg={state.lastNameMsg}
-          />
-        </View>
+        <Textbox 
+          containerStyle={[styles.textContainer, {borderColor: colors.border}]}
+          headerText={"First Name"}
+          placeholder="Your first name..."
+          icon={<Feather name='user' color={colors.textColor} size={20}/>}
+          defaultValue={state.updateFirstName}
+          handleChange={handleFirstNameChange}
+          didChange={state.firstNameChange}
+          errMsg={state.firstNameMsg}
+        />
+        <Textbox
+          containerStyle={[styles.textContainer, {borderColor: colors.border}]}
+          headerText={"Last Name"}
+          placeholder="Your last name..."
+          icon={<Feather name='user' color={colors.textColor} size={20}/>}
+          defaultValue={state.updateLastName}
+          handleChange={handleLastNameChange}
+          didChange={state.lastNameChange}
+          errMsg={state.lastNameMsg}
+        />
         <View style={[styles.textContainer, {borderColor: colors.border}]}>
           {renderHeightInput()}
         </View>
-        <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          <Textbox 
-            containerStyle={{}}
-            headerText={'Weight'}
-            placeholder={`Your weight in ${unitSystem === METRIC ? 'kg' : 'lbs'}`}
-            icon={<Feather name='user' color="#05375a" size={20}/>}
-            keyboardType='numeric'
-            defaultValue={state.updateWeight.toString(10)}
-            handleChange={handleWeightChange}
-            didChange={state.weightChange}
-            errMsg={state.weightMsg}
-          />
-        </View>
-        <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          <Textbox
-            containerStyle={{}}
-            headerText={"Age"}
-            placeholder="Your age..."
-            icon={<Feather name='user' color="#05375a" size={20}/>}
-            keyboardType='numeric'
-            defaultValue={state.updateAge.toString(10)}
-            handleChange={handleAgeChange}
-            didChange={state.ageChange}
-            errMsg={state.ageMsg}
-          />
-        </View>
-        <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          <Textbox
-            containerStyle={{}}
-            headerText={"Gender"}
-            placeholder="Your gender..."
-            icon={<Feather name='user' color="#05375a" size={20}/>}
-            defaultValue={state.updateGender}
-            handleChange={handleGenderChange}
-            didChange={state.genderChange}
-            errMsg={state.genderMsg}
-          />
-        </View>
+        <Textbox 
+          containerStyle={[styles.textContainer, {borderColor: colors.border}]}
+          headerText={`Weight (${unitSystem === METRIC ? 'kg' : 'lbs'})`}
+          placeholder={`Your weight in ${unitSystem === METRIC ? 'kg' : 'lbs'}`}
+          icon={<MaterialCommunityIcons name='scale' size={20} color={colors.textColor}/>}
+          keyboardType='numeric'
+          defaultValue={state.updateWeight.toString(10)}
+          handleChange={handleWeightChange}
+          didChange={state.weightChange}
+          errMsg={state.weightMsg}
+        />
+        <Textbox
+          containerStyle={[styles.textContainer, {borderColor: colors.border}]}
+          headerText={"Age"}
+          placeholder="Your age..."
+          icon={<FontAwesome name='birthday-cake' size={20} color={colors.textColor}/>}
+          keyboardType='numeric'
+          defaultValue={state.updateAge.toString(10)}
+          handleChange={handleAgeChange}
+          didChange={state.ageChange}
+          errMsg={state.ageMsg}
+        />
+        <Textbox
+          containerStyle={[styles.textContainer, {borderColor: colors.border}]}
+          headerText={"Gender"}
+          placeholder="Your gender..."
+          icon={<FontAwesome name='transgender-alt' size={20} color={colors.textColor}/>}
+          defaultValue={state.updateGender}
+          handleChange={handleGenderChange}
+          didChange={state.genderChange}
+          errMsg={state.genderMsg}
+        />
         {/* <View style={[styles.textContainer, {borderColor: colors.border}]}>
           <Textbox 
             headerText={"Bio"}

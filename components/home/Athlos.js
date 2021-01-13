@@ -384,7 +384,7 @@ function Athlos(props) {
             {/* <Stack.Screen name={COMMUNITY_CONSTANTS.COMMUNITY}>
               {(props) => <CommunityNav {...props} />}
             </Stack.Screen> */}
-            <BottomTab.Screen name={SETTINGS} component={Settings} />
+            {/* <BottomTab.Screen name={SETTINGS} component={Settings} /> */}
             {/* <BottomTab.Screen name={COMMUNITY} component={Community} /> */}
             <BottomTab.Screen name={DEVICE_CONFIG} component={DeviceConfig} />
             <BottomTab.Screen name={BLUETOOTH} component={Bluetooth} />

@@ -10,7 +10,6 @@ Icon.loadFont()
 
 export default function UpDownButton(props) {
   const { colors } = useTheme();
-  console.log(colors.background);
   const { number, incNumber, decNumber } = props
   return (
     <View style={styles.container}>

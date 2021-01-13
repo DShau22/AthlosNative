@@ -104,6 +104,10 @@ function rawHeightConvert(system, verticalHeight) {
   return parseFloat(converted).toFixed(2)
 }
 
+function roundToDecimal(num, decimals) {
+  return Math.round(num * decimals * 10) / (decimals * 10);
+}
+
 export { 
   weightConvert,
   heightConvert,
@@ -115,5 +119,6 @@ export {
   toInches,
   inchesToCm,
   poundsToKg,
-  cmToInches
+  cmToInches,
+  roundToDecimal
 }

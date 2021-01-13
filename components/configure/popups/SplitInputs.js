@@ -12,7 +12,6 @@ const {
   IM,
 } = DEVICE_CONFIG_CONSTANTS;
 import * as Yup from 'yup';
-import { Dropdown } from 'react-native-material-dropdown';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 Icon.loadFont();
 import {splitValidationSchema} from './validationSchema';
@@ -27,7 +26,7 @@ NUM_TO_WORD = ['First', 'Second', 'Third', 'Fouth', 'Fifth', 'Sixth', 'Seventh',
 // 8 inputs for 400 and above
 export default function SplitInputs(props) {
   const { colors } = useTheme();
-  const { distance, setSplits, splits, errorMsgs, setErrorMsgs } = props;
+  const { distance, setSplits, splits, errorMsgs, setErrorMsgs, label } = props;
   // sets the nth split (so the nth 50)
   const setSpecificSplit = (idx, newTime) => {
     setSplits(prev => {
@@ -59,8 +58,10 @@ export default function SplitInputs(props) {
   }
 
   const splitInput = (num) => {
+    console.log("split input: ", num, NUM_TO_WORD[num]);
+    console.log("length", NUM_TO_WORD.length);
     return (
-      <View style={{flexDirection: 'row'}}>
+      <View style={{flexDirection: 'row', marginTop: 10}}>
         <Input
           leftIcon={
             <Icon
@@ -70,7 +71,7 @@ export default function SplitInputs(props) {
             />
           }
           style={styles.splitsInput}
-          label={`${NUM_TO_WORD[num]} 50${distance > 400 && num === 7 ? ' (repeats until finished)' : ''}`}
+          label={`${NUM_TO_WORD[num]} ${label}${distance > 400 && num === 7 ? ' (repeats until finished)' : ''}`}
           placeholderTextColor="#666666"
           keyboardType='numeric'
           maxLength={3}
@@ -78,40 +79,23 @@ export default function SplitInputs(props) {
           onChangeText={val => handleInputChange(val, num)}
 
           errorMessage={errorMsgs[num]}
-          renderErrorMessage={errorMsgs[num].length > 0}
+          renderErrorMessage={errorMsgs[num] && errorMsgs[num].length > 0}
         />
       </View>
     )
   }
 
+  const renderSplitInputs = () => {
+    res = [];
+    for (let i = 0; i < Math.min(8, parseInt(distance / 50)); i++) {
+      res.push(splitInput(i));
+    }
+    return res;
+  }
+
   return (
     <View style={styles.splitsContainer}>
-      {splitInput(0)}
-      {splitInput(1)}
-      {splitInput(2)}
-      {splitInput(3)}
-      {/* { distance === 50 ? 
-        <View style={styles.splitsRow}>
-          <View style={{flexDirection: 'row'}}>
-            <Icon
-              name={`numeric-1`}
-              size={24}
-              color='black'
-            />
-            <TextInput 
-              {...SharedSplitInputProps}
-              onChangeText={setSplits}
-            />
-          </View>
-        </View> : null
-      } */}
-
-      
-      {/* { distance >= 100 ? splitInputRow(1) : null }
-      { distance >= 200 ? splitInputRow(2) : null }
-      { distance >= 400 ? splitInputRow(3) : null }
-      { distance >= 400 ? splitInputRow(4) : null }
-      { distance >  400 ? <Text style={{position: 'absolute', right: 50, bottom: -25}}>Repeats until finish</Text> : null } */}
+      {renderSplitInputs()}
     </View>
   )
 }

@@ -1,16 +1,15 @@
-import React from 'react'
-import { View, StyleSheet, TouchableOpacity, FlatList } from 'react-native'
-import { Text, Button } from 'react-native-elements'
-import { DEVICE_CONFIG_CONSTANTS, DEFAULT_CONFIG, MODES } from '../DeviceConfigConstants'
-const { TRIGGER_MIN, TRIGGER_STEPS, RUN, RUN_SUBTITLE } = DEVICE_CONFIG_CONSTANTS
-import LinearGradient from 'react-native-linear-gradient';
+import React from 'react';
+import { View, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { Text, Button } from 'react-native-elements';
+import { DEVICE_CONFIG_CONSTANTS } from '../DeviceConfigConstants';
+const { TRIGGER_MIN, TRIGGER_STEPS, RUN, RUN_SUBTITLE } = DEVICE_CONFIG_CONSTANTS;
 import SwitchSelector from "react-native-switch-selector";
-import UpDownButton from './UpDownButton'
+import UpDownButton from './UpDownButton';
 import Icon from 'react-native-vector-icons/AntDesign';
-Icon.loadFont()
-import GenericModal from './GenericModal'
-import ThemeText from '../../generic/ThemeText'
-import { useTheme } from '@react-navigation/native'
+Icon.loadFont();
+import GenericModal from './GenericModal';
+import ThemeText from '../../generic/ThemeText';
+import { useTheme } from '@react-navigation/native';
 
 const ANIMATION_DURATION = 150
 export default function RunEditPopup(props) {
@@ -35,13 +34,11 @@ export default function RunEditPopup(props) {
       const newModeSettings = {
         mode: RUN,
         subtitle: RUN_SUBTITLE,
-        backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
         trigger: runTrigger,
         numUntilTrigger: runNumber
       };
       const index = prevConfig.indexOf(editModeItem)
       prevConfig[index] = newModeSettings
-      console.log('aiodwja', prevConfig)
       return [...prevConfig]
     });
     setVisible(false);

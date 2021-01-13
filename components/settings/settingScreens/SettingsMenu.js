@@ -34,10 +34,10 @@ const SettingsMenu = (props) => {
           title: UNIT_SYSTEM_SETTINGS,
           subtitle: 'Unit system to display',
         },
-        {
-          title: SWIM_SETTINGS,
-          subtitle: 'Default swimming pool length'
-        },
+        // {
+        //   title: SWIM_SETTINGS,
+        //   subtitle: 'Default swimming pool length'
+        // },
         // {
         //   title: COMMUNITY_SETTINGS,
         //   subtitle: 'Who can see your friends list?',  

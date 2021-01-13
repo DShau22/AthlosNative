@@ -70,7 +70,6 @@ export default function JumpEditPopup(props) {
       const newModeSettings = {
         mode: JUMP,
         subtitle: JUMP_SUBTITLE,
-        backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
         metric: reportMetric
       };
       const index = prevConfig.indexOf(editModeItem)

@@ -6,7 +6,6 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 MaterialIcon.loadFont();
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 MaterialCommunityIcons.loadFont();
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Feather from 'react-native-vector-icons/dist/Feather';
 Feather.loadFont();
 import CustomIcon from '../../../CustomIcons';
@@ -25,10 +24,11 @@ const ProfileAboutYou = (props) => {
   const profileContext = React.useContext(ProfileContext);
 
   const { age, weight, height, gender, } = profileContext;
-  console.log(userDataContext.settings);
   const unitSystem = userDataContext.settings.unitSystem.toLowerCase();
-  const displayHeight = unitSystem === METRIC ? `${inchesToCm(height)} cm` : englishHeight(height);
-  const displayWeight = unitSystem === METRIC ? `${poundsToKg(weight)} kg` : `${weight} lbs`;
+  const displayHeight = unitSystem === METRIC ? 
+    `${Math.round(inchesToCm(height))} cm` : englishHeight(height);
+  const displayWeight = unitSystem === METRIC ?
+    `${Math.round(poundsToKg(weight) * 10) / 10} kg` : `${weight} lbs`;
   
   const gridElements = [
     {

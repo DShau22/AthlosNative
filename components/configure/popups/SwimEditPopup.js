@@ -133,14 +133,12 @@ export default function SwimEditPopup(props) {
         mode: SWIM,
         subtitle: SWIM_SUBTITLE,
         poolLength: poolLength,
-        backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
         trigger: reportTrigger,
         numUntilTrigger: lapNumber,
         metrics,
       };
       const index = prevConfig.indexOf(editModeItem)
       prevConfig[index] = newModeSettings
-      console.log('Swim changes', prevConfig)
       return [...prevConfig]
     })
     setVisible(false);

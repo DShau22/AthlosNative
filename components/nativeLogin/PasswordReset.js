@@ -94,6 +94,7 @@ const PasswordReset = () => {
           placeholder="Your registered email..."
           icon={<Feather name='mail' color="#05375a" size={20}/>}
           handleChange={handleEmailChange}
+          textColor='#05375a'
           didChange={emailChange}
           errMsg={emailMsg}
         />

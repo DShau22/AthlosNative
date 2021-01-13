@@ -1,48 +1,51 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
-import DraggableFlatList from 'react-native-draggable-flatlist'
-import React from 'react'
-import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native'
-import { Text, Button } from 'react-native-elements'
+import DraggableFlatList from 'react-native-draggable-flatlist';
+import React from 'react';
+import { View, StyleSheet, Dimensions, Alert, Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
+import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Entypo';
-Icon.loadFont()
-import { DEVICE_CONFIG_CONSTANTS, getDefaultConfig } from './DeviceConfigConstants'
+Icon.loadFont();
+
+import { DEVICE_CONFIG_CONSTANTS, getDefaultConfig, getDefaultModeObject } from './DeviceConfigConstants';
 import { UserDataContext } from '../../Context';
-import AddPopup from './popups/AddPopup'
-import ModeItem from './ModeItem'
+import AddPopup from './popups/AddPopup';
+import ModeItem from './ModeItem';
 const {
   RUN,
   SWIM,
   JUMP,
   SWIMMING_EVENT,
-  TIMED_RUN,
+  INTERVAL,
   MUSIC_ONLY,
   CONFIG_KEY,
   MODE_CONFIG
-} = DEVICE_CONFIG_CONSTANTS
+} = DEVICE_CONFIG_CONSTANTS;
 
 // edit popups
-import RunEditPopup from './popups/RunEditPopup'
-import JumpEditPopup from './popups/JumpEditPopup'
-import SwimEditPopup from './popups/SwimEditPopup'
-import SwimEventEditPopup from './popups/SwimEventEditPopup'
-import MusicPopup from './popups/MusicPopup'
+import RunEditPopup from './popups/RunEditPopup';
+import JumpEditPopup from './popups/JumpEditPopup';
+import SwimEditPopup from './popups/SwimEditPopup';
+import SwimEventEditPopup from './popups/SwimEventEditPopup';
+import MusicPopup from './popups/MusicPopup';
 
 import SAinit from './SAinitManager';
 import BLEHandler from '../bluetooth/transmitter';
 import ThemeText from '../generic/ThemeText';
 import { Divider } from 'react-native-paper';
 import { useTheme } from '@react-navigation/native';
+import IntervalEditPopup from './popups/IntervalEditPopup';
 
 // CONSIDER USING REACT NATIVE PAPER FAB.GROUP INSTEAD OF A POPUP MODAL
 // WHEN ADDING A NEW MODE
 
-//OR ALSO REACT-NATIVE ACTION BUTTON https://github.com/mastermoo/react-native-action-button
+// OR ALSO REACT-NATIVE ACTION BUTTON https://github.com/mastermoo/react-native-action-button
 
 // ALSO LOOK AT REACT NATIVE NUMERIC INPUT https://github.com/himelbrand/react-native-numeric-input
 // FOR THE UP DOWN BUTTON STUFF
-
+const WIDTH = Dimensions.get('window').width;
+const FAB_SIZE = 60;
 const DeviceConfig = (props) => {
   const { colors } = useTheme();
 
@@ -50,15 +53,12 @@ const DeviceConfig = (props) => {
   const { settings, cadenceThresholds, referenceTimes, runEfforts, swimEfforts, bests } = userDataContext;
   const [deviceConfig, setDeviceConfig] = React.useState(getDefaultConfig());
   const [adding, setAdding] = React.useState(false);
-  // idx of the object being edited
-  const [editIndex, setEditIndex] = React.useState(null);
   // keeps track of which item in the mode list the user is editing
   const [editModeItem, setEditModeItem] = React.useState({});
   // keeps track of whether or not this is the first render of this component
   const firstUpdate = React.useRef(true);
 
   React.useEffect(() => {
-    console.log(firstUpdate.current);
     if (firstUpdate.current) {
       asyncPrep();
     } else {
@@ -74,7 +74,11 @@ const DeviceConfig = (props) => {
       const initialConfig = await AsyncStorage.getItem(CONFIG_KEY);
       console.log("config got: ", initialConfig);
       firstUpdate.current = false;
-      if (initialConfig !== null) setDeviceConfig(JSON.parse(initialConfig));
+      if (initialConfig !== null) {
+        setDeviceConfig(JSON.parse(initialConfig));
+      } else {
+        setDeviceConfig(getDefaultConfig());
+      }
     } catch(e) {
       console.log(e);
       Alert.alert(
@@ -152,11 +156,14 @@ const DeviceConfig = (props) => {
         deleteMode={deleteMode}
         displayEditModal={() => {
           setEditModeItem(item);
-          setEditIndex(index);
         }}
       />
     );
   };
+
+  const addMode = (mode) => {
+    setDeviceConfig(prevConfig => [...prevConfig, getDefaultModeObject(mode)])
+  }
 
   // lists each of the possible popups that can be rendered based on
   // what the users taps (controlled by the editMode string)
@@ -166,36 +173,37 @@ const DeviceConfig = (props) => {
     return (
       <>
         <RunEditPopup
-          editIndex={editIndex}
           visible={editModeItem.mode === RUN}
           setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
           editModeItem={editModeItem}
           setDeviceConfig={newConfig => setDeviceConfig(newConfig)}
         />
         <JumpEditPopup
-          editIndex={editIndex}
           visible={editModeItem.mode === JUMP}
           setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
           editModeItem={editModeItem}
           setDeviceConfig={setDeviceConfig}
         />
         <SwimEditPopup 
-          editIndex={editIndex}
           visible={editModeItem.mode === SWIM}
           setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
           editModeItem={editModeItem}
           setDeviceConfig={setDeviceConfig}
         />
         <SwimEventEditPopup 
-          editIndex={editIndex}
           visible={editModeItem.mode === SWIMMING_EVENT}
           setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
           editModeItem={editModeItem}
           setDeviceConfig={setDeviceConfig}
         />
         <MusicPopup
-          editIndex={editIndex}
           visible={editModeItem.mode === MUSIC_ONLY}
+          setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
+          editModeItem={editModeItem}
+          setDeviceConfig={setDeviceConfig}
+        />
+        <IntervalEditPopup
+          visible={editModeItem.mode === INTERVAL}
           setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
           editModeItem={editModeItem}
           setDeviceConfig={setDeviceConfig}
@@ -246,12 +254,80 @@ const DeviceConfig = (props) => {
                 }
               }}
             />
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.addButton}
               onPress={() => setAdding(true)}
             >
               <Icon name="plus" size={30} color='black' />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
+            <ActionButton
+              position='left'
+              offsetX={15}
+              offsetY={15}
+              buttonColor={'#1CB5E0'}
+              size={FAB_SIZE}
+            >
+              <ActionButton.Item
+                size={FAB_SIZE - 8}
+                textContainerStyle={styles.actionButtonTextContainer}
+                textStyle={styles.actionButtonText}
+                buttonColor='#9b59b6'
+                title="Music Only"
+                onPress={() => addMode(MUSIC_ONLY)}
+              >
+                <Icon name="md-create" style={styles.actionButtonIcon} />
+              </ActionButton.Item>
+              <ActionButton.Item
+                size={FAB_SIZE - 8}
+                textContainerStyle={styles.actionButtonTextContainer}
+                textStyle={styles.actionButtonText}
+                buttonColor='#3498db'
+                title="Running"
+                onPress={() => addMode(RUN)}
+              >
+                <Icon name="md-notifications-off" style={styles.actionButtonIcon} />
+              </ActionButton.Item>
+              <ActionButton.Item
+                size={FAB_SIZE - 8}
+                textContainerStyle={styles.actionButtonTextContainer}
+                textStyle={styles.actionButtonText}
+                buttonColor='#1abc9c'
+                title="Swimming"
+                onPress={() => addMode(SWIM)}
+              >
+                <Icon name="md-done-all" style={styles.actionButtonIcon} />
+              </ActionButton.Item>
+              <ActionButton.Item
+                size={FAB_SIZE - 8}
+                textContainerStyle={styles.actionButtonTextContainer}
+                textStyle={styles.actionButtonText}
+                buttonColor='#1abc9c'
+                title="Vertical"
+                onPress={() => addMode(JUMP)}
+              >
+                <Icon name="md-done-all" style={styles.actionButtonIcon} />
+              </ActionButton.Item>
+              <ActionButton.Item
+                size={FAB_SIZE - 8}
+                textContainerStyle={styles.actionButtonTextContainer}
+                textStyle={styles.actionButtonText}
+                buttonColor='#1abc9c'
+                title="Swimming Event"
+                onPress={() => addMode(SWIMMING_EVENT)}
+              >
+                <Icon name="md-done-all" style={styles.actionButtonIcon} />
+              </ActionButton.Item>
+              <ActionButton.Item
+                size={FAB_SIZE - 8}
+                textContainerStyle={styles.actionButtonTextContainer}
+                textStyle={styles.actionButtonText}
+                buttonColor='#1abc9c'
+                title="Interval"
+                onPress={() => addMode(INTERVAL)}
+              >
+                <Icon name="md-done-all" style={styles.actionButtonIcon} />
+              </ActionButton.Item>
+            </ActionButton>
 
             {/* <Button title='test make sainit' onPress={saveAndSendToDevice}/> */}
           </View>
@@ -261,20 +337,18 @@ const DeviceConfig = (props) => {
   );
 }
 const styles = StyleSheet.create({
-  addButton: {
-    position: 'absolute',
-    bottom: 25,
-    right: 25,
-
-    borderColor: 'rgba(0,0,0,0.2)',
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 60,
-    height: 60,
-    backgroundColor: '#fff',
-    borderRadius: 30,
+  actionButtonIcon: {
+    fontSize: 20,
+    height: 22,
+    color: 'white',
   },
-
+  actionButtonTextContainer: {
+    height: 25,
+  },
+  actionButtonText: {
+    fontSize: 14,
+    color: 'black',
+    alignSelf: 'center'
+  }
 })
 export default gestureHandlerRootHOC(DeviceConfig)

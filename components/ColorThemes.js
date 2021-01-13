@@ -87,6 +87,7 @@ const DARK_THEME = {
     gradientRight: '#36EA8E',
     textButtonColor: '#F2FFFF',
     textColor: '#FFFFFF',
+    border: '#404E7C'
     // ...DarkTheme.colors,
     // background: '#001E2E',
   },

@@ -7,7 +7,6 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 MaterialIcon.loadFont();
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 MaterialCommunityIcons.loadFont();
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Feather from 'react-native-vector-icons/dist/Feather';
 Feather.loadFont();
 import CustomIcon from '../../../CustomIcons';
@@ -17,6 +16,7 @@ import { UserDataContext, ProfileContext } from '../../../Context';
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
 const { METRIC, ENGLISH } = GLOBAL_CONSTANTS;
 import ProfileSectionGrid from './ProfileSectionGrid';
+import { inchesToCm, roundToDecimal } from '../../utils/unitConverter'
 
 const ProfileGoals = (props) => {
   const { colors } = useTheme();
@@ -25,7 +25,8 @@ const ProfileGoals = (props) => {
   const profileContext = React.useContext(ProfileContext);
 
   const { goalSteps, goalLaps, goalVertical, goalCaloriesBurned } = profileContext.goals;
-  
+  const goalVerticalDisplay = unitSystem === METRIC ? 
+    `${roundToDecimal(inchesToCm(goalVertical), 1)} cm` : `${goalVertical} in`;
   const gridElements = [
     {
       icon: <CustomIcon name='running' size={30} color={colors.textColor}/>,
@@ -39,7 +40,7 @@ const ProfileGoals = (props) => {
     },
     {
       icon: <Feather name='chevrons-up' size={30} color={colors.textColor}/>,
-      textDisplay: `${goalVertical} ${unitSystem === METRIC ? 'cm' : 'in'}`,
+      textDisplay: goalVerticalDisplay,
       textDisplayTitle: 'Best Vertical'
     },
     {

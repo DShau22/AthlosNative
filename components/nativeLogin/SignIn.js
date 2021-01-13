@@ -30,6 +30,7 @@ import { useTheme } from 'react-native-paper';
 import { AppContext } from "../../Context";
 import ENDPOINTS from '../endpoints';
 import LOGIN_CONSTANTS from './LoginConstants';
+import Textbox from './Textbox';
 const { SIGNUP, FORGOT_PASSWORD } = LOGIN_CONSTANTS;
 const signInURL = ENDPOINTS.signIn;
 
@@ -165,7 +166,7 @@ const SignIn = ({ navigation }) => {
       />
       <StatusBar backgroundColor='#009387' barStyle="light-content"/>
       <View style={styles.header}>
-        <Text style={styles.text_header}>Sign In!</Text>
+        <Text style={styles.text_header}>Sign In</Text>
       </View>
       <Animatable.View 
         animation="fadeInUpBig"

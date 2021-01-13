@@ -1,3 +1,4 @@
+import { useTheme } from '@react-navigation/native';
 import React from 'react'
 import { 
   View, 
@@ -6,32 +7,48 @@ import {
   StyleSheet,
   TouchableOpacity
 } from 'react-native';
-import { useTheme } from 'react-native-paper';
 import * as Animatable from 'react-native-animatable';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
 import ThemeText from '../generic/ThemeText';
 
 export default function Textbox(props) {
+  const {
+    containerStyle,
+    headerText,
+    keyboardType,
+    defaultValue,
+    secureTextEntry,
+    didChange,
+    errMsg,
+    icon,
+    placeholder,
+    updateSecureText,
+    textColor,
+    handleChange
+  } = props;
   const { colors } = useTheme();
   return (
-    <View style={props.containerStyle}>
-      <ThemeText style={[styles.text_footer]}>{props.headerText}</ThemeText>
+    <View style={containerStyle}>
+      <ThemeText style={[styles.text_footer, {
+        color: textColor ? textColor : colors.textColor
+      }]}>
+        {headerText}
+      </ThemeText>
       <View style={styles.action}>
-        {props.icon}
+        {icon}
         <TextInput 
-          placeholder={props.placeholder}
+          placeholder={placeholder}
           style={[styles.textInput, {
-            color: colors.textColor
+            color: textColor ? textColor : colors.textColor
           }]}
           placeholderTextColor="#666666"
           autoCapitalize="none"
-          keyboardType={props.keyboardType !== undefined ? props.keyboardType : 'default'}
-          defaultValue={props.defaultValue !== undefined ? props.defaultValue : ''}
-          secureTextEntry={props.secureTextEntry}
-          onChangeText={(val) => props.handleChange(val)}
+          keyboardType={keyboardType !== undefined ? keyboardType : 'default'}
+          defaultValue={defaultValue !== undefined ? defaultValue : ''}
+          secureTextEntry={secureTextEntry}
+          onChangeText={(val) => handleChange(val)}
         />
-        {props.didChange && !props.errMsg ? 
+        {didChange && !props.errMsg ? 
           <Animatable.View animation="bounceIn">
             <Feather 
               name="check-circle"
@@ -42,12 +59,12 @@ export default function Textbox(props) {
         : null}
 
         {/* Have additional component for hiding text if props say so */}
-        { props.updateSecureText === undefined ? null : 
+        { updateSecureText === undefined ? null : 
           <TouchableOpacity
-            onPress={props.updateSecureText}
+            onPress={updateSecureText}
             style={{ marginLeft : 10}}
           >
-            {props.secureTextEntry ? 
+            {secureTextEntry ? 
               <Feather 
                 name="eye-off"
                 color="grey"
@@ -63,9 +80,9 @@ export default function Textbox(props) {
           </TouchableOpacity>
         }
       </View>
-      { !props.errMsg ? null : 
+      { !errMsg ? null : 
         <Animatable.View animation="fadeInLeft" duration={500}>
-          <Text style={styles.errorMsg}>{props.errMsg}</Text>
+          <Text style={styles.errorMsg}>{errMsg}</Text>
         </Animatable.View>
       }
     </View>
@@ -73,7 +90,6 @@ export default function Textbox(props) {
 }
 const styles = StyleSheet.create({
   text_footer: {
-    color: '#05375a',
     fontSize: 18
   },
   action: {

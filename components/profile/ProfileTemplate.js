@@ -2,13 +2,20 @@
 // has many holes that need to be filled with a shit ton of props
 // oassed in from the profile component
 import React from 'react'
-import { View, ScrollView, StyleSheet, RefreshControl, Image } from 'react-native'
+import { getData, storeDataObj } from '../utils/storage';
+import { View, ScrollView, StyleSheet, RefreshControl, Alert } from 'react-native'
 import { Text, Button, Divider } from 'react-native-elements'
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from '@react-navigation/native';
+import axios from 'axios';
 
-import { UserDataContext, ProfileContext } from '../../Context';
-import PROFILE_CONSTANTS from "./ProfileConstants"
+import { UserDataContext, ProfileContext, AppFunctionsContext } from '../../Context';
+import PROFILE_CONSTANTS from "./ProfileConstants";
+import SETTINGS_CONSTANTS from '../settings/SettingsConstants';
+import ENDPOINTS from '../endpoints';
+const {
+  UNIT_SYSTEM_SETTINGS_LIST,
+} = SETTINGS_CONSTANTS;
 const {
   USER_PROFILE,
   SEARCH_PROFILE,
@@ -35,6 +42,10 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import StatCard from '../fitness/StatCard';
 import ThemeText from '../generic/ThemeText';
 import ProfileAboutYou from './sections/ProfileAboutYou';
+
+import GeneralSetting from '../settings/settingScreens/GeneralSetting';
+import SettingsMenu from '../settings/settingScreens/SettingsMenu';
+import Spinner from 'react-native-loading-spinner-overlay';
 
 // replace with default avatar link
 const imgAlt = "./default_profile.png"
@@ -120,6 +131,108 @@ const ProfileTemplate = (props) => {
     ((relationshipStatus === IS_FOLLOWING || relationshipStatus === IS_RIVAL) && settings.seeBasicInfo === FOLLOWERS)
   )
 
+  //********************** SETTINGS STUFF *************************
+  const context = React.useContext(UserDataContext);
+  const { setAppState } = React.useContext(AppFunctionsContext); 
+
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [unitDisplayChoice, setUnitDisplayChoice] = React.useState(settings.unitSystem);
+  // NOT IN USE AT THE MOMENT FOR SETTINGS
+  const [communityChoice, setCommunityChoice] = React.useState(settings.seeCommunity);
+  const [fitnessChoice, setFitnessChoice] = React.useState(settings.seeFitness);
+  const [basicInfoChoice, setBasicInfoChoice] = React.useState(settings.seeBasicInfo);
+  const [bestsChoice, setBestsChoice] = React.useState(settings.seeBests);
+  const [totalsChoice, setTotalsChoice] = React.useState(settings.seeTotals);
+
+  // cancel token for cancelling Axios requests on unmount
+  const CancelToken = axios.CancelToken;
+  const source = CancelToken.source();
+
+  React.useEffect(() => {
+    return () => {
+      console.log("Settings requests are being canceled")
+      source.cancel('Operation has been canceled')
+    };
+  }, [])
+
+  const saveSettings = () => {
+    const asyncSaveSettings = async () => {
+      console.log('saving settings...')
+      setIsLoading(true);
+      // get user token
+      try {
+        var token = await getData()
+        console.log("token: ", token);
+        if (!token) {
+          // send them back to the login page
+          console.log("WOT they have no token hmmmm")
+          setIsLoading(false);
+          return
+        } 
+      } catch(e) {
+        console.log(e)
+        Alert.alert('Oh No :(', e.toString(), [{ text: "Okay" }]);
+      }
+  
+      // update settings with the backend
+      try {
+        const config = {
+          headers: { 'Content-Type': 'application/json' },
+          cancelToken: source.token
+        }
+        var res = await axios.post(ENDPOINTS.updateSettings, {
+          userToken: token,
+          seeCommunity: communityChoice,
+          seeFitness: fitnessChoice,
+          seeBests: bestsChoice,
+          seeTotals: totalsChoice,
+          seeBasicInfo: basicInfoChoice,
+          unitSystem: unitDisplayChoice,
+        }, config)
+        var json = res.data
+        console.log("axios response: ", json)
+        if (json.success) {
+          // props.updateUserInfo()
+          Alert.alert('All Done!', "Your settings have been successfully updated :)", [{ text: "Okay" }]);
+          setIsLoading(false);
+        } else {
+          throw new Error(json.message);
+        }
+      } catch(e) {
+        console.log(e)
+        Alert.alert('Oh No :(', e.toString(), [{ text: "Okay" }]);
+        setIsLoading(false);
+        return;
+      }
+      // update Athlos state
+      const newState = {
+        ...context,
+        settings: {
+          seeBasicInfo: basicInfoChoice,
+          seeFitness: fitnessChoice,
+          seeBests: bestsChoice,
+          seeTotals: totalsChoice,
+          seeCommunity: communityChoice,
+          unitSystem: unitDisplayChoice
+        }
+      }
+      setAppState(newState);
+      // update async storage
+      try {
+        // THIS DOESN'T ACTUALLY WORK DOESNT SEEM LIKE CONTEXT DOESNT GET UPDATED FUCK
+        console.log("storing data object: ", newState)
+        await storeDataObj(newState)
+        console.log("async storage updated")
+      } catch(e) {
+        console.error(e)
+        Alert.alert('Oh No :(', "Something went wrong with trying to save your settings. Please try again.", [{ text: "Okay" }]);
+      }
+    }
+    asyncSaveSettings();
+  }
+
+
+
   const Stack = createStackNavigator();
   const profileScreenName = relationshipStatus === IS_SELF ? USER_PROFILE : SEARCH_PROFILE
   return (
@@ -163,40 +276,10 @@ const ProfileTemplate = (props) => {
                 <View style={{alignItems: 'center', width: '100%'}}>
                   <Divider style={{width: '95%', marginTop: 8 }}/>
                 </View>
-                {/* <View style={styles.routeButtons}>
-                  {canViewFitness() ?
-                    <Card
-                      onPress={() => navigateToFitness(props.navigation)}
-                      style={[styles.routeButtonCard, {backgroundColor: colors.cardBackground}]}
-                    >
-                      <Card.Content style={styles.routeButtonCardContent}>
-                        <Image
-                          style={styles.cardImage}
-                          source={{uri: 'https://reactnative.dev/img/tiny_logo.png'}}
-                        />
-                        <ThemeText h4>Fitness</ThemeText>
-                      </Card.Content>
-                    </Card> : null
-                  }
-                  {canViewBasicInfo() ?
-                    <Card
-                      onPress={() => props.navigation.navigate(PROFILE_CONSTANTS.BASIC_INFO)}
-                      style={[styles.routeButtonCard, {backgroundColor: colors.cardBackground}]}
-                    >
-                      <Card.Content style={[styles.routeButtonCardContent]}>
-                        <Image
-                          style={styles.cardImage}
-                          source={{uri: 'https://reactnative.dev/img/tiny_logo.png'}}
-                          />
-                        <ThemeText h4>Info</ThemeText>
-                      </Card.Content>
-                    </Card> : null
-                  }
-                </View> */}
                 {<ProfileAboutYou onEditPress={() => props.navigation.push(PROFILE_CONSTANTS.EDIT_PROFILE)}/>}
                 {<ProfileGoals onEditPress={() => props.navigation.push(PROFILE_CONSTANTS.GOALS)}/>}
-                {canViewBests() ? <ProfileBests /> : null}
-                {canViewTotals() ? <ProfileAggregates /> : null}
+                {canViewBests() ? <ProfileBests/> : null}
+                {/* {canViewTotals() ? <ProfileAggregates /> : null} */}
               </View>
             </ScrollView>
           )}
@@ -213,6 +296,37 @@ const ProfileTemplate = (props) => {
         >
           {props => ( <EditGoals navigation={props.navigation} /> )}
         </Stack.Screen>
+        {/*============================== settings stuff =======================================*/}
+        <Stack.Screen
+          name={GLOBAL_CONSTANTS.SETTINGS}
+          options={{ title: 'App Settings' }}
+        >
+          {props => (
+            <>
+              <Spinner
+                visible={isLoading}
+                textContent={'Saving...'}
+                textStyle={{color: colors.textColor}}
+              />
+              <SettingsMenu
+                {...props}
+                navigation={props.navigation}
+                saveSettings={saveSettings}
+              />
+            </>
+          )}
+        </Stack.Screen>
+        <Stack.Screen name={SETTINGS_CONSTANTS.UNIT_SYSTEM_SETTINGS}>
+          {props => (
+            <GeneralSetting
+              initialChoice={unitDisplayChoice}
+              settingsList={UNIT_SYSTEM_SETTINGS_LIST}
+              updateSettings={setUnitDisplayChoice}
+              saveSettings={saveSettings}
+            />
+          )}
+          </Stack.Screen>
+        {/*============================== settings stuff =======================================*/}
         <Stack.Screen
           name={GLOBAL_CONSTANTS.FITNESS}
           options={{ title: relationshipStatus === IS_SELF ? 'Your Fitness' : `${profileContext.firstName}'s Fitness` }}

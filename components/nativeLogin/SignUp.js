@@ -297,6 +297,7 @@ const SignUp = ({navigation}) => {
             handleChange={handleEmailChange}
             didChange={data.emailChange}
             errMsg={data.emailMsg}
+            textColor={'black'}
           />
 
           <Textbox
@@ -307,6 +308,7 @@ const SignUp = ({navigation}) => {
             handleChange={handleFirstNameChange}
             didChange={data.firstNameChange}
             errMsg={data.firstNameMsg}
+            textColor={'black'}
           />
 
           <Textbox
@@ -317,6 +319,7 @@ const SignUp = ({navigation}) => {
             handleChange={handleLastNameChange}
             didChange={data.lastNameChange}
             errMsg={data.lastNameMsg}
+            textColor={'black'}
           />
 
           <Textbox
@@ -327,6 +330,7 @@ const SignUp = ({navigation}) => {
             handleChange={handleUsernameChange}
             didChange={data.usernameChange}
             errMsg={data.usernameMsg}
+            textColor={'black'}
           />
 
           <Textbox
@@ -339,6 +343,7 @@ const SignUp = ({navigation}) => {
             errMsg={data.passwordMsg}
             updateSecureText={updateSecureTextEntry}
             secureTextEntry={data.secureTextEntry}
+            textColor={'black'}
           />
 
           <Textbox
@@ -350,6 +355,7 @@ const SignUp = ({navigation}) => {
             errMsg={data.passwordConfMsg}
             updateSecureText={updateConfirmSecureTextEntry}
             secureTextEntry={data.confirm_secureTextEntry}
+            textColor={'black'}
           />
 
           <View style={styles.textPrivate}>

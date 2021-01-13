@@ -5,10 +5,21 @@ import GLOBAL_CONSTANTS from '../GlobalConstants'
 import * as Yup from 'yup';
 import axios from 'axios';
 
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+FontAwesome.loadFont();
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+MaterialIcon.loadFont();
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+MaterialCommunityIcons.loadFont();
+import Feather from 'react-native-vector-icons/dist/Feather';
+Feather.loadFont();
+import CustomIcon from '../../CustomIcons';
+CustomIcon.loadFont();
+
 import { UserDataContext, AppFunctionsContext } from "../../Context"
 
 import {
-  cmToInches,
+  cmToInches, inchesToCm, roundToDecimal
 } from "../utils/unitConverter"
 import ENDPOINTS from "../endpoints"
 import editGoalsSchema from "./EditGoalsSchema"
@@ -22,13 +33,14 @@ export default function EditProfile(props) {
   const context = React.useContext(UserDataContext);
   const { colors } = useTheme();
   const { updateLocalUserInfo, setAppState } = React.useContext(AppFunctionsContext);
-  var { unitSystem } = context.settings
+  const { unitSystem } = context.settings
   const { goals } = context;
   const [isLoading, setIsLoading] = React.useState(false);
   const [state, setState] = React.useState({
     updateGoalSteps: goals.goalSteps,
     updateGoalLaps: goals.goalLaps,
-    updateGoalVertical: goals.goalVertical,
+    updateGoalVertical: unitSystem === METRIC ? 
+      roundToDecimal(inchesToCm(goals.goalVertical), 1): goals.goalVertical,
     updateGoalCaloriesBurned: goals.goalCaloriesBurned,
     updateGoalWorkoutTime: goals.goalWorkoutTime,
 
@@ -158,7 +170,6 @@ export default function EditProfile(props) {
       setIsLoading(true);
       console.log("updating goals...");
       const { updateGoalSteps, updateGoalLaps, updateGoalVertical, updateGoalCaloriesBurned, updateGoalWorkoutTime } = state;
-      unitSystem = unitSystem.toLowerCase();
 
       // convert vertical to pure inches
       const vertical = unitSystem === METRIC ? cmToInches(updateGoalVertical) : updateGoalVertical;
@@ -201,46 +212,46 @@ export default function EditProfile(props) {
           textContent={'Loading...'}
           textStyle={styles.spinnerTextStyle}
         />
-        <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          <Textbox 
-            headerText={'Steps'}
-            keyboardType='numeric'
-            defaultValue={state.updateGoalSteps.toString(10)}
-            handleChange={handleGoalStepsChange}
-            didChange={state.goalStepsChange}
-            errMsg={state.goalStepsMsg}
-          />
-        </View>
-        <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          <Textbox 
-            headerText={'Laps'}
-            keyboardType='numeric'
-            defaultValue={state.updateGoalLaps.toString(10)}
-            handleChange={handleGoalLapsChange}
-            didChange={state.goalLapsChange}
-            errMsg={state.goalLapsMsg}
-          />
-        </View>
-        <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          <Textbox 
-            headerText={`Vertical (${unitSystem === METRIC ? 'cm' : 'in'})`}
-            keyboardType='numeric'
-            defaultValue={state.updateGoalVertical.toString(10)}
-            handleChange={handleGoalVerticalChange}
-            didChange={state.goalVerticalChange}
-            errMsg={state.goalVerticalChange}
-          />
-        </View>
-        <View style={[styles.textContainer, {borderColor: colors.border}]}>
-          <Textbox 
-            headerText={"Calories Burned"}
-            keyboardType='numeric'
-            defaultValue={state.updateGoalCaloriesBurned.toString(10)}
-            handleChange={handleGoalCaloriesBurnedChange}
-            didChange={state.goalCaloriesBurnedChange}
-            errMsg={state.goalCaloriesBurnedMsg}
-          />
-        </View>
+        <Textbox
+          containerStyle={[styles.textContainer, {borderColor: colors.border}]}
+          icon={<CustomIcon name='running' size={20} color={colors.textColor}/>}
+          headerText={'Steps'}
+          keyboardType='numeric'
+          defaultValue={state.updateGoalSteps.toString(10)}
+          handleChange={handleGoalStepsChange}
+          didChange={state.goalStepsChange}
+          errMsg={state.goalStepsMsg}
+        />
+        <Textbox
+          containerStyle={[styles.textContainer, {borderColor: colors.border}]}
+          icon={<CustomIcon name='swimmer' size={20} color={colors.textColor}/>}
+          headerText={'Laps'}
+          keyboardType='numeric'
+          defaultValue={state.updateGoalLaps.toString(10)}
+          handleChange={handleGoalLapsChange}
+          didChange={state.goalLapsChange}
+          errMsg={state.goalLapsMsg}
+        />
+        <Textbox
+          containerStyle={[styles.textContainer, {borderColor: colors.border}]}
+          icon={<Feather name='chevrons-up' size={20} color={colors.textColor}/>}
+          headerText={`Vertical (${unitSystem === METRIC ? 'cm' : 'in'})`}
+          keyboardType='numeric'
+          defaultValue={state.updateGoalVertical.toString(10)}
+          handleChange={handleGoalVerticalChange}
+          didChange={state.goalVerticalChange}
+          errMsg={state.goalVerticalChange}
+        />
+        <Textbox
+          containerStyle={[styles.textContainer, {borderColor: colors.border}]}
+          icon={<MaterialCommunityIcons name='fire' size={30} color={colors.textColor}/>}
+          headerText={"Calories Burned"}
+          keyboardType='numeric'
+          defaultValue={state.updateGoalCaloriesBurned.toString(10)}
+          handleChange={handleGoalCaloriesBurnedChange}
+          didChange={state.goalCaloriesBurnedChange}
+          errMsg={state.goalCaloriesBurnedMsg}
+        />
         <Button
           buttonStyle={[styles.saveButton, {backgroundColor: colors.button}]}
           title="Save changes"

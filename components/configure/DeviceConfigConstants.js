@@ -22,7 +22,7 @@ const DEVICE_CONFIG_CONSTANTS = {
   SWIM: 'Swim',
   JUMP: 'Jump',
   SWIMMING_EVENT: 'Swimming Event',
-  TIMED_RUN: 'Timed Run',
+  INTERVAL: 'Interval',
 
   // SUBTITLES
   MUSIC_ONLY_SUBTITLE: 'Music AOIJFOIAJWEIF',
@@ -31,6 +31,7 @@ const DEVICE_CONFIG_CONSTANTS = {
   JUMP_SUBTITLE: 'JUMP AOIJFOIAJWEIF',
   SWIMMING_EVENT_SUBTITLE: 'Swimming AOIJFOIAJWEIF',
   TIMED_RUN_SUBTITLE: 'Timed AOIJFOIAJWEIFn',
+  INTERVAL_SUBTITLE: 'Interval training',
   
   // enums based on what mode the user is editing
   EDIT_RUN: 'Edit Run',
@@ -77,6 +78,8 @@ const {
   JUMP,
   SWIMMING_EVENT,
   TIMED_RUN,
+  INTERVAL,
+  INTERVAL_SUBTITLE,
   MUSIC_ONLY_SUBTITLE,
   RUN_SUBTITLE,
   SWIM_SUBTITLE,
@@ -112,7 +115,7 @@ const getDefaultConfig = () => {
     getDefaultJumpMode(),
     getDefaultSwimMode(),
     getDefaultRaceMode(),
-    getDefaultTimedMode(),
+    getDefaultIntervalMode(),
   ];
 };
 
@@ -173,10 +176,13 @@ const getDefaultRaceMode = () => {
   };
 };
 
-const getDefaultTimedMode = () => {
+const getDefaultIntervalMode = () => {
   return {
-    mode: TIMED_RUN, // lol this should have a better name
-    subtitle: TIMED_RUN_SUBTITLE,
+    mode: INTERVAL,
+    subtitle: INTERVAL_SUBTITLE,
+    intervals: [30, 10, 30, 10],
+    rests: 5, // bitmap 0101
+    cycles: true // either cycle through these intervals or repeat the last one
   };
 };
 
@@ -197,7 +203,7 @@ const getDefaultModeObject = (mode) => {
     case SWIMMING_EVENT:
       return getDefaultRaceMode();
     case TIMED_RUN:
-      return getDefaultTimedMode();
+      return getDefaultIntervalMode();
     default:
       console.log(`mode ${mode} is not valid`);
       return null;

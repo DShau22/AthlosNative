@@ -111,7 +111,7 @@ export default function SwimEventEditPopup(props) {
       setDistance(editModeItem.distance);
       setSplits([...editModeItem.splits]);
     }
-  }, [editModeItem])
+  }, [editModeItem]);
 
   const saveEdits = () => {
     // check if any of the splits are empty first
@@ -136,7 +136,6 @@ export default function SwimEventEditPopup(props) {
         mode: SWIMMING_EVENT,
         subtitle: SWIMMING_EVENT_SUBTITLE,
         stroke: stroke,
-        backgroundColor: `rgb(${Math.floor(Math.random() * 255)}, ${5}, ${132})`,
         distance: distance,
         splits: splits,
       };
@@ -209,10 +208,11 @@ export default function SwimEventEditPopup(props) {
           value={renderDistance()}
           containerStyle={{width: '95%', height: 40, marginBottom: 50}}
           onChangeText={(value) => {
-            setDistance(value)
             // an array of all 30s depending on the distance
-            const newDefaultSplits = [...Array(Math.min(8, value/50)).keys()].map(_ => 30)
-            setSplits(newDefaultSplits)
+            const newDefaultSplits = [...Array(Math.min(8, parseInt(value/50))).keys()].map(_ => '30');
+            setErrorMsgs(newDefaultSplits.map(_ => ''));
+            setSplits(newDefaultSplits);
+            setDistance(value);
           }}
           animationDuration={ANIMATION_DURATION}
         />
@@ -223,6 +223,7 @@ export default function SwimEventEditPopup(props) {
           splits={splits}
           errorMsgs={errorMsgs}
           setErrorMsgs={setErrorMsgs}
+          label={'50'}
         />
       </View>
     )

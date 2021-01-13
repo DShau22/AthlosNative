@@ -28,7 +28,7 @@ const GeneralSetting = (props) => {
           bottomDivider
           onPress={() => {
             setButtonPressed(item.title.toLowerCase());
-            props.updateSettings(item.title.toLowerCase());
+            updateSettings(item.title.toLowerCase());
           }}
         >
           <ListItem.Content>

@@ -46,6 +46,7 @@ import GeneralSetting from './settingScreens/GeneralSetting';
 import ThemeText from '../generic/ThemeText';
 
 const Settings = (props) => {
+  const { Stack, navigation } = props;
   const context = React.useContext(UserDataContext);
   const { settings } = context;
   const { setAppState } = React.useContext(AppFunctionsContext); 
@@ -154,7 +155,7 @@ const Settings = (props) => {
   }
 
   // for navigating to each setting page
-  const Stack = createStackNavigator();
+  // const Stack = createStackNavigator();
   // if the firstname in the context is blank then it hasnt finished populating yet
   if (!context.firstName) {
     return ( <LoadingScreen/>)
@@ -168,12 +169,13 @@ const Settings = (props) => {
           textContent={'Saving...'}
           textStyle={styles.spinnerTextStyle}
         />
-        <Stack.Navigator>
+        {/* <Stack.Navigator> */}
+        {/* <SettingsMenu navigation={navigation} saveSettings={saveSettings}/> */}
           <Stack.Screen
             name={SETTINGS_MENU}
             options={{ title: "Your Settings" }}
           >
-            {props => <SettingsMenu {...props} saveSettings={saveSettings}/>}
+            {props => <SettingsMenu {...props} navigation={navigation} saveSettings={saveSettings}/>}
           </Stack.Screen>
           <Stack.Screen name={UNIT_SYSTEM_SETTINGS}>
             {props => (
@@ -185,7 +187,7 @@ const Settings = (props) => {
               />
             )}
           </Stack.Screen>
-          <Stack.Screen name={SWIM_SETTINGS}>
+          {/* <Stack.Screen name={SWIM_SETTINGS}>
             {props => (
               <GeneralSetting
                 {...props}
@@ -195,7 +197,7 @@ const Settings = (props) => {
                 defaultOption={swimLengthChoice}
               />
             )}
-          </Stack.Screen>
+          </Stack.Screen> */}
           {/* <Stack.Screen name={COMMUNITY_SETTINGS}>
             {props => (
               <PrivacySetting
@@ -241,7 +243,7 @@ const Settings = (props) => {
               />
             )}
           </Stack.Screen> */}
-        </Stack.Navigator>
+        {/* </Stack.Navigator> */}
       </SettingsContext.Provider>
     )
   }

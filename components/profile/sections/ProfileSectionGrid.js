@@ -44,14 +44,16 @@ const ProfileSectionGrid = (props) => {
           fontSize: 24,
           marginLeft: 10,
         }}>{sectionTitle}</ThemeText>
-        <Button
-          title='Edit'
-          containerStyle={{width: '30%', marginRight: '5%'}}
-          buttonStyle={{
-            backgroundColor: colors.button
-          }}
-          onPress={() => onEditPress()}
-        />
+        {onEditPress ?
+          <Button
+            title='Edit'
+            containerStyle={{width: '30%', marginRight: '5%'}}
+            buttonStyle={{
+              backgroundColor: colors.button
+            }}
+            onPress={() => onEditPress()}
+          /> : null
+        }
       </View>
       {renderGrid()}
     </View>

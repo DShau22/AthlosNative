@@ -35,7 +35,6 @@ const MusicPopup = (props) => {
 
   const saveEdits = () => {
     // save the song orders and whether or not to shuffle or play in order
-    console.log('saving music edits...')
   }
   
   const resetState = () => {
