@@ -3,6 +3,7 @@ import DraggableFlatList from 'react-native-draggable-flatlist';
 import React from 'react';
 import { View, StyleSheet, Dimensions, Alert, Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { Button } from 'react-native-elements';
 import AsyncStorage from '@react-native-community/async-storage';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Entypo';
@@ -20,6 +21,7 @@ const {
   INTERVAL,
   MUSIC_ONLY,
   CONFIG_KEY,
+  TIMER,
   MODE_CONFIG
 } = DEVICE_CONFIG_CONSTANTS;
 
@@ -30,12 +32,23 @@ import SwimEditPopup from './popups/SwimEditPopup';
 import SwimEventEditPopup from './popups/SwimEventEditPopup';
 import MusicPopup from './popups/MusicPopup';
 
+// edit screens
+import RunEditScreen from './screens/RunEditScreen';
+import SwimEditScreen from './screens/SwimEditScreen';
+import VerticalEditScreen from './screens/VerticalEditScreen';
+import TimerEditScreen from './screens/TimerEditScreen';
+import SwimmingEventEditScreen from './screens/SwimmingEventEditScreen';
+import MusicOnlyEditScreen from './screens/MusicOnlyScreen';
+import IntervalEditScreen from './screens/IntervalEditScreen';
+
 import SAinit from './SAinitManager';
 import BLEHandler from '../bluetooth/transmitter';
 import ThemeText from '../generic/ThemeText';
 import { Divider } from 'react-native-paper';
 import { useTheme } from '@react-navigation/native';
 import IntervalEditPopup from './popups/IntervalEditPopup';
+import LoadingSpin from '../generic/LoadingSpin';
+import Spinner from 'react-native-loading-spinner-overlay';
 
 // CONSIDER USING REACT NATIVE PAPER FAB.GROUP INSTEAD OF A POPUP MODAL
 // WHEN ADDING A NEW MODE
@@ -146,7 +159,7 @@ const DeviceConfig = (props) => {
   }
 
   // function for rendering draggable list item
-  const renderItem = ({ item, index, drag, isActive }) => {
+  const renderItem = (item, index, drag, isActive, navigation) => {
     return (
       <ModeItem
         item={item}
@@ -156,6 +169,9 @@ const DeviceConfig = (props) => {
         deleteMode={deleteMode}
         displayEditModal={() => {
           setEditModeItem(item);
+        }}
+        onPress={() => {
+          navigation.navigate(item.mode, {editIdx: index});
         }}
       />
     );
@@ -211,10 +227,16 @@ const DeviceConfig = (props) => {
       </>
     )
   }
-  const Stack = createStackNavigator();
   if (firstUpdate.current) {
-    return <Text>Loading...</Text>
+    return (
+      <View>
+        <Spinner
+          textStyle={{color: colors.textColor}}
+        />
+      </View>
+    );
   }
+  const Stack = createStackNavigator();
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -223,24 +245,30 @@ const DeviceConfig = (props) => {
       >
         {props => 
           <View style={{ flex: 1 }}>
-            <ThemeText style={{ marginTop: 20, marginLeft: 10, fontSize: 20, fontWeight: 'bold' }}>
-              Tailor your device to your preferences:
-            </ThemeText>
-            <ThemeText style={{ margin: 10, fontSize: 14 }}>
-              Customize what stats your device will report to you in workouts and when to report them.
-              Add or remove activity tracking modes that your device can use when powered on.
-            </ThemeText>
-            <Divider style={{ alignSelf: 'center', width: '95%', marginTop: 10, backgroundColor: colors.textColor }}/>
-            <AddPopup
-              deviceConfig={deviceConfig}
-              adding={adding}
-              setAdding={setAdding}
-              setDeviceConfig={setDeviceConfig}
-            />
-            {popups()}
             <DraggableFlatList
+              ListHeaderComponent={() => (
+                <>
+                  <ThemeText style={{ marginTop: 20, marginLeft: 10, fontSize: 20, fontWeight: 'bold' }}>
+                    Tailor your device to your preferences:
+                  </ThemeText>
+                  <ThemeText style={{ margin: 10, fontSize: 14 }}>
+                    Customize what stats your device will report to you in workouts and when to report them.
+                    Add or remove activity tracking modes that your device can use when powered on.
+                  </ThemeText>
+                  <Divider style={{ alignSelf: 'center', width: '95%', marginTop: 10, backgroundColor: colors.textColor }}/>
+                  <AddPopup
+                    deviceConfig={deviceConfig}
+                    adding={adding}
+                    setAdding={setAdding}
+                    setDeviceConfig={setDeviceConfig}
+                  />
+                  {popups()}
+                </>
+              )}
               data={deviceConfig}
-              renderItem={renderItem}
+              renderItem={({item, index, drag, isActive}) => 
+                renderItem(item, index, drag, isActive, props.navigation)
+              }
               keyExtractor={(item, index) => `draggable-item-${item.mode}-${index}`}
               onDragEnd={({ data }) => {
                 if (data[0].mode !== MUSIC_ONLY) {
@@ -253,13 +281,12 @@ const DeviceConfig = (props) => {
                   setDeviceConfig(data);
                 }
               }}
+              ListFooterComponent={() => (
+                <>
+                  <Button title='test make sainit' onPress={saveAndSendToDevice}/>
+                </>
+              )}
             />
-            {/* <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setAdding(true)}
-            >
-              <Icon name="plus" size={30} color='black' />
-            </TouchableOpacity> */}
             <ActionButton
               position='left'
               offsetX={15}
@@ -328,10 +355,85 @@ const DeviceConfig = (props) => {
                 <Icon name="md-done-all" style={styles.actionButtonIcon} />
               </ActionButton.Item>
             </ActionButton>
-
-            {/* <Button title='test make sainit' onPress={saveAndSendToDevice}/> */}
           </View>
         }
+      </Stack.Screen>
+      <Stack.Screen
+        name={RUN}
+        options={{ title: "Running Tracker" }}
+      >
+        {props => 
+          <RunEditScreen
+            {...props}
+            setDeviceConfig={newConfig => setDeviceConfig(newConfig)}
+            deviceConfig={deviceConfig}
+          />}
+      </Stack.Screen>
+      <Stack.Screen
+        name={SWIM}
+        options={{ title: "Lap Swim Tracker" }}
+      >
+        {props => 
+          <SwimEditScreen
+            {...props}
+            setDeviceConfig={newConfig => setDeviceConfig(newConfig)}
+            deviceConfig={deviceConfig}
+          />}
+      </Stack.Screen>
+      <Stack.Screen
+        name={JUMP}
+        options={{ title: "Vertical Height Tracker" }}
+      >
+        {props => 
+          <VerticalEditScreen
+            {...props}
+            setDeviceConfig={newConfig => setDeviceConfig(newConfig)}
+            deviceConfig={deviceConfig}
+          />}
+      </Stack.Screen>
+      <Stack.Screen
+        name={SWIMMING_EVENT}
+        options={{ title: "Swimming Event Tracker" }}
+      >
+        {props => 
+          <SwimmingEventEditScreen
+            {...props}
+            setDeviceConfig={newConfig => setDeviceConfig(newConfig)}
+            deviceConfig={deviceConfig}
+          />}
+      </Stack.Screen>
+      <Stack.Screen
+        name={TIMER}
+        options={{ title: "Time Trial" }}
+      >
+        {props => 
+          <TimerEditScreen
+            {...props}
+            setDeviceConfig={newConfig => setDeviceConfig(newConfig)}
+            deviceConfig={deviceConfig}
+          />}
+      </Stack.Screen>
+      <Stack.Screen
+        name={INTERVAL}
+        options={{ title: "Interval Training" }}
+      >
+        {props => 
+          <IntervalEditScreen
+            {...props}
+            setDeviceConfig={newConfig => setDeviceConfig(newConfig)}
+            deviceConfig={deviceConfig}
+          />}
+      </Stack.Screen>
+      <Stack.Screen
+        name={MUSIC_ONLY}
+        options={{ title: "Music Only" }}
+      >
+        {props => 
+          <MusicOnlyEditScreen
+            {...props}
+            setDeviceConfig={newConfig => setDeviceConfig(newConfig)}
+            deviceConfig={deviceConfig}
+          />}
       </Stack.Screen>
     </Stack.Navigator>
   );

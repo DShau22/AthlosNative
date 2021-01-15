@@ -72,7 +72,7 @@ export default function TimerEditPopup(props) {
       isVisible={visible}
       setVisible={setVisible}
       titleText='Interval Training Mode'
-      height='80%'
+      height='60%'
       resetState={resetState}
       saveEdits={saveEdits}
     >

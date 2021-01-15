@@ -171,11 +171,11 @@ const Swim = (props) => {
       >
         <LineProgression
           activityColor={COLOR_THEMES.SWIM_THEME}
-          yAxisInterval='5'
-          xAxisInterval='5'
+          yAxisInterval='10'
+          xAxisInterval='10'
           yAxisUnits='s'
           data={currentDay ? currentDay.lapTimes.map(({lapTime}, _) => lapTime) : []}
-          labels={currentDay ? makeTimeLabels() : []}
+          labels={currentDay ? makeTimeLabels().map((_, idx) => '') : []}
         />
       </ScrollView>
       <View style={{alignItems: 'center'}}>

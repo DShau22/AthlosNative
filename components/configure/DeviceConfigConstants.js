@@ -23,6 +23,7 @@ const DEVICE_CONFIG_CONSTANTS = {
   JUMP: 'Jump',
   SWIMMING_EVENT: 'Swimming Event',
   INTERVAL: 'Interval',
+  TIMER: 'Timer',
 
   // SUBTITLES
   MUSIC_ONLY_SUBTITLE: 'Music AOIJFOIAJWEIF',
@@ -77,7 +78,7 @@ const {
   SWIM,
   JUMP,
   SWIMMING_EVENT,
-  TIMED_RUN,
+  TIMER,
   INTERVAL,
   INTERVAL_SUBTITLE,
   MUSIC_ONLY_SUBTITLE,
@@ -115,6 +116,7 @@ const getDefaultConfig = () => {
     getDefaultJumpMode(),
     getDefaultSwimMode(),
     getDefaultRaceMode(),
+    getDefaultTimerMode(),
     getDefaultIntervalMode(),
   ];
 };
@@ -176,13 +178,25 @@ const getDefaultRaceMode = () => {
   };
 };
 
+const getDefaultTimerMode = () => {
+  return {
+    mode: TIMER,
+    splits: [60, 60, 60, 60],
+    cycles: false,
+  }
+}
+
 const getDefaultIntervalMode = () => {
   return {
     mode: INTERVAL,
     subtitle: INTERVAL_SUBTITLE,
-    intervals: [30, 10, 30, 10],
-    rests: 5, // bitmap 0101
-    cycles: true // either cycle through these intervals or repeat the last one
+    intervals: [
+      {time: '30', rest: false},
+      {time: '10', rest: true},
+      {time: '30', rest: false},
+      {time: '10', rest: true},
+    ],
+    numRounds: 1 // if 0, then repeat the last split over and over again
   };
 };
 
@@ -202,8 +216,10 @@ const getDefaultModeObject = (mode) => {
       return getDefaultJumpMode();
     case SWIMMING_EVENT:
       return getDefaultRaceMode();
-    case TIMED_RUN:
+    case INTERVAL:
       return getDefaultIntervalMode();
+    case TIMER:
+      return getDefaultTimerMode();
     default:
       console.log(`mode ${mode} is not valid`);
       return null;

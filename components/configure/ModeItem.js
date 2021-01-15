@@ -11,7 +11,7 @@ const { MUSIC_ONLY, RUN, SWIM, JUMP, SWIMMING_EVENT, TIMED_RUN } = DEVICE_CONFIG
 
 export default function ModeItem(props) {
   const { colors } = useTheme();
-  const { item, index, drag, isActive, deleteMode, displayEditModal } = props;
+  const { item, index, drag, isActive, deleteMode, displayEditModal, onPress } = props;
   const modeToColor = (mode) => { // use a function instead of object to save memory
     switch(mode) {
       case MUSIC_ONLY:
@@ -33,7 +33,7 @@ export default function ModeItem(props) {
   return (
     <TouchableOpacity
       style={{
-        height: 100,
+        height: 80,
         backgroundColor: isActive ? colors.backgroundOffset : modeToColor(item.mode),
         borderColor: item.mode === MUSIC_ONLY ? 'white' : colors.backgroundOffset,
         borderWidth: 1,
@@ -43,7 +43,8 @@ export default function ModeItem(props) {
         marginRight: 15,
       }}
       // on press, open up the edit dialog
-      onPress={displayEditModal}
+      // onPress={displayEditModal}
+      onPress={onPress}
       onLongPress={drag}
     >
       <View

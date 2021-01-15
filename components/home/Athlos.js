@@ -387,7 +387,7 @@ function Athlos(props) {
             {/* <BottomTab.Screen name={SETTINGS} component={Settings} /> */}
             {/* <BottomTab.Screen name={COMMUNITY} component={Community} /> */}
             <BottomTab.Screen name={DEVICE_CONFIG} component={DeviceConfig} />
-            <BottomTab.Screen name={BLUETOOTH} component={Bluetooth} />
+            <BottomTab.Screen name={'Sync'} component={Bluetooth} />
           </BottomTab.Navigator>
         </>
       }

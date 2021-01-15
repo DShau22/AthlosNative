@@ -86,7 +86,7 @@ const SettingsMenu = (props) => {
               <ListItem.Title><ThemeText>{item.title}</ThemeText></ListItem.Title>
               <ListItem.Subtitle><ThemeText>{item.subtitle}</ThemeText></ListItem.Subtitle>
             </ListItem.Content>
-            <ListItem.Chevron color={colors.textColor}/>
+            <ListItem.Chevron name='chevron-forward' color={colors.textColor}/>
           </ListItem>
         )}
       />

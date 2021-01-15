@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, StyleSheet, TouchableOpacity, FlatList, TextInput } from 'react-native'
-import { Text, Button, Input } from 'react-native-elements'
+import { Text, Button, Input, CheckBox } from 'react-native-elements'
 import { DEVICE_CONFIG_CONSTANTS, DEFAULT_CONFIG, MODES } from '../DeviceConfigConstants'
 const {
   SWIMMING_EVENT,
@@ -16,6 +16,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 Icon.loadFont();
 import {splitValidationSchema} from './validationSchema';
 import { useTheme } from '@react-navigation/native';
+import ThemeText from '../../generic/ThemeText';
 
 NUM_TO_WORD = ['First', 'Second', 'Third', 'Fouth', 'Fifth', 'Sixth', 'Seventh', 'Eigth'];
 
@@ -36,7 +37,6 @@ export default function SplitInputs(props) {
   }
 
   const handleInputChange = (textNumber, idx) => {
-    console.log(splits);
     textNumber = textNumber.replace(/\D/g,'');
     const validationString = textNumber.length > 0 ? textNumber : '0'
     Yup.reach(splitValidationSchema, "split").validate(parseInt(validationString))
@@ -58,28 +58,26 @@ export default function SplitInputs(props) {
   }
 
   const splitInput = (num) => {
-    console.log("split input: ", num, NUM_TO_WORD[num]);
-    console.log("length", NUM_TO_WORD.length);
     return (
-      <View style={{flexDirection: 'row', marginTop: 10}}>
+      <View style={styles.container}>
         <Input
           leftIcon={
             <Icon
               name='timer'
               size={24}
-              color={colors.background}
+              color={colors.textColor}
             />
           }
-          style={styles.splitsInput}
+          style={[styles.splitsInput, {color: colors.textColor}]}
+          containerStyle={{width: '100%'}}
           label={`${NUM_TO_WORD[num]} ${label}${distance > 400 && num === 7 ? ' (repeats until finished)' : ''}`}
-          placeholderTextColor="#666666"
+          placeholderTextColor={colors.textColor}
           keyboardType='numeric'
           maxLength={3}
           value={`${splits[num]}`}
           onChangeText={val => handleInputChange(val, num)}
-
           errorMessage={errorMsgs[num]}
-          renderErrorMessage={errorMsgs[num] && errorMsgs[num].length > 0}
+          renderErrorMessage={errorMsgs[num] !== undefined && errorMsgs[num].length > 0}
         />
       </View>
     )
@@ -101,22 +99,15 @@ export default function SplitInputs(props) {
 }
 const styles = StyleSheet.create({
   container: {
-    // flex: 1
-  },
-  innerEditContainer: {
+    flexDirection: 'row',
+    marginTop: 10,
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dropDown: {
-    width: '100%',
-    backgroundColor: '#fafafa'
-  },
-  dropDownItem: {
-    justifyContent: 'flex-start'
   },
   splitsContainer: {
     width: '100%',
     marginTop: 25,
+    marginLeft: 2,
+    marginRight: 2,
   },
   splitInputContainer: {
     flexDirection: 'row'
@@ -127,13 +118,16 @@ const styles = StyleSheet.create({
     color: '#05375a',
     paddingTop: 8,
     paddingBottom: 8,
-    width: '40%',
   },
   splitsRow: {
     flexDirection: 'row',
     alignContent: 'center',
     justifyContent: 'center'
-  }
+  },
+  innerEditContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 })
 
 const SharedSplitInputProps = {

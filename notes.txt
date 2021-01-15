@@ -10,7 +10,9 @@ Any new screens created should be wrapped in the gestureHandlerRootHOC Higher or
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
 Android doesnt recognize 'localhost' but does 10.0.2.2. Ios Doesnt recognize 10.0.2.2 though.
-  run adb reverse tcp:8080 tcp:8080 to get android to connect to localhost port 8080. Change the port # if this changes
+  run adb reverse tcp:8081 tcp:8081 to get android to connect to localhost port 8081. Change the port # if this changes
+  run adb devices to get list of devices
+  run adb -s <device_name> reverse tcp:backend_port tcp:backend_port
   
 To edit boilerplate template, go to:
 Code > preferences > user snippets

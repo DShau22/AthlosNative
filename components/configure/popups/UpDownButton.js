@@ -6,6 +6,7 @@ const { MUSIC_ONLY, RUN, SWIM, JUMP, SWIMMING_EVENT, TIMED_RUN } = DEVICE_CONFIG
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/AntDesign';
 import { useTheme } from '@react-navigation/native'
+import ThemeText from '../../generic/ThemeText'
 Icon.loadFont()
 
 export default function UpDownButton(props) {
@@ -19,17 +20,17 @@ export default function UpDownButton(props) {
         <Icon
           name='caretup'
           size={40}
-          color={colors.background}
+          color={colors.backgroundOffset}
         />
       </TouchableOpacity>
-      <Text style={{fontSize: 18, }}>{number}</Text>
+      <ThemeText style={{fontSize: 18, }}>{number}</ThemeText>
       <TouchableOpacity
         onPress={decNumber}
       >
         <Icon
           name='caretdown'
           size={40}
-          color={colors.background}
+          color={colors.backgroundOffset}
         />
       </TouchableOpacity>
     </View>
