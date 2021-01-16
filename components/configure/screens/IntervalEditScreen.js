@@ -2,8 +2,6 @@ import React from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
-import { Input, ListItem } from 'react-native-elements';
-import * as Yup from 'yup';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 MaterialCommunityIcons.loadFont();
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -19,11 +17,11 @@ import GLOBAL_CONSTANTS from '../../GlobalConstants';
 const { METRIC } = GLOBAL_CONSTANTS;
 import ThemeText from '../../generic/ThemeText';
 import { UserDataContext } from '../../../Context';
-import {splitValidationSchema} from '../popups/validationSchema';
 import SaveButton from './SaveButton';
 import Spinner from 'react-native-loading-spinner-overlay';
 import MenuPrompt from './MenuPrompt';
 import ActionButton from 'react-native-action-button';
+import {numToWord, capitalize} from '../../utils/strings';
 
 export default function IntervalEditScreen(props) {
   const { colors } = useTheme();
@@ -45,7 +43,7 @@ export default function IntervalEditScreen(props) {
       return;
     }
     setIsLoading(false);
-    Alert.alert('Done!', 'Successfully saved your interval training settings', [{text: 'Okay'}]);
+    // Alert.alert('Done!', 'Successfully saved your interval training settings', [{text: 'Okay'}]);
     // navigation.navigate(MODE_CONFIG);
   }, [deviceConfig]);
 
@@ -118,83 +116,65 @@ export default function IntervalEditScreen(props) {
       `${timeInMinutes} min ${remainingSeconds} s`;
   }
 
-  const handleInputChange = (textNumber, index) => {
-    textNumber = textNumber.replace(/\D/g,'');
-    const validationString = textNumber.length > 0 ? textNumber : '0'
-    Yup.reach(splitValidationSchema, "split").validate(parseInt(validationString))
-      .then(function(isValid) {
-        setIntervals(prev => {
-          const copy = [...prev];
-          copy[index] = {time: `${textNumber}`, rest: copy[index].rest};
-          return copy;
-        });
-        setErrorMsgs(prev => {
-          prev[index] = '';
-          return [...prev];
-        })
-      })
-      .catch(function(e) {
-        console.log(e);
-        setIntervals(prev => {
-          const copy = [...prev];
-          copy[index] = {time: '', rest: copy[index].rest};
-          return copy;
-        });
-        setErrorMsgs(prev => {
-          prev[index] = e.toString();
-          return [...prev];
-        })
-      });
-  }
-
   const renderListItem = ({item, index, drag, isActive}) => {
     const { time, rest } = item;
+    var hours = Math.floor(time / 3600);
+    var mins = Math.floor(time / 60);
+    var secs = time % 60;
+    var hoursText = hours === 0 ? '' : `${hours} ${hours === 1 ? 'hour' : 'hours'} `;
+    var minsText = mins === 0 ? '' : `${mins} ${mins === 1 ? 'min' : 'mins'} `;
+    var secsText = secs === 0 ? '' : `${secs} ${mins === 1 ? 'second' : 'seconds'}`;
+    var promptSubtitle = `${hoursText}${minsText}${secsText}`;
     return (
-      <TouchableOpacity
-        style={[styles.listItemContainer, {flex: 1, borderColor: rest ? 'red' : 'white'}]}
-        // onPress={onPress}
-        onLongPress={drag}
-      >
-        <View style={styles.listItemContent}>
-          <TouchableOpacity
-            style={styles.deleteInterval}
-            onPress={() => {
-              setIntervals(prev => {
-                const filtered = prev.filter((_, idx) => {
-                  return index !== idx;
-                });
-                return filtered;
+      <View style={{
+        padding: 5,
+        marginTop: 10,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: rest ? 'red' : 'white',
+        width: '94%',
+        alignSelf: 'center',
+      }}>
+        <TouchableOpacity
+          style={styles.deleteInterval}
+          onPress={() => {
+            setIntervals(prev => {
+              const filtered = prev.filter((_, idx) => {
+                return index !== idx;
               });
-            }}
-          >
-            <Entypo
-              name='cross'
-              size={28}
-              color={colors.textColor}
-            />
-          </TouchableOpacity>
-          <Input
-            leftIcon={
-              <MaterialCommunityIcons
-                name='timer'
-                size={24}
-                color={colors.textColor}
-              />
-            }
-            containerStyle={{width: '80%', paddingTop: 5}}
-            // inputContainerStyle={{width: '80%'}}
-            inputStyle={{color: colors.textColor}}
-            label={`${rest ? 'Rest' : 'Work'} (seconds)`}
-            placeholderTextColor={colors.textColor}
-            keyboardType='numeric'
-            maxLength={3}
-            value={`${time}`}
-            onChangeText={val => handleInputChange(val, index)}
-            errorMessage={errorMsgs[index]}
-            renderErrorMessage={errorMsgs[index] !== undefined && errorMsgs[index].length > 0}
+              return filtered;
+            });
+          }}
+        >
+          <Entypo
+            name='cross'
+            size={28}
+            color={colors.textColor}
           />
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+        <MenuPrompt
+          noDividers
+          noChevron
+          pullUpTitle='hours | mins | secs'
+          promptTitle={`${capitalize(numToWord(index))} interval:`}
+          promptSubtitle={promptSubtitle}
+          onSave={(hours, mins, secs) => {
+            totalSeconds = hours * 3600 + mins * 60 + secs;
+            setIntervals(prev => {
+              const copy = [...prev];
+              copy[idx] = totalSeconds;
+              return copy;
+            });
+          }}
+          onLongPress={drag}
+          childArray={Array.from(Array(3).keys())}
+          secondChildArray={Array.from(Array(60).keys())}
+          thirdChildArray={Array.from(Array(60).keys())}
+          selectedItem={hours}
+          secondSelectedItem={mins}
+          thirdSelectedItem={secs}
+        />
+      </View>
     )
   }
 
@@ -337,10 +317,14 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   listItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center'
+    backgroundColor: 'red',
+    height: '100%',
+    width: '100%',
+    flexDirection: 'column',
+    alignItems: 'flex-end'
   },
   deleteInterval: {
+    zIndex: 2,
     position: 'absolute',
     top: 10,
     right: 10,

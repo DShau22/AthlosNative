@@ -1,12 +1,13 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, ScrollView, Button } from 'react-native';
+import { View, TouchableOpacity, ScrollView, Button } from 'react-native';
+import { Text } from 'react-native-elements';
 import RBSheet from "react-native-raw-bottom-sheet";
 import ScrollPicker from "react-native-wheel-scrollview-picker";
 
 export default function PullUpMenu(props) {
   const {
     refRBSheet,
-    onItemPress,
+    pullUpTitle,
     childArray,
     secondChildArray,
     thirdChildArray,
@@ -50,7 +51,7 @@ export default function PullUpMenu(props) {
     >
       <View style={{flexDirection: 'column'}}>
         <View style={{height: 50, flexDirection: 'row', justifyContent:'space-between', alignItems: 'center'}}>
-          <View style={{marginLeft: 10, marginTop: 10}}>
+          <View style={{marginLeft: 10}}>
             <Button
               title='Cancel'
               onPress={() => {
@@ -58,6 +59,9 @@ export default function PullUpMenu(props) {
                 resetState();
               }}
             />
+          </View>
+          <View>
+            <Text style={{fontSize: 20}}>{pullUpTitle}</Text>
           </View>
           <View style={{marginRight: 10}}>
             <Button
@@ -90,35 +94,6 @@ export default function PullUpMenu(props) {
             highlightColor={"#d8d8d8"}
             highlightBorderWidth={2}
           />
-          {/* <ScrollView style={{flex: 1}}>
-            {childArray.map((value, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={{
-                  width: '100%',
-                  height: 50,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginTop: 10,
-                  marginBottom: idx + 1 === childArray.length ? 35 : 0,
-                  backgroundColor: selectedIdx === idx ? 'grey' : null
-                }}
-                onPress={() => {
-                  setSelectedIdx(idx);
-                  // onItemPress(value);
-                  // if (!secondChildArray) {
-                  //   refRBSheet.current.close();
-                  // }
-                }}
-              >
-                <Text style={{
-                  fontSize: 20
-                }}>
-                  {value}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView> */}
           {secondChildArray ? 
             <ScrollPicker
               dataSource={secondChildArray}
@@ -136,32 +111,6 @@ export default function PullUpMenu(props) {
               highlightColor={"#d8d8d8"}
               highlightBorderWidth={2}
             />
-            // <ScrollView style={{flex: 1}}>
-            //   {secondChildArray.map((value, idx) => (
-            //     <TouchableOpacity
-            //       key={idx}
-            //       style={{
-            //         width: '100%',
-            //         height: 50,
-            //         alignItems: 'center',
-            //         justifyContent: 'center',
-            //         marginTop: 10,
-            //         marginBottom: idx + 1 === secondChildArray.length ? 35 : 0,
-            //         backgroundColor: secondSelectedIdx === value ? 'grey' : null
-            //       }}
-            //       onPress={() => {
-            //         setSecondSelectedIdx(idx);
-            //         // refRBSheet.current.close();
-            //       }}
-            //     >
-            //       <Text style={{
-            //         fontSize: 20
-            //       }}>
-            //         {value}
-            //       </Text>
-            //     </TouchableOpacity>
-            //   ))}
-            // </ScrollView>
           : null}
           {thirdChildArray ? 
             <ScrollPicker
@@ -183,32 +132,6 @@ export default function PullUpMenu(props) {
               highlightColor={"#d8d8d8"}
               highlightBorderWidth={2}
             />
-            // <ScrollView style={{flex: 1}}>
-            //   {thirdChildArray.map((value, idx) => (
-            //     <TouchableOpacity
-            //       key={idx}
-            //       style={{
-            //         width: '100%',
-            //         height: 50,
-            //         alignItems: 'center',
-            //         justifyContent: 'center',
-            //         marginTop: 10,
-            //         marginBottom: idx + 1 === thirdChildArray.length ? 35 : 0,
-            //         backgroundColor: thirdSelectedIdx === value ? 'grey' : null
-            //       }}
-            //       onPress={() => {
-            //         setThirdSelectedIdx(idx);
-            //         // refRBSheet.current.close();
-            //       }}
-            //     >
-            //       <Text style={{
-            //         fontSize: 20
-            //       }}>
-            //         {value}
-            //       </Text>
-            //     </TouchableOpacity>
-            //   ))}
-            // </ScrollView>
           : null}
         </View>
       </View>

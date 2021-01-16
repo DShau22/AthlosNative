@@ -10,6 +10,8 @@ import PullUpMenu from './PullUpMenu';
  * childArray: list elements in the pullup menu scrollview
  * onSave: Function that takes in a value that runs after user presses done
  * selectedItem: the current value in the childArray that should be selected
+ * noDividers (boolean): what it sounds like
+ * pullUpTitle: the title displayed in between the cancel and done buttons
  * anything with second/third is for if you want to have two/three side by side scrollviews
  */
 
@@ -22,34 +24,40 @@ export default function MenuPrompt(props) {
     childArray,
     secondChildArray,
     thirdChildArray,
-    onItemPress,
     onSave,
     selectedItem,
     secondSelectedItem,
     thirdSelectedItem,
+    noDividers,
+    noChevron,
+    onLongPress,
+    pullUpTitle,
   } = props; 
   return (
     <>
       <ListItem
-        containerStyle={[{backgroundColor: colors.background}]}
-        bottomDivider
-        topDivider
+        containerStyle={[{width: '100%', backgroundColor: colors.background}]}
+        bottomDivider={!noDividers}
+        topDivider={!noDividers}
         onPress={() => refRBSheet.current.open()}
+        onLongPress={onLongPress ? onLongPress : () => {}}
       >
         <ListItem.Content>
           <ListItem.Title>
             <ThemeText>{promptTitle}</ThemeText>
           </ListItem.Title>
-          <ListItem.Subtitle>
-            <ThemeText>{promptSubtitle}</ThemeText>
-          </ListItem.Subtitle>
+          {promptSubtitle ? 
+            <ListItem.Subtitle>
+              <ThemeText>{promptSubtitle}</ThemeText>
+            </ListItem.Subtitle>
+          : null}
         </ListItem.Content>
-        <ListItem.Chevron name='chevron-forward'/>
+        {noChevron ? null : <ListItem.Chevron name='chevron-forward'/>}
       </ListItem>
       <PullUpMenu
         refRBSheet={refRBSheet}
         onSave={onSave}
-        onItemPress={onItemPress}
+        pullUpTitle={pullUpTitle}
         childArray={childArray}
         selected={selectedItem}
         secondSelected={secondSelectedItem}

@@ -1,4 +1,4 @@
-const NUM_TO_WORD = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth'];
+const NUM_TO_WORD = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth'];
 function capitalize(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }

@@ -181,8 +181,8 @@ const getDefaultRaceMode = () => {
 const getDefaultTimerMode = () => {
   return {
     mode: TIMER,
-    splits: [60, 60, 60, 60],
-    cycles: false,
+    splits: [600, 600, 600, 600], // splits in tenths
+    repeats: false,
   }
 }
 
@@ -191,10 +191,10 @@ const getDefaultIntervalMode = () => {
     mode: INTERVAL,
     subtitle: INTERVAL_SUBTITLE,
     intervals: [
-      {time: '30', rest: false},
-      {time: '10', rest: true},
-      {time: '30', rest: false},
-      {time: '10', rest: true},
+      {time: 30, rest: false},
+      {time: 10, rest: true},
+      {time: 30, rest: false},
+      {time: 10, rest: true},
     ],
     numRounds: 1 // if 0, then repeat the last split over and over again
   };

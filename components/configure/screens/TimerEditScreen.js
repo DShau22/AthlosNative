@@ -16,8 +16,8 @@ import ActionButton from 'react-native-action-button';
 import { useTheme } from '@react-navigation/native';
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
 const { METRIC } = GLOBAL_CONSTANTS;
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-Icon.loadFont();
+import Entypo from 'react-native-vector-icons/Entypo';
+Entypo.loadFont();
 import SplitInputs from '../popups/SplitInputs';
 import ScrollPicker from "react-native-wheel-scrollview-picker";
 import ThemeText from '../../generic/ThemeText';
@@ -25,9 +25,9 @@ import { UserDataContext } from '../../../Context';
 import SaveButton from './SaveButton';
 import Spinner from 'react-native-loading-spinner-overlay';
 import { ListItem } from 'react-native-elements';
-import PullUpMenu from './PullUpMenu';
+import DraggableFlatList from 'react-native-draggable-flatlist';
 import MenuPrompt from './MenuPrompt';
-import {numToWord} from '../../utils/strings';
+import {numToWord, capitalize} from '../../utils/strings';
 
 export default function TimerEditScreen(props) {
   const { colors } = useTheme();
@@ -36,8 +36,8 @@ export default function TimerEditScreen(props) {
   const timerSettings = deviceConfig[editIdx];
 
   const [isLoading, setIsLoading] = React.useState(false);
-  const [splits, setSplits] = React.useState(timerSettings.splits);
-  const [cycles, setCycles] = React.useState(false);
+  const [splits, setSplits] = React.useState(timerSettings.splits); // in tenths
+  const [repeats, setRepeats] = React.useState(false);
   const [errorMsgs, setErrorMsgs] = React.useState(splits.map((_, idx) => '')); // array of error messages for each split input
   const firstUpdate = React.useRef(true);
   const refRBSheetSplits = React.useRef();
@@ -68,7 +68,7 @@ export default function TimerEditScreen(props) {
       const newModeSettings = {
         mode: TIMER,
         splits: splits,
-        cycles
+        repeats
       };
       prevConfig[editIdx] = newModeSettings;
       return [...prevConfig];
@@ -82,8 +82,11 @@ export default function TimerEditScreen(props) {
   }
 
   const totalSplitTime = () => {
-    const reduced = splits.reduce((a, b) => a + b, 0);
-    return isNaN(reduced) ? '' : `${reduced} seconds`;
+    const totalTenths = splits.reduce((a, b) => a + b, 0);
+    const mins = Math.floor(totalTenths / 600);
+    const secs = Math.floor((totalTenths % 600) / 10);
+    const tenths = totalTenths % 10;
+    return `${mins} ${mins === 1 ? 'min' : 'mins'}, ${secs}.${tenths} seconds`;
   }
 
   const addCheckpoint = () => {
@@ -98,93 +101,141 @@ export default function TimerEditScreen(props) {
     });
   }
 
-  const renderCheckpoints = () => {
-    return splits.map((split, idx) => {
-      var hours = Math.floor(split / 3600);
-      var mins = Math.floor(split / 60);
-      var secs = split % 60;
-      var hoursText = hours === 0 ? '' : `${hours} ${hours === 1 ? 'hour' : 'hours'} `;
-      var minsText = mins === 0 ? '' : `${mins} ${mins === 1 ? 'min' : 'mins'} `;
-      var secsText = secs === 0 ? '' : `${secs} ${mins === 1 ? 'second' : 'seconds'}`;
-      var promptSubtitle = `${hoursText}${minsText}${secsText}`;
-      return (
+  const renderListItem = ({item, index, drag, isActive}) => {
+    const totalTenths = item;
+    const mins = Math.floor(totalTenths / 600);
+    const secs = Math.floor((totalTenths % 600) / 10);
+    const tenths = totalTenths % 10;
+    const minsText = mins === 0 ? '' : `${mins} ${mins === 1 ? 'min' : 'mins'}`;
+    var secsText = secs === 0 && tenths === 0 ? '' : ` ${secs}.${tenths} seconds`;
+    var promptSubtitle = `${minsText}${secsText} after ${index === 0 ? 'start' : `${numToWord(index - 1)} checkpoint`}`;
+    if (repeats && index === splits.length - 1) {
+      secsText = secs === 0 && tenths === 0 ? '' : ` ${secs}.${tenths} second`;
+      promptSubtitle = `${minsText}${secsText} intervals onwards`;
+    }
+    return (
+      <View style={{
+        padding: 5,
+        marginTop: 10,
+        borderRadius: 8,
+        borderWidth: 1,
+        width: '94%',
+        borderColor: colors.textColor,
+        alignSelf: 'center',
+      }}>
+        <TouchableOpacity
+          style={styles.deleteInterval}
+          onPress={() => {
+            setIntervals(prev => {
+              const filtered = prev.filter((_, idx) => {
+                return index !== idx;
+              });
+              return filtered;
+            });
+          }}
+        >
+          <Entypo
+            name='cross'
+            size={28}
+            color={colors.textColor}
+          />
+        </TouchableOpacity>
         <MenuPrompt
-          promptTitle={`${numToWord(idx)} interval:`}
+          noChevron
+          noDividers
+          pullUpTitle='mins | secs | tenths'
+          promptTitle={`${capitalize(numToWord(index))} checkpoint:`}
           promptSubtitle={promptSubtitle}
-          onSave={(hours, mins, secs) => {
-            totalSeconds = hours * 3600 + mins * 60 + secs;
+          onLongPress={drag}
+          onSave={(mins, secs, tenths) => {
+            const totalTenths = mins * 600 + secs * 10 + tenths;
             setSplits(prev => {
               const copy = [...prev];
-              copy[idx] = totalSeconds;
+              copy[index] = totalTenths;
               return copy;
             })
           }}
-          childArray={Array.from(Array(3).keys())}
+          childArray={Array.from(Array(60).keys())}
           secondChildArray={Array.from(Array(60).keys())}
-          thirdChildArray={Array.from(Array(60).keys())}
-          selectedItem={hours}
-          secondSelectedItem={mins}
-          thirdSelectedItem={secs}
+          thirdChildArray={Array.from(Array(10).keys())}
+          selectedItem={mins}
+          secondSelectedItem={secs}
+          thirdSelectedItem={tenths}
         />
-      );
-    });
+      </View>
+    );
   }
-  console.log("cycles: ", cycles)
+
   return (
-    <View style={{height: '100%', width: '100%'}}>
-      <ScrollView>
-        <ThemeText style={{fontSize: 20, fontWeight: 'bold', alignSelf: 'flex-start', margin: 10}}>
-          Timer with alerts:
-        </ThemeText>
-        <ThemeText style={{margin: 10}}>
-          Set up a timer with alerts on how much time has passed. You can customize when these alerts will occur (up to a max of 6).
-        </ThemeText>
-        <ListItem
-          containerStyle={{backgroundColor: colors.background}}
-          bottomDivider
-          topDivider
-          onPress={() => setCycles(prev => !prev)}
-        >
-          <ListItem.Content>
-            <ListItem.Title>
-              <ThemeText>
-                Repeat last interval?
-              </ThemeText>
-            </ListItem.Title>
-            <ListItem.Subtitle style={{marginTop: 5}}>
-              <ThemeText>
-                If enabled, the timer will keep repeating the last interval forever. Otherwise, the timer will stop after 
-                the last interval finishes.
-              </ThemeText>
-            </ListItem.Subtitle>
-          </ListItem.Content>
-          <ListItem.CheckBox
-            checked={cycles}
-            checkedColor={colors.textColor}
-            onPress={() => setCycles(prev => !prev)}
+    <DraggableFlatList
+      ListHeaderComponent={() => (
+        <>
+          <ThemeText style={{fontSize: 20, fontWeight: 'bold', alignSelf: 'flex-start', margin: 10}}>
+            Timer with alerts:
+          </ThemeText>
+          <ThemeText style={{margin: 10, marginTop: 0}}>
+            Set up a timer with checkpoints. Your device will alert you once these checkpoints have passed in time, and
+            you can customize these checkpoint times (up to a max of 6).
+          </ThemeText>
+          <ListItem
+            containerStyle={{backgroundColor: colors.background}}
+            bottomDivider
+            topDivider
+            onPress={() => setRepeats(prev => !prev)}
+          >
+            <ListItem.Content>
+              <ListItem.Title>
+                <ThemeText>
+                  Repeat last interval?
+                </ThemeText>
+              </ListItem.Title>
+              <ListItem.Subtitle style={{marginTop: 5}}>
+                <ThemeText>
+                  If enabled, the timer will keep repeating the last interval forever. Otherwise, the timer will stop after 
+                  the last interval finishes.
+                </ThemeText>
+              </ListItem.Subtitle>
+            </ListItem.Content>
+            <ListItem.CheckBox
+              checked={repeats}
+              checkedColor={colors.textColor}
+              onPress={() => setRepeats(prev => !prev)}
+            />
+          </ListItem>
+          <ThemeText style={{fontSize: 20, fontWeight: 'bold', alignSelf: 'flex-start', margin: 10}}>
+            Set your alerts:
+          </ThemeText>
+        </>
+      )}
+      data={splits}
+      renderItem={renderListItem}
+      keyExtractor={(item, index) => `draggable-item-${item.mode}-${index}`}
+      onDragEnd={({ data }) => {
+        setSplits(data);
+      }}
+      ListFooterComponent={() => (
+        <>
+          <ThemeText style={[styles.textHeader,]}>
+            {`Total time: ${totalSplitTime()}`}
+          </ThemeText>
+          <SaveButton
+            containerStyle={{
+              margin: 20,
+              alignSelf: 'center'
+            }}
+            onPress={saveEdits}
           />
-        </ListItem>
-        {renderCheckpoints()}
-        <ThemeText style={[styles.textHeader,]}>
-          {`Total time: ${totalSplitTime()}`}
-        </ThemeText>
-        <SaveButton
-          containerStyle={{
-            margin: 20,
-            alignSelf: 'center'
-          }}
-          onPress={saveEdits}
-        />
-      </ScrollView>
-      <ActionButton
-        position='right'
-        offsetX={15}
-        offsetY={15}
-        buttonColor={'#ff03b7'}
-        size={60}
-        onPress={addCheckpoint}
-      />
-    </View>
+          <ActionButton
+            position='right'
+            offsetX={15}
+            offsetY={15}
+            buttonColor={'#ff03b7'}
+            size={60}
+            onPress={addCheckpoint}
+          />
+        </>
+      )}
+    />
   )
 }
 
@@ -200,4 +251,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 0
   },
+  deleteInterval: {
+    zIndex: 2,
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  }
 });
