@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Alert } from 'rea
 import { useFocusEffect } from '@react-navigation/native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { Input, ListItem } from 'react-native-elements';
+import * as Yup from 'yup';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 MaterialCommunityIcons.loadFont();
 import Entypo from 'react-native-vector-icons/Entypo';
@@ -18,9 +19,9 @@ import GLOBAL_CONSTANTS from '../../GlobalConstants';
 const { METRIC } = GLOBAL_CONSTANTS;
 import ThemeText from '../../generic/ThemeText';
 import { UserDataContext } from '../../../Context';
+import {splitValidationSchema} from '../popups/validationSchema';
 import SaveButton from './SaveButton';
 import Spinner from 'react-native-loading-spinner-overlay';
-import PullUpMenu from './PullUpMenu';
 import MenuPrompt from './MenuPrompt';
 import ActionButton from 'react-native-action-button';
 
@@ -44,7 +45,7 @@ export default function IntervalEditScreen(props) {
       return;
     }
     setIsLoading(false);
-    Alert.alert('Done!', 'Successfully saved your timer settings', [{text: 'Okay'}]);
+    Alert.alert('Done!', 'Successfully saved your interval training settings', [{text: 'Okay'}]);
     // navigation.navigate(MODE_CONFIG);
   }, [deviceConfig]);
 
@@ -104,7 +105,7 @@ export default function IntervalEditScreen(props) {
   const getRoundsArray = () => {
     const res = [];
     for (let i = 1; i <= 20; i++) {
-      res.push({label: i, value: i});
+      res.push(i);
     }
     return res;
   }
@@ -117,12 +118,33 @@ export default function IntervalEditScreen(props) {
       `${timeInMinutes} min ${remainingSeconds} s`;
   }
 
-  const handleInputChange = (val, index) => {
-    setIntervals(prev => {
-      const copy = [...prev];
-      copy[index] = `${val}`;
-      return copy;
-    });
+  const handleInputChange = (textNumber, index) => {
+    textNumber = textNumber.replace(/\D/g,'');
+    const validationString = textNumber.length > 0 ? textNumber : '0'
+    Yup.reach(splitValidationSchema, "split").validate(parseInt(validationString))
+      .then(function(isValid) {
+        setIntervals(prev => {
+          const copy = [...prev];
+          copy[index] = {time: `${textNumber}`, rest: copy[index].rest};
+          return copy;
+        });
+        setErrorMsgs(prev => {
+          prev[index] = '';
+          return [...prev];
+        })
+      })
+      .catch(function(e) {
+        console.log(e);
+        setIntervals(prev => {
+          const copy = [...prev];
+          copy[index] = {time: '', rest: copy[index].rest};
+          return copy;
+        });
+        setErrorMsgs(prev => {
+          prev[index] = e.toString();
+          return [...prev];
+        })
+      });
   }
 
   const renderListItem = ({item, index, drag, isActive}) => {
@@ -159,7 +181,7 @@ export default function IntervalEditScreen(props) {
                 color={colors.textColor}
               />
             }
-            containerStyle={{width: '80%'}}
+            containerStyle={{width: '80%', paddingTop: 5}}
             // inputContainerStyle={{width: '80%'}}
             inputStyle={{color: colors.textColor}}
             label={`${rest ? 'Rest' : 'Work'} (seconds)`}
@@ -196,10 +218,10 @@ export default function IntervalEditScreen(props) {
             Choose the number of rounds
           </ThemeText>
           <MenuPrompt
-            title={`Rounds: ${numRounds}`}
+            promptTitle={`Rounds: ${numRounds}`}
             childArray={getRoundsArray()}
             selectedItem={numRounds}
-            onItemPress={num => setNumRounds(num)}
+            onSave={num => setNumRounds(num)}
           />
           <ThemeText style={[styles.textHeader,]}>
             {`Total time per set: ${totalIntervalTime()}`}
@@ -305,7 +327,7 @@ const styles = StyleSheet.create({
   },
   listItemContainer: {
     padding: 2,
-    height: 80,
+    height: 100,
     // backgroundColor: colors.header,
     borderColor: 'white',
     borderWidth: 1,
