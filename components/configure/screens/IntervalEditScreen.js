@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -13,15 +13,15 @@ const {
   MODE_CONFIG
 } = DEVICE_CONFIG_CONSTANTS;
 import { useTheme } from '@react-navigation/native';
-import GLOBAL_CONSTANTS from '../../GlobalConstants';
-const { METRIC } = GLOBAL_CONSTANTS;
 import ThemeText from '../../generic/ThemeText';
-import { UserDataContext } from '../../../Context';
 import SaveButton from './SaveButton';
 import Spinner from 'react-native-loading-spinner-overlay';
 import MenuPrompt from './MenuPrompt';
 import ActionButton from 'react-native-action-button';
 import {numToWord, capitalize} from '../../utils/strings';
+
+const WORK_COLOR = '#9cffb6';
+const REST_COLOR = '#fc6868';
 
 export default function IntervalEditScreen(props) {
   const { colors } = useTheme();
@@ -32,7 +32,6 @@ export default function IntervalEditScreen(props) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [intervals, setIntervals] = React.useState(intervalSettings.intervals);
   const [numRounds, setNumRounds] = React.useState(intervalSettings.numRounds);
-  const [errorMsgs, setErrorMsgs] = React.useState(intervals.map((_, idx) => '')); // array of error messages for each split input
   const firstUpdate = React.useRef(true);
 
   React.useEffect(() => {
@@ -56,22 +55,6 @@ export default function IntervalEditScreen(props) {
   );
 
   const saveEdits = () => {
-    // check if any of the intervals are empty first
-    var existsEmptySplit = false;
-    errorMsgs.forEach((msg, _) => {
-      if (msg.length > 0) {
-        Alert.alert('Whoops!', "Make sure all the errors are addressed", [{ text: 'okay' }]);
-        return;
-      }
-    })
-    intervals.forEach(({time, _}, i) => {
-      existsEmptySplit = existsEmptySplit || time.length === 0 || parseInt(time) <= 9
-      intervals[i].time = parseInt(time);
-    })
-    if (existsEmptySplit) {
-      Alert.alert('Whoops!', "Make sure none of the intervals you entered are empty and that they're all greater than 9 seconds", [{ text: 'okay' }]);
-      return;
-    }
     // depending on the edit mode
     setDeviceConfig(prevConfig => {
       const newModeSettings = {
@@ -87,7 +70,6 @@ export default function IntervalEditScreen(props) {
   const resetState = () => {
     setIsLoading(false);
     setIntervals(intervalSettings.intervals);
-    setErrorMsgs(intervalSettings.intervals.map((_) => ''))
   }
 
   const totalIntervalTime = () => {
@@ -129,7 +111,7 @@ export default function IntervalEditScreen(props) {
         marginTop: 10,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: rest ? 'red' : 'white',
+        borderColor: rest ? REST_COLOR : WORK_COLOR,
         width: '94%',
         alignSelf: 'center',
       }}>
@@ -160,7 +142,7 @@ export default function IntervalEditScreen(props) {
             totalSeconds = hours * 3600 + mins * 60 + secs;
             setIntervals(prev => {
               const copy = [...prev];
-              copy[idx] = totalSeconds;
+              copy[index].time = totalSeconds;
               return copy;
             });
           }}
@@ -235,8 +217,8 @@ export default function IntervalEditScreen(props) {
               size={52}
               textContainerStyle={styles.actionButtonTextContainer}
               textStyle={styles.actionButtonText}
-              buttonColor='#ff000d'
-              title="Work"
+              buttonColor='#9cffb6'
+              title={WORK_COLOR}
               onPress={() => {
                 if (intervals.length >= 6) {
                   Alert.alert('Whoops', 'Cannot have more than 6 intervals', [{text: 'Okay'}]);
@@ -255,7 +237,7 @@ export default function IntervalEditScreen(props) {
               size={52}
               textContainerStyle={styles.actionButtonTextContainer}
               textStyle={styles.actionButtonText}
-              buttonColor='#2bd5ff'
+              buttonColor={REST_COLOR}
               title="Rest"
               onPress={() => {
                 if (intervals.length >= 6) {
@@ -306,7 +288,6 @@ const styles = StyleSheet.create({
   listItemContainer: {
     padding: 2,
     height: 100,
-    // backgroundColor: colors.header,
     borderColor: 'white',
     borderWidth: 1,
     borderRadius: 8,

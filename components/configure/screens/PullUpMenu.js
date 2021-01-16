@@ -12,7 +12,10 @@ export default function PullUpMenu(props) {
     selectedItems,
     onSave,
   } = props;
-  console.log("iajweif", childArrays);
+  // need this so that the scroll wheel updates in addition to the prompt title
+  React.useEffect(() => {
+    setSelectedIndexes(getSelectedIndexes());
+  }, [childArrays]);
 
   const getSelectedIndexes = () => {
     const res = [];
@@ -27,6 +30,7 @@ export default function PullUpMenu(props) {
   const resetState = () => {
     setSelectedIndexes(getSelectedIndexes());
   }
+
   return (
     <RBSheet
       ref={refRBSheet}
@@ -87,7 +91,6 @@ export default function PullUpMenu(props) {
                   copy[listIdx] = idx;
                   return copy;
                 });
-                // setSelectedIdx(idx);
               }}
               wrapperHeight={180}
               wrapperWidth={150}
@@ -97,61 +100,6 @@ export default function PullUpMenu(props) {
               highlightBorderWidth={2}
             />
           ))}
-          {/* <ScrollPicker
-            dataSource={childArray}
-            selectedIndex={selectedIdx}
-            renderItem={(data, index) => {
-              //
-            }}
-            onValueChange={(data, idx) => {
-              setSelectedIdx(idx);
-            }}
-            wrapperHeight={180}
-            wrapperWidth={150}
-            wrapperBackground={"#FFFFFF"}
-            itemHeight={60}
-            highlightColor={"#d8d8d8"}
-            highlightBorderWidth={2}
-          />
-          {secondChildArray ? 
-            <ScrollPicker
-              dataSource={secondChildArray}
-              selectedIndex={secondSelectedIdx}
-              renderItem={(data, index) => {
-                //
-              }}
-              onValueChange={(data, idx) => {
-                setSecondSelectedIdx(idx);
-              }}
-              wrapperHeight={180}
-              wrapperWidth={150}
-              wrapperBackground={"#FFFFFF"}
-              itemHeight={60}
-              highlightColor={"#d8d8d8"}
-              highlightBorderWidth={2}
-            />
-          : null}
-          {thirdChildArray ? 
-            <ScrollPicker
-              dataSource={thirdChildArray}
-              selectedIndex={thirdSelectedIdx}
-              renderItem={(data, index) => {
-                
-              }}
-              onValueChange={(data, idx) => {
-                setThirdSelectedIdx(idx);
-              }}
-              itemTextStyle={{
-                fontSize: 28
-              }}
-              wrapperHeight={180}
-              wrapperWidth={150}
-              wrapperBackground={"#FFFFFF"}
-              itemHeight={60}
-              highlightColor={"#d8d8d8"}
-              highlightBorderWidth={2}
-            />
-          : null} */}
         </View>
       </View>
     </RBSheet>

@@ -38,9 +38,7 @@ export default function TimerEditScreen(props) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [splits, setSplits] = React.useState(timerSettings.splits); // in tenths
   const [repeats, setRepeats] = React.useState(false);
-  const [errorMsgs, setErrorMsgs] = React.useState(splits.map((_, idx) => '')); // array of error messages for each split input
   const firstUpdate = React.useRef(true);
-  const refRBSheetSplits = React.useRef();
 
   React.useEffect(() => {
     if (firstUpdate.current) {
@@ -78,7 +76,6 @@ export default function TimerEditScreen(props) {
   const resetState = () => {
     setIsLoading(false);
     setSplits(timerSettings.splits);
-    setErrorMsgs(timerSettings.splits.map((_) => ''))
   }
 
   const totalSplitTime = () => {

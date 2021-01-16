@@ -141,8 +141,8 @@ export default function SwimmingEventEditScreen(props) {
       return;
     }
     setIsLoading(false);
-    // Alert.alert('Done!', `Successfully saved settings for tracking the ${distance} ${stroke}`, [{text: 'Okay'}]);
-    // navigation.navigate(MODE_CONFIG);
+    Alert.alert('Done!', `Successfully saved settings for tracking the ${distance} ${stroke}`, [{text: 'Okay'}]);
+    navigation.navigate(MODE_CONFIG);
   }, [deviceConfig]);
 
   useFocusEffect(
@@ -199,28 +199,28 @@ export default function SwimmingEventEditScreen(props) {
     return poolLength === OLYMPIC || poolLength === BRITISH ? METERS : YARDS;
   }
 
-  const renderDistance = () => {
-    // if the selected stroke from the dropdown is NOT
-    // the same as the state stroke, render the lowest distance
-    if (Object.keys(eventSettings).length > 0 && eventSettings.stroke !== stroke) {
-      return `${DISTANCES[getDistanceMetric()][stroke][0]}`;
-    }
-    // if the ARE EQUAL, then show the distance
-    return `${distance}`;
-  }
-
   const switchStrokes = (newStroke) => {
     // if the value stroke is different from the state stroke, update the splits too
     if (newStroke !== stroke) {
       const newDefaultDistance = DISTANCES[getDistanceMetric()][newStroke][0];
-      // if the new stroke is the same as what is already set, then return the already set distance
-      const newDistance = newStroke === eventSettings.stroke ? eventSettings.distance : newDefaultDistance;
+      const newDistance = DISTANCES[getDistanceMetric()][newStroke].includes(distance) ? distance : newDefaultDistance;
       setDistance(newDistance);
       const newDefaultSplits = [...Array(Math.min(8, newDistance/50)).keys()].map(_ => 30);
       setSplits(newDefaultSplits);
       setStroke(newStroke);
     }
     // else the user just tapped the same stroke so nothing should happen
+  }
+
+  const switchDistance = (newDistance) => {
+    if (newDistance > distance) {
+      const additionalDefaultSplits = Array(Math.min(8 - splits.length, Math.floor(newDistance/50) - splits.length));
+      additionalDefaultSplits.fill(45);
+      setSplits([...splits, ...additionalDefaultSplits]);
+    } else if (newDistance < distance) {
+      setSplits(splits.slice(0, Math.floor(newDistance/50)));
+    }
+    setDistance(newDistance);
   }
 
   return (
@@ -252,17 +252,17 @@ export default function SwimmingEventEditScreen(props) {
         childArrays={[STROKES]}
         selectedItems={[stroke]}
         onSave={(chosenStroke) => {
-          setStroke(chosenStroke);
+          switchStrokes(chosenStroke);
         }}
         pullUpTitle='Swimming stroke'
       />
       <ThemeText style={[styles.textHeader, {marginTop: 20, marginBottom: 20}]}>Pick a distance</ThemeText>
       <MenuPrompt
-        promptTitle={renderDistance()}
+        promptTitle={distance}
         childArrays={[DISTANCES[getDistanceMetric()][stroke]]}
-        selectedItems={[renderDistance()]}
+        selectedItems={[distance]}
         onSave={(chosenDistance) => {
-          setDistance(chosenDistance);
+          switchDistance(chosenDistance);
         }}
         pullUpTitle={`Distance (${poolLength === OLYMPIC || poolLength === BRITISH ? 'm' : 'yds'})`}
       />

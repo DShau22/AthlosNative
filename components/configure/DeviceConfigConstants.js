@@ -24,15 +24,6 @@ const DEVICE_CONFIG_CONSTANTS = {
   SWIMMING_EVENT: 'Swimming Event',
   INTERVAL: 'Interval',
   TIMER: 'Timer',
-
-  // SUBTITLES
-  MUSIC_ONLY_SUBTITLE: 'Music AOIJFOIAJWEIF',
-  RUN_SUBTITLE: 'RUN AOIJFOIAJWEIF',
-  SWIM_SUBTITLE: 'SWIM AOIJFOIAJWEIF',
-  JUMP_SUBTITLE: 'JUMP AOIJFOIAJWEIF',
-  SWIMMING_EVENT_SUBTITLE: 'Swimming AOIJFOIAJWEIF',
-  TIMED_RUN_SUBTITLE: 'Timed AOIJFOIAJWEIFn',
-  INTERVAL_SUBTITLE: 'Interval training',
   
   // enums based on what mode the user is editing
   EDIT_RUN: 'Edit Run',
@@ -80,13 +71,6 @@ const {
   SWIMMING_EVENT,
   TIMER,
   INTERVAL,
-  INTERVAL_SUBTITLE,
-  MUSIC_ONLY_SUBTITLE,
-  RUN_SUBTITLE,
-  SWIM_SUBTITLE,
-  JUMP_SUBTITLE,
-  SWIMMING_EVENT_SUBTITLE,
-  TIMED_RUN_SUBTITLE,
   TRIGGER_STEPS,
   TRIGGER_MIN,
   TRIGGER_LAP,
@@ -124,7 +108,6 @@ const getDefaultConfig = () => {
 const getDefaultMusicOnlyMode = () => {
   return {
     mode: MUSIC_ONLY,
-    subtitle: MUSIC_ONLY_SUBTITLE,
   };
 };
 
@@ -132,7 +115,6 @@ const getDefaultRunMode = () => {
   return {
     // The device mode. Using make sure to make the keyExtractor take the mode
     mode: RUN,
-    subtitle: RUN_SUBTITLE,
     // background color of the list item
     // what metrics are reported. 
     metrics: [ STEP_COUNT, CALORIES, CADENCE ],
@@ -146,7 +128,6 @@ const getDefaultRunMode = () => {
 const getDefaultSwimMode = () => {
   return {
     mode: SWIM,
-    subtitle: SWIM_SUBTITLE,
     trigger: TRIGGER_LAP,
     poolLength: POOL_LENGTH_CHOICES.NCAA,
     // number of laps until the report is given. Number doesn't matter if 
@@ -159,7 +140,6 @@ const getDefaultSwimMode = () => {
 const getDefaultJumpMode = () => {
   return {
     mode: JUMP,
-    subtitle: JUMP_SUBTITLE,
     // this should always only be a one element array
     metric: VERTICAL_HEIGHT 
   };
@@ -168,7 +148,6 @@ const getDefaultJumpMode = () => {
 const getDefaultRaceMode = () => {
   return {
     mode: SWIMMING_EVENT,
-    subtitle: SWIMMING_EVENT_SUBTITLE,
     stroke: FREESTYLE,
     distance: 200,
     poolLength: POOL_LENGTH_CHOICES.NCAA,
@@ -189,7 +168,6 @@ const getDefaultTimerMode = () => {
 const getDefaultIntervalMode = () => {
   return {
     mode: INTERVAL,
-    subtitle: INTERVAL_SUBTITLE,
     intervals: [
       {time: 30, rest: false},
       {time: 10, rest: true},

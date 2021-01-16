@@ -29,7 +29,6 @@ export default function MenuPrompt(props) {
     onLongPress,
     pullUpTitle,
   } = props; 
-  console.log(childArrays);
   return (
     <>
       <ListItem

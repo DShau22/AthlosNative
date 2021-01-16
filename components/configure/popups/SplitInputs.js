@@ -85,7 +85,7 @@ export default function SplitInputs(props) {
 
   const renderSplitInputs = () => {
     res = [];
-    for (let i = 0; i < Math.min(8, parseInt(distance / 50)); i++) {
+    for (let i = 0; i < Math.min(8, distance / 50); i++) {
       res.push(splitInput(i));
     }
     return res;
