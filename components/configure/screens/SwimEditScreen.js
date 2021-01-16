@@ -242,40 +242,6 @@ export default function SwimEditScreen(props) {
         </ThemeText>
         <View style={{width: '100%'}}>
           {renderStats()}
-          {/* <CheckBox
-            title="Calories"
-            checkedColor={colors.background}
-            checked={calChecked}
-            onPress={() => setCalChecked(prev => !prev)}
-          />
-          <CheckBox
-            title="Lap Time"
-            checkedColor={colors.background}
-            checked={lapTimeChecked}
-            onPress={() => setLapTimeChecked(prev => !prev)}
-          />
-          <CheckBox
-            title="Lap Count"
-            checkedColor={colors.background}
-            checked={lapCountChecked}
-            onPress={() => setLapCountChecked(prev => !prev)}
-          />
-          <CheckBox
-            title="Stroke"
-            checkedColor={colors.background}
-            checked={strokeChecked}
-            onPress={() => setStrokeChecked(prev => !prev)}
-          /> */}
-          {/* <CheckBox
-            title="Total Lap Count"
-            checked={totalLapCountChecked}
-            onPress={() => setTotalLapCountChecked(prev => !prev)}
-          /> */}
-          {/* <CheckBox
-            title="Speed"
-            checked={speedChecked}
-            onPress={() => setSpeedChecked(prev => !prev)}
-          /> */}
         </View>
         {/* <Text style={{fontSize: 24, alignSelf: 'flex-start', margin: 10, marginTop: 20}}>
           When to report:

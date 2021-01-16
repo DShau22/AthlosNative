@@ -11,7 +11,9 @@ const {
   BREASTROKE,
   FREESTYLE,
   IM,
-  MODE_CONFIG
+  MODE_CONFIG,
+  YARDS,
+  METERS,
 } = DEVICE_CONFIG_CONSTANTS;
 import { useTheme } from '@react-navigation/native';
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
@@ -26,6 +28,7 @@ import SaveButton from './SaveButton';
 import Spinner from 'react-native-loading-spinner-overlay';
 import { ListItem } from 'react-native-elements';
 import PullUpMenu from './PullUpMenu';
+import MenuPrompt from './MenuPrompt';
 const {
   NCAA,
   OLYMPIC,
@@ -48,47 +51,73 @@ const POOL_LENGTH_LIST = [
     subtitle: 'Common European pool length',  
   },
 ];
-
-// check out the docs, items can have icons too if we decide to do that
-// https://www.npmjs.com/package/react-native-dropdown-picker
-const strokes = [
-  {label: BUTTERFLY, value: BUTTERFLY},
-  {label: BACKSTROKE, value: BACKSTROKE},
-  {label: BREASTROKE, value: BREASTROKE},
-  {label: FREESTYLE, value: FREESTYLE},
-  {label: IM, value: IM},
+const STROKES = [
+  BUTTERFLY,
+  BACKSTROKE,
+  BREASTROKE,
+  FREESTYLE,
+  IM,
 ]
-const distances = {
-  [BUTTERFLY]: [
-    {label: '50', value: '50'},
-    {label: '100', value: '100'},
-    {label: '200', value: '200'}
-  ],
-  [BACKSTROKE]: [
-    {label: '50', value: '50'},
-    {label: '100', value: '100'},
-    {label: '200', value: '200'}
-  ],
-  [BREASTROKE]: [
-    {label: '50', value: '50'},
-    {label: '100', value: '100'},
-    {label: '200', value: '200'}
-  ],
-  [FREESTYLE]: [
-    {label: '50', value: '50'},
-    {label: '100', value: '100'},
-    {label: '200', value: '200'},
-    {label: '400', value: '400'},
-    {label: '500', value: '500'},
-    {label: '800', value: '800'},
-    {label: '1000', value: '1000'},
-    {label: '1650', value: '1650'},
-  ],
-  [IM]: [
-    {label: '100', value: '100'},
-    {label: '200', value: '200'},
-    {label: '400', value: '400'},
-  ]
+const DISTANCES = {
+  [YARDS] : {
+    [BUTTERFLY]: [
+      50,
+      100,
+      200,
+    ],
+    [BACKSTROKE]: [
+      50,
+      100,
+      200,
+    ],
+    [BREASTROKE]: [
+      50,
+      100,
+      200,
+    ],
+    [FREESTYLE]: [
+      50,
+      100,
+      200,
+      500,
+      1000,
+      1650,
+    ],
+    [IM]: [
+      100,
+      200,
+      400,
+    ]
+  },
+  [METERS]: {
+    [BUTTERFLY]: [
+      50,
+      100,
+      200,
+    ],
+    [BACKSTROKE]: [
+      50,
+      100,
+      200,
+    ],
+    [BREASTROKE]: [
+      50,
+      100,
+      200,
+    ],
+    [FREESTYLE]: [
+      50,
+      100,
+      200,
+      400,
+      800,
+      1500,
+    ],
+    [IM]: [
+      200,
+      400,
+    ]
+  }
 };
 ANIMATION_DURATION = 150;
 
@@ -105,8 +134,6 @@ export default function SwimmingEventEditScreen(props) {
   const [poolLength, setPoolLength] = React.useState(eventSettings.poolLength);
   const [errorMsgs, setErrorMsgs] = React.useState(splits.map((_, idx) => '')); // array of error messages for each split input
   const firstUpdate = React.useRef(true);
-  const refRBSheetStroke = React.useRef();
-  const refRBSheetDistance = React.useRef();
 
   React.useEffect(() => {
     if (firstUpdate.current) {
@@ -114,8 +141,8 @@ export default function SwimmingEventEditScreen(props) {
       return;
     }
     setIsLoading(false);
-    Alert.alert('Done!', `Successfully saved settings for tracking the ${distance} ${stroke}`, [{text: 'Okay'}]);
-    navigation.navigate(MODE_CONFIG);
+    // Alert.alert('Done!', `Successfully saved settings for tracking the ${distance} ${stroke}`, [{text: 'Okay'}]);
+    // navigation.navigate(MODE_CONFIG);
   }, [deviceConfig]);
 
   useFocusEffect(
@@ -168,11 +195,15 @@ export default function SwimmingEventEditScreen(props) {
     setErrorMsgs(eventSettings.splits.map((_) => ''))
   }
 
+  const getDistanceMetric = () => {
+    return poolLength === OLYMPIC || poolLength === BRITISH ? METERS : YARDS;
+  }
+
   const renderDistance = () => {
     // if the selected stroke from the dropdown is NOT
     // the same as the state stroke, render the lowest distance
     if (Object.keys(eventSettings).length > 0 && eventSettings.stroke !== stroke) {
-      return `${distances[stroke][0].value}`;
+      return `${DISTANCES[getDistanceMetric()][stroke][0]}`;
     }
     // if the ARE EQUAL, then show the distance
     return `${distance}`;
@@ -181,7 +212,7 @@ export default function SwimmingEventEditScreen(props) {
   const switchStrokes = (newStroke) => {
     // if the value stroke is different from the state stroke, update the splits too
     if (newStroke !== stroke) {
-      const newDefaultDistance = distances[newStroke][0].value;
+      const newDefaultDistance = DISTANCES[getDistanceMetric()][newStroke][0];
       // if the new stroke is the same as what is already set, then return the already set distance
       const newDistance = newStroke === eventSettings.stroke ? eventSettings.distance : newDefaultDistance;
       setDistance(newDistance);
@@ -216,54 +247,24 @@ export default function SwimmingEventEditScreen(props) {
         />
       </View>
       <ThemeText style={[styles.textHeader, {marginTop: 20, marginBottom: 20}]}>Pick a Stroke</ThemeText>
-      <ListItem
-        containerStyle={[styles.menuOpener, {backgroundColor: colors.background}]}
-        bottomDivider
-        topDivider
-        onPress={() => refRBSheetStroke.current.open()}
-      >
-        <ListItem.Content>
-          <ListItem.Title>
-            <ThemeText>{stroke}</ThemeText>
-          </ListItem.Title>
-        </ListItem.Content>
-        <ListItem.Chevron name='chevron-forward'/>
-      </ListItem>
-      <PullUpMenu
-        refRBSheet={refRBSheetStroke}
-        childArray={strokes}
-        selected={stroke}
-        onItemPress={switchStrokes}
+      <MenuPrompt
+        promptTitle={stroke}
+        childArrays={[STROKES]}
+        selectedItems={[stroke]}
+        onSave={(chosenStroke) => {
+          setStroke(chosenStroke);
+        }}
+        pullUpTitle='Swimming stroke'
       />
       <ThemeText style={[styles.textHeader, {marginTop: 20, marginBottom: 20}]}>Pick a distance</ThemeText>
-
-      <ListItem
-        containerStyle={[styles.menuOpener, {backgroundColor: colors.background}]}
-        bottomDivider
-        topDivider
-        onPress={() => {
-          refRBSheetDistance.current.open();
+      <MenuPrompt
+        promptTitle={renderDistance()}
+        childArrays={[DISTANCES[getDistanceMetric()][stroke]]}
+        selectedItems={[renderDistance()]}
+        onSave={(chosenDistance) => {
+          setDistance(chosenDistance);
         }}
-      >
-        <ListItem.Content>
-          <ListItem.Title>
-            <ThemeText>{renderDistance()}</ThemeText>
-          </ListItem.Title>
-        </ListItem.Content>
-        <ListItem.Chevron name='chevron-forward'/>
-      </ListItem>
-      <PullUpMenu
-        refRBSheet={refRBSheetDistance}
-        childArray={distances[stroke]}
-        selected={renderDistance()}
-        onItemPress={(value) => {
-          // an array of all 30s depending on the distance
-          value = parseInt(value);
-          const newDefaultSplits = [...Array(Math.min(8, parseInt(value/50))).keys()].map(_ => '30');
-          setErrorMsgs(newDefaultSplits.map(_ => ''));
-          setSplits(newDefaultSplits);
-          setDistance(value);
-        }}
+        pullUpTitle={`Distance (${poolLength === OLYMPIC || poolLength === BRITISH ? 'm' : 'yds'})`}
       />
       <ThemeText style={[styles.textHeader, {marginTop: 20}]}>Set your goal splits</ThemeText>
       <SplitInputs

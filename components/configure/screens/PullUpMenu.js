@@ -8,28 +8,24 @@ export default function PullUpMenu(props) {
   const {
     refRBSheet,
     pullUpTitle,
-    childArray,
-    secondChildArray,
-    thirdChildArray,
-    selected,
-    secondSelected,
-    thirdSelected,
+    childArrays,
+    selectedItems,
     onSave,
   } = props;
-  const [selectedIdx, setSelectedIdx] = React.useState(childArray.indexOf(selected));
-  const [secondSelectedIdx, setSecondSelectedIdx] = React.useState(
-    secondChildArray ? secondChildArray.indexOf(secondSelected) : 0);
-  const [thirdSelectedIdx, setThirdSelectedIdx] = React.useState(
-    thirdChildArray ? thirdChildArray.indexOf(thirdSelected) : 0);
+  console.log("iajweif", childArrays);
+
+  const getSelectedIndexes = () => {
+    const res = [];
+    childArrays.forEach((list, listIdx) => {
+      res.push(list.indexOf(selectedItems[listIdx]));
+    });
+    return res;
+  }
+
+  const [selectedIndexes, setSelectedIndexes] = React.useState(getSelectedIndexes());
       
   const resetState = () => {
-    setSelectedIdx(childArray.indexOf(selected));
-    if (secondChildArray) {
-      setSecondSelectedIdx(secondChildArray.indexOf(secondSelected));
-    }
-    if (thirdChildArray) {
-      setThirdSelectedIdx(thirdChildArray.indexOf(thirdSelected))
-    }
+    setSelectedIndexes(getSelectedIndexes());
   }
   return (
     <RBSheet
@@ -68,9 +64,9 @@ export default function PullUpMenu(props) {
               title='Done'
               onPress={() => {
                 onSave(
-                  childArray[selectedIdx],
-                  secondChildArray[secondSelectedIdx],
-                  thirdChildArray[thirdSelectedIdx]
+                  childArrays[0][selectedIndexes[0]],
+                  childArrays[1] ? childArrays[1][selectedIndexes[1]] : null,
+                  childArrays[2] ? childArrays[2][selectedIndexes[2]] : null,
                 );
                 refRBSheet.current.close();
               }}
@@ -78,7 +74,30 @@ export default function PullUpMenu(props) {
           </View>
         </View>
         <View style={{flexDirection: 'row', }}>
-          <ScrollPicker
+          {childArrays.map((list, listIdx) => (
+            <ScrollPicker
+              dataSource={list}
+              selectedIndex={selectedIndexes[listIdx]}
+              renderItem={(data, index) => {
+                //
+              }}
+              onValueChange={(data, idx) => {
+                setSelectedIndexes(prev => {
+                  const copy = [...prev];
+                  copy[listIdx] = idx;
+                  return copy;
+                });
+                // setSelectedIdx(idx);
+              }}
+              wrapperHeight={180}
+              wrapperWidth={150}
+              wrapperBackground={"#FFFFFF"}
+              itemHeight={60}
+              highlightColor={"#d8d8d8"}
+              highlightBorderWidth={2}
+            />
+          ))}
+          {/* <ScrollPicker
             dataSource={childArray}
             selectedIndex={selectedIdx}
             renderItem={(data, index) => {
@@ -132,7 +151,7 @@ export default function PullUpMenu(props) {
               highlightColor={"#d8d8d8"}
               highlightBorderWidth={2}
             />
-          : null}
+          : null} */}
         </View>
       </View>
     </RBSheet>

@@ -34,8 +34,6 @@ export default function IntervalEditScreen(props) {
   const [numRounds, setNumRounds] = React.useState(intervalSettings.numRounds);
   const [errorMsgs, setErrorMsgs] = React.useState(intervals.map((_, idx) => '')); // array of error messages for each split input
   const firstUpdate = React.useRef(true);
-  // const refRBSheetIntervals = React.useRef();
-  // const refRBSheetRounds = React.useRef();
 
   React.useEffect(() => {
     if (firstUpdate.current) {
@@ -43,8 +41,8 @@ export default function IntervalEditScreen(props) {
       return;
     }
     setIsLoading(false);
-    // Alert.alert('Done!', 'Successfully saved your interval training settings', [{text: 'Okay'}]);
-    // navigation.navigate(MODE_CONFIG);
+    Alert.alert('Done!', 'Successfully saved your interval training settings', [{text: 'Okay'}]);
+    navigation.navigate(MODE_CONFIG);
   }, [deviceConfig]);
 
   useFocusEffect(
@@ -167,12 +165,12 @@ export default function IntervalEditScreen(props) {
             });
           }}
           onLongPress={drag}
-          childArray={Array.from(Array(3).keys())}
-          secondChildArray={Array.from(Array(60).keys())}
-          thirdChildArray={Array.from(Array(60).keys())}
-          selectedItem={hours}
-          secondSelectedItem={mins}
-          thirdSelectedItem={secs}
+          childArrays={[
+            Array.from(Array(3).keys()),
+            Array.from(Array(60).keys()),
+            Array.from(Array(60).keys())
+          ]}
+          selectedItems={[hours, mins, secs,]}
         />
       </View>
     )
@@ -195,12 +193,12 @@ export default function IntervalEditScreen(props) {
             Your device will prompt you when it's time to work or rest so you can focus on training.
           </ThemeText>
           <ThemeText style={[styles.textHeader, {marginTop: 20, marginBottom: 20}]}>
-            Choose the number of rounds
+            Number of rounds
           </ThemeText>
           <MenuPrompt
             promptTitle={`Rounds: ${numRounds}`}
-            childArray={getRoundsArray()}
-            selectedItem={numRounds}
+            childArrays={[getRoundsArray()]}
+            selectedItems={[numRounds]}
             onSave={num => setNumRounds(num)}
           />
           <ThemeText style={[styles.textHeader,]}>

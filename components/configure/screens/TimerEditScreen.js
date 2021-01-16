@@ -48,8 +48,8 @@ export default function TimerEditScreen(props) {
       return;
     }
     setIsLoading(false);
-    // Alert.alert('Done!', 'Successfully saved your timer settings', [{text: 'Okay'}]);
-    // navigation.navigate(MODE_CONFIG);
+    Alert.alert('Done!', 'Successfully saved your timer settings', [{text: 'Okay'}]);
+    navigation.navigate(MODE_CONFIG);
   }, [deviceConfig]);
 
   useFocusEffect(
@@ -155,12 +155,22 @@ export default function TimerEditScreen(props) {
               return copy;
             })
           }}
-          childArray={Array.from(Array(60).keys())}
-          secondChildArray={Array.from(Array(60).keys())}
-          thirdChildArray={Array.from(Array(10).keys())}
-          selectedItem={mins}
-          secondSelectedItem={secs}
-          thirdSelectedItem={tenths}
+          childArrays={[
+            Array.from(Array(60).keys()),
+            Array.from(Array(60).keys()),
+            Array.from(Array(10).keys())
+          ]}
+          selectedItems={[
+            mins,
+            secs,
+            tenths
+          ]}
+          // childArray={Array.from(Array(60).keys())}
+          // secondChildArray={Array.from(Array(60).keys())}
+          // thirdChildArray={Array.from(Array(10).keys())}
+          // selectedItem={mins}
+          // secondSelectedItem={secs}
+          // thirdSelectedItem={tenths}
         />
       </View>
     );
@@ -170,6 +180,11 @@ export default function TimerEditScreen(props) {
     <DraggableFlatList
       ListHeaderComponent={() => (
         <>
+          <Spinner
+            visible={isLoading}
+            textContent='Saving...'
+            textStyle={{color: colors.textColor}}
+          />
           <ThemeText style={{fontSize: 20, fontWeight: 'bold', alignSelf: 'flex-start', margin: 10}}>
             Timer with alerts:
           </ThemeText>

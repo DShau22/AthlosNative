@@ -21,18 +21,15 @@ export default function MenuPrompt(props) {
   const {
     promptTitle,
     promptSubtitle,
-    childArray,
-    secondChildArray,
-    thirdChildArray,
+    childArrays,
+    selectedItems,
     onSave,
-    selectedItem,
-    secondSelectedItem,
-    thirdSelectedItem,
     noDividers,
     noChevron,
     onLongPress,
     pullUpTitle,
   } = props; 
+  console.log(childArrays);
   return (
     <>
       <ListItem
@@ -58,12 +55,8 @@ export default function MenuPrompt(props) {
         refRBSheet={refRBSheet}
         onSave={onSave}
         pullUpTitle={pullUpTitle}
-        childArray={childArray}
-        selected={selectedItem}
-        secondSelected={secondSelectedItem}
-        secondChildArray={secondChildArray}
-        thirdChildArray={thirdChildArray}
-        thirdSelected={thirdSelectedItem}
+        childArrays={childArrays}
+        selectedItems={selectedItems}
       />
     </>
   )
