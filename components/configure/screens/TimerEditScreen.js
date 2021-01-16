@@ -19,6 +19,7 @@ const { METRIC } = GLOBAL_CONSTANTS;
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 Icon.loadFont();
 import SplitInputs from '../popups/SplitInputs';
+import ScrollPicker from "react-native-wheel-scrollview-picker";
 import ThemeText from '../../generic/ThemeText';
 import { UserDataContext } from '../../../Context';
 import SaveButton from './SaveButton';
@@ -27,6 +28,7 @@ import { ListItem } from 'react-native-elements';
 import PullUpMenu from './PullUpMenu';
 import MenuPrompt from './MenuPrompt';
 import {numToWord} from '../../utils/strings';
+
 export default function TimerEditScreen(props) {
   const { colors } = useTheme();
   const { navigation, deviceConfig, setDeviceConfig } = props;
@@ -61,30 +63,12 @@ export default function TimerEditScreen(props) {
   );
 
   const saveEdits = () => {
-    // check if any of the splits are empty first
-    var existsEmptySplit = false;
-    errorMsgs.forEach((msg, _) => {
-      if (msg.length > 0) {
-        Alert.alert('Whoops!', "Make sure all the errors are addressed", [{ text: 'okay' }]);
-        return;
-      }
-    })
-    splits.forEach((split, i) => {
-      existsEmptySplit = existsEmptySplit || split.length === 0 || parseInt(split) <= 9
-      splits[i] = parseInt(splits[i]);
-    })
-    if (existsEmptySplit) {
-      Alert.alert('Whoops!', "Make sure none of the splits you entered are empty and that they're all greater than 9 seconds", [{ text: 'okay' }]);
-      return;
-    }
     // depending on the edit mode
     setDeviceConfig(prevConfig => {
       const newModeSettings = {
-        mode: SWIMMING_EVENT,
-        subtitle: SWIMMING_EVENT_SUBTITLE,
-        stroke: stroke,
-        distance: distance,
+        mode: TIMER,
         splits: splits,
+        cycles
       };
       prevConfig[editIdx] = newModeSettings;
       return [...prevConfig];
@@ -98,21 +82,24 @@ export default function TimerEditScreen(props) {
   }
 
   const totalSplitTime = () => {
-    const reduced = splits.reduce((a, b) => parseInt(a) + parseInt(b), 0);
+    const reduced = splits.reduce((a, b) => a + b, 0);
     return isNaN(reduced) ? '' : `${reduced} seconds`;
   }
 
   const addCheckpoint = () => {
+    if (splits.length >= 6) {
+      Alert.alert("Whoops", "Cannot have more than 6 intervals", [{text: 'okay'}]);
+      return;
+    }
     setSplits(prev => {
       const copy = [...prev];
-      copy.push('60');
+      copy.push(60);
       return copy;
     });
   }
 
   const renderCheckpoints = () => {
     return splits.map((split, idx) => {
-      split = parseInt(split);
       var hours = Math.floor(split / 3600);
       var mins = Math.floor(split / 60);
       var secs = split % 60;
@@ -121,28 +108,28 @@ export default function TimerEditScreen(props) {
       var secsText = secs === 0 ? '' : `${secs} ${mins === 1 ? 'second' : 'seconds'}`;
       var promptSubtitle = `${hoursText}${minsText}${secsText}`;
       return (
-        <></>
-        // <MenuPrompt
-        //   promptTitle={`${numToWord(idx)} interval:`}
-        //   promptSubtitle={promptSubtitle}
-        //   onSave={(totalSeconds) => {
-        //     setSplits(prev => {
-        //       const copy = [...prev];
-        //       copy[idx] = totalSeconds;
-        //       return copy;
-        //     })
-        //   }}
-        //   childArray={Array.from(Array(3).keys())}
-        //   secondChildArray={Array.from(Array(60).keys())}
-        //   thirdChildArray={Array.from(Array(60).keys())}
-        //   selectedItem={parseInt(hours)}
-        //   secondSelectedItem={parseInt(mins)}
-        //   thirdSelectedItem={parseInt(secs)}
-        // />
+        <MenuPrompt
+          promptTitle={`${numToWord(idx)} interval:`}
+          promptSubtitle={promptSubtitle}
+          onSave={(hours, mins, secs) => {
+            totalSeconds = hours * 3600 + mins * 60 + secs;
+            setSplits(prev => {
+              const copy = [...prev];
+              copy[idx] = totalSeconds;
+              return copy;
+            })
+          }}
+          childArray={Array.from(Array(3).keys())}
+          secondChildArray={Array.from(Array(60).keys())}
+          thirdChildArray={Array.from(Array(60).keys())}
+          selectedItem={hours}
+          secondSelectedItem={mins}
+          thirdSelectedItem={secs}
+        />
       );
     });
   }
-
+  console.log("cycles: ", cycles)
   return (
     <View style={{height: '100%', width: '100%'}}>
       <ScrollView>
@@ -152,57 +139,35 @@ export default function TimerEditScreen(props) {
         <ThemeText style={{margin: 10}}>
           Set up a timer with alerts on how much time has passed. You can customize when these alerts will occur (up to a max of 6).
         </ThemeText>
-        {renderCheckpoints()}
-        {/* <ThemeText style={[styles.textHeader, {marginTop: 20, marginBottom: 20}]}>
-          Set the number of intervals
-        </ThemeText>
         <ListItem
-          containerStyle={[styles.menuOpener, {backgroundColor: colors.background}]}
+          containerStyle={{backgroundColor: colors.background}}
           bottomDivider
           topDivider
-          onPress={() => refRBSheetSplits.current.open()}
+          onPress={() => setCycles(prev => !prev)}
         >
           <ListItem.Content>
             <ListItem.Title>
-              <ThemeText>{`Number of checkpoints: ${splits.length}`}</ThemeText>
+              <ThemeText>
+                Repeat last interval?
+              </ThemeText>
             </ListItem.Title>
+            <ListItem.Subtitle style={{marginTop: 5}}>
+              <ThemeText>
+                If enabled, the timer will keep repeating the last interval forever. Otherwise, the timer will stop after 
+                the last interval finishes.
+              </ThemeText>
+            </ListItem.Subtitle>
           </ListItem.Content>
-          <ListItem.Chevron name='chevron-forward'/>
+          <ListItem.CheckBox
+            checked={cycles}
+            checkedColor={colors.textColor}
+            onPress={() => setCycles(prev => !prev)}
+          />
         </ListItem>
-        <PullUpMenu
-          refRBSheet={refRBSheetSplits}
-          childArray={[
-            {label: 1, value: 1},
-            {label: 2, value: 2},
-            {label: 3, value: 3},
-            {label: 4, value: 4},
-            {label: 5, value: 5},
-            {label: 6, value: 6}]}
-          selected={splits.length}
-          onItemPress={num => setSplits(prev => {
-            const copy = [...prev];
-            if (num > prev.length) {
-              for (let i = prev.length; i < num; i++)
-                copy.push(60);
-              return copy;
-            } else if (num < prev.length) {
-              for (let i = prev.length; i > num; i--)
-                copy.pop();
-              return copy;
-            }
-          })}
-        /> */}
+        {renderCheckpoints()}
         <ThemeText style={[styles.textHeader,]}>
           {`Total time: ${totalSplitTime()}`}
         </ThemeText>
-        {/* <SplitInputs
-          distance={splits.length * 50}
-          setSplits={setSplits}
-          splits={splits}
-          errorMsgs={errorMsgs}
-          setErrorMsgs={setErrorMsgs}
-          label={'split'}
-        /> */}
         <SaveButton
           containerStyle={{
             margin: 20,
