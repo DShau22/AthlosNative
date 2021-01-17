@@ -16,7 +16,7 @@ const {
   JUMP,
   SWIMMING_EVENT,
   INTERVAL,
-  TIMED_RUN,
+  TIMER,
   MUSIC_ONLY,
   CONFIG_KEY,
   MODE_CONFIG,
@@ -65,12 +65,12 @@ class SAinit {
   static E = 'E'.charCodeAt(0);
   static G = 'G'.charCodeAt(0);
   static POOL_LENGTH_MAP = {
-    NCAA: '0'.charCodeAt(0),
-    OLYMPIC: '1'.charCodeAt(0),
-    BRITISH: '2'.charCodeAt(0),
-    THIRD_M: '7'.charCodeAt(0),
-    THIRD_YD: '3'.charCodeAt(0),
-    HOME: '5'.charCodeAt(0),
+    [NCAA]: '0'.charCodeAt(0),
+    [OLYMPIC]: '1'.charCodeAt(0),
+    [BRITISH]: '2'.charCodeAt(0),
+    [THIRD_M]: '7'.charCodeAt(0),
+    [THIRD_YD]: '3'.charCodeAt(0),
+    [HOME]: '5'.charCodeAt(0),
   }
   constructor(
     initialDeviceConfig,
@@ -221,6 +221,9 @@ class SAinit {
           case INTERVAL:
             this._setIntervalConfig(sainit, modeObject, idx);
             break;
+          case TIMER:
+            this._setTimerConfig(sainit, modeObject, idx);
+            break;
           default:
             // set it as unused
             sainit[idx] = SAinit.LOWER_X;
@@ -233,11 +236,12 @@ class SAinit {
     }
     sainit[7] = SAinit.LOWER_X; // make sure 8th byte is always unused
     for (let i = 0; i < 128; i++) {
-      if (sainit[i] !== test[i]) {
-        console.log(`expected ${test[i].toString(16)} but got ${sainit[i].toString(16)} at index ${i}`);
-      } else {
-        console.log(sainit[i].toString(16));
-      }
+      console.log(`index ${i}: ${sainit[i].toString(16)}`);
+      // if (sainit[i] !== test[i]) {
+      //   console.log(`expected ${test[i].toString(16)} but got ${sainit[i].toString(16)} at index ${i}`);
+      // } else {
+      //   console.log(sainit[i].toString(16));
+      // }
     }
     console.log("in utf8: ", sainit.toString('utf8'));
     return sainit;
@@ -309,6 +313,8 @@ class SAinit {
     sainit[idx + 8] = bitmap[0] + SAinit.ZERO;
     // set swimming pool length
     const { poolLength } = swimObject;
+    console.log("pool length: ", poolLength);
+    console.log(SAinit.POOL_LENGTH_MAP[poolLength]);
     sainit[idx + 16] = SAinit.POOL_LENGTH_MAP[poolLength];
     // set reference times here
     var dt = poolLength === OLYMPIC ? 0.8 : 0.4;
@@ -398,11 +404,7 @@ class SAinit {
     var offset8 = Buffer.alloc(1);
     // bits 2-7 are number of laps for the race
     // set bits 0-5 and then left shift
-    if (metric === METERS) {
-      offset8[0] = parseInt(Math.ceil(distance / 50));
-    } else {
-      offset8[0] = parseInt(Math.ceil(distance / 25));
-    }
+    offset8[0] = parseInt(Math.ceil(distance / 50));
     offset8[0] = offset8[0] << 2; // left shift by 2
     if (distance === 400 && stroke === IM) {
       offset8[0] = offset8[0] & 0x01; // set lsb to 1 for 400 im
@@ -434,8 +436,59 @@ class SAinit {
    * @param {Object} runObject 
    * @param {int} idx 
    */
-  _setIntervalConfig(sainit, raceObject, idx) {
+  _setIntervalConfig(sainit, intervalObject, idx) {
+    console.log("setting interval config: ", intervalObject);
+    const { intervals, numRounds } = intervalObject;
+    sainit[idx] = 36;
+    var offset8 = Buffer.alloc(1);
+    if (numRounds > 6)
+      throw new Error(`num rounds must be less than 6. Got:${numRounds}`);
+    if (intervals.length > 6)
+      throw new Error(`num rounds must be less than 6. Got:${intervals}`);
+    offset8[0] = intervals.length;
+    offset8[0] = offset8[0] << 2;
+    offset8[0] |= 0x02; // start by countdown by setting second lsb to 1
+    sainit[idx + 8] = offset8[0];
+    sainit[idx + 16] = numRounds + SAinit.ZERO;
+    intervals.forEach(({time, rest}, i) => {
+      const timeInHalves = time * 2; // time is in seconds. Take the 15 LSBs
+      sainit[idx + 32 + i*16] = (timeInHalves & 0x7f80) >> 7; // bits (bits 14-7)
+      sainit[idx + 32 + i*16+8] = (timeInHalves & 0x7f) << 1; // 7 LSBs (bits 6-0) shifted by 1. The LSB of sainit here determines audio file played
+      if (rest) {
+        sainit[idx + 32 + i*16+8] |= 0x01; // set lsb to 1 if this is a rest interval
+      }
+    });
+    console.log("set interval config: ", sainit);
+  }
 
+  /**
+   * Given the index of the timer mode in the sainit array, set the rest of the timer config
+   * given the timer mode object according to the sainit docs
+   * @param {Buffer} sainit 
+   * @param {Object} runObject 
+   * @param {int} idx 
+   */
+  _setTimerConfig(sainit, timerObject, idx) {
+    console.log("setting timer config: ", timerObject);
+    const { splits, repeats } = timerObject;
+    sainit[idx] = 35;
+    var offset8 = Buffer.alloc(1);
+    if (splits.length > 6)
+      throw new Error(`num rounds must be less than 6. Got:${splits}`);
+    offset8[0] = splits.length;
+    offset8[0] = offset8[0] << 2;
+    if (repeats)
+      offset8 |= 0x01;
+    offset8[0] = offset8[0] | 0x02; // start by countdown by setting second lsb to 1
+    sainit[idx + 8] = offset8[0];
+    sainit[idx + 16] = 1 + SAinit.ZERO; // no repeat periods for now to simplify interface
+    splits.forEach((timeInTenths, i) => {
+      const timeInFifths = timeInTenths >> 1; // so that we can use an extra bit to support > 1 hour per period
+      const timeIn05 = timeInFifths * 4; // take the 15 LSBs
+      sainit[idx + 32 + i*16] = (timeIn05 & 0x7f80) >> 7; // bits (bits 14-7)
+      sainit[idx + 32 + i*16+8] = (timeIn05 & 0x7f) << 1; // 7 LSBs (bits 6-0) shifted by 1. The LSB of sainit here determines audio file played
+    });
+    console.log("set timer config: ", sainit);
   }
 }
 export default SAinit;

@@ -82,7 +82,7 @@ export default function IntervalEditScreen(props) {
 
   const getRoundsArray = () => {
     const res = [];
-    for (let i = 1; i <= 20; i++) {
+    for (let i = 1; i <= 6; i++) {
       res.push(i);
     }
     return res;
