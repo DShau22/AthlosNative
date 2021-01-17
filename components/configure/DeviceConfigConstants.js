@@ -20,7 +20,7 @@ const DEVICE_CONFIG_CONSTANTS = {
   MUSIC_ONLY: 'Music Only',
   RUN: 'Run',
   SWIM: 'Swim',
-  JUMP: 'Jump',
+  JUMP: 'Vertical',
   SWIMMING_EVENT: 'Swimming Event',
   INTERVAL: 'Interval',
   TIMER: 'Timer',

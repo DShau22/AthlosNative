@@ -10,6 +10,9 @@ const COLOR_THEMES = {
   RUN_THEME: '#9cf0b1',
   SWIM_THEME: '#B3F2FF',
   JUMP_THEME: '#FAB6F8',
+  SWIMMING_EVENT_THEME: '#7e8ee6',
+  TIMER_THEME: '#f50a3d',
+  INTERVAL_THEME: '#ff03b7',
   RUN_DONUT_GRADIENTS: [
     {
       key: 'Running',

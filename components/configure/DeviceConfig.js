@@ -3,7 +3,6 @@ import DraggableFlatList from 'react-native-draggable-flatlist';
 import React from 'react';
 import { View, StyleSheet, Dimensions, Alert, Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Button } from 'react-native-elements';
 import AsyncStorage from '@react-native-community/async-storage';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Entypo';
@@ -11,7 +10,6 @@ Icon.loadFont();
 
 import { DEVICE_CONFIG_CONSTANTS, getDefaultConfig, getDefaultModeObject } from './DeviceConfigConstants';
 import { UserDataContext } from '../../Context';
-import AddPopup from './popups/AddPopup';
 import ModeItem from './ModeItem';
 const {
   RUN,
@@ -20,17 +18,12 @@ const {
   SWIMMING_EVENT,
   INTERVAL,
   MUSIC_ONLY,
-  CONFIG_KEY,
   TIMER,
+  CONFIG_KEY,
   MODE_CONFIG
 } = DEVICE_CONFIG_CONSTANTS;
-
-// edit popups
-import RunEditPopup from './popups/RunEditPopup';
-import JumpEditPopup from './popups/JumpEditPopup';
-import SwimEditPopup from './popups/SwimEditPopup';
-import SwimEventEditPopup from './popups/SwimEventEditPopup';
-import MusicPopup from './popups/MusicPopup';
+import { COLOR_THEMES } from '../ColorThemes';
+const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES;
 
 // edit screens
 import RunEditScreen from './screens/RunEditScreen';
@@ -46,10 +39,9 @@ import BLEHandler from '../bluetooth/transmitter';
 import ThemeText from '../generic/ThemeText';
 import { Divider } from 'react-native-paper';
 import { useTheme } from '@react-navigation/native';
-import IntervalEditPopup from './popups/IntervalEditPopup';
-import LoadingSpin from '../generic/LoadingSpin';
 import Spinner from 'react-native-loading-spinner-overlay';
 import SAInitSender from '../bluetooth/SAInitSender';
+import PullUpMenu from './screens/PullUpMenu';
 
 // CONSIDER USING REACT NATIVE PAPER FAB.GROUP INSTEAD OF A POPUP MODAL
 // WHEN ADDING A NEW MODE
@@ -68,6 +60,7 @@ const DeviceConfig = (props) => {
   const [deviceConfig, setDeviceConfig] = React.useState(getDefaultConfig());
   // keeps track of whether or not this is the first render of this component
   const firstUpdate = React.useRef(true);
+  const addRBSheetRef = React.useRef();
 
   React.useEffect(() => {
     if (firstUpdate.current) {
@@ -238,22 +231,45 @@ const DeviceConfig = (props) => {
               offsetY={15}
               buttonColor={'#1CB5E0'}
               size={FAB_SIZE}
+              onPress={() => addRBSheetRef.current.open()}
+            />
+            <PullUpMenu
+              refRBSheet={addRBSheetRef}
+              pullUpTitle={'Modes'}
+              childArrays={[[
+                MUSIC_ONLY,
+                RUN,
+                SWIM,
+                JUMP,
+                SWIMMING_EVENT,
+                INTERVAL,
+                TIMER,
+              ]]}
+              selectedItems={[MUSIC_ONLY]}
+              onSave={(chosenMode) => addMode(chosenMode)}
+            />
+            {/* <ActionButton
+              position='left'
+              offsetX={15}
+              offsetY={15}
+              buttonColor={'#1CB5E0'}
+              size={FAB_SIZE}
             >
               <ActionButton.Item
                 size={FAB_SIZE - 8}
                 textContainerStyle={styles.actionButtonTextContainer}
                 textStyle={styles.actionButtonText}
-                buttonColor='#9b59b6'
+                buttonColor='white'
                 title="Music Only"
                 onPress={() => addMode(MUSIC_ONLY)}
               >
-                <Icon name="md-create" style={styles.actionButtonIcon} />
+                <Icon name="md-create" style={[styles.actionButtonIcon, {color: 'black'}]} />
               </ActionButton.Item>
               <ActionButton.Item
                 size={FAB_SIZE - 8}
                 textContainerStyle={styles.actionButtonTextContainer}
                 textStyle={styles.actionButtonText}
-                buttonColor='#3498db'
+                buttonColor={RUN_THEME}
                 title="Running"
                 onPress={() => addMode(RUN)}
               >
@@ -263,7 +279,7 @@ const DeviceConfig = (props) => {
                 size={FAB_SIZE - 8}
                 textContainerStyle={styles.actionButtonTextContainer}
                 textStyle={styles.actionButtonText}
-                buttonColor='#1abc9c'
+                buttonColor={SWIM_THEME}
                 title="Swimming"
                 onPress={() => addMode(SWIM)}
               >
@@ -273,7 +289,7 @@ const DeviceConfig = (props) => {
                 size={FAB_SIZE - 8}
                 textContainerStyle={styles.actionButtonTextContainer}
                 textStyle={styles.actionButtonText}
-                buttonColor='#1abc9c'
+                buttonColor={JUMP_THEME}
                 title="Vertical"
                 onPress={() => addMode(JUMP)}
               >
@@ -299,7 +315,7 @@ const DeviceConfig = (props) => {
               >
                 <Icon name="md-done-all" style={styles.actionButtonIcon} />
               </ActionButton.Item>
-            </ActionButton>
+            </ActionButton> */}
           </View>
         }
       </Stack.Screen>

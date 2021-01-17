@@ -6,8 +6,8 @@ Icon.loadFont();
 import { DEVICE_CONFIG_CONSTANTS } from './DeviceConfigConstants';
 import { COLOR_THEMES } from '../ColorThemes';
 import { useTheme } from '@react-navigation/native';
-// const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES;
-const { MUSIC_ONLY, RUN, SWIM, JUMP, SWIMMING_EVENT, TIMED_RUN } = DEVICE_CONFIG_CONSTANTS;
+const { RUN_THEME, SWIM_THEME, JUMP_THEME, SWIMMING_EVENT_THEME, INTERVAL_THEME, TIMER_THEME } = COLOR_THEMES;
+const { MUSIC_ONLY, RUN, SWIM, JUMP, SWIMMING_EVENT, INTERVAL, TIMER } = DEVICE_CONFIG_CONSTANTS;
 
 export default function ModeItem(props) {
   const { colors } = useTheme();
@@ -15,17 +15,19 @@ export default function ModeItem(props) {
   const modeToColor = (mode) => { // use a function instead of object to save memory
     switch(mode) {
       case MUSIC_ONLY:
-        return colors.header;
+        return colors.textColor;
       case RUN:
-        return colors.header;
+        return RUN_THEME;
       case SWIM:
-        return colors.header;
+        return SWIM_THEME;
       case JUMP:
-        return colors.header;
+        return JUMP_THEME;
       case SWIMMING_EVENT:
-        return colors.header;
-      case TIMED_RUN:
-        return colors.header;
+        return SWIMMING_EVENT_THEME;
+      case TIMER:
+        return TIMER_THEME;
+      case INTERVAL:
+        return INTERVAL_THEME;
       default:
         return colors.header;
     }
@@ -34,8 +36,8 @@ export default function ModeItem(props) {
     <TouchableOpacity
       style={{
         height: 80,
-        backgroundColor: isActive ? colors.backgroundOffset : modeToColor(item.mode),
-        borderColor: item.mode === MUSIC_ONLY ? 'white' : colors.backgroundOffset,
+        backgroundColor: isActive ? colors.backgroundOffset : colors.header,
+        borderColor: item.mode === MUSIC_ONLY ? colors.textColor : colors.backgroundOffset,
         borderWidth: 1,
         borderRadius: 8,
         marginTop: 15,
@@ -54,6 +56,17 @@ export default function ModeItem(props) {
           justifyContent: "center",
         }}
       >
+        <View style={{
+          backgroundColor: modeToColor(item.mode),
+          position: 'absolute',
+          left: -1,
+          borderTopLeftRadius: 8,
+          borderBottomLeftRadius: 8,
+          borderColor: item.mode === MUSIC_ONLY ? colors.textColor : colors.backgroundOffset,
+          borderWidth: 1,
+          width: '6%',
+          height: '100%',
+        }}></View>
         {item.mode !== MUSIC_ONLY ?
           <TouchableOpacity
             style={styles.removeButton}
