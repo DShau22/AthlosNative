@@ -33,8 +33,8 @@ const DEVICE_CONFIG_CONSTANTS = {
   EDIT_TIMED_RUN: 'Edit Timed Run',
 
   // triggers
-  TRIGGER_STEPS: 'Steps',
-  TRIGGER_MIN: 'Min',
+  TRIGGER_STEPS: 'steps',
+  TRIGGER_MIN: 'minutes',
   TRIGGER_LAP: 'Lap',
   TRIGGER_ON_FINISH: 'On Finish',
 

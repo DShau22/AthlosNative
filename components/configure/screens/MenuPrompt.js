@@ -1,5 +1,6 @@
 import { useTheme } from '@react-navigation/native';
 import React from 'react';
+import { Platform } from 'react-native';
 import { View, StyleSheet } from 'react-native';
 import { ListItem } from 'react-native-elements';
 import ThemeText from '../../generic/ThemeText';
@@ -48,7 +49,7 @@ export default function MenuPrompt(props) {
             </ListItem.Subtitle>
           : null}
         </ListItem.Content>
-        {noChevron ? null : <ListItem.Chevron name='chevron-forward'/>}
+        {noChevron ? null : <ListItem.Chevron/>}
       </ListItem>
       <PullUpMenu
         refRBSheet={refRBSheet}

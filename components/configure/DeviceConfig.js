@@ -49,6 +49,7 @@ import { useTheme } from '@react-navigation/native';
 import IntervalEditPopup from './popups/IntervalEditPopup';
 import LoadingSpin from '../generic/LoadingSpin';
 import Spinner from 'react-native-loading-spinner-overlay';
+import SAInitSender from '../bluetooth/SAInitSender';
 
 // CONSIDER USING REACT NATIVE PAPER FAB.GROUP INSTEAD OF A POPUP MODAL
 // WHEN ADDING A NEW MODE
@@ -65,9 +66,6 @@ const DeviceConfig = (props) => {
   const userDataContext = React.useContext(UserDataContext);
   const { settings, cadenceThresholds, referenceTimes, runEfforts, swimEfforts, bests } = userDataContext;
   const [deviceConfig, setDeviceConfig] = React.useState(getDefaultConfig());
-  const [adding, setAdding] = React.useState(false);
-  // keeps track of which item in the mode list the user is editing
-  const [editModeItem, setEditModeItem] = React.useState({});
   // keeps track of whether or not this is the first render of this component
   const firstUpdate = React.useRef(true);
 
@@ -132,11 +130,10 @@ const DeviceConfig = (props) => {
   }
 
   // sends the current device config to the athlos earbuds
-  const saveAndSendToDevice = async () => {
+  const saveAndCreateSaInit = async () => {
     try {
       // store the device config in local storage first
       await storeConfig();
-
       const sainitManager = new SAinit(
         deviceConfig,
         settings,
@@ -146,8 +143,7 @@ const DeviceConfig = (props) => {
         cadenceThresholds,
         bests.highestJump,
       );
-      const sainitBuffer = sainitManager.createSaInit(); // should return byte array
-      // transmit over bluetooth
+      return sainitBuffer = sainitManager.createSaInit(); // should return byte array
     } catch(e) {
       console.log(e);
       Alert.alert(
@@ -167,9 +163,6 @@ const DeviceConfig = (props) => {
         index={index}
         isActive={isActive}
         deleteMode={deleteMode}
-        displayEditModal={() => {
-          setEditModeItem(item);
-        }}
         onPress={() => {
           navigation.navigate(item.mode, {editIdx: index});
         }}
@@ -181,52 +174,6 @@ const DeviceConfig = (props) => {
     setDeviceConfig(prevConfig => [...prevConfig, getDefaultModeObject(mode)])
   }
 
-  // lists each of the possible popups that can be rendered based on
-  // what the users taps (controlled by the editMode string)
-  const popups = () => {
-    // IMPORTANT: these popups are always mounted when DeviceConfig mounts,
-    // even though they can't always be seen, which is kinda dumb imo
-    return (
-      <>
-        <RunEditPopup
-          visible={editModeItem.mode === RUN}
-          setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
-          editModeItem={editModeItem}
-          setDeviceConfig={newConfig => setDeviceConfig(newConfig)}
-        />
-        <JumpEditPopup
-          visible={editModeItem.mode === JUMP}
-          setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
-          editModeItem={editModeItem}
-          setDeviceConfig={setDeviceConfig}
-        />
-        <SwimEditPopup 
-          visible={editModeItem.mode === SWIM}
-          setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
-          editModeItem={editModeItem}
-          setDeviceConfig={setDeviceConfig}
-        />
-        <SwimEventEditPopup 
-          visible={editModeItem.mode === SWIMMING_EVENT}
-          setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
-          editModeItem={editModeItem}
-          setDeviceConfig={setDeviceConfig}
-        />
-        <MusicPopup
-          visible={editModeItem.mode === MUSIC_ONLY}
-          setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
-          editModeItem={editModeItem}
-          setDeviceConfig={setDeviceConfig}
-        />
-        <IntervalEditPopup
-          visible={editModeItem.mode === INTERVAL}
-          setVisible={(visible) => { if (!visible) setEditModeItem({}) }}
-          editModeItem={editModeItem}
-          setDeviceConfig={setDeviceConfig}
-        />
-      </>
-    )
-  }
   if (firstUpdate.current) {
     return (
       <View>
@@ -256,13 +203,6 @@ const DeviceConfig = (props) => {
                     Add or remove activity tracking modes that your device can use when powered on.
                   </ThemeText>
                   <Divider style={{ alignSelf: 'center', width: '95%', marginTop: 10, backgroundColor: colors.textColor }}/>
-                  <AddPopup
-                    deviceConfig={deviceConfig}
-                    adding={adding}
-                    setAdding={setAdding}
-                    setDeviceConfig={setDeviceConfig}
-                  />
-                  {popups()}
                 </>
               )}
               data={deviceConfig}
@@ -281,11 +221,16 @@ const DeviceConfig = (props) => {
                   setDeviceConfig(data);
                 }
               }}
-              ListFooterComponent={() => (
-                <>
-                  <Button title='test make sainit' onPress={saveAndSendToDevice}/>
-                </>
-              )}
+              ListFooterComponent={() => {
+                return (
+                  <>
+                    {/* <SAInitSender
+                      saveAndCreateSaInit={saveAndCreateSaInit}
+                    /> */}
+                    {/* <Button title='test make sainit' onPress={saveAndSendToDevice}/> */}
+                  </>
+                )
+              }}
             />
             <ActionButton
               position='left'

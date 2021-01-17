@@ -3,13 +3,7 @@ import { View, StyleSheet, Alert, ScrollView, Text, TouchableOpacity } from 'rea
 import { useFocusEffect } from '@react-navigation/native';
 import { DEVICE_CONFIG_CONSTANTS, } from '../DeviceConfigConstants';
 const {
-  POOL_LENGTH_CHOICES,
   TIMER,
-  BUTTERFLY,
-  BACKSTROKE,
-  BREASTROKE,
-  FREESTYLE,
-  IM,
   MODE_CONFIG
 } = DEVICE_CONFIG_CONSTANTS;
 import ActionButton from 'react-native-action-button';
@@ -18,8 +12,6 @@ import GLOBAL_CONSTANTS from '../../GlobalConstants';
 const { METRIC } = GLOBAL_CONSTANTS;
 import Entypo from 'react-native-vector-icons/Entypo';
 Entypo.loadFont();
-import SplitInputs from '../popups/SplitInputs';
-import ScrollPicker from "react-native-wheel-scrollview-picker";
 import ThemeText from '../../generic/ThemeText';
 import { UserDataContext } from '../../../Context';
 import SaveButton from './SaveButton';

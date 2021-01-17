@@ -154,46 +154,6 @@ class SAinit {
       },
     };
   }
-
-  /**
-   * deletes the mode config at the index in the deviceConfig array
-   * @param {int} index 
-   */
-  delete(deleteIndex) {
-    if (deleteIndex === 0) {
-      console.log("cannot delete the 0th index that is music only");
-      return;
-    }
-    if (this.deviceConfig.length === 0) {
-      console.log('Something is wrong: deviceConfig is empty when trying to delete at index: ', deleteIndex);
-      return;
-    }
-    this.deviceConfig = this.deviceConfig.filter((_, idx) => {
-      return deleteIndex !== idx;
-    });
-  }
-
-  /**
-   * adds a new default mode object to the device config
-   */
-  addNewMode(mode) {
-    const modeObject = getDefaultModeObject[mode];
-    if (!modeObject) {
-      console.log(`mode ${mode} is not a valid mode`);
-      return;
-    }
-    this.deviceConfig.push(modeObject);
-  }
-
-  /**
-   * replaces the mode object at index with newModeObject
-   * @param {int} index 
-   * @param {Object} newModeObject
-   */
-  saveNewModeObject(index, newModeObject) {
-    this.deviceConfig[index] = newModeObject;
-  }
-
   /**
    * converts the deviceConfig array to the 128 byte sainit array
    */
@@ -237,11 +197,6 @@ class SAinit {
     sainit[7] = SAinit.LOWER_X; // make sure 8th byte is always unused
     for (let i = 0; i < 128; i++) {
       console.log(`index ${i}: ${sainit[i].toString(16)}`);
-      // if (sainit[i] !== test[i]) {
-      //   console.log(`expected ${test[i].toString(16)} but got ${sainit[i].toString(16)} at index ${i}`);
-      // } else {
-      //   console.log(sainit[i].toString(16));
-      // }
     }
     console.log("in utf8: ", sainit.toString('utf8'));
     return sainit;

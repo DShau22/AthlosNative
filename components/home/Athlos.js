@@ -41,7 +41,6 @@ const {
   BLUETOOTH,
 } = GLOBAL_CONSTANTS
 import FITNESS_CONTANTS from '../fitness/FitnessConstants'
-import Bluetooth from '../bluetooth/Bluetooth';
 
 function Athlos(props) {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -387,7 +386,7 @@ function Athlos(props) {
             {/* <BottomTab.Screen name={SETTINGS} component={Settings} /> */}
             {/* <BottomTab.Screen name={COMMUNITY} component={Community} /> */}
             <BottomTab.Screen name={DEVICE_CONFIG} component={DeviceConfig} />
-            <BottomTab.Screen name={'Sync'} component={Bluetooth} />
+            {/* <BottomTab.Screen name={'Sync'} component={Bluetooth} /> */}
           </BottomTab.Navigator>
         </>
       }

@@ -11,7 +11,7 @@ const { MUSIC_ONLY, RUN, SWIM, JUMP, SWIMMING_EVENT, TIMED_RUN } = DEVICE_CONFIG
 
 export default function ModeItem(props) {
   const { colors } = useTheme();
-  const { item, index, drag, isActive, deleteMode, displayEditModal, onPress } = props;
+  const { item, index, drag, isActive, deleteMode, onPress } = props;
   const modeToColor = (mode) => { // use a function instead of object to save memory
     switch(mode) {
       case MUSIC_ONLY:

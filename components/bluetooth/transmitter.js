@@ -29,7 +29,7 @@ class BLEHandler {
     this.manager = manager;
     this.device = device;
 
-    this.sainit = Buffer.from([0xff, 0xff, 0xff, 0xff]); // default sainit
+    this.sainit = null;
     
     this.writePkgId = 0;
     this.lastPkgId = null; // for validating response packets
@@ -43,6 +43,13 @@ class BLEHandler {
 
   destroy() {
     this.readSubscription.remove();
+  }
+
+  addSainit(sainit) {
+    if (!sainit) {
+      throw new Error(`Sainit is not valid: ${sainit}`);
+    }
+    this.sainit = sainit;
   }
 
   async sendResponse(readValueInRawBytes) {
@@ -117,6 +124,7 @@ class BLEHandler {
     // if both checks pass, then we resolve the promise so that sendAndWaitResponse ends
     this.currItem = null;
     this.resCompleter.complete(pkgId);
+    console.log(`******validated response******`);
   }
 
   async sendAndWaitResponse(dataItem) {

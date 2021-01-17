@@ -80,9 +80,7 @@ export default function VerticalEditScreen(props) {
         containerStyle={{backgroundColor: colors.background}}
         key={title}
         bottomDivider
-        onPress={() => {
-          setReportMetric(title);
-        }}
+        onPress={() => setReportMetric(title)}
       >
         <ListItem.Content>
           <ListItem.Title>
@@ -99,6 +97,7 @@ export default function VerticalEditScreen(props) {
           checkedColor={colors.textColor}
           checkedIcon='dot-circle-o'
           uncheckedIcon='circle-o'
+          onPress={() => setReportMetric(title)}
         />
       </ListItem>
     ));
