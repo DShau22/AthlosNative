@@ -96,10 +96,10 @@ export default function SAInitSender(props) {
         LocationServicesDialogBox.stopListener();
       }
       if (managerRef.current) {
-        managerRef.current.destroy();
+        managerRef.current.unSubscribe(); // unsubscribes manager from listening to incoming athlos data
       }
       if (scanSubscriptionRef.current) {
-        scanSubscriptionRef.current.remove();
+        scanSubscriptionRef.current.remove(); // this subscription is to wait for BLEmanager state to become PoweredOn
       }
     }
   }, []);
@@ -116,8 +116,6 @@ export default function SAInitSender(props) {
         }
         return;
       }
-      // Check if it is a device you are looking for based on advertisement data
-      // or other criteria.
       if (device.name === 'AthlosData') {
         // Stop scanning as it's not necessary if you are scanning for one device.
         managerRef.current.stopDeviceScan();

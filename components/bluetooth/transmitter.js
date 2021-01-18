@@ -24,10 +24,11 @@ class DataItem {
 class BLEHandler {
   static MAX_PKG_LEN = 200;
   static METADATA_SIZE = 5;
-  constructor(manager, device) {
+  constructor(manager) {
     this.readSubscription = null;
+    this.scanSubscription = null;
     this.manager = manager;
-    this.device = device;
+    this.device = null;
 
     this.sainit = null;
     
@@ -41,10 +42,50 @@ class BLEHandler {
     this.writeQueue = []; // queue of data items
   }
 
-  destroy() {
+  /**
+   * Destroys the manager. This handler should not be used anymore after this is called.
+   * Issue if destroy while transmitting or reading?
+   */
+  async destroy() {
+    if (this.device) {
+      await this.device.cancelConnection();
+    }
+    if (this.readSubscription) {
+      this.readSubscription.remove();
+    }
+    if (this.scanSubscription) {
+      this.scanSubscription.remove();
+    }
+    this.manager.destroy();
+  }
+
+  /**
+   * Stops scanning for devices. Must call scanAndConnect again to restart it
+   */
+  stopScan() {
+    if (this.scanSubscription) {
+      this.scanSubscription.remove();
+      this.scanSubscription = null;
+    }
+  }
+
+  /**
+   * Remove the read subscription to the RX characteristic. Called when we want to stop
+   * BLE functionlity
+   */
+  unSubscribeRead() {
+    if (!this.device) {
+      throw new Error("device is not yet connected");
+    }
+    if (!this.readSubscription) {
+      throw new Error("has not subscribed to athlos earbuds yet");
+    }
     this.readSubscription.remove();
   }
 
+  /**
+   * Adds a byte array that is supposed to be sainit to this class' instance variable
+   */
   addSainit(sainit) {
     if (!sainit) {
       throw new Error(`Sainit is not valid: ${sainit}`);
@@ -52,26 +93,69 @@ class BLEHandler {
     this.sainit = sainit;
   }
 
-  async sendResponse(readValueInRawBytes) {
-    console.log("********SENDING RESPONSE********")
-    const len = readValueInRawBytes.length;
-    const pkgId = readValueInRawBytes[len - 2];
-    console.log("num bytes: ", len);
-    console.log("readable value: ", readValueInRawBytes.toString('utf8'));
-    console.log("below is all the stuff in base 64");
-    console.log('checkSum: ', readValueInRawBytes[len - 1]);
-    console.log('package id: ', pkgId);
-    console.log('first byte: ', readValueInRawBytes[0]);
-    console.log('second byte: ', readValueInRawBytes[1]);
-    var resPackage = Buffer.from([pkgId, pkgId]).toString('base64');
-    try {
-      await this.device.writeCharacteristicWithoutResponseForService(SERVICE_UUID, TX, resPackage);
-    } catch(e) {
-      console.log("failed to write characteristic: ", e);
-    }
+  /**
+   * Returns a boolean indicating if this device is connected to the athlos earbuds 
+   * on the BLE channel
+   */
+  isConnected() {
+    return this.device !== null && this.device !== undefined;
+  }
+  /**
+   * According to the docs, we must wait until the state changes to powered on before
+   * scanning and connecting.
+   */
+  scanAndConnect() {
+    console.log("testing scan and connect from global ble");
+    this.scanSubscription = this.manager.onStateChange(state => {
+      console.log("state changed and is now: ", state);
+      if (state === 'PoweredOn') {
+        console.log("state is powered on!");
+        this._scanAndConnect();
+        this.scanSubscription.remove();
+      }
+    }, true);
+  }
+  /**
+   * Repeatedly scan until we find the athlos earbuds. Once found, we subscribe to
+   * the RX characteristic (setUpNotifyListener) so we can read from the earbuds.
+   */
+  _scanAndConnect() {
+    console.log("scanning and connecting...");
+    this.manager.startDeviceScan(null, null, async (error, device) => {
+      if (error) {
+        // Handle error (scanning will be stopped automatically)
+        const errorJson = JSON.parse(JSON.stringify(error));
+        console.log("error: ", errorJson);
+        if (errorJson.errorCode === 101) {
+          console.log("please make sure you enable bluetooth and location");
+        }
+        return;
+      }
+      if (device.name === 'AthlosData') {
+        // Stop scanning as it's not necessary if you are scanning for one device.
+        this.manager.stopDeviceScan();
+        console.log("found athlos device! ", device);
+        // Proceed with connection.
+        try {
+          const connectedDevice = await device.connect();
+          const deviceWithServices = await connectedDevice.discoverAllServicesAndCharacteristics();
+          this.device = deviceWithServices;
+          await this.setUpNotifyListener(); // for now just handle reading
+        } catch(e) {
+          console.log("error connecting device and discovering services: ", e);
+        }
+      }
+    });
   }
 
+  /**
+   * Called after the device finds the athlos earbuds. This sets up a subscription to the RX characteristic
+   * so that we can read data that the earbuds send to this device.
+   */
   async setUpNotifyListener() {
+    if (!this.device) {
+      throw new Error("device is not yet connected");
+    }
     try {
       var readChar = await this.device.readCharacteristicForService(SERVICE_UUID, RX);
     } catch(e) {
@@ -105,7 +189,42 @@ class BLEHandler {
     });
   }
 
+  /**
+   * Call this when the earbuds are transmitting data to the phone, and we are sending the
+   * 2 byte response package of package id and package checksum (which amounts to the package id)
+   * @param {Buffer} readValueInRawBytes 
+   */
+  async sendResponse(readValueInRawBytes) {
+    if (!this.device) {
+      throw new Error("device is not yet connected");
+    }
+    console.log("********SENDING RESPONSE********")
+    const len = readValueInRawBytes.length;
+    const pkgId = readValueInRawBytes[len - 2];
+    console.log("num bytes: ", len);
+    console.log("readable value: ", readValueInRawBytes.toString('utf8'));
+    console.log("below is all the stuff in base 64");
+    console.log('checkSum: ', readValueInRawBytes[len - 1]);
+    console.log('package id: ', pkgId);
+    console.log('first byte: ', readValueInRawBytes[0]);
+    console.log('second byte: ', readValueInRawBytes[1]);
+    var resPackage = Buffer.from([pkgId, pkgId]).toString('base64');
+    try {
+      await this.device.writeCharacteristicWithoutResponseForService(SERVICE_UUID, TX, resPackage);
+    } catch(e) {
+      console.log("failed to write characteristic: ", e);
+    }
+  }
+
+  /**
+   * Validates a response package from the earbuds. This response package should contain the package id of the 
+   * package that was just sent by this device, and the response package's checksum should be correct as well.
+   * @param {Buffer} readValueInRawBytes 
+   */
   async validateResponse(readValueInRawBytes) {
+    if (!this.device) {
+      throw new Error("device is not yet connected");
+    }
     // WHAT IF PKGID === LASTPKGID whoop
     // validate the response pkg
     console.log(`******validating response: ${readValueInRawBytes}******`);
@@ -127,7 +246,15 @@ class BLEHandler {
     console.log(`******validated response******`);
   }
 
+  /**
+   * Called when we want to send a packet from this device to the earbuds. This function resolves once
+   * we receive a validated response
+   * @param {DataItem} dataItem 
+   */
   async sendAndWaitResponse(dataItem) {
+    if (!this.device) {
+      throw new Error("device is not yet connected");
+    }
     this.isTransmitting = true;
     // return a promise that resolves once the monitor receives a response package and validates it
     this.resCompleter = new Completer(); // is there an issue if the old this.resCompleter hasnt resolved yet?
@@ -144,8 +271,15 @@ class BLEHandler {
     return this.resCompleter.result;
   }
 
+  /**
+   * transmits a byte array to the earbuds
+   * @param {Buffer} bytes 
+   */
   // have settings/getters for all the sainit indices that correspond to different settings
   async sendByteArray(bytes) { // bytes should be a Buffer type already but no checksum or metadata yet
+    if (!this.device) {
+      throw new Error("device is not yet connected");
+    }
     // TODO: assert that queue is empty
     console.log("****** SENDING BYTE ARRAY ******");
     if (this.isTransmitting) {
@@ -178,6 +312,9 @@ class BLEHandler {
     this.resetAfterSendBytes();
   }
 
+  /**
+   * Resets the class state after we finish transmitting a byte array over to the earbuds.
+   */
   resetAfterSendBytes() {
     this.isTransmitting = false;
     this.currItem = null;

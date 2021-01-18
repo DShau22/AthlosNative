@@ -35,13 +35,22 @@ const Fitness = (props) => {
   const [jumpJson, setJumpJson] = React.useState(userDataContext.jumpJson)
   
   const { settings, relationshipStatus } = profileContext
-  const { setAppState } = appFunctionsContext
+  const { setAppState, updateLocalUserFitness } = appFunctionsContext
   const { _id } = props
   // if this is another user, must get the fitness from the server. Otherwise can just use
   // local async storage (the defaults used in the state)
   const getFitness = React.useCallback(async () => {
     setIsLoading(true);
     if (relationshipStatus === PROFILE_CONSTANTS.IS_SELF) {
+      try {
+        await updateLocalUserFitness();
+      } catch(e) {
+        Alert.alert(
+          "Oh no :(",
+          "Something went wrong with the request to the server. Please refresh and try again.",
+          [{text: 'Okay'}]
+        );
+      }
       setIsLoading(false);
       return;
     }
@@ -107,7 +116,7 @@ const Fitness = (props) => {
       console.log("Fitness requests are being canceled")
       source.cancel()
     };
-  }, [_id])
+  }, [_id]);
 
   // cancel token for cancelling Axios requests on unmount
   const CancelToken = axios.CancelToken;

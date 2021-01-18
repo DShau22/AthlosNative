@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { Text, View, StyleSheet, Alert, ScrollView, SafeAreaView } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Header } from 'react-native-elements';
 
 import {
   getData,
@@ -9,28 +8,24 @@ import {
   storeDataObj,
   getDataObj
 } from '../utils/storage';
-import ENDPOINTS from "../endpoints"
-import {
-  getBests,
-  getProfile,
-  getUsername
-} from "../utils/userInfo"
+import ENDPOINTS from "../endpoints";
 import {
   getLastMonday,
   getNextSunday,
   parseDate,
   sameDate,
-} from "../utils/dates"
+} from "../utils/dates";
 import LoadingSpin from '../generic/LoadingSpin';
 import Fitness from "../fitness/Fitness";
-import { UserDataContext, AppFunctionsContext } from "../../Context"
-import Home from "./Home"
-import Settings from "../settings/Settings"
-import Community from "../community/Community"
-import Profile from '../profile/Profile'
-import DeviceConfig from '../configure/DeviceConfig'
+import { UserDataContext, AppFunctionsContext } from "../../Context";
+import Home from "./Home";
+import Settings from "../settings/Settings";
+import Community from "../community/Community";
+import Profile from '../profile/Profile';
+import DeviceConfig from '../configure/DeviceConfig';
+import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
 
-import GLOBAL_CONSTANTS from '../GlobalConstants'
+import GLOBAL_CONSTANTS from '../GlobalConstants';
 const {
   HOME,
   FITNESS,
@@ -39,8 +34,8 @@ const {
   PROFILE,
   DEVICE_CONFIG,
   BLUETOOTH,
-} = GLOBAL_CONSTANTS
-import FITNESS_CONTANTS from '../fitness/FitnessConstants'
+} = GLOBAL_CONSTANTS;
+import FITNESS_CONTANTS from '../fitness/FitnessConstants';
 
 function Athlos(props) {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -83,7 +78,6 @@ function Athlos(props) {
     profilePicture: "",
     settings: {},
     logout: false,
-    // socket: null,
     notification: null,
     mounted: false,
     friendTableRows: [],
@@ -111,11 +105,8 @@ function Athlos(props) {
   
   React.useEffect(() => {
     const prepareData = async () => {
-      console.log("Athlos component using effect")
+      console.log("Athlos component using effect");
       setIsLoading(true);
-      // set up the web socket connection to server
-      // var socket = await this.setUpSocket()
-
       // first check if info is in Async storage
       const token = await getData();
       const userData = await getDataObj();
@@ -123,88 +114,30 @@ function Athlos(props) {
         console.log("This is weird. Somehow log them out and redirect to login page")
       }
       if (userData) {
-        console.log("there is data is async storage")
+        console.log("there is data is async storage");
         setState(userData);
         setIsLoading(false);
-        return;
+      } else {
+        // get the user's information here from database
+        // make request to server to user information and set state
+        try {
+          await updateLocalUserInfo();
+          setIsLoading(false);
+        } catch(e) {
+          console.error(e);
+          setIsError(true);
+          Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
+          setIsLoading(false);
+        }
       }
-
-      // get the user's information here from database
-      // make request to server to user information and set state
       try {
-        await updateLocalUserInfo();
+        GlobalBleHandler.scanAndConnect();
       } catch(e) {
-        console.error(e);
-        setIsError(true);
-        Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
-      } finally {
-        setIsLoading(false);
+        console.log("error scanning and connecting: ", e);
       }
     }
     prepareData();
   }, []);
-
-  // setUpSocket() {
-  //   var prom = new Promise(async (resolve, reject) => {
-  //     // send request to get decoded user ID
-  //     var userToken = getToken()
-  //     var headers = new Headers()
-  //     headers.append("authorization", `Bearer ${userToken}`)
-  //     var response = await fetch(ENDPOINTS.tokenToID, { method: "GET", headers })
-  //     var json = await response.json()
-  //     var { userID } = json
-
-  //     // establish socket connection and send socket ID, userID
-  //     var data = { userID }
-  //     var connectionOptions = {
-  //       'sync disconnect on unload':false
-  //     }
-  //     var socket = io.connect(serverURL, connectionOptions)
-
-  //     // send userID after socket connects
-  //     socket.on("connect", () => {
-  //       socket.emit("sendUserID", data)
-  //       // put socket is session storage
-  //     })
-
-  //     socket.on('receiveFriendRequest', (data) => {
-  //       alert("got friend request!")
-  //       console.log(data)
-  //       this.setState({
-  //         notification: "!"
-  //       })
-  //     })
-
-  //     socket.on("newFriend", (data) => {
-  //       alert("got new friend")
-  //       console.log(data)
-  //       this.setState({
-  //         notification: "***"
-  //       })
-  //     })
-
-  //     socket.on("logoutClient", (data) => {
-  //       // data should contain the socketID that did the logging out
-  //       // socket should have also been disconnected by the server
-  //       var { logoutSocketID } = data
-  //       console.log(logoutSocketID)
-  //       if (socket.id !== logoutSocketID) {
-  //         alert("You have been logged out from another tab or browser")
-  //       }
-  //       // remove user token
-  //       removeFromLocalStorage(storageKey)
-  //       removeFromSessionStorage(storageKey)
-  //       // remove socket id from session storage
-  //       this.setState({
-  //         isLoading: true,
-  //         logout: true,
-  //       });
-  //       this.props.history.push("/")
-  //     })
-  //     resolve(socket)
-  //   })
-  //   return prom
-  // }
 
   // Keeps the past 26 weeks of activity data updated. Only query the missing weeks of data.
   const getActivityJson = async (activity, lastUpdated) => {
@@ -238,33 +171,10 @@ function Athlos(props) {
     return additionalActivityData;
   }
 
-  // updates the state and therefore the context if the user info is suspected
-  // to change. For example if the user changes their settings we want the new
-  // settings to be applied automatically. For now only used for settings.
-
-  // RUN THIS EVERY NOW AND THEN. PROBABLY SHOULD UPDATE STATE/CONTEXT
-  // LOCALL, SAVE TO ASYNC STORAGE, AND THEN USE THIS TO SEND TO DATABASE
-
-  // HAVE A METHOD THAT RUNS AND JUST UPDATES DATABASE AFTER USER SAVES
-  // ANYTHING SUBSTANTIAL LIKE SETTINGS OR THEY SYNC WITH EARBUDS
-  const updateLocalUserInfo = async () => {
-    // get the user's information here from database
-    // make request to server to user information and set state
-    var userToken = await getData();
-    if (!userToken) { // this means it's probably right after a login
-      userToken = props.token; 
-    }
-    var headers = new Headers();
-    headers.append("authorization", `Bearer ${userToken}`);
-    var res = await fetch(ENDPOINTS.getUserInfo, { method: "GET", headers });
-    var userJson = await res.json();
-    if (!userJson.success) {
-      console.log("get user info failed: ", userJson);
-      Alert.alert(`Oh No :(`, "Something went wrong with the request to the server. Please refresh.", [{ text: "Okay" }]);
-      return;
-    }
-
-    // GET USER FITNESS. These should get the last 26 weeks of tracked data
+  /**
+   * Updates only the state and therefore local storage for the user's fitness data
+   */
+  const updateLocalUserFitness = async () => {
     const today = new Date();
     const userData = await getDataObj();
     const lastMonday = getLastMonday(today);
@@ -310,15 +220,12 @@ function Athlos(props) {
     // console.log("more jumps: ", additionalJumpData.activityData[0]);
     // console.log("more swims: ", additionalSwimData.activityData[0]);
     // console.log("more runs: ", additionalRunData.activityData[0]);
-
-    var gotAllInfo = userJson.success && additionalJumpData.success && additionalSwimData.success && additionalRunData.success;
+    var gotAllInfo = additionalJumpData.success && additionalSwimData.success && additionalRunData.success;
     if (gotAllInfo) {
       console.log("successfully got all user info");
       // console.log(additionalJumpData.activityData.length, additionalRunData.activityData.length, additionalSwimData.activityData.length);
       const newState = {
         ...state,
-        ...userJson,
-        // socket: prevState.socket,
         mounted: true,
         // NOTE THAT FITNESS ISN'T UPDATED. THIS SHOULD CHANGE
         jumpJson: {
@@ -353,6 +260,45 @@ function Athlos(props) {
     }
   }
 
+  // updates the state and therefore the context if the user info is suspected
+  // to change. For example if the user changes their settings we want the new
+  // settings to be applied automatically. For now only used for settings.
+  // DOES NOT UPDATE THE LOCAL USER FITNESS
+  const updateLocalUserInfo = async () => {
+    // get the user's information here from database
+    // make request to server to user information and set state
+    var userToken = await getData();
+    if (!userToken) { // this means it's probably right after a login
+      userToken = props.token; 
+    }
+    var headers = new Headers();
+    headers.append("authorization", `Bearer ${userToken}`);
+    var res = await fetch(ENDPOINTS.getUserInfo, { method: "GET", headers });
+    var userJson = await res.json();
+    if (!userJson.success) {
+      console.log("get user info failed: ", userJson);
+      Alert.alert(`Oh No :(`, "Something went wrong with the request to the server. Please refresh.", [{ text: "Okay" }]);
+      return;
+    } else {
+      console.log("successfully got all user info");
+      const newState = {
+        ...state,
+        ...userJson,
+        jumpJson: {
+          ...state.jumpJson,
+        },
+        runJson: {
+          ...state.runJson,
+        },
+        swimJson: {
+          ...state.swimJson,
+        },
+      }
+      setState(newState);
+      storeDataObj(newState);
+    }
+  }
+
   const BottomTab = createBottomTabNavigator();
   console.log("Athlos context: ", state);
   if (isError) {
@@ -364,6 +310,7 @@ function Athlos(props) {
         value={{
           setAppState: setState,
           updateLocalUserInfo,
+          updateLocalUserFitness,
         }}
       >
       { isLoading ? <View style={styles.container}><LoadingSpin/></View> : 

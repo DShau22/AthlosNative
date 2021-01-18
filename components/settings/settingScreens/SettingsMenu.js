@@ -12,6 +12,7 @@ import { UserDataContext, SettingsContext } from "../../../Context";
 import LoadingScreen from "../../generic/LoadingScreen";
 import SETTINGS_CONSTANTS from '../SettingsConstants';
 import ThemeText from '../../generic/ThemeText';
+import { Platform } from 'react-native';
 
 const {
   COMMUNITY_SETTINGS,
@@ -86,7 +87,7 @@ const SettingsMenu = (props) => {
               <ListItem.Title><ThemeText>{item.title}</ThemeText></ListItem.Title>
               <ListItem.Subtitle><ThemeText>{item.subtitle}</ThemeText></ListItem.Subtitle>
             </ListItem.Content>
-            <ListItem.Chevron name='chevron-forward' color={colors.textColor}/>
+            <ListItem.Chevron color={colors.textColor}/>
           </ListItem>
         )}
       />

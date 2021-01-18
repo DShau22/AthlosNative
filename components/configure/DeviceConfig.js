@@ -23,7 +23,7 @@ const {
   MODE_CONFIG
 } = DEVICE_CONFIG_CONSTANTS;
 import { COLOR_THEMES } from '../ColorThemes';
-const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES;
+import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
 
 // edit screens
 import RunEditScreen from './screens/RunEditScreen';
@@ -220,7 +220,14 @@ const DeviceConfig = (props) => {
                     {/* <SAInitSender
                       saveAndCreateSaInit={saveAndCreateSaInit}
                     /> */}
-                    {/* <Button title='test make sainit' onPress={saveAndSendToDevice}/> */}
+                    <Button title='test make sainit' onPress={async () => {
+                      if (!GlobalBleHandler.isConnected()) {
+                        console.log("not connected yet");
+                        return;
+                      }
+                      const sainitBytes = await saveAndCreateSaInit();
+                      await GlobalBleHandler.sendByteArray(sainitBytes);
+                    }}/>
                   </>
                 )
               }}
