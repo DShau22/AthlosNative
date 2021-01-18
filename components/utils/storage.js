@@ -55,26 +55,23 @@ const getDataObj = async () => {
  * @param {Buffer} sessionBytes 
  */
 const storeFitnessBytes = async (sessionBytes) => {
-  try {
-    const byteQueueString = await AsyncStorage.getItem(FITNESS_KEY);
-    var byteQueue = JSON.parse(byteQueueString);
-    console.log("byteQueue: ", byteQueue);
-    if (byteQueue === null) {
-      byteQueue = [{
-        date: new Date(),
-        sessionBytes: sessionBytes.toString('utf8'),
-      }];
-    } else {
-      byteQueue.push({
-        date: new Date(),
-        sessionBytes: sessionBytes.toString('utf8'),
-      });
-    }
-    await AsyncStorage.setItem(FITNESS_KEY, byteQueue);
-  } catch (e) {
-    // saving error
-    console.log("something went wrong with async setItem")
+  await removeFitnessBytes(); // for now
+  const byteQueueString = await AsyncStorage.getItem(FITNESS_KEY);
+  var byteQueue = JSON.parse(byteQueueString);
+  console.log("byteQueue: ", byteQueue);
+  if (byteQueue === null) {
+    byteQueue = [{
+      date: new Date(),
+      sessionBytes: sessionBytes.toString('utf8'),
+    }];
+  } else {
+    byteQueue.push({
+      date: new Date(),
+      sessionBytes: sessionBytes.toString('utf8'),
+    });
   }
+  console.log("stringified: ", JSON.stringify(byteQueue));
+  await AsyncStorage.setItem(FITNESS_KEY, JSON.stringify(byteQueue));
 }
 
 /**
@@ -87,13 +84,12 @@ const storeFitnessBytes = async (sessionBytes) => {
  * @param {Buffer} sessionBytes 
  */
 const getFitnessBytes = async () => {
-  try {
-    const byteQueueString = await AsyncStorage.getItem(FITNESS_KEY)
-    return byteQueueString !== null ? JSON.parse(jsonValue) : null;
-  } catch(e) {
-    // error reading value
-    console.log("something went wrong with async getItem")
-  }
+  const byteQueueString = await AsyncStorage.getItem(FITNESS_KEY);
+  return byteQueueString;
+}
+
+const removeFitnessBytes = async () => {
+  await AsyncStorage.removeItem(FITNESS_KEY)
 }
 
 // adds these new fields to the previous state and stores it in async storage
@@ -116,5 +112,6 @@ module.exports = {
   getDataObj,
   storeNewState,
   storeFitnessBytes,
-  getFitnessBytes
+  getFitnessBytes,
+  removeFitnessBytes
 }

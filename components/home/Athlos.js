@@ -131,12 +131,22 @@ function Athlos(props) {
         }
       }
       try {
-        GlobalBleHandler.scanAndConnect();
+        GlobalBleHandler.scanAndConnect()
+          .then((sadataBytes) => {
+            console.log("successfully read and saved sadata bytes: ", sadataBytes.toString('utf8'));
+          })
+          .catch((e) => {
+            console.log("error reading and saving sadata bytes: ", e);
+          });
       } catch(e) {
         console.log("error scanning and connecting: ", e);
       }
     }
     prepareData();
+    return () => {
+      GlobalBleHandler.destroy();
+      GlobalBleHandler.reinit();
+    }
   }, []);
 
   // Keeps the past 26 weeks of activity data updated. Only query the missing weeks of data.

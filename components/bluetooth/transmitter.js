@@ -1,11 +1,12 @@
 import SAinit from '../configure/SAinitManager';
-import { storeFitnessBytes, getFitnessBytes } from '../utils/storage';
+import { storeFitnessBytes, getFitnessBytes, removeFitnessBytes } from '../utils/storage';
 import ENDPOINTS from '../endpoints';
 const Buffer = require('buffer/').Buffer;
 const SERVICE_UUID = 'e49a25f0-f69a-11e8-8eb2-f2801f1b9fd1';
 const TX = 'e49a25f1-f69a-11e8-8eb2-f2801f1b9fd1';
 const RX = 'e49a28f2-f69a-11e8-8eb2-f2801f1b9fd1';
 import axios from 'axios';
+import { BleManager } from 'react-native-ble-plx';
 
 const calcChecksum = (bytes, start, end) => {
   let res = 0;
@@ -45,8 +46,6 @@ class BLEHandler {
     this.currItem = null; // current item that we are trying to send
     this.isTransmitting = false; // flag for if the phone is currently sending sainit
 
-    this.writeQueue = []; // queue of data items
-
     this.readBuffers = []; // list of Buffers/byte arrays to be concatenated once all of sadata is received
     this.totalNumSaDataBytes = 0; // number of sadata bytes to expect when sadata is being sent over
     this.numSaDataBytesRead = 0; // current number of bytes read in from earbuds for sadata. Stop reading when this hits totalNumSaDataBytes
@@ -68,6 +67,25 @@ class BLEHandler {
       this.scanSubscription.remove();
     }
     this.manager.destroy();
+    this.readSubscription = null;
+    this.scanSubscription = null;
+    this.disconnectSubscription = null;
+    this.device = null;
+    this.sainit = null;
+    this.writePkgId = 0;
+    this.lastPkgId = null;
+    this.saDataCompleter = null
+    this.resCompleter = null;
+    this.currItem = null;
+    this.isTransmitting = false;
+    this.readBuffers = [];
+    this.totalNumSaDataBytes = 0;
+    this.numSaDataBytesRead = 0;
+    this.isReading = false;
+  }
+
+  reinit() {
+    this.manager = new BleManager();
   }
 
   /**
@@ -81,15 +99,26 @@ class BLEHandler {
   }
 
   /**
+  * disconnects from connected Athlos device
+  */
+  disconnect() {
+    if (this.device) {
+      this.device.cancelConnection(); // this is async
+    }
+  }
+
+  /**
    * Remove the read subscription to the RX characteristic. Called when we want to stop
    * BLE functionlity
    */
   unSubscribeRead() {
     if (!this.device) {
-      throw new Error("device is not yet connected");
+      console.log("device is not yet connected");
+      return;
     }
     if (!this.readSubscription) {
-      throw new Error("has not subscribed to athlos earbuds yet");
+      console.log("has not subscribed to athlos earbuds yet");
+      return;
     }
     this.readSubscription.remove();
   }
@@ -154,14 +183,17 @@ class BLEHandler {
         console.log("found athlos device! ", device);
         // Proceed with connection.
         try {
+          console.log("connecting...")
           const connectedDevice = await device.connect();
           const deviceWithServices = await connectedDevice.discoverAllServicesAndCharacteristics();
           this.device = deviceWithServices;
+          console.log("connected...")
           // ADD ON DISCONNECT HERE
           this.disconnectSubscription = this.device.onDisconnected((err, device) => {
             console.log("device disconnected: ", err);
             this._resetAfterSendBytes();
             this._resetReadState();
+            this._scanAndConnect(); // try scanning and connecting again
           });
           await this._setUpNotifyListener(); // for now just handle reading
         } catch(e) {
@@ -201,8 +233,7 @@ class BLEHandler {
         } else if (!this.isTransmitting) {
           this.isReading = true;
           // earbuds are transmitting to phone
-          await this._readIncomingBytes(readValueInRawBytes);
-          await this._sendResponse(readValueInRawBytes);
+          await this._readIncomingBytesAndSendResponse(readValueInRawBytes);
         } else {
           console.log("ignoring package");
         }
@@ -217,33 +248,29 @@ class BLEHandler {
   /**
    * checks to see if package is the first package of sadata. If it is, set the total number of bytes expected to read
    * so we don't expect to read the entire sadata file.
+   * 
+   * If all bytes of sadata are read,
+   * then save these bytes to local storage and send them to server. If server request fails, user can stll press the sync
+   * button on the app or the app can periodically send stuff in local storage.
    * @param {Buffer} readValueInRawBytes 
    */
-  async _readIncomingBytes(readValueInRawBytes) {
+  async _readIncomingBytesAndSendResponse(readValueInRawBytes) {
+    console.log("reading incoming bytes. ReadBuffers length is: ", this.readBuffers.length);
     if (this.readBuffers.length === 0) {
       // this is the first package sent over
       if (readValueInRawBytes[6] !== '$'.charCodeAt(0)) { // 6 because first 3 bytes are metadata in the package
         console.log(`invalid sadata: 4th byte (3rd index) should be $ but got ${readValueInRawBytes[6]}`);
-        return;
+        throw new Error(`invalid sadata: 4th byte (3rd index) should be $ but got ${readValueInRawBytes[6]}`);
       }
-      this.totalNumSaDataBytes = (readValueInRawBytes[0] << 16) + (readValueInRawBytes[1] << 8) + readValueInRawBytes[0];
+      this.totalNumSaDataBytes = (readValueInRawBytes[3] << 16) + (readValueInRawBytes[4] << 8) + readValueInRawBytes[5];
       this.numSaDataBytesRead = 0;
     }
-    await this._readPackage(readValueInRawBytes);
-  }
-
-  /**
-   * Contains logic for reading an sadata package sent from earbuds. If all bytes of sadata are read,
-   * then save these bytes to local storage and send them to server. If server request fails, user can stll press the sync
-   * button on the app or the app can periodically send stuff in local storage.
-   * @param {Buffer} packageBytes 
-   */
-  async _readPackage(packageBytes) {
-    this.readBuffers.append(packageBytes.slice(4, packageBytes.length - 2)); // first 3 bytes, last 2 bytes are metadata
-    this.numSaDataBytesRead += packageBytes.length - SAinit.METADATA_SIZE;
+    console.log("total num expected: ", this.totalNumSaDataBytes);
+    console.log("total num read: ", this.numSaDataBytesRead);
+    this.readBuffers.push(readValueInRawBytes.slice(3, readValueInRawBytes.length - 2)); // first 3 bytes, last 2 bytes are metadata
+    this.numSaDataBytesRead += readValueInRawBytes.length - BLEHandler.METADATA_SIZE;
+    // we should be done reading now
     if (this.numSaDataBytesRead >= this.totalNumSaDataBytes) {
-      if (this.numSaDataBytesRead > this.totalNumSaDataBytes)
-        console.log(`num read (${this.numSaDataBytesRead}) shouldnt be larger than num expected (${this.totalNumSaDataBytes})`);
       // save data to async storage and send to server.
       // if server request fails, you still have data in async storage
       var totalNumBytes = 0;
@@ -263,25 +290,31 @@ class BLEHandler {
       }
       // send data to server
       try {
+        const sessionByteList = await getFitnessBytes(); // list of utf8 encoded sadata bytes
         const config = {
           headers: { 'Content-Type': 'application/json' },
         }
+        console.log("session byte list: ", sessionByteList);
         const res = await axios.post(ENDPOINTS.upload, {
           date: new Date(),
-          sessionBytes: concatentatedSadata.toString('utf8'),
+          sessionByteList,
         }, config);
         const resJson = res.data;
         console.log("axios response: ", resJson);
-        if (!json.success) {
-          throw new Error(json.message)
+        if (!resJson.success) {
+          throw new Error(resJson.message)
         }
+        this.saDataCompleter.complete(concatentatedSadata);
+        await removeFitnessBytes();
       } catch(e) {
         console.log("error sending request to upload user data: ", e);
         this.saDataCompleter.error(e);
       }
       this._resetReadState();
-      this.saDataCompleter.complete(concatentatedSadata);
       // rewrite sadata somehow
+    } else {
+      // still expect to get more packages. Send a response to the earbuds
+      await this._sendResponse(readValueInRawBytes);
     }
   }
 
@@ -445,7 +478,7 @@ class Completer {
       this._resolve = null;
       this._reject = null;
     } else {
-      console.log("promise has not been constructed yet");
+      console.log("already resolved or rejected");
     }
   }
 
@@ -455,8 +488,12 @@ class Completer {
       this._resolve = null;
       this._reject = null;
     } else {
-      console.log("promise has not been constructed yet");
+      console.log("already resolved or rejected");
     }
+  }
+
+  hasFinished() {
+    return this._resolve === null && this._reject === null;
   }
 }
 
