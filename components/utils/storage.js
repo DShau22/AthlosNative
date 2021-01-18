@@ -1,7 +1,8 @@
 // save tokens to the browser storage to remember if user signed in or not
-const TOKEN_KEY =  "token_key"
-const DATA_KEY = "data_key"
-const socketStorageKey = "socket"
+const TOKEN_KEY =  "token_key"; // login token key
+const DATA_KEY = "data_key"; // app context/user data key
+const FITNESS_KEY = 'fitness_key'; // key for the queue of fitness raw data from earbuds
+const socketStorageKey = "socket";
 import AsyncStorage from '@react-native-community/async-storage';
 
 const storeData = async (value) => {
@@ -44,6 +45,57 @@ const getDataObj = async () => {
   }
 }
 
+/**
+ * Stores user session bytes in async storage as utf8 strings.
+ * The sessions are stored as a list/queue of objects
+ * {
+ *   date: Date,
+ *   bytes: utf8 encoded string representing session bytes
+ * }
+ * @param {Buffer} sessionBytes 
+ */
+const storeFitnessBytes = async (sessionBytes) => {
+  try {
+    const byteQueueString = await AsyncStorage.getItem(FITNESS_KEY);
+    var byteQueue = JSON.parse(byteQueueString);
+    console.log("byteQueue: ", byteQueue);
+    if (byteQueue === null) {
+      byteQueue = [{
+        date: new Date(),
+        sessionBytes: sessionBytes.toString('utf8'),
+      }];
+    } else {
+      byteQueue.push({
+        date: new Date(),
+        sessionBytes: sessionBytes.toString('utf8'),
+      });
+    }
+    await AsyncStorage.setItem(FITNESS_KEY, byteQueue);
+  } catch (e) {
+    // saving error
+    console.log("something went wrong with async setItem")
+  }
+}
+
+/**
+ * Stores user session bytes in async storage as utf8 strings.
+ * The sessions are stored as a list/queue of objects
+ * {
+ *   date: Date,
+ *   bytes: utf8 encoded string representing session bytes
+ * }
+ * @param {Buffer} sessionBytes 
+ */
+const getFitnessBytes = async () => {
+  try {
+    const byteQueueString = await AsyncStorage.getItem(FITNESS_KEY)
+    return byteQueueString !== null ? JSON.parse(jsonValue) : null;
+  } catch(e) {
+    // error reading value
+    console.log("something went wrong with async getItem")
+  }
+}
+
 // adds these new fields to the previous state and stores it in async storage
 // newFields should be an ojbect
 const storeNewState = async (prevState, newFields) => {
@@ -62,5 +114,7 @@ module.exports = {
   storeDataObj,
   getData,
   getDataObj,
-  storeNewState
+  storeNewState,
+  storeFitnessBytes,
+  getFitnessBytes
 }

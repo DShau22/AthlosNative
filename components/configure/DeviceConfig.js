@@ -221,7 +221,8 @@ const DeviceConfig = (props) => {
                       saveAndCreateSaInit={saveAndCreateSaInit}
                     /> */}
                     <Button title='test make sainit' onPress={async () => {
-                      if (!GlobalBleHandler.isConnected()) {
+                      const connected = await GlobalBleHandler.isConnected();
+                      if (!connected) {
                         console.log("not connected yet");
                         return;
                       }
