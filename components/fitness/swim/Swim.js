@@ -129,9 +129,9 @@ const Swim = (props) => {
       let lowerCaseStroke = stroke.toLowerCase()
       if (lowerCaseStroke === "u") {
         flyCount += 1
-      } else if (lowerCaseStroke === "b") {
+      } else if (lowerCaseStroke === "y") {
         backCount += 1
-      } else if (lowerCaseStroke === "r") {
+      } else if (lowerCaseStroke === "o") {
         breastCount += 1
       } else if (lowerCaseStroke === "f") {
         freeCount += 1

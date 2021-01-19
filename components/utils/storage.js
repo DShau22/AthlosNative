@@ -46,7 +46,7 @@ const getDataObj = async () => {
 }
 
 /**
- * Stores user session bytes in async storage as utf8 strings.
+ * Stores user session bytes in async storage as base64 strings.
  * The sessions are stored as a list/queue of objects
  * {
  *   date: Date,
@@ -56,26 +56,26 @@ const getDataObj = async () => {
  */
 const storeFitnessBytes = async (sessionBytes) => {
   await removeFitnessBytes(); // for now
+  console.log("storing this many bytes: ", sessionBytes.length);
   const byteQueueString = await AsyncStorage.getItem(FITNESS_KEY);
   var byteQueue = JSON.parse(byteQueueString);
   console.log("byteQueue: ", byteQueue);
   if (byteQueue === null) {
     byteQueue = [{
       date: new Date(),
-      sessionBytes: sessionBytes.toString('utf8'),
+      sessionBytes: sessionBytes.toString('base64'),
     }];
   } else {
     byteQueue.push({
       date: new Date(),
-      sessionBytes: sessionBytes.toString('utf8'),
+      sessionBytes: sessionBytes.toString('base64'),
     });
   }
-  console.log("stringified: ", JSON.stringify(byteQueue));
   await AsyncStorage.setItem(FITNESS_KEY, JSON.stringify(byteQueue));
 }
 
 /**
- * Stores user session bytes in async storage as utf8 strings.
+ * gets the list of user session byte arrays in async storage as base64 strings.
  * The sessions are stored as a list/queue of objects
  * {
  *   date: Date,
@@ -85,11 +85,27 @@ const storeFitnessBytes = async (sessionBytes) => {
  */
 const getFitnessBytes = async () => {
   const byteQueueString = await AsyncStorage.getItem(FITNESS_KEY);
-  return byteQueueString;
+  return byteQueueString === null ? null : JSON.parse(byteQueueString);
 }
 
 const removeFitnessBytes = async () => {
   await AsyncStorage.removeItem(FITNESS_KEY)
+}
+
+const removeFitnessRecord = async (idx) => {
+  console.log("removing fitness record at index: ", idx);
+  const byteQueueString = await AsyncStorage.getItem(FITNESS_KEY);
+  if (byteQueueString !== null) {
+    const parsed = JSON.parse(byteQueueString);
+    if (parsed.length <= 1) {
+      await removeFitnessBytes();
+    } else {
+      parsed.splice(idx, 1);
+      await AsyncStorage.setItem(FITNESS_KEY, JSON.stringify(parsed));
+    }
+  } else {
+    console.log("trying to remove entry from null fitness queue");
+  }
 }
 
 // adds these new fields to the previous state and stores it in async storage
@@ -113,5 +129,6 @@ module.exports = {
   storeNewState,
   storeFitnessBytes,
   getFitnessBytes,
-  removeFitnessBytes
+  removeFitnessBytes,
+  removeFitnessRecord
 }

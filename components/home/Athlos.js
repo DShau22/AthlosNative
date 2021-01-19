@@ -131,6 +131,7 @@ function Athlos(props) {
         }
       }
       try {
+        // await GlobalBleHandler._uploadToServer();
         GlobalBleHandler.scanAndConnect()
           .then((sadataBytes) => {
             console.log("successfully read and saved sadata bytes: ", sadataBytes.toString('utf8'));
@@ -148,6 +149,7 @@ function Athlos(props) {
       GlobalBleHandler.reinit();
     }
   }, []);
+  console.log(state.runJson.activityData[state.runJson.activityData.length - 1]);
 
   // Keeps the past 26 weeks of activity data updated. Only query the missing weeks of data.
   const getActivityJson = async (activity, lastUpdated) => {

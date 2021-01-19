@@ -1,5 +1,10 @@
-import SAinit from '../configure/SAinitManager';
-import { storeFitnessBytes, getFitnessBytes, removeFitnessBytes } from '../utils/storage';
+import {
+  storeFitnessBytes,
+  getFitnessBytes,
+  removeFitnessBytes,
+  removeFitnessRecord,
+  getData
+} from '../utils/storage';
 import ENDPOINTS from '../endpoints';
 const Buffer = require('buffer/').Buffer;
 const SERVICE_UUID = 'e49a25f0-f69a-11e8-8eb2-f2801f1b9fd1';
@@ -150,7 +155,7 @@ class BLEHandler {
    */
   async scanAndConnect() {
     this.saDataCompleter = new Completer();
-    console.log("testing scan and connect from global ble");
+    console.log("testing read buffer length: ", this.readBuffers.length);
     this.scanSubscription = this.manager.onStateChange(async state => {
       console.log("state changed and is now: ", state);
       if (state === 'PoweredOn') {
@@ -183,14 +188,15 @@ class BLEHandler {
         console.log("found athlos device! ", device);
         // Proceed with connection.
         try {
-          console.log("connecting...")
+          console.log("connecting...");
           const connectedDevice = await device.connect();
           const deviceWithServices = await connectedDevice.discoverAllServicesAndCharacteristics();
           this.device = deviceWithServices;
-          console.log("connected...")
+          console.log("connected...");
           // ADD ON DISCONNECT HERE
           this.disconnectSubscription = this.device.onDisconnected((err, device) => {
             console.log("device disconnected: ", err);
+            this.disconnectSubscription.remove();
             this._resetAfterSendBytes();
             this._resetReadState();
             this._scanAndConnect(); // try scanning and connecting again
@@ -263,49 +269,42 @@ class BLEHandler {
         throw new Error(`invalid sadata: 4th byte (3rd index) should be $ but got ${readValueInRawBytes[6]}`);
       }
       this.totalNumSaDataBytes = (readValueInRawBytes[3] << 16) + (readValueInRawBytes[4] << 8) + readValueInRawBytes[5];
+      if (this.totalNumSaDataBytes <= 20) {
+        // empty sadata
+        this._resetReadState();
+        this.saDataCompleter.complete(null);
+        return;
+      }
       this.numSaDataBytesRead = 0;
     }
     console.log("total num expected: ", this.totalNumSaDataBytes);
     console.log("total num read: ", this.numSaDataBytesRead);
     this.readBuffers.push(readValueInRawBytes.slice(3, readValueInRawBytes.length - 2)); // first 3 bytes, last 2 bytes are metadata
     this.numSaDataBytesRead += readValueInRawBytes.length - BLEHandler.METADATA_SIZE;
-    // we should be done reading now
+    // save data to async storage and send to server.
+    // if server request fails, you still have data in async storage
+    var totalNumBytes = 0;
+    this.readBuffers.forEach((buffer, _) => {
+      totalNumBytes += buffer.length;
+    });
+    if (totalNumBytes != this.numSaDataBytesRead)
+      console.log(`num bytes in read buffers ${totalNumBytes} not same as total num bytes read (${this.numSaDataBytesRead})`);
     if (this.numSaDataBytesRead >= this.totalNumSaDataBytes) {
-      // save data to async storage and send to server.
-      // if server request fails, you still have data in async storage
-      var totalNumBytes = 0;
-      this.readBuffers.forEach((buffer, _) => {
-        totalNumBytes += buffer.length;
-      });
-      if (totalNumBytes != this.numSaDataBytesRead)
-        console.log(`num bytes in read buffers ${totalNumBytes} not same as total num bytes read (${this.numSaDataBytesRead})`);
-      var concatentatedSadata = Buffer.concat(this.readBuffers, totalNumBytes);
+      console.log("done reading...");
+      const concatentatedSadata = Buffer.concat(this.readBuffers, totalNumBytes);
       try {
-        await storeFitnessBytes(concatentatedSadata);
+        await this._saveToAsyncStorage(concatentatedSadata);
       } catch(e) {
         console.log("Error storing fitness bytes! No way to handle this error yet other than not storing anything");
         this._resetReadState();
         this.saDataCompleter.error(e);
         return;
       }
-      // send data to server
       try {
-        const sessionByteList = await getFitnessBytes(); // list of utf8 encoded sadata bytes
-        const config = {
-          headers: { 'Content-Type': 'application/json' },
-        }
-        console.log("session byte list: ", sessionByteList);
-        const res = await axios.post(ENDPOINTS.upload, {
-          date: new Date(),
-          sessionByteList,
-        }, config);
-        const resJson = res.data;
-        console.log("axios response: ", resJson);
-        if (!resJson.success) {
-          throw new Error(resJson.message)
-        }
+        await this._uploadToServer();
+        // await removeFitnessBytes();
+        console.log("completing compelter...");
         this.saDataCompleter.complete(concatentatedSadata);
-        await removeFitnessBytes();
       } catch(e) {
         console.log("error sending request to upload user data: ", e);
         this.saDataCompleter.error(e);
@@ -315,6 +314,56 @@ class BLEHandler {
     } else {
       // still expect to get more packages. Send a response to the earbuds
       await this._sendResponse(readValueInRawBytes);
+    }
+  }
+
+  /**
+   * Saves the sadata bytes in async storage as a base64 encoded string
+   * @param {Buffer} concatentatedSadata 
+   */
+  async _saveToAsyncStorage(concatentatedSadata) {
+    try {
+      await storeFitnessBytes(concatentatedSadata);
+    } catch(e) {
+      console.log("Error storing fitness bytes! No way to handle this error yet other than not storing anything");
+      this._resetReadState();
+      this.saDataCompleter.error(e);
+      return;
+    }
+  }
+
+  /**
+   * Sends the queue of utf8 encoded past sadatas stored in async storage. As long as server requests don't fail, this
+   * queue should only have 1 element (the sadata we just read from the earbuds).
+   */
+  async _uploadToServer() {
+    const sessionByteList = await getFitnessBytes(); // list of utf8 encoded sadata bytes in async storage
+    const userToken = await getData();
+    const config = {
+      headers: { 'Content-Type': 'application/json' },
+    }
+    console.log("session byte list: ", sessionByteList);
+    const uploadPromises = [];
+    sessionByteList.forEach(({date, sessionBytes}, _) => {
+      uploadPromises.push(axios.post(ENDPOINTS.upload, {
+        date,
+        sessionBytes,
+        userToken,
+      }, config));
+    });
+    const promiseResults = await Promise.all(uploadPromises);
+    for (let i = 0; i < promiseResults.length; i++) {
+      const resJson = promiseResults[i].data
+      console.log(`${i} axios response: ${resJson}`);
+      if (!resJson.success) {
+        throw new Error(resJson.message);
+      } else {
+        console.log(resJson.message);
+        // successfully updated this session byte record, so we can remove it now.
+        await removeFitnessRecord(i);
+        const test = await getFitnessBytes();
+        console.log("fitness bytes after removing: ", test);
+      }
     }
   }
 
