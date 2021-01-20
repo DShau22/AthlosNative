@@ -38,6 +38,7 @@ const {
   SYNC,
 } = GLOBAL_CONSTANTS;
 import FITNESS_CONTANTS from '../fitness/FitnessConstants';
+import ThemeText from '../generic/ThemeText';
 
 function Athlos(props) {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -342,10 +343,6 @@ function Athlos(props) {
             isVisible={showWelcomeModal}
             setVisible={setShowWelcomeModal}
           />
-          {/* <Header
-            leftComponent={{ icon: 'menu', color: '#fff' }}
-            rightComponent={{ icon: 'home', color: '#fff' }}
-          /> */}
           <BottomTab.Navigator>
             {/* <BottomTab.Screen name={HOME} component={Home} /> */}
             {/* <BottomTab.Screen name={PROFILE}>

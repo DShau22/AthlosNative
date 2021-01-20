@@ -3,8 +3,14 @@ import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { View, StyleSheet, Image, Animated, Dimensions } from 'react-native';
 import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
+import Snackbar from 'react-native-snackbar';
+
 import ThemeText from '../generic/ThemeText';
 import BLUETOOTH_CONSTANTS from './BluetoothConstants';
+
+import Icon from 'react-native-vector-icons/FontAwesome';
+import GlobalBleHandler from './GlobalBleHandler';
+Icon.loadFont();
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -26,15 +32,60 @@ export default function SADataSync() {
   const expand3  = React.useRef(new Animated.Value(0)).current;
   const opacity3 = React.useRef(new Animated.Value(1)).current;
 
+  const arrowOpacity = React.useRef(new Animated.Value(1)).current;
 
-  console.log("scanning: ", scanning);
-  const startScan = () => {
+  React.useEffect(() => {
+    if (!scanning) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(arrowOpacity, {
+            toValue: .5,
+            duration: 1500,
+            useNativeDriver: false,
+          }),
+          Animated.timing(arrowOpacity, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: false,
+          })
+        ])
+      ).start();
+    } else {
+      arrowOpacity.stopAnimation();
+    }
+  }, [scanning]);
+
+  const stopScanAnimations = () => {
+    expand1.stopAnimation();
+    opacity1.stopAnimation();
+    expand2.stopAnimation();
+    opacity2.stopAnimation();
+    expand3.stopAnimation();
+    opacity3.stopAnimation();
+  }
+
+  const showSnackBar = (text) => {
+    Snackbar.show({
+      text: text,
+      duration: Snackbar.LENGTH_INDEFINITE,
+      action: {
+        text: 'Okay',
+        textColor: colors.textHighlight,
+      },
+      numberOfLines: 5
+    });
+  }
+
+  const startScan = async () => {
     setScanning(true);
+    setTimeout(() => {
+      showSnackBar("Couldn't find your Athlos earbuds. Make sure they're within an arm's reach and are also scanning.");
+    }, 10000);
     Animated.loop(
       Animated.stagger(200, [
         Animated.parallel([
           Animated.timing(expand1, {
-            toValue: 2,
+            toValue: 1.8,
             duration: 1500,
             useNativeDriver: false,
           }),
@@ -46,7 +97,7 @@ export default function SADataSync() {
         ]),
         Animated.parallel([
           Animated.timing(expand2, {
-            toValue: 2,
+            toValue: 1.8,
             duration: 1500,
             useNativeDriver: false,
           }),
@@ -58,7 +109,7 @@ export default function SADataSync() {
         ]),
         Animated.parallel([
           Animated.timing(expand3, {
-            toValue: 2,
+            toValue: 1.8,
             duration: 1500,
             useNativeDriver: false,
           }),
@@ -69,9 +120,18 @@ export default function SADataSync() {
           }),
         ])
       ])
-    ).start()
+    ).start();
+    try {
+      await GlobalBleHandler.scanAndConnect();
+      showSnackBar('Successfully synced with your Athlos earbuds. Your fitness records should be up to date now :]')
+    } catch(e) {
+      console.log("error with sync: ", e);
+      showSnackBar("Something went wrong with syncing. Please try again.");
+    } finally {
+      setScanning(false);
+      stopScanAnimations();
+    }
   }
-
 
   const Stack = createStackNavigator();
   return (
@@ -82,17 +142,18 @@ export default function SADataSync() {
       >
         {props => (
           <GestureRecognizer style={{flex: 1}}
-            onSwipeDown={(gestureState) => startScan()}
+            onSwipeDown={async (gestureState) => await startScan()}
           >
             <View style={styles.container}>
+              {!scanning ? 
+                <ThemeText style={styles.swipeContainer}>Swipe to start sync</ThemeText>
+              : null }
               <Animated.View
                 style={[styles.rippleStyle, {
                   borderColor: 'white',
                   borderWidth: 1,
                   opacity: opacity3,
-                  transform: [
-                    {scale: expand3 }
-                  ]
+                  transform: [{scale: expand3}]
                 }]}
               ></Animated.View>
               <Animated.View
@@ -100,9 +161,7 @@ export default function SADataSync() {
                   borderColor: 'white',
                   borderWidth: 1,
                   opacity: opacity2,
-                  transform: [
-                    {scale: expand2 }
-                  ]
+                  transform: [{scale: expand2}]
                 }]}
               ></Animated.View>
               <Animated.View
@@ -110,9 +169,7 @@ export default function SADataSync() {
                   borderColor: 'white',
                   borderWidth: 1,
                   opacity: opacity1,
-                  transform: [
-                    {scale: expand1 }
-                  ]
+                  transform: [{scale: expand1}]
                 }]}
               ></Animated.View>
               <View style={[styles.imageContainer, {backgroundColor: colors.header}]}>
@@ -121,7 +178,28 @@ export default function SADataSync() {
                   style={styles.swipeDownImage}
                 />
               </View>
-              {scanning ? <ThemeText style={styles.scanningText}>Scanning...</ThemeText> : null }
+              {scanning ? 
+                <>
+                  <ThemeText style={styles.scanningText}>Scanning...</ThemeText>
+                  <ThemeText style={styles.scanningSubtitle}>
+                    Feel free to navigate to other pages
+                  </ThemeText>
+                  <ThemeText style={styles.scanningSubSubtitle}>
+                    in the meantime
+                  </ThemeText>
+                </> :
+                <View style={styles.dragDownIconsContainer}>
+                  <Animated.View style={{marginTop: 20, opacity: arrowOpacity}}>
+                    <Icon name='chevron-down' color={colors.textColor} size={30} />
+                  </Animated.View>
+                  <Animated.View style={{opacity: arrowOpacity}}>
+                    <Icon name='chevron-down' color={colors.textColor} size={30} />
+                  </Animated.View>
+                  <Animated.View style={{opacity: arrowOpacity}}>
+                    <Icon name='chevron-down' color={colors.textColor} size={30} />
+                  </Animated.View>
+                </View> 
+              }
             </View>
           </GestureRecognizer>
         )}
@@ -140,8 +218,15 @@ export default function SADataSync() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center'    
+    justifyContent: 'center'
+  },
+  swipeContainer: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    top: 30,
+    position: 'absolute'
   },
   swipeDownImage: {
     alignSelf: 'center',
@@ -153,6 +238,7 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     borderRadius: 150,
+    position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -168,5 +254,23 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 100,
     fontSize: 24
+  },
+  scanningSubtitle: {
+    position: 'absolute',
+    bottom: 75,
+    fontSize: 14,
+  },
+  scanningSubSubtitle: {
+    position: 'absolute',
+    bottom: 55,
+    fontSize: 14,
+  },
+  dragDownIconsContainer: {
+    flexDirection: 'column',
+    position: 'absolute',
+    bottom: 60
+  },
+  dragDownIcon: {
+
   }
 });
