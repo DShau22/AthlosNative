@@ -10,7 +10,7 @@ import PullUpMenu from './PullUpMenu';
  * promptTitle: what gets shown on the listitem display
  * childArray: list elements in the pullup menu scrollview
  * onSave: Function that takes in a value that runs after user presses done
- * selectedItem: the current value in the childArray that should be selected
+ * selectedItems: the current values (not indexes) in the childArray that should be selected
  * noDividers (boolean): what it sounds like
  * pullUpTitle: the title displayed in between the cancel and done buttons
  * anything with second/third is for if you want to have two/three side by side scrollviews

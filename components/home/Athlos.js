@@ -6,7 +6,9 @@ import {
   getDeviceId,
   setDeviceId,
   storeDataObj,
-  getDataObj
+  getDataObj,
+  needsFitnessUpdate,
+  setNeedsFitnessUpdate,
 } from '../utils/storage';
 import ENDPOINTS from "../endpoints";
 import {
@@ -38,6 +40,9 @@ const {
   SYNC,
 } = GLOBAL_CONSTANTS;
 import FITNESS_CONTANTS from '../fitness/FitnessConstants';
+const {
+  NUM_WEEKS_IN_PAST
+} = FITNESS_CONTANTS;
 import ThemeText from '../generic/ThemeText';
 
 function Athlos(props) {
@@ -143,15 +148,15 @@ function Athlos(props) {
       try {
         // await GlobalBleHandler._uploadToServer();
         console.log("ble handler: ", GlobalBleHandler);
-        GlobalBleHandler.scanAndConnect()
-          .then((sadataBytes) => {
-            console.log("successfully read and saved sadata bytes");
-          })
-          .catch((e) => {
-            console.log("error reading and saving sadata bytes: ", e);
-          });
+        await GlobalBleHandler.scanAndConnect();
+        console.log("successfully read and saved sadata bytes");
       } catch(e) {
         console.log("error scanning and connecting: ", e);
+      }
+      try {        
+        await Promise.all([updateLocalUserFitness(), updateLocalUserInfo()]);
+      } catch(e) {
+        console.log('error updating local user info after scanning and connecting: ', e);
       }
     }
     setUpApp();
@@ -160,28 +165,25 @@ function Athlos(props) {
       GlobalBleHandler.reinit();
     }
   }, []);
-  console.log(state.runJson.activityData[state.runJson.activityData.length - 1]);
 
   // Keeps the past 26 weeks of activity data updated. Only query the missing weeks of data.
   const getActivityJson = async (activity, lastUpdated) => {
     // If it's completely updated, then don't do anything
     const lastMonday = getLastMonday();
-    if (sameDate(lastUpdated, lastMonday)) {
+    const needsThisWeekData = await needsFitnessUpdate();
+    if (sameDate(lastUpdated, lastMonday) && !needsThisWeekData) {
       console.log("fitness already fully updated: ", parseDate(lastUpdated));
       return {
         success: true,
         activityData: [] // no additional activityData to append
       };
     }
-    // if we already have weekly data starting from lastUpdated, we needa get the next week's data and onwards.
-    const oneWeekAhead = new Date(lastUpdated); 
-    oneWeekAhead.setDate(oneWeekAhead.getDate() + 7);
     var headers = new Headers();
     var token = await getData();
     if (!token) { token = props.token; }
     headers.append("authorization", `Bearer ${token}`);
     headers.append("activity", activity);
-    headers.append("last_updated", oneWeekAhead.getTime().toString()); // apparently the backend can't handle camel case with middleware
+    headers.append("last_updated", lastUpdated.getTime().toString()); // apparently the backend can't handle camel case with middleware
 
     var res = await fetch(ENDPOINTS.getData, {
       method: "GET",
@@ -198,11 +200,12 @@ function Athlos(props) {
    * Updates only the state and therefore local storage for the user's fitness data
    */
   const updateLocalUserFitness = async () => {
+    await setNeedsFitnessUpdate(true) // for now
     const today = new Date();
     const userData = await getDataObj();
     const lastMonday = getLastMonday(today);
     const halfYearAgo = new Date();
-    halfYearAgo.setDate(lastMonday.getDate() - FITNESS_CONTANTS.NUM_WEEKS_IN_PAST * 7); // make sure its from that monday
+    halfYearAgo.setDate(lastMonday.getDate() - NUM_WEEKS_IN_PAST * 7); // make sure its from that monday
     // figure out the latest locally updated week. Assume jumpJson, swimJson, runJson are accurate
     var lastJumpUpdated;
     if (userData && userData.jumpJson && userData.jumpJson.activityData.length > 0) {
@@ -240,9 +243,9 @@ function Athlos(props) {
       getActivityJson("swim", lastSwimUpdated),
       getActivityJson("run",  lastRunUpdated)
     ]);
-    // console.log("more jumps: ", additionalJumpData.activityData[0]);
-    // console.log("more swims: ", additionalSwimData.activityData[0]);
-    // console.log("more runs: ", additionalRunData.activityData[0]);
+    console.log("more jumps: ", additionalJumpData.activityData[0]);
+    console.log("more swims: ", additionalSwimData.activityData[0]);
+    console.log("more runs: ", additionalRunData.activityData[0]);
     var gotAllInfo = additionalJumpData.success && additionalSwimData.success && additionalRunData.success;
     if (gotAllInfo) {
       console.log("successfully got all user info");
@@ -253,28 +256,20 @@ function Athlos(props) {
         // NOTE THAT FITNESS ISN'T UPDATED. THIS SHOULD CHANGE
         jumpJson: {
           ...state.jumpJson,
-          activityData: [
-            ...additionalJumpData.activityData,
-            ...state.jumpJson.activityData,
-          ].slice(0, FITNESS_CONTANTS.NUM_WEEKS_IN_PAST) // 0 is the most recent date
+          activityData: updateActivityData(state.jumpJson.activityData, additionalJumpData.activityData)
         },
         runJson: {
           ...state.runJson,
-          activityData: [
-            ...additionalRunData.activityData,
-            ...state.runJson.activityData,
-          ].slice(0, FITNESS_CONTANTS.NUM_WEEKS_IN_PAST)
+          activityData: updateActivityData(state.runJson.activityData, additionalRunData.activityData)
         },
         swimJson: {
           ...state.swimJson,
-          activityData: [
-            ...additionalSwimData.activityData,
-            ...state.swimJson.activityData,
-          ].slice(0, FITNESS_CONTANTS.NUM_WEEKS_IN_PAST)
+          activityData: updateActivityData(state.swimJson.activityData, additionalSwimData.activityData)
         },
       }
       setState(newState);
-      storeDataObj(newState);
+      await storeDataObj(newState);
+      await setNeedsFitnessUpdate(false);
     } else {
       console.log("additional swim data: ", additionalSwimData);
       console.log("additional run data: ", additionalRunData);
@@ -282,6 +277,48 @@ function Athlos(props) {
       throw new Error("failed to get all user info");
     }
   }
+
+  // remember index 0 is most recent data
+  const updateActivityData = (prevActivityData, additionalActivityData) => {
+    console.log("prev activity data: ", prevActivityData);
+    console.log("new activity data: ", additionalActivityData);
+    if (additionalActivityData.length === 0) {
+      return prevActivityData;
+    }
+    if (prevActivityData.length === 0) {
+      return additionalActivityData.slice(0, NUM_WEEKS_IN_PAST);
+    }
+    if (additionalActivityData.length > NUM_WEEKS_IN_PAST) {
+      console.log("additional data larger than 26: ", additionalActivityData.length);
+      additionalActivityData.splice(
+        NUM_WEEKS_IN_PAST, // take off anything at index 26 (num_Weeks_in_past) and beyond
+        additionalActivityData.length, // fine if it's an overestimate
+      ) // remove the necessary amount to get 26 week entries
+    }
+    const newActivityData = [];
+    additionalActivityData.forEach((week, idx) => {
+      newActivityData.push(week);
+    });
+    const mondayDate = newActivityData[newActivityData.length - 1][0].uploadDate;
+    // for the remaining weeks in the prev activity data, only add weeks that are older than mondayDate
+    var idxToStartAddingFrom = 0;
+    var currMondayDate = prevActivityData[0][0].uploadDate;
+    console.log(currMondayDate, newActivityData.length);
+    while (mondayDate <= currMondayDate) {
+      idxToStartAddingFrom += 1;
+      console.log(currMondayDate, idxToStartAddingFrom);
+      currMondayDate = prevActivityData[idxToStartAddingFrom][0].uploadDate;
+    }
+    console.log(idxToStartAddingFrom);
+    console.log(NUM_WEEKS_IN_PAST - newActivityData.length);
+    const newWeeksAddedSoFar = newActivityData.length;
+    for (let i = 0; i < NUM_WEEKS_IN_PAST - newWeeksAddedSoFar; i++) {
+      newActivityData.push(prevActivityData[i + idxToStartAddingFrom]);
+    }
+    console.log(newActivityData.length);
+    return newActivityData;
+  }
+  console.log(state.runJson.activityData.length, state.runJson.activityData[state.runJson.activityData.length - 1]);
 
   // updates the state and therefore the context if the user info is suspected
   // to change. For example if the user changes their settings we want the new
@@ -318,16 +355,15 @@ function Athlos(props) {
         },
       }
       setState(newState);
-      storeDataObj(newState);
+      await storeDataObj(newState);
     }
   }
 
   const BottomTab = createBottomTabNavigator();
-  console.log("Athlos context: ", state);
+  // console.log("Athlos context: ", state);
   if (isError) {
     return (<View><Text>shit something went wrong with the server :(</Text></View>)
   }
-  console.log("show welcome modal: ", showWelcomeModal);
   return (
     <UserDataContext.Provider value={state}>
       <AppFunctionsContext.Provider

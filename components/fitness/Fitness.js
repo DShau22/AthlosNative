@@ -23,16 +23,14 @@ import {
 
 const Fitness = (props) => {
   const userDataContext = React.useContext(UserDataContext);
+  const { runJson, swimJson, jumpJson } = userDataContext;
+  console.log("Fitness context: ", userDataContext.runJson.activityData.length);
   const appFunctionsContext = React.useContext(AppFunctionsContext);
   const profileContext = React.useContext(ProfileContext);
   const { colors } = useTheme()
   const [isLoading, setIsLoading] = React.useState(true);  
 
   const [refreshing, setRefreshing] = React.useState(false);
-
-  const [runJson, setRunJson] = React.useState(userDataContext.runJson)
-  const [swimJson, setSwimJson] = React.useState(userDataContext.swimJson)
-  const [jumpJson, setJumpJson] = React.useState(userDataContext.jumpJson)
   
   const { settings, relationshipStatus } = profileContext
   const { setAppState, updateLocalUserFitness } = appFunctionsContext
@@ -45,6 +43,7 @@ const Fitness = (props) => {
       try {
         await updateLocalUserFitness();
       } catch(e) {
+        console.log("error getting fitness in fitness component: ", e);
         Alert.alert(
           "Oh no :(",
           "Something went wrong with the request to the server. Please refresh and try again.",

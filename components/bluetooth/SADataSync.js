@@ -1,6 +1,7 @@
 import { useTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
+import { AppFunctionsContext } from '../../Context';
 import { View, StyleSheet, Image, Animated, Dimensions } from 'react-native';
 import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 import Snackbar from 'react-native-snackbar';
@@ -23,6 +24,8 @@ const { SYNC_PAGE, SYNC_HELP_PAGE } = BLUETOOTH_CONSTANTS;
  */
 export default function SADataSync() {
   const { colors } = useTheme();
+  const appFunctionsContext = React.useContext(AppFunctionsContext);
+  const { updateLocalUserInfo, updateLocalUserFitness, } = appFunctionsContext;
   const [scanning, setScanning] = React.useState(false);
 
   const expand1  = React.useRef(new Animated.Value(0)).current;
@@ -79,7 +82,9 @@ export default function SADataSync() {
   const startScan = async () => {
     setScanning(true);
     setTimeout(() => {
-      showSnackBar("Couldn't find your Athlos earbuds. Make sure they're within an arm's reach and are also scanning.");
+      if (scanning) {
+        showSnackBar("Having trouble finding your Athlos earbuds. Make sure they're within an arm's reach and are also scanning.");
+      }
     }, 10000);
     Animated.loop(
       Animated.stagger(200, [
@@ -123,13 +128,19 @@ export default function SADataSync() {
     ).start();
     try {
       await GlobalBleHandler.scanAndConnect();
-      showSnackBar('Successfully synced with your Athlos earbuds. Your fitness records should be up to date now :]')
+      showSnackBar('Successfully synced with your Athlos earbuds. Your fitness records should be up to date in a minute :]');
     } catch(e) {
       console.log("error with sync: ", e);
       showSnackBar("Something went wrong with syncing. Please try again.");
     } finally {
       setScanning(false);
       stopScanAnimations();
+    }
+    try {
+      await Promise.all([updateLocalUserFitness(), updateLocalUserInfo()]);
+    } catch(e) {
+      console.log(e);
+      showSnackBar("Something went wrong with the server request. Please refresh and try again.");
     }
   }
 
@@ -145,33 +156,34 @@ export default function SADataSync() {
             onSwipeDown={async (gestureState) => await startScan()}
           >
             <View style={styles.container}>
-              {!scanning ? 
-                <ThemeText style={styles.swipeContainer}>Swipe to start sync</ThemeText>
-              : null }
-              <Animated.View
-                style={[styles.rippleStyle, {
-                  borderColor: 'white',
-                  borderWidth: 1,
-                  opacity: opacity3,
-                  transform: [{scale: expand3}]
-                }]}
-              ></Animated.View>
-              <Animated.View
-                style={[styles.rippleStyle, {
-                  borderColor: 'white',
-                  borderWidth: 1,
-                  opacity: opacity2,
-                  transform: [{scale: expand2}]
-                }]}
-              ></Animated.View>
-              <Animated.View
-                style={[styles.rippleStyle, {
-                  borderColor: 'white',
-                  borderWidth: 1,
-                  opacity: opacity1,
-                  transform: [{scale: expand1}]
-                }]}
-              ></Animated.View>
+              {scanning ? 
+                <>
+                  <Animated.View
+                    style={[styles.rippleStyle, {
+                      borderColor: 'white',
+                      borderWidth: 1,
+                      opacity: opacity3,
+                      transform: [{scale: expand3}]
+                    }]}
+                  ></Animated.View>
+                  <Animated.View
+                    style={[styles.rippleStyle, {
+                      borderColor: 'white',
+                      borderWidth: 1,
+                      opacity: opacity2,
+                      transform: [{scale: expand2}]
+                    }]}
+                  ></Animated.View>
+                  <Animated.View
+                    style={[styles.rippleStyle, {
+                      borderColor: 'white',
+                      borderWidth: 1,
+                      opacity: opacity1,
+                      transform: [{scale: expand1}]
+                    }]}
+                  ></Animated.View>
+                </>
+              : <ThemeText style={styles.swipeContainer}>Swipe to start sync</ThemeText> }
               <View style={[styles.imageContainer, {backgroundColor: colors.header}]}>
                 <Image
                   source={require('../assets/AthlosLogo.png')}

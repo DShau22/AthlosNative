@@ -20,7 +20,10 @@ import { UserDataContext, AppFunctionsContext } from "../../Context"
 
 import {
   cmToInches, inchesToCm, roundToDecimal
-} from "../utils/unitConverter"
+} from "../utils/unitConverter";
+import {
+  setNeedsFitnessUpdate
+} from '../utils/storage';
 import ENDPOINTS from "../endpoints"
 import editGoalsSchema from "./EditGoalsSchema"
 import Textbox from "../nativeLogin/Textbox"
@@ -32,7 +35,7 @@ const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 export default function EditProfile(props) {
   const context = React.useContext(UserDataContext);
   const { colors } = useTheme();
-  const { updateLocalUserInfo, setAppState } = React.useContext(AppFunctionsContext);
+  const { updateLocalUserInfo, updateLocalUserFitness } = React.useContext(AppFunctionsContext);
   const { unitSystem } = context.settings
   const { goals } = context;
   const [isLoading, setIsLoading] = React.useState(false);
@@ -188,7 +191,8 @@ export default function EditProfile(props) {
         if (updateJson.success) {
           // make fetch to backend to update app context. Maybe consider just setting state
           // instead of making an entire other fetch
-          await updateLocalUserInfo();
+          await setNeedsFitnessUpdate(true);
+          await Promise.all([updateLocalUserInfo(), updateLocalUserFitness()]);
           Alert.alert(`All Done!`, "Successfully updated your profile!", [{ text: "Okay" }]);
           setIsLoading(false);
         } else {

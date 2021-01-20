@@ -8,7 +8,6 @@ import ThemeText from '../generic/ThemeText';
 
 export default function LoginButton(props) {
   const { containerStyle, style, onPress, text, icon, buttonTextStyle, filled } = props;
-  console.log("filled: ", filled);
   return (
     <View style={containerStyle}>
       <TouchableOpacity onPress={() => onPress()}>

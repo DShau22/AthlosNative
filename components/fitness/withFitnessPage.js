@@ -17,20 +17,6 @@ import FITNESS_CONTANTS from '../fitness/FitnessConstants'
 // 5. pace/jump/time (swim) progressions (swim still adds laps of each stroke done)
 // 6. average jumps/steps/laps (num)
 // 7. percentToGoal ? 
-
-function reverse(array) {
-  var i = 0,
-      n = array.length,
-      middle = Math.floor(n / 2),
-      temp = null;
-
-  for (; i < middle; i += 1) {
-     temp = array[i];
-     array[i] = array[n - 1 - i];
-     array[n - 1 - i] = temp;
-  }
-}
-
 export default function withFitnessPage( WrappedComponent ) {  
   const WithFitnessPage = (props) => {
     const context = React.useContext(UserDataContext);
@@ -40,11 +26,17 @@ export default function withFitnessPage( WrappedComponent ) {
     const [weeklyGraphLabels, setWeeklyGraphLabels] = React.useState([]);
     const [weeklyGraphData, setWeeklyGraphData] = React.useState([]);
     const { activityJson, id } = props.route.params;
+    const [isLoading, setIsLoading] = React.useState(activityJson.activityData.length === 0);
+    console.log("with fitness page is loading: ", isLoading);
     React.useEffect(() => {
-      makeWeeklyGraphLabels();
-      makeWeeklyGraphData();
+      if (activityJson.activityData.length > 0) {
+        makeWeeklyGraphLabels();
+        makeWeeklyGraphData();
+        setIsLoading(false);
+      } else {
+        setIsLoading(true);
+      }
     }, [weekIndex]);
-    
 
     const roundToNDecimals = (num, decimals) => {
       return parseFloat(num).toFixed(decimals);
@@ -64,7 +56,6 @@ export default function withFitnessPage( WrappedComponent ) {
         const month = new Date(uploadDate).getMonth() + 1;
         weeklyGraphLabels.push(`${dateInfo[0]}, ${month}/${dateInfo[2]}`);
       });
-      console.log('weekly graph labels: ', weeklyGraphLabels);
       setWeeklyGraphLabels(weeklyGraphLabels);
     }
 
@@ -84,16 +75,28 @@ export default function withFitnessPage( WrappedComponent ) {
           weeklyGraphData.push(num);
         })
       }
-      console.log('weekly graph data: ', weeklyGraphData);
       setWeeklyGraphData(weeklyGraphData);
     }
 
     // on dropdown date click, display that week on the dropdown,
     // and switch the image slider to display that week. Also must update the 
     // activityData array for that week 
-    const dropdownItemClick = (newWeekIndex) => {
-      console.log("new week idx: ", newWeekIndex);
-      setWeekIndex(newWeekIndex);
+    // CHANGE THIS THEN CHANGE IT IN CREATE MENU ITEMS IN CAROUSEL TOO
+    const pullUpMenuSelect = (newWeekText) => {
+      var indexOf = 0;
+      for (let i = 0; i < activityJson.activityData.length - 1; i++) {
+        const week = activityJson.activityData[i];
+        const monday = parseDate(week[0].uploadDate);
+        const sunday = parseDate(week[week.length - 1].uploadDate);
+        const dayMonth = `${monday[1]} ${monday[2]} - ${sunday[1]} ${sunday[2]}, ${sunday[3]}`
+        console.log(newWeekText, dayMonth);
+        if (newWeekText === dayMonth) {
+          break;
+        } else {
+          indexOf++;
+        }
+      }
+      setWeekIndex(indexOf);
       setDayIndex(0);
     }
 
@@ -130,7 +133,6 @@ export default function withFitnessPage( WrappedComponent ) {
       const week = activityJson.activityData[weekIndex];
       const nextIndex = (dayIndex + 1) % week.length;
       setDayIndex(nextIndex);
-      console.log("next pressed! ", nextIndex);
     }
   
     const previousSlide = () => {
@@ -138,12 +140,14 @@ export default function withFitnessPage( WrappedComponent ) {
       const week = activityJson.activityData[weekIndex];
       const nextIndex = (dayIndex - 1 + week.length) % week.length;
       setDayIndex(nextIndex);
-      console.log("previous pressed! ", nextIndex);
     }
 
     var sessionDay;
     if (activityJson.activityData.length > 0 && activityJson.activityData[weekIndex].length >= dayIndex) {
       sessionDay = activityJson.activityData[weekIndex][dayIndex];
+    }
+    if (isLoading) {
+      return <View></View>
     }
     return (
       <View
@@ -155,15 +159,15 @@ export default function withFitnessPage( WrappedComponent ) {
           nextSlide={nextSlide}
           weekIndex={weekIndex}
           dayIndex={dayIndex}
-          dropdownItemClick={dropdownItemClick}
+          pullUpMenuSelect={pullUpMenuSelect}
         />
         <View style={styles.calsAndTimeContainer}>
           <Calories 
-            cals={sessionDay ? sessionDay.calories : 0}
+            cals={sessionDay ? Math.ceil(sessionDay.calories) : 0}
             activity={activityJson.action}
           />
           <Duration 
-            duration={sessionDay ? sessionDay.time : 0}
+            duration={sessionDay ? Math.ceil(sessionDay.time) : 0}
             activity={activityJson.action}
           />
         </View>

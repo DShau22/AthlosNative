@@ -2,6 +2,7 @@ import {
   storeFitnessBytes,
   getFitnessBytes,
   removeFitnessBytes,
+  setNeedsFitnessUpdate,
   removeFitnessRecord,
   getData
 } from '../utils/storage';
@@ -100,6 +101,9 @@ class BLEHandler {
     if (this.scanSubscription) {
       this.scanSubscription.remove();
       this.scanSubscription = null;
+    }
+    if (this.saDataCompleter && !this.saDataCompleter.hasFinished()) {
+      this.saDataCompleter.error("started new scan");
     }
   }
 
@@ -311,6 +315,7 @@ class BLEHandler {
       }
       try {
         await this._uploadToServer();
+        await setNeedsFitnessUpdate(true);
         // await removeFitnessBytes();
         console.log("completing compelter...");
         this.saDataCompleter.complete(concatentatedSadata);
