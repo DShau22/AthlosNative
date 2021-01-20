@@ -6,7 +6,7 @@ import SaveCancelFooter from './SaveCancelFooter'
 
 export default function GenericModal(props) {
   const { colors } = useTheme();
-  const { isVisible, setVisible, titleText, height, resetState, saveEdits } = props;
+  const { isVisible, setVisible, titleText, height, resetState, saveEdits, subtitle } = props;
   return (
     <Modal
       isVisible={isVisible}
@@ -18,7 +18,15 @@ export default function GenericModal(props) {
     >
       <View style={[styles.modalContent, {height: height ? height : '80%'}]}>
         <View style={[styles.title, {backgroundColor: colors.background}]}>
-          <Text style={[styles.titleText, {color: colors.textColor}]}>{titleText}</Text>
+          <Text style={[styles.titleText, {
+            color: colors.textColor,
+            fontSize: 50,
+          }]}>{titleText}</Text>
+          { subtitle ? <Text style={{
+            color: colors.textColor,
+            fontSize: 25,
+            marginTop: 20,
+          }}>{subtitle}</Text> : null}
         </View>
         <ScrollView style={[styles.scrollView]}>
           {/* below is so that for ios, the bounce will not show the white background */}
@@ -52,7 +60,7 @@ const styles = StyleSheet.create({
     // backgroundColor: '#fafafa',
     justifyContent: 'center',
     alignItems: 'center',
-    height: 50,
+    height: '50%',
     // borderBottomColor: '#c7c7c7',
     // borderBottomWidth: 1
   },

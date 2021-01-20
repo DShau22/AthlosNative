@@ -16,7 +16,7 @@ const GLOBAL_CONSTANTS = {
   SETTINGS: 'Settings',
   PROFILE: 'Profile',
   DEVICE_CONFIG: 'Device Config',
-  BLUETOOTH: 'BLUETOOTH',
+  SYNC: 'Sync',
 
   ENGLISH: 'english',
   METRIC: 'metric',

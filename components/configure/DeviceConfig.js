@@ -1,7 +1,7 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import React from 'react';
-import { View, StyleSheet, Dimensions, Alert, Text } from 'react-native';
+import { View, StyleSheet, Dimensions, Alert, Button } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import ActionButton from 'react-native-action-button';
@@ -124,27 +124,18 @@ const DeviceConfig = (props) => {
 
   // sends the current device config to the athlos earbuds
   const saveAndCreateSaInit = async () => {
-    try {
-      // store the device config in local storage first
-      await storeConfig();
-      const sainitManager = new SAinit(
-        deviceConfig,
-        settings,
-        runEfforts,
-        swimEfforts,
-        referenceTimes,
-        cadenceThresholds,
-        bests.highestJump,
-      );
-      return sainitBuffer = sainitManager.createSaInit(); // should return byte array
-    } catch(e) {
-      console.log(e);
-      Alert.alert(
-        "Oh No :(",
-        `Something went wrong with updating your config settings. Please try again.`,
-        [{text: "Ok"}]
-      );
-    }
+    // store the device config in local storage first
+    await storeConfig();
+    const sainitManager = new SAinit(
+      deviceConfig,
+      settings,
+      runEfforts,
+      swimEfforts,
+      referenceTimes,
+      cadenceThresholds,
+      bests.highestJump,
+    );
+    return sainitManager.createSaInit(); // should return byte array
   }
 
   // function for rendering draggable list item
@@ -217,18 +208,9 @@ const DeviceConfig = (props) => {
               ListFooterComponent={() => {
                 return (
                   <>
-                    {/* <SAInitSender
+                    <SAInitSender
                       saveAndCreateSaInit={saveAndCreateSaInit}
-                    /> */}
-                    <Button title='test make sainit' onPress={async () => {
-                      const connected = await GlobalBleHandler.isConnected();
-                      if (!connected) {
-                        console.log("not connected yet");
-                        return;
-                      }
-                      const sainitBytes = await saveAndCreateSaInit();
-                      await GlobalBleHandler.sendByteArray(sainitBytes);
-                    }}/>
+                    />
                   </>
                 )
               }}

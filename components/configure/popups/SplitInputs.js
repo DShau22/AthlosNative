@@ -61,6 +61,7 @@ export default function SplitInputs(props) {
     return (
       <View style={styles.container}>
         <Input
+          key={num}
           leftIcon={
             <Icon
               name='timer'

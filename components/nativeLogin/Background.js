@@ -33,7 +33,7 @@ const Background = ({ navigation }) => {
         <Animatable.Image 
           animation="bounceIn"
           duraton="1500"
-          source={require('../assets/logo.png')}
+          source={require('../assets/AthlosLogo.png')}
           style={styles.logo}
           resizeMode="stretch"
         />

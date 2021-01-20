@@ -2,8 +2,18 @@
 const TOKEN_KEY =  "token_key"; // login token key
 const DATA_KEY = "data_key"; // app context/user data key
 const FITNESS_KEY = 'fitness_key'; // key for the queue of fitness raw data from earbuds
+const DEVICE_ID_KEY = 'device_id_key';
 const socketStorageKey = "socket";
 import AsyncStorage from '@react-native-community/async-storage';
+
+const getDeviceId = async () => {
+  const deviceID = await AsyncStorage.getItem(DEVICE_ID_KEY);
+  return deviceID;
+}
+
+const setDeviceId = async (newID) => {
+  await AsyncStorage.setItem(DEVICE_ID_KEY, JSON.stringify(newID));
+}
 
 const storeData = async (value) => {
   try {
@@ -122,6 +132,8 @@ const storeNewState = async (prevState, newFields) => {
 module.exports = {
   TOKEN_KEY,
   DATA_KEY,
+  getDeviceId,
+  setDeviceId,
   storeData,
   storeDataObj,
   getData,

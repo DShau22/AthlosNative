@@ -106,9 +106,9 @@ class BLEHandler {
   /**
   * disconnects from connected Athlos device
   */
-  disconnect() {
-    if (this.device) {
-      this.device.cancelConnection(); // this is async
+  async disconnect() {
+    if (this.device && (await this.device.isConnected())) {
+      await this.device.cancelConnection(); // this is async
     }
   }
 
@@ -117,10 +117,6 @@ class BLEHandler {
    * BLE functionlity
    */
   unSubscribeRead() {
-    if (!this.device) {
-      console.log("device is not yet connected");
-      return;
-    }
     if (!this.readSubscription) {
       console.log("has not subscribed to athlos earbuds yet");
       return;
@@ -144,7 +140,7 @@ class BLEHandler {
    */
   async isConnected() {
     if (this.device === null || this.device === undefined) {
-      return true;
+      return false;
     }
     return await this.device.isConnected();
   }
@@ -154,8 +150,8 @@ class BLEHandler {
    * with a resolve value of the session bytes Buffer
    */
   async scanAndConnect() {
+    this.stopScan();
     this.saDataCompleter = new Completer();
-    console.log("testing read buffer length: ", this.readBuffers.length);
     this.scanSubscription = this.manager.onStateChange(async state => {
       console.log("state changed and is now: ", state);
       if (state === 'PoweredOn') {
@@ -171,7 +167,9 @@ class BLEHandler {
    * the RX characteristic (setUpNotifyListener) so we can read from the earbuds.
    */
   async _scanAndConnect() {
+    await this.disconnect();
     console.log("scanning and connecting...");
+    console.log("device: ", this.device);
     this.manager.startDeviceScan(null, null, async (error, device) => {
       if (error) {
         // Handle error (scanning will be stopped automatically)
@@ -204,6 +202,7 @@ class BLEHandler {
           await this._setUpNotifyListener(); // for now just handle reading
         } catch(e) {
           console.log("error connecting device and discovering services: ", e);
+          this._scanAndConnect();
         }
       }
     });
@@ -214,7 +213,9 @@ class BLEHandler {
    * so that we can read data that the earbuds send to this device.
    */
   async _setUpNotifyListener() {
-    if (!this.device) {
+    console.log("setting up notify listener");
+    const deviceConnected = await this.device.isConnected();
+    if (!this.device || !(await this.device.isConnected()) ) {
       throw new Error("device is not yet connected");
     }
     try {
@@ -233,12 +234,20 @@ class BLEHandler {
       console.log("Buffer contents: ", readValueInRawBytes);
       const len = readValueInRawBytes.length;
       try {
-        if (len === 2 && this.isTransmitting) {
+        if (len === 2) {
           // phone is transmitting to athlos earbuds
           await this._validateResponse(readValueInRawBytes);
-        } else if (!this.isTransmitting) {
+        } else if (len > 2) {
           this.isReading = true;
           // earbuds are transmitting to phone
+          // first validate the incoming package. Don't do anything if the checksum is off
+          const checksum = readValueInRawBytes[readValueInRawBytes.length - 1]
+          const expectedChecksum = calcChecksum(readValueInRawBytes, 0, readValueInRawBytes.length - 1);
+          if (checksum !== expectedChecksum) {
+            console.log(`Invalid checksum when reading sadata: the package must've gotten tampered with.
+              Expected ${expectedChecksum} but got ${checksum}`);
+            return;
+          }
           await this._readIncomingBytesAndSendResponse(readValueInRawBytes);
         } else {
           console.log("ignoring package");
@@ -373,7 +382,7 @@ class BLEHandler {
    * @param {Buffer} readValueInRawBytes 
    */
   async _sendResponse(readValueInRawBytes) {
-    if (!this.device) {
+    if (!this.device || !(await this.device.isConnected())) {
       throw new Error("device is not yet connected");
     }
     console.log("********SENDING RESPONSE********")
@@ -400,7 +409,7 @@ class BLEHandler {
    * @param {Buffer} readValueInRawBytes 
    */
   async _validateResponse(readValueInRawBytes) {
-    if (!this.device) {
+    if (!this.device || !(await this.device.isConnected())) {
       throw new Error("device is not yet connected");
     }
     // WHAT IF PKGID === LASTPKGID whoop
@@ -412,7 +421,7 @@ class BLEHandler {
       console.log(`package id's do not match. Expected ${this.lastPkgId} but got ${pkgId}`);
       return;
     }
-    const expectedChecksum = calcChecksum(readValueInRawBytes, 0, readValueInRawBytes - 1);
+    const expectedChecksum = calcChecksum(readValueInRawBytes, 0, readValueInRawBytes.length - 1);
     if (checksum !== expectedChecksum) {
       console.log(`Invalid checksum: the package must've gotten tampered with.
         Expected ${expectedChecksum} but got ${checksum}`);
@@ -430,7 +439,7 @@ class BLEHandler {
    * @param {DataItem} dataItem 
    */
   async _sendAndWaitResponse(dataItem) {
-    if (!this.device) {
+    if (!this.device || !(await this.device.isConnected())) {
       throw new Error("device is not yet connected");
     }
     this.isTransmitting = true;
@@ -455,10 +464,9 @@ class BLEHandler {
    */
   // have settings/getters for all the sainit indices that correspond to different settings
   async sendByteArray(bytes) { // bytes should be a Buffer type already but no checksum or metadata yet
-    if (!this.device) {
+    if (!this.device || !(await this.device.isConnected())) {
       throw new Error("device is not yet connected");
     }
-    // TODO: assert that queue is empty
     console.log("****** SENDING BYTE ARRAY ******");
     if (this.isTransmitting) {
       console.log("Already sending data. Please wait");
@@ -518,6 +526,7 @@ class Completer {
     this.result = new Promise((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
+      console.log("created new completer!")
     });
   }
 
@@ -526,6 +535,7 @@ class Completer {
       this._resolve(value);
       this._resolve = null;
       this._reject = null;
+      console.log("resolved completer!")
     } else {
       console.log("already resolved or rejected");
     }
@@ -536,6 +546,7 @@ class Completer {
       this._reject(err);
       this._resolve = null;
       this._reject = null;
+      console.log("rejected completer!")
     } else {
       console.log("already resolved or rejected");
     }

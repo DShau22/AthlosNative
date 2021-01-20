@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { Text, View, StyleSheet, Alert, ScrollView, SafeAreaView } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-
 import {
   getData,
-  storeData,
+  getDeviceId,
+  setDeviceId,
   storeDataObj,
   getDataObj
 } from '../utils/storage';
@@ -24,6 +24,8 @@ import Community from "../community/Community";
 import Profile from '../profile/Profile';
 import DeviceConfig from '../configure/DeviceConfig';
 import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
+import SADataSync from '../bluetooth/SADataSync';
+import WelcomeModal from './WelcomeModal';
 
 import GLOBAL_CONSTANTS from '../GlobalConstants';
 const {
@@ -33,7 +35,7 @@ const {
   SETTINGS,
   PROFILE,
   DEVICE_CONFIG,
-  BLUETOOTH,
+  SYNC,
 } = GLOBAL_CONSTANTS;
 import FITNESS_CONTANTS from '../fitness/FitnessConstants';
 
@@ -49,7 +51,7 @@ function Athlos(props) {
 
   // const [following, setFollowing] = React.useState([]);
   // const [followingPending, setFollowingPending] = React.useState([]);
-
+  const [showWelcomeModal, setShowWelcomeModal] = React.useState(false);
   const [state, setState] = React.useState({
     headerText: 'Home',
     _id: '',
@@ -104,7 +106,7 @@ function Athlos(props) {
   });
   
   React.useEffect(() => {
-    const prepareData = async () => {
+    const setUpApp = async () => {
       console.log("Athlos component using effect");
       setIsLoading(true);
       // first check if info is in Async storage
@@ -130,11 +132,19 @@ function Athlos(props) {
           setIsLoading(false);
         }
       }
+      // check if theyve connected a device. If they have, then proceed to using the GlobalBleHandler.
+      // Else show the welcome modal
+      const deviceId = await getDeviceId();
+      if (!deviceId) {
+        setShowWelcomeModal(true);
+        return;
+      }
       try {
         // await GlobalBleHandler._uploadToServer();
+        console.log("ble handler: ", GlobalBleHandler);
         GlobalBleHandler.scanAndConnect()
           .then((sadataBytes) => {
-            console.log("successfully read and saved sadata bytes: ", sadataBytes.toString('utf8'));
+            console.log("successfully read and saved sadata bytes");
           })
           .catch((e) => {
             console.log("error reading and saving sadata bytes: ", e);
@@ -143,7 +153,7 @@ function Athlos(props) {
         console.log("error scanning and connecting: ", e);
       }
     }
-    prepareData();
+    setUpApp();
     return () => {
       GlobalBleHandler.destroy();
       GlobalBleHandler.reinit();
@@ -316,6 +326,7 @@ function Athlos(props) {
   if (isError) {
     return (<View><Text>shit something went wrong with the server :(</Text></View>)
   }
+  console.log("show welcome modal: ", showWelcomeModal);
   return (
     <UserDataContext.Provider value={state}>
       <AppFunctionsContext.Provider
@@ -327,6 +338,10 @@ function Athlos(props) {
       >
       { isLoading ? <View style={styles.container}><LoadingSpin/></View> : 
         <>
+          <WelcomeModal
+            isVisible={showWelcomeModal}
+            setVisible={setShowWelcomeModal}
+          />
           {/* <Header
             leftComponent={{ icon: 'menu', color: '#fff' }}
             rightComponent={{ icon: 'home', color: '#fff' }}
@@ -345,7 +360,7 @@ function Athlos(props) {
             {/* <BottomTab.Screen name={SETTINGS} component={Settings} /> */}
             {/* <BottomTab.Screen name={COMMUNITY} component={Community} /> */}
             <BottomTab.Screen name={DEVICE_CONFIG} component={DeviceConfig} />
-            {/* <BottomTab.Screen name={'Sync'} component={Bluetooth} /> */}
+            <BottomTab.Screen name={SYNC} component={SADataSync} />
           </BottomTab.Navigator>
         </>
       }

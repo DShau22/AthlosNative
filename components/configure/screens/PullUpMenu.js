@@ -83,7 +83,7 @@ export default function PullUpMenu(props) {
               dataSource={list}
               selectedIndex={selectedIndexes[listIdx]}
               renderItem={(data, index) => {
-                //
+                <Text key={index}>{data}</Text>
               }}
               onValueChange={(data, idx) => {
                 setSelectedIndexes(prev => {
@@ -97,7 +97,7 @@ export default function PullUpMenu(props) {
               wrapperBackground={"#FFFFFF"}
               itemHeight={60}
               highlightColor={"#d8d8d8"}
-              highlightBorderWidth={2}
+              highlightWidth={2}
             />
           ))}
         </View>

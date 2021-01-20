@@ -186,7 +186,7 @@ class SAinit {
             break;
           default:
             // set it as unused
-            sainit[idx] = SAinit.LOWER_X;
+            sainit[idx] = SAinit.SAinit.ZERO;
             break;
         }
       }
