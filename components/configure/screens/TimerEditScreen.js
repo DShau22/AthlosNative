@@ -4,7 +4,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import { DEVICE_CONFIG_CONSTANTS, } from '../DeviceConfigConstants';
 const {
   TIMER,
-  MODE_CONFIG
+  MODE_CONFIG,
+
+  ENDS,
+  REPEAT_LAST,
+  CYCLES,
 } = DEVICE_CONFIG_CONSTANTS;
 import ActionButton from 'react-native-action-button';
 import { useTheme } from '@react-navigation/native';
@@ -16,10 +20,25 @@ import ThemeText from '../../generic/ThemeText';
 import { UserDataContext } from '../../../Context';
 import SaveButton from './SaveButton';
 import Spinner from 'react-native-loading-spinner-overlay';
-import { ListItem } from 'react-native-elements';
+import { Divider, ListItem } from 'react-native-elements';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import MenuPrompt from './MenuPrompt';
 import {numToWord, capitalize} from '../../utils/strings';
+
+REP_OPTION_LIST = [
+  {
+    title: ENDS,
+    subtitle: 'Timer stops after the final time period ends.'
+  },
+  {
+    title: CYCLES,
+    subtitle: 'Timer repeats from the start after the final time period ends (you can set how many times).'
+  },
+  {
+    title: REPEAT_LAST,
+    subtitle: 'Timer repeats the last time period (you can set how many times).'
+  },
+]
 
 export default function TimerEditScreen(props) {
   const { colors } = useTheme();
@@ -29,7 +48,9 @@ export default function TimerEditScreen(props) {
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [splits, setSplits] = React.useState(timerSettings.splits); // in tenths
-  const [repeats, setRepeats] = React.useState(false);
+  const [repetition, setRepetition] = React.useState(timerSettings.repetition);
+  const [numRepetitions, setNumRepetitions] = React.useState(timerSettings.numRepetitions);
+
   const firstUpdate = React.useRef(true);
 
   React.useEffect(() => {
@@ -57,8 +78,9 @@ export default function TimerEditScreen(props) {
     setDeviceConfig(prevConfig => {
       const newModeSettings = {
         mode: TIMER,
-        splits: splits,
-        repeats
+        splits,
+        repetition,
+        numRepetitions,
       };
       prevConfig[editIdx] = newModeSettings;
       return [...prevConfig];
@@ -70,8 +92,38 @@ export default function TimerEditScreen(props) {
     setSplits(timerSettings.splits);
   }
 
+  const renderRepetitionOption = () => {
+    return REP_OPTION_LIST.map(({title, subtitle}, _) => (
+      <ListItem
+        containerStyle={{backgroundColor: colors.background}}
+        key={title}
+        bottomDivider
+        onPress={() => setRepetition(title)}
+      >
+        <ListItem.Content>
+          <ListItem.Title>
+            <ThemeText>{title}</ThemeText>
+          </ListItem.Title>
+          <ListItem.Subtitle>
+            <ThemeText>
+              {subtitle}
+            </ThemeText>
+          </ListItem.Subtitle>
+        </ListItem.Content>
+        <ListItem.CheckBox
+          checked={repetition === title}
+          checkedColor={colors.textColor}
+          checkedIcon='dot-circle-o'
+          uncheckedIcon='circle-o'
+          onPress={() => setRepetition(title)}
+        />
+      </ListItem>
+    ));
+  }
+
+
   const totalSplitTime = () => {
-    const totalTenths = splits.reduce((a, b) => a + b, 0);
+    const totalTenths = splits.reduce((a, b) => a + b, 0) * (repetition !== ENDS ? numRepetitions : 1);
     const mins = Math.floor(totalTenths / 600);
     const secs = Math.floor((totalTenths % 600) / 10);
     const tenths = totalTenths % 10;
@@ -98,9 +150,9 @@ export default function TimerEditScreen(props) {
     const minsText = mins === 0 ? '' : `${mins} ${mins === 1 ? 'min' : 'mins'}`;
     var secsText = secs === 0 && tenths === 0 ? '' : ` ${secs}.${tenths} seconds`;
     var promptSubtitle = `${minsText}${secsText} after ${index === 0 ? 'start' : `${numToWord(index - 1)} checkpoint`}`;
-    if (repeats && index === splits.length - 1) {
+    if (repetition === REPEAT_LAST && index === splits.length - 1) {
       secsText = secs === 0 && tenths === 0 ? '' : ` ${secs}.${tenths} second`;
-      promptSubtitle = `${minsText}${secsText} intervals onwards`;
+      promptSubtitle = `${minsText}${secsText} periods onwards`;
     }
     return (
       <View style={{
@@ -115,7 +167,7 @@ export default function TimerEditScreen(props) {
         <TouchableOpacity
           style={styles.deleteInterval}
           onPress={() => {
-            setIntervals(prev => {
+            setSplits(prev => {
               const filtered = prev.filter((_, idx) => {
                 return index !== idx;
               });
@@ -154,12 +206,6 @@ export default function TimerEditScreen(props) {
             secs,
             tenths
           ]}
-          // childArray={Array.from(Array(60).keys())}
-          // secondChildArray={Array.from(Array(60).keys())}
-          // thirdChildArray={Array.from(Array(10).keys())}
-          // selectedItem={mins}
-          // secondSelectedItem={secs}
-          // thirdSelectedItem={tenths}
         />
       </View>
     );
@@ -174,39 +220,32 @@ export default function TimerEditScreen(props) {
             textContent='Saving...'
             textStyle={{color: colors.textColor}}
           />
-          <ThemeText style={{fontSize: 20, fontWeight: 'bold', alignSelf: 'flex-start', margin: 10}}>
+          <ThemeText style={styles.headerText}>
             Timer with alerts:
           </ThemeText>
           <ThemeText style={{margin: 10, marginTop: 0}}>
             Set up a timer with checkpoints. Your device will alert you once these checkpoints have passed in time, and
             you can customize these checkpoint times (up to a max of 6).
           </ThemeText>
-          <ListItem
-            containerStyle={{backgroundColor: colors.background}}
-            bottomDivider
-            topDivider
-            onPress={() => setRepeats(prev => !prev)}
-          >
-            <ListItem.Content>
-              <ListItem.Title>
-                <ThemeText>
-                  Repeat last interval?
-                </ThemeText>
-              </ListItem.Title>
-              <ListItem.Subtitle style={{marginTop: 5}}>
-                <ThemeText>
-                  If enabled, the timer will keep repeating the last interval forever. Otherwise, the timer will stop after 
-                  the last interval finishes.
-                </ThemeText>
-              </ListItem.Subtitle>
-            </ListItem.Content>
-            <ListItem.CheckBox
-              checked={repeats}
-              checkedColor={colors.textColor}
-              onPress={() => setRepeats(prev => !prev)}
-            />
-          </ListItem>
-          <ThemeText style={{fontSize: 20, fontWeight: 'bold', alignSelf: 'flex-start', margin: 10}}>
+          <Divider />
+          {renderRepetitionOption()}
+          { repetition === CYCLES || repetition === REPEAT_LAST ? 
+            <>
+              <ThemeText style={styles.headerText}>
+                {`Number of ${repetition === CYCLES ? 'cycles' : 'repeats'}`}
+              </ThemeText>
+              <MenuPrompt
+                pullUpTitle={`Number of ${repetition === CYCLES ? 'cycles' : 'repeats'}`}
+                promptTitle={`${numRepetitions} ${repetition === CYCLES ? 'cycles' : 'repeats'}`}
+                onSave={(newNumRepetitions) => {
+                  setNumRepetitions(newNumRepetitions);
+                }}
+                childArrays={[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]}
+                selectedItems={[numRepetitions]}
+              />
+            </>
+          : null }
+          <ThemeText style={styles.headerText}>
             Set your alerts:
           </ThemeText>
         </>
@@ -260,5 +299,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
+  },
+  headerText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    alignSelf: 'flex-start',
+    margin: 10
   }
 });

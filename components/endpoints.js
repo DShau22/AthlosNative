@@ -39,6 +39,8 @@ const ENDPOINTS = {
     getSearchUserFitnessBests: `${serverURL}/getSearchUserFitnessBests`,
     getSearchUserFitness: `${serverURL}/getSearchUserFitness`,
 
+    updateDeviceID: `${serverURL}/updateDeviceID`,
+
     // user data and info
     getData: `${serverURL}/getUserFitness`,
     getUserInfo: `${serverURL}/getUserInfo`,

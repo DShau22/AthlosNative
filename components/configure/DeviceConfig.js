@@ -211,6 +211,10 @@ const DeviceConfig = (props) => {
                     <SAInitSender
                       saveAndCreateSaInit={saveAndCreateSaInit}
                     />
+                    {/* <Button 
+                      title='test'
+                      onPress={async () => console.log(await saveAndCreateSaInit())}
+                    /> */}
                   </>
                 )
               }}
@@ -221,7 +225,17 @@ const DeviceConfig = (props) => {
               offsetY={15}
               buttonColor={'#1CB5E0'}
               size={FAB_SIZE}
-              onPress={() => addRBSheetRef.current.open()}
+              onPress={() => {
+                if (deviceConfig.length >= 7) {
+                  Alert.alert(
+                    'Whoops',
+                    'Cannot have more than 7 modes',
+                    [{text: 'Okay'}]
+                  )
+                } else {
+                  addRBSheetRef.current.open()}
+                }
+              }
             />
             <PullUpMenu
               refRBSheet={addRBSheetRef}
@@ -238,74 +252,6 @@ const DeviceConfig = (props) => {
               selectedItems={[MUSIC_ONLY]}
               onSave={(chosenMode) => addMode(chosenMode)}
             />
-            {/* <ActionButton
-              position='left'
-              offsetX={15}
-              offsetY={15}
-              buttonColor={'#1CB5E0'}
-              size={FAB_SIZE}
-            >
-              <ActionButton.Item
-                size={FAB_SIZE - 8}
-                textContainerStyle={styles.actionButtonTextContainer}
-                textStyle={styles.actionButtonText}
-                buttonColor='white'
-                title="Music Only"
-                onPress={() => addMode(MUSIC_ONLY)}
-              >
-                <Icon name="md-create" style={[styles.actionButtonIcon, {color: 'black'}]} />
-              </ActionButton.Item>
-              <ActionButton.Item
-                size={FAB_SIZE - 8}
-                textContainerStyle={styles.actionButtonTextContainer}
-                textStyle={styles.actionButtonText}
-                buttonColor={RUN_THEME}
-                title="Running"
-                onPress={() => addMode(RUN)}
-              >
-                <Icon name="md-notifications-off" style={styles.actionButtonIcon} />
-              </ActionButton.Item>
-              <ActionButton.Item
-                size={FAB_SIZE - 8}
-                textContainerStyle={styles.actionButtonTextContainer}
-                textStyle={styles.actionButtonText}
-                buttonColor={SWIM_THEME}
-                title="Swimming"
-                onPress={() => addMode(SWIM)}
-              >
-                <Icon name="md-done-all" style={styles.actionButtonIcon} />
-              </ActionButton.Item>
-              <ActionButton.Item
-                size={FAB_SIZE - 8}
-                textContainerStyle={styles.actionButtonTextContainer}
-                textStyle={styles.actionButtonText}
-                buttonColor={JUMP_THEME}
-                title="Vertical"
-                onPress={() => addMode(JUMP)}
-              >
-                <Icon name="md-done-all" style={styles.actionButtonIcon} />
-              </ActionButton.Item>
-              <ActionButton.Item
-                size={FAB_SIZE - 8}
-                textContainerStyle={styles.actionButtonTextContainer}
-                textStyle={styles.actionButtonText}
-                buttonColor='#1abc9c'
-                title="Swimming Event"
-                onPress={() => addMode(SWIMMING_EVENT)}
-              >
-                <Icon name="md-done-all" style={styles.actionButtonIcon} />
-              </ActionButton.Item>
-              <ActionButton.Item
-                size={FAB_SIZE - 8}
-                textContainerStyle={styles.actionButtonTextContainer}
-                textStyle={styles.actionButtonText}
-                buttonColor='#1abc9c'
-                title="Interval"
-                onPress={() => addMode(INTERVAL)}
-              >
-                <Icon name="md-done-all" style={styles.actionButtonIcon} />
-              </ActionButton.Item>
-            </ActionButton> */}
           </View>
         }
       </Stack.Screen>

@@ -26,8 +26,6 @@ import { UserDataContext } from '../../../Context';
 import PoolLengthList from '../popups/PoolLengthList';
 import SaveButton from './SaveButton';
 import Spinner from 'react-native-loading-spinner-overlay';
-import { ListItem } from 'react-native-elements';
-import PullUpMenu from './PullUpMenu';
 import MenuPrompt from './MenuPrompt';
 const {
   NCAA,
@@ -130,7 +128,7 @@ export default function SwimmingEventEditScreen(props) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [stroke, setStroke] = React.useState(eventSettings.stroke);
   const [distance, setDistance] = React.useState(eventSettings.distance);
-  const [splits, setSplits] = React.useState(eventSettings.splits);
+  const [splits, setSplits] = React.useState(eventSettings.splits.slice(0, 4));
   const [poolLength, setPoolLength] = React.useState(eventSettings.poolLength);
   const [errorMsgs, setErrorMsgs] = React.useState(splits.map((_, idx) => '')); // array of error messages for each split input
   const firstUpdate = React.useRef(true);
@@ -176,10 +174,10 @@ export default function SwimmingEventEditScreen(props) {
     setDeviceConfig(prevConfig => {
       const newModeSettings = {
         mode: SWIMMING_EVENT,
-        subtitle: SWIMMING_EVENT_SUBTITLE,
-        stroke: stroke,
-        distance: distance,
-        splits: splits,
+        poolLength,
+        stroke,
+        distance,
+        splits,
       };
       prevConfig[editIdx] = newModeSettings;
       return [...prevConfig];
@@ -190,7 +188,7 @@ export default function SwimmingEventEditScreen(props) {
     setIsLoading(false);
     setStroke(eventSettings.stroke);
     setDistance(eventSettings.distance);
-    setSplits(eventSettings.splits);
+    setSplits(eventSettings.splits.slice(0, 4));
     setPoolLength(eventSettings.poolLength);
     setErrorMsgs(eventSettings.splits.map((_) => ''))
   }
@@ -205,7 +203,7 @@ export default function SwimmingEventEditScreen(props) {
       const newDefaultDistance = DISTANCES[getDistanceMetric()][newStroke][0];
       const newDistance = DISTANCES[getDistanceMetric()][newStroke].includes(distance) ? distance : newDefaultDistance;
       setDistance(newDistance);
-      const newDefaultSplits = [...Array(Math.min(8, newDistance/50)).keys()].map(_ => 30);
+      const newDefaultSplits = [...Array(Math.min(4, newDistance/50)).keys()].map(_ => 30);
       setSplits(newDefaultSplits);
       setStroke(newStroke);
     }
@@ -214,7 +212,7 @@ export default function SwimmingEventEditScreen(props) {
 
   const switchDistance = (newDistance) => {
     if (newDistance > distance) {
-      const additionalDefaultSplits = Array(Math.min(8 - splits.length, Math.floor(newDistance/50) - splits.length));
+      const additionalDefaultSplits = Array(Math.min(4 - splits.length, Math.floor(newDistance/50) - splits.length));
       additionalDefaultSplits.fill(45);
       setSplits([...splits, ...additionalDefaultSplits]);
     } else if (newDistance < distance) {
@@ -237,7 +235,7 @@ export default function SwimmingEventEditScreen(props) {
         Choose a swimming event and enter splits (in seconds) to keep you on pace – this mode will track your pace and let you know
         how far ahead or behind you are from the splits you enter.
       </ThemeText>
-      <ThemeText style={[styles.textHeader]}>Set your pool length</ThemeText>
+      <ThemeText style={styles.textHeader}>Set your pool length</ThemeText>
       <View style={{width: '100%'}}>
         <PoolLengthList
           containerStyle={{backgroundColor: colors.background}}
@@ -246,7 +244,7 @@ export default function SwimmingEventEditScreen(props) {
           choices={POOL_LENGTH_LIST}
         />
       </View>
-      <ThemeText style={[styles.textHeader, {marginTop: 20, marginBottom: 20}]}>Pick a Stroke</ThemeText>
+      <ThemeText style={styles.textHeader}>Pick a Stroke</ThemeText>
       <MenuPrompt
         promptTitle={stroke}
         childArrays={[STROKES]}
@@ -256,7 +254,7 @@ export default function SwimmingEventEditScreen(props) {
         }}
         pullUpTitle='Swimming stroke'
       />
-      <ThemeText style={[styles.textHeader, {marginTop: 20, marginBottom: 20}]}>Pick a distance</ThemeText>
+      <ThemeText style={styles.textHeader}>Pick a distance</ThemeText>
       <MenuPrompt
         promptTitle={distance}
         childArrays={[DISTANCES[getDistanceMetric()][stroke]]}
@@ -266,14 +264,15 @@ export default function SwimmingEventEditScreen(props) {
         }}
         pullUpTitle={`Distance (${poolLength === OLYMPIC || poolLength === BRITISH ? 'm' : 'yds'})`}
       />
-      <ThemeText style={[styles.textHeader, {marginTop: 20}]}>Set your goal splits</ThemeText>
+      <ThemeText style={styles.textHeader}>Set your goal splits</ThemeText>
       <SplitInputs
         distance={distance}
+        stroke={stroke}
         setSplits={setSplits}
         splits={splits}
         errorMsgs={errorMsgs}
         setErrorMsgs={setErrorMsgs}
-        label={'50'}
+        label={stroke === IM  && distance === 400 ? 'two 50s' : '50'}
       />
       <SaveButton
         containerStyle={{
@@ -319,8 +318,9 @@ const styles = StyleSheet.create({
   textHeader: {
     fontSize: 20,
     alignSelf: 'flex-start',
-    margin: 10,
-    marginBottom: 0
+    marginLeft: 10,
+    marginTop: 20,
+    marginBottom: 20,
   },
   dropDownContainer: {
     width: '95%',

@@ -9,6 +9,8 @@ import {
   getDataObj,
   needsFitnessUpdate,
   setNeedsFitnessUpdate,
+  getFirstTimeLogin,
+  setFirstTimeLogin,
 } from '../utils/storage';
 import ENDPOINTS from "../endpoints";
 import {
@@ -59,7 +61,6 @@ function Athlos(props) {
   // const [followingPending, setFollowingPending] = React.useState([]);
   const [showWelcomeModal, setShowWelcomeModal] = React.useState(false);
   const [state, setState] = React.useState({
-    headerText: 'Home',
     _id: '',
     friends: [],
     friendRequests: [],
@@ -85,10 +86,7 @@ function Athlos(props) {
     age: "",
     profilePicture: "",
     settings: {},
-    logout: false,
-    notification: null,
-    mounted: false,
-    friendTableRows: [],
+    deviceID: "",
     numFriendsDisplay: 25,
     goals: {
       goalSteps: 1,
@@ -140,11 +138,14 @@ function Athlos(props) {
       }
       // check if theyve connected a device. If they have, then proceed to using the GlobalBleHandler.
       // Else show the welcome modal
-      const deviceId = await getDeviceId();
-      if (!deviceId) {
+      const firstTime = await getFirstTimeLogin();
+      if (firstTime) {
         setShowWelcomeModal(true);
+        await setFirstTimeLogin();
         return;
       }
+      const { deviceID } = state;
+      GlobalBleHandler.setID(deviceID);
       try {
         // await GlobalBleHandler._uploadToServer();
         console.log("ble handler: ", GlobalBleHandler);
@@ -318,7 +319,6 @@ function Athlos(props) {
     console.log(newActivityData.length);
     return newActivityData;
   }
-  console.log(state.runJson.activityData.length, state.runJson.activityData[state.runJson.activityData.length - 1]);
 
   // updates the state and therefore the context if the user info is suspected
   // to change. For example if the user changes their settings we want the new
@@ -368,7 +368,10 @@ function Athlos(props) {
     <UserDataContext.Provider value={state}>
       <AppFunctionsContext.Provider
         value={{
-          setAppState: setState,
+          setAppState: async (newState) => {
+            setState(newState);
+            storeDataObj(newState);
+          },
           updateLocalUserInfo,
           updateLocalUserFitness,
         }}

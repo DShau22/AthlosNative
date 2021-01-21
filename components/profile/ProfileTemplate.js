@@ -4,7 +4,7 @@
 import React from 'react'
 import { getData, storeDataObj } from '../utils/storage';
 import { View, ScrollView, StyleSheet, RefreshControl, Alert } from 'react-native'
-import { Text, Button, Divider } from 'react-native-elements'
+import { Text, Button, Divider, ListItem } from 'react-native-elements'
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from '@react-navigation/native';
 import axios from 'axios';
@@ -46,6 +46,7 @@ import ProfileAboutYou from './sections/ProfileAboutYou';
 import GeneralSetting from '../settings/settingScreens/GeneralSetting';
 import SettingsMenu from '../settings/settingScreens/SettingsMenu';
 import Spinner from 'react-native-loading-spinner-overlay';
+import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
 
 // replace with default avatar link
 const imgAlt = "./default_profile.png"
@@ -56,7 +57,8 @@ const ProfileTemplate = (props) => {
     followers,
     following,
     followerRequests,
-    followingPending
+    followingPending,
+    deviceID,
   } = userDataContext
   const {
     _id,
@@ -231,8 +233,6 @@ const ProfileTemplate = (props) => {
     asyncSaveSettings();
   }
 
-
-
   const Stack = createStackNavigator();
   const profileScreenName = relationshipStatus === IS_SELF ? USER_PROFILE : SEARCH_PROFILE
   return (
@@ -325,7 +325,74 @@ const ProfileTemplate = (props) => {
               saveSettings={saveSettings}
             />
           )}
-          </Stack.Screen>
+        </Stack.Screen>
+        <Stack.Screen name={SETTINGS_CONSTANTS.DEVICE_SETTINGS} options={{title: "Athlos device settings"}}>
+          {props => (
+            <ListItem 
+              containerStyle={{backgroundColor: colors.backgroundColor}}
+              topDivider
+              bottomDivider
+              onPress={() => {
+                Alert.alert(
+                  'Are you sure?',
+                  "You'll have to relink another pair on the sync tab.",
+                  [
+                    {
+                      text: 'Cancel',
+                    },
+                    {
+                      text: 'Yes',
+                      onPress: async () => {
+                        console.log("", deviceID);
+                        if (deviceID.length === 0) {
+                          Alert.alert(
+                            "Whoops",
+                            "Looks like you don't actually have any Athlose earbuds linked to this device",
+                            [{text: "Okay"}]);
+                          return;
+                        }
+                        try {
+                          const res = await axios.post(ENDPOINTS.updateDeviceID, {
+                            userID: _id,
+                            deviceID: "",
+                          });
+                          if (!res.data.success)
+                            throw new Error(res.data.message);
+                          const newState = {...context, deviceID: ""}
+                          GlobalBleHandler.setID("");
+                          await setAppState(newState);
+                          Alert.alert(
+                            "All Done!",
+                            "Successfully unlinked your Athlos earbuds from this device.",
+                          [{text: "Okay"}]);
+                        } catch(e) {
+                          console.log(e);
+                          Alert.alert(
+                            "Whoops",
+                            "Something went wrong with the network request. Please try again.",
+                            [{text: "Okay"}]);
+                        }
+                      },
+                    },
+                  ],
+                );
+              }}
+            >
+              <ListItem.Content>
+                <ListItem.Title>
+                  <ThemeText>Forget Earbuds</ThemeText>
+                </ListItem.Title>
+                <ListItem.Subtitle>
+                  <ThemeText>
+                    Unlinks your current Athlos earbuds from this device.
+                    You'll have to relink another pair on the sync tab.
+                  </ThemeText>
+                </ListItem.Subtitle>
+              </ListItem.Content>
+              <ListItem.Chevron />
+            </ListItem>
+          )}
+        </Stack.Screen>
         {/*============================== settings stuff =======================================*/}
         <Stack.Screen
           name={GLOBAL_CONSTANTS.FITNESS}

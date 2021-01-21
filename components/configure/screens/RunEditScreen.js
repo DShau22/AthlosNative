@@ -34,6 +34,7 @@ export default function RunEditScreen(props) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [runNumber, setRunNumber] = React.useState(numUntilTrigger);
   const [runTrigger, setRunTrigger] = React.useState(trigger);
+  const [reportCalories, setReportCalories] = React.useState(deviceConfig[editIdx].reportCalories);
   const firstUpdate = React.useRef(true);
 
   React.useEffect(() => {
@@ -62,9 +63,9 @@ export default function RunEditScreen(props) {
     setDeviceConfig(prevConfig => {
       const newModeSettings = {
         mode: RUN,
-        subtitle: RUN_SUBTITLE,
         trigger: runTrigger,
-        numUntilTrigger: runNumber
+        numUntilTrigger: runNumber,
+        reportCalories,
       };
       prevConfig[editIdx] = newModeSettings
       return [...prevConfig]
@@ -90,6 +91,7 @@ export default function RunEditScreen(props) {
         containerStyle={{backgroundColor: colors.background}}
         key={title}
         bottomDivider
+        topDivider
         onPress={() => setRunTrigger(title)}
       >
         <ListItem.Content>
@@ -142,19 +144,37 @@ export default function RunEditScreen(props) {
         {renderReportMetric()}
       </View>
       <ThemeText style={{fontSize: 20, fontWeight: 'bold', alignSelf: 'flex-start', margin: 10}}>
-        Set report thresholds
+        Set report frequency
       </ThemeText>
       <MenuPrompt
         pullUpTitle={runTrigger}
-        promptTitle={`${runTrigger === TRIGGER_MIN ? runNumber : runNumber * 100} ${renderUnits()}`}
+        promptTitle={`Every ${runTrigger === TRIGGER_MIN ? runNumber : runNumber * 100} ${renderUnits()}`}
         onSave={(newRunNumber) => {
           setRunNumber(runTrigger === TRIGGER_MIN ? newRunNumber : newRunNumber / 100);
         }}
         childArrays={[renderMenuArray()]}
         selectedItems={[runTrigger === TRIGGER_MIN ? runNumber : runNumber * 100]}
       />
+      <ListItem
+        containerStyle={{backgroundColor: colors.background}}
+        bottomDivider
+        topDivider
+        onPress={() => setReportCalories(prev => !prev)}
+      >
+        <ListItem.Content>
+          <ListItem.Title>
+            <ThemeText>Report calories burned?</ThemeText>
+          </ListItem.Title>
+        </ListItem.Content>
+        <ListItem.CheckBox
+          checked={reportCalories}
+          checkedColor={colors.textColor}
+          onPress={() => setReportCalories(prev => !prev)}
+        />
+      </ListItem>
       <ThemeText style={{fontSize: 14, alignSelf: 'flex-start', margin: 10}}>
-        {`Your Athlos earbuds will report feedback every ${runNumber} ${renderUnits()}`}
+        {`Your Athlos earbuds will report feedback every`+
+         ` ${runTrigger === TRIGGER_MIN ? runNumber : runNumber * 100} ${renderUnits()}`}
       </ThemeText>
       <SaveButton
         containerStyle={{

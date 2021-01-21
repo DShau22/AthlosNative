@@ -1,9 +1,8 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
-import React, { Component } from 'react'
-import { View, SafeAreaView, StyleSheet, Alert, SectionList, Settings } from 'react-native'
-import { Button } from 'react-native-paper';
-import { Tooltip, Text, ListItem } from 'react-native-elements';
+import React, { Component } from 'react';
+import { View, SafeAreaView, StyleSheet, Alert, SectionList, TouchableOpacity } from 'react-native';
+import { Text, ListItem } from 'react-native-elements';
 import { useTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useFocusEffect } from '@react-navigation/native';
@@ -22,6 +21,7 @@ const {
   BASIC_INFO_SETTINGS,
   UNIT_SYSTEM_SETTINGS,
   SWIM_SETTINGS,
+  DEVICE_SETTINGS
 } = SETTINGS_CONSTANTS
 
 const SettingsMenu = (props) => {
@@ -34,6 +34,10 @@ const SettingsMenu = (props) => {
         {
           title: UNIT_SYSTEM_SETTINGS,
           subtitle: 'Unit system to display',
+        },
+        {
+          title: DEVICE_SETTINGS,
+          subtitle: 'Unlink your Athlos earbuds',
         },
         // {
         //   title: SWIM_SETTINGS,
@@ -79,6 +83,7 @@ const SettingsMenu = (props) => {
             containerStyle={{backgroundColor: colors.background}}
             key={item.title}
             bottomDivider
+            topDivider
             onPress={() => {
               props.navigation.navigate(item.title)
             }}
@@ -91,23 +96,20 @@ const SettingsMenu = (props) => {
           </ListItem>
         )}
       />
-      <Button
+      <TouchableOpacity
         style={[styles.saveButton, {backgroundColor: colors.button}]}
-        mode="contained"
         onPress={props.saveSettings}
       >
-        Save Settings
-      </Button>
+        <ThemeText>Save Settings</ThemeText>
+      </TouchableOpacity>
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    // height: '100%',
     width: '100%',
     justifyContent: 'center',
-    // alignItems: 'center',
   },
   header: {
     paddingTop: 10,
@@ -116,20 +118,18 @@ const styles = StyleSheet.create({
     fontSize: 22,
     backgroundColor: "#fff"
   },
-  scrollContents: {
-
-  },
   spinnerTextStyle: {
     fontSize: 22,
     color: 'black'
   },
   saveButton: {
+    borderRadius: 10,
     alignSelf: 'center',
     marginBottom: 10,
     marginTop: 20, 
     alignItems: 'center',
     justifyContent: 'center',
-    width: '40%',
+    width: 200,
     height: 50,
   }
 })

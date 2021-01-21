@@ -26,6 +26,7 @@ const SETTINGS_CONSTANTS = {
   BASIC_INFO_SETTINGS: 'Basic Info Settings',
   UNIT_SYSTEM_SETTINGS: 'Unit System Settings',
   SWIM_SETTINGS: 'Swimming Settings',
+  DEVICE_SETTINGS: "Athlos device settings",
   COMMUNITY_SETTINGS_LIST: [
     {
       title: EVERYONE,
@@ -131,6 +132,12 @@ const SETTINGS_CONSTANTS = {
       title: '15 yd',
       subtitle: 'A typical backyard home pool length',  
     },
+  ],
+  DEVICE_SETTINGS_LIST: [
+    {
+      title: 'Forget Earbuds',
+      subtitle: "Unlinks your current Athlos earbuds from this device. You'll have to relink another pair on the sync tab."
+    }
   ],
 }
 export default SETTINGS_CONSTANTS

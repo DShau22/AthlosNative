@@ -24,6 +24,11 @@ const DEVICE_CONFIG_CONSTANTS = {
   SWIMMING_EVENT: 'Swimming Event',
   INTERVAL: 'Interval',
   TIMER: 'Timer',
+
+  // type of repetition for timers
+  REPEAT_LAST: 'Repeat last period',
+  CYCLES: 'Cycles',
+  ENDS: 'Ends after last period',
   
   // enums based on what mode the user is editing
   EDIT_RUN: 'Edit Run',
@@ -90,7 +95,10 @@ const {
   FREESTYLE,
   IM,
   YARDS,
-  METERS
+  METERS,
+  ENDS,
+  REPEAT_LAST,
+  CYCLES,
 } = DEVICE_CONFIG_CONSTANTS;
 
 const getDefaultConfig = () => {
@@ -121,7 +129,8 @@ const getDefaultRunMode = () => {
     // whether it's reported based on time interval or number of steps
     trigger: TRIGGER_MIN,
     // how frequently these metrics are reported
-    numUntilTrigger: 1
+    numUntilTrigger: 1,
+    reportCalories: true,
   };
 };
 
@@ -161,7 +170,8 @@ const getDefaultTimerMode = () => {
   return {
     mode: TIMER,
     splits: [600, 600, 600, 600], // splits in tenths
-    repeats: false,
+    repetition: ENDS,
+    numRepetitions: 4,
   }
 }
 

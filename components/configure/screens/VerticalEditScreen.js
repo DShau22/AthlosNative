@@ -79,6 +79,7 @@ export default function VerticalEditScreen(props) {
       <ListItem
         containerStyle={{backgroundColor: colors.background}}
         key={title}
+        topDivider
         bottomDivider
         onPress={() => setReportMetric(title)}
       >

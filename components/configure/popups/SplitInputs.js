@@ -27,7 +27,7 @@ NUM_TO_WORD = ['First', 'Second', 'Third', 'Fouth', 'Fifth', 'Sixth', 'Seventh',
 // 8 inputs for 400 and above
 export default function SplitInputs(props) {
   const { colors } = useTheme();
-  const { distance, setSplits, splits, errorMsgs, setErrorMsgs, label } = props;
+  const { stroke, distance, setSplits, splits, errorMsgs, setErrorMsgs, label } = props;
   // sets the nth split (so the nth 50)
   const setSpecificSplit = (idx, newTime) => {
     setSplits(prev => {
@@ -71,7 +71,7 @@ export default function SplitInputs(props) {
           }
           style={[styles.splitsInput, {color: colors.textColor}]}
           containerStyle={{width: '100%'}}
-          label={`${NUM_TO_WORD[num]} ${label}${distance > 400 && num === 7 ? ' (repeats until finished)' : ''}`}
+          label={`${renderLastSplitText(num)}`}
           placeholderTextColor={colors.textColor}
           keyboardType='numeric'
           maxLength={3}
@@ -84,9 +84,19 @@ export default function SplitInputs(props) {
     )
   }
 
+  const renderLastSplitText = (num) => {
+    const numToWord = NUM_TO_WORD[num];
+    if (distance > 200 && num === 3) {
+      if (stroke !== IM) { // do not show the repeats until finished text for 400 IM
+        return `${numToWord} ${label} (repeats until finished)`;
+      }
+    }
+    return `${numToWord} ${label}`;
+  }
+
   const renderSplitInputs = () => {
     res = [];
-    for (let i = 0; i < Math.min(8, distance / 50); i++) {
+    for (let i = 0; i < Math.min(4, distance / 50); i++) {
       res.push(splitInput(i));
     }
     return res;
@@ -106,7 +116,6 @@ const styles = StyleSheet.create({
   },
   splitsContainer: {
     width: '100%',
-    marginTop: 25,
     marginLeft: 2,
     marginRight: 2,
   },

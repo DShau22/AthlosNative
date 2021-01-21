@@ -21,6 +21,12 @@ const {
   CONFIG_KEY,
   MODE_CONFIG,
 
+  REPEAT_LAST,
+  CYCLES,
+  ENDS,
+  TRIGGER_STEPS,
+  TRIGGER_MIN,
+
   VERTICAL_HEIGHT,
   HANGTIME,
 
@@ -87,7 +93,7 @@ class SAinit {
     this.refTimes = userReferenceTimes;
     this.cadenceThresholds = cadenceThresholds;
     this.bestJump = bestJump;
-    this.eventLookupTable = {};
+    this.eventLookupTable = null;
   }
 
   // creates the event lookup table needed for swimming events
@@ -210,19 +216,22 @@ class SAinit {
    */
   _setRunConfig(sainit, runObject, idx) {
     console.log("setting run config: ", runObject);
+    const { trigger, numUntilTrigger, reportCalories } = runObject;
     sainit[idx] = SAinit.R;
-    switch(runObject.trigger) {
-      case DEVICE_CONFIG_CONSTANTS.TRIGGER_STEPS:
+    if (trigger === TRIGGER_STEPS) {
+      if (reportCalories) {
         sainit[idx + 8] = SAinit.ONE;
-        break;
-      case DEVICE_CONFIG_CONSTANTS.TRIGGER_MIN:
+      } else {
+        sainit[idx + 8] = SAinit.THREE;
+      }
+    } else {
+      if (reportCalories) {
         sainit[idx + 8] = SAinit.ZERO;
-        break;
-      default:
-        console.log(`trigger of ${runObject.trigger} is not valid`);
-        return;
+      } else {
+        sainit[idx + 8] = SAinit.TWO;
+      }
     }
-    sainit[idx + 16] = runObject.numUntilTrigger + SAinit.ZERO;
+    sainit[idx + 16] = numUntilTrigger + SAinit.ZERO;
     // set cadence thresholds
     console.log(`cadence thresholds: ${this.cadenceThresholds}`); // 30 65 80
     sainit[idx + 24] = this.cadenceThresholds[0];
@@ -351,36 +360,50 @@ class SAinit {
   _setSwimmingEventConfig(sainit, swimmingEventObject, idx) {
     console.log("setting race config: ", swimmingEventObject);
     // build the event lookup table only if we have a swimming event config
-    this._buildEventLookupTable();
+    if (!this.eventLookupTable) {
+      this._buildEventLookupTable();
+    }
     const { distance, stroke, splits, poolLength } = swimmingEventObject;
+    if (splits.length > 4)
+      throw new Error(`split array must have less than 4 elements. Got:${splits.length}`);
     const metric = poolLength === OLYMPIC || poolLength === THIRD_M || poolLength === BRITISH ? METERS : YARDS;
     console.log(distance, metric, stroke);
     sainit[idx] = this.eventLookupTable[metric][stroke][distance];
     var offset8 = Buffer.alloc(1);
     // bits 2-7 are number of laps for the race
     // set bits 0-5 and then left shift
-    offset8[0] = parseInt(Math.ceil(distance / 50));
-    offset8[0] = offset8[0] << 2; // left shift by 2
+    offset8[0] = splits.length - 1;
+    offset8[0] = offset8[0] << 4; // left shift by 3
     if (distance === 400 && stroke === IM) {
-      offset8[0] = offset8[0] & 0x01; // set lsb to 1 for 400 im
+      offset8[0] |= 0x01; // set lsb to 1 for 400 im
     }
-    offset8[0] = offset8[0] | 0x02; // for now only start with countdown. Bit 1 = 1
-    sainit[idx + 8] = offset8[0];
+    offset8[0] |= 0x02; // for now only start with countdown. Bit 1 = 1
+    if (distance > 200) { // repeat last time, so bit 2 is set to 1
+      offset8[0] |= 0x04 // for now only stops at end or repeats last time if distance > 200. No cycling.
+    }
+    sainit[idx + 8] = offset8[0] + SAinit.ZERO;
     sainit[idx + 16] = SAinit.POOL_LENGTH_MAP[poolLength]; // set swimming pool length
+    if (poolLength === OLYMPIC || poolLength === THIRD_M || poolLength === BRITISH) { // number of laps
+      sainit[idx + 24] = parseInt(Math.floor(distance/50)) + SAinit.ZERO; 
+    } else {
+      sainit[idx + 24] = parseInt(Math.floor(distance/25)) + SAinit.ZERO; 
+    }
 
     // set the split reference times
     var totalTimeInTenths = 0;
-    splits.forEach((time, i) => {
-      const timeInTenths = parseInt(Math.ceil(time / 0.1));
+    for (let i = 0; i < splits.length; i++) {
+      const timeInTenths = splits[i] * 10;
       console.log(`time in tenths: ${timeInTenths.toString(16)} at index ${i}`);
       totalTimeInTenths += timeInTenths;
       sainit[idx + 32 + i*16] = (timeInTenths & 0xff00) >> 8; // second lsb
       sainit[idx + 32 + i*16+8] = timeInTenths & 0xff; // lsb
-    });
+    }
     // set the total event time
     sainit[idx + 96] = (totalTimeInTenths & 0xff00) >> 8; // second lsb
     sainit[idx + 104] = totalTimeInTenths & 0xff; // lsb
     // set the personal best time (RN DOES NOT INCLUDE)
+    sainit[idx + 112] = 0;
+    sainit[idx + 120] = 2;
     console.log('set swimming event config: ', sainit);
   }
 
@@ -396,20 +419,25 @@ class SAinit {
     const { intervals, numRounds } = intervalObject;
     sainit[idx] = 36;
     var offset8 = Buffer.alloc(1);
-    if (numRounds > 6)
-      throw new Error(`num rounds must be less than 6. Got:${numRounds}`);
+    if (numRounds > 10)
+      throw new Error(`num rounds must be less than 11. Got:${numRounds}`);
     if (intervals.length > 6)
-      throw new Error(`num rounds must be less than 6. Got:${intervals}`);
-    offset8[0] = intervals.length;
-    offset8[0] = offset8[0] << 2;
+      throw new Error(`num rounds must be less than 7. Got:${intervals}`);
+    offset8[0] = intervals.length - 1; // bits 7:4 are number of intervals
+    offset8[0] = offset8[0] << 4;
+    // always stop at end of interval training, so no need to set bits 3:2
     offset8[0] |= 0x02; // start by countdown by setting second lsb to 1
-    sainit[idx + 8] = offset8[0];
-    sainit[idx + 16] = numRounds + SAinit.ZERO;
+    // intervals either cycle or end based on how many rounds there are
+    if (numRounds > 1) {
+      offset8[0] |= 0x08; // cycle by setting the 4th lsb to 1
+    }
+    sainit[idx + 8] = offset8[0] + SAinit.ZERO;
+    sainit[idx + 16] = numRounds * intervals.length + SAinit.ZERO; // total time periods
     intervals.forEach(({time, rest}, i) => {
-      const timeInHalves = time * 2; // time is in seconds. Take the 15 LSBs
-      sainit[idx + 32 + i*16] = (timeInHalves & 0x7f80) >> 7; // bits (bits 14-7)
-      sainit[idx + 32 + i*16+8] = (timeInHalves & 0x7f) << 1; // 7 LSBs (bits 6-0) shifted by 1. The LSB of sainit here determines audio file played
-      if (rest) {
+      // upper 10 bits is time in seconds
+      sainit[idx + 32 + i*16] = (time & 0x03fc) >> 2; // bits 9:2 shifted right by two
+      sainit[idx + 32 + i*16+8] = (time & 0x03) << 6; // bits 1:0 shifted 6 since 6 LSBs are for file selection
+      if (!rest) {
         sainit[idx + 32 + i*16+8] |= 0x01; // set lsb to 1 if this is a rest interval
       }
     });
@@ -425,23 +453,25 @@ class SAinit {
    */
   _setTimerConfig(sainit, timerObject, idx) {
     console.log("setting timer config: ", timerObject);
-    const { splits, repeats } = timerObject;
+    const { splits, repetition, numRepetitions } = timerObject;
     sainit[idx] = 35;
     var offset8 = Buffer.alloc(1);
     if (splits.length > 6)
-      throw new Error(`num rounds must be less than 6. Got:${splits}`);
-    offset8[0] = splits.length;
-    offset8[0] = offset8[0] << 2;
-    if (repeats)
-      offset8 |= 0x01;
-    offset8[0] = offset8[0] | 0x02; // start by countdown by setting second lsb to 1
-    sainit[idx + 8] = offset8[0];
-    sainit[idx + 16] = 1 + SAinit.ZERO; // no repeat periods for now to simplify interface
+      throw new Error(`num rounds must be less or equal to 6. Got:${splits}`);
+    offset8[0] = splits.length - 1; // bits 7:4 are number of time periods - 1
+    offset8[0] = offset8[0] << 4;
+    offset8[0] |= 0x02; // start by countdown by setting second lsb to 1
+    if (repetition === REPEAT_LAST) {
+      offset8[0] |= 0x04;
+      sainit[idx + 16] = splits.length + numRepetitions + SAinit.ZERO; // no repeat periods for now to simplify interface
+    } else if (repetition === CYCLES) {
+      offset8[0] |= 0x08;
+      sainit[idx + 16] = numRepetitions * splits.length + SAinit.ZERO; // no repeat periods for now to simplify interface
+    }
+    sainit[idx + 8] = offset8[0] + SAinit.ZERO;
     splits.forEach((timeInTenths, i) => {
-      const timeInFifths = timeInTenths >> 1; // so that we can use an extra bit to support > 1 hour per period
-      const timeIn05 = timeInFifths * 4; // take the 15 LSBs
-      sainit[idx + 32 + i*16] = (timeIn05 & 0x7f80) >> 7; // bits (bits 14-7)
-      sainit[idx + 32 + i*16+8] = (timeIn05 & 0x7f) << 1; // 7 LSBs (bits 6-0) shifted by 1. The LSB of sainit here determines audio file played
+      sainit[idx + 32 + i*16] = (timeInTenths & 0xff00) >> 8;
+      sainit[idx + 32 + i*16+8] = timeInTenths & 0xff;
     });
     console.log("set timer config: ", sainit);
   }

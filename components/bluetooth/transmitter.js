@@ -38,9 +38,11 @@ class BLEHandler {
   constructor(manager) {
     this.readSubscription = null;
     this.scanSubscription = null;
+    this.registerCompleter = null;
     this.disconnectSubscription = null;
     this.manager = manager;
     this.device = null;
+    this.userDeviceID = ""; // the device id that belongs to this particular user. Stored in Mongo
 
     this.sainit = null;
     
@@ -75,13 +77,15 @@ class BLEHandler {
     this.manager.destroy();
     this.readSubscription = null;
     this.scanSubscription = null;
+    this.userDeviceID = "";
     this.disconnectSubscription = null;
     this.device = null;
     this.sainit = null;
     this.writePkgId = 0;
     this.lastPkgId = null;
-    this.saDataCompleter = null
+    this.saDataCompleter = null;
     this.resCompleter = null;
+    this.registerCompleter = null;
     this.currItem = null;
     this.isTransmitting = false;
     this.readBuffers = [];
@@ -90,14 +94,54 @@ class BLEHandler {
     this.isReading = false;
   }
 
-  reinit() {
+  reinit(deviceID) {
     this.manager = new BleManager();
+    this.userDeviceID = deviceID ? deviceID : '';
+  }
+
+  setID(userDeviceID) {
+    this.userDeviceID = userDeviceID;
+  }
+
+  /**
+   * Scans for devices and returns the device ID. Used in the SADataSync component when
+   * the user is registering their device for the first time.
+   */
+  async scanAndRegister() {
+    this.stopScan();
+    await this.disconnect();
+    this.registerCompleter = new Completer();
+    this.scanSubscription = this.manager.onStateChange(async state => {
+      console.log("state changed and is now: ", state);
+      if (state === 'PoweredOn') {
+        this.manager.startDeviceScan(null, null, async (error, device) => {
+          if (error) {
+            // Handle error (scanning will be stopped automatically)
+            const errorJson = JSON.parse(JSON.stringify(error));
+            console.log("error: ", errorJson);
+            if (errorJson.errorCode === 101) {
+              console.log("please make sure you enable bluetooth and location");
+            }
+            this.registerCompleter.error(error);
+            return;
+          }
+          if (device.name === 'AthlosData') {
+            // Stop scanning as it's not necessary if you are scanning for one device.
+            this.stopScan();
+            console.log("ID: ", device.id);
+            this.registerCompleter.complete(device.id);
+          }
+        });
+      }
+    }, true);
+    return this.registerCompleter.result;
   }
 
   /**
    * Stops scanning for devices. Must call scanAndConnect again to restart it
    */
   stopScan() {
+    this.manager.stopDeviceScan();
     if (this.scanSubscription) {
       this.scanSubscription.remove();
       this.scanSubscription = null;
@@ -184,7 +228,7 @@ class BLEHandler {
         }
         return;
       }
-      if (device.name === 'AthlosData') {
+      if (device.name === 'AthlosData' && device.id === this.userDeviceID) {
         // Stop scanning as it's not necessary if you are scanning for one device.
         this.manager.stopDeviceScan();
         console.log("found athlos device! ", device);

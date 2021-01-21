@@ -21,10 +21,10 @@ export default function WelcomeModal(props) {
           flexDirection: 'column'
         }}>
           <Text style={{color: 'grey'}}>
-            Welcome to your Athlos Live fitness tracker! Here, you can view statistics tracked from your workouts,
-            configure you Athlos earbuds, and explore our various features. 
-            Start by syncing your Athlos earbuds by going to the Sync
-            tab on the bottom right hand corner. If you have any questions, concerns, bug reports, 
+            Welcome to your Athlos Live fitness tracker! Here, you can view your workout statistics,
+            configure your Athlos earbuds, and explore various other features. 
+            Start by linking your Athlos earbuds to this device by going to the Sync
+            tab on the bottom right hand corner. If you have any questions, bug reports, 
             or feedback feel free to email athlos-team@athloslive.com.
           </Text>
           <TouchableOpacity

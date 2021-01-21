@@ -1,20 +1,24 @@
 import { useTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
-import { AppFunctionsContext } from '../../Context';
-import { View, StyleSheet, Image, Animated, Dimensions } from 'react-native';
-import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
+import { AppFunctionsContext, UserDataContext } from '../../Context';
+import { View, StyleSheet, Image, Animated } from 'react-native';
+import GestureRecognizer from 'react-native-swipe-gestures';
 import Snackbar from 'react-native-snackbar';
+import {
+  setNeedsFitnessUpdate,
+} from '../utils/storage';
 
 import ThemeText from '../generic/ThemeText';
 import BLUETOOTH_CONSTANTS from './BluetoothConstants';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
 import GlobalBleHandler from './GlobalBleHandler';
+import Axios from 'axios';
+import ENDPOINTS from '../endpoints';
+import { Alert } from 'react-native';
 Icon.loadFont();
 
-const windowWidth = Dimensions.get('window').width;
-const windowHeight = Dimensions.get('window').height;
 const { SYNC_PAGE, SYNC_HELP_PAGE } = BLUETOOTH_CONSTANTS;
 /**
  * User will use this component to either 'sync' their devices with the phone or 
@@ -25,8 +29,15 @@ const { SYNC_PAGE, SYNC_HELP_PAGE } = BLUETOOTH_CONSTANTS;
 export default function SADataSync() {
   const { colors } = useTheme();
   const appFunctionsContext = React.useContext(AppFunctionsContext);
-  const { updateLocalUserInfo, updateLocalUserFitness, } = appFunctionsContext;
+  const userDataContext = React.useContext(UserDataContext);
+  const { updateLocalUserInfo, updateLocalUserFitness } = appFunctionsContext;
+  const { deviceID } = userDataContext;
   const [scanning, setScanning] = React.useState(false);
+  console.log("scanning: ", scanning);
+  console.log("device ID: ", deviceID);
+  console.log("ble device: ", GlobalBleHandler.device);
+
+  const timerRef = React.useRef();
 
   const expand1  = React.useRef(new Animated.Value(0)).current;
   const opacity1 = React.useRef(new Animated.Value(1)).current;
@@ -39,6 +50,11 @@ export default function SADataSync() {
 
   React.useEffect(() => {
     if (!scanning) {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      stopScanAnimations();
       Animated.loop(
         Animated.sequence([
           Animated.timing(arrowOpacity, {
@@ -54,6 +70,10 @@ export default function SADataSync() {
         ])
       ).start();
     } else {
+      timerRef.current = setTimeout(() => {
+        showSnackBar("Having trouble finding your Athlos earbuds. Make sure they're within an arm's reach and are also scanning.");
+      }, 10000);
+      startScanAnimations();
       arrowOpacity.stopAnimation();
     }
   }, [scanning]);
@@ -65,6 +85,12 @@ export default function SADataSync() {
     opacity2.stopAnimation();
     expand3.stopAnimation();
     opacity3.stopAnimation();
+    expand1.setValue(0);
+    opacity1.setValue(1);
+    expand2.setValue(0);
+    opacity2.setValue(1);
+    expand3.setValue(0);
+    opacity3.setValue(1);
   }
 
   const showSnackBar = (text) => {
@@ -79,13 +105,7 @@ export default function SADataSync() {
     });
   }
 
-  const startScan = async () => {
-    setScanning(true);
-    setTimeout(() => {
-      if (scanning) {
-        showSnackBar("Having trouble finding your Athlos earbuds. Make sure they're within an arm's reach and are also scanning.");
-      }
-    }, 10000);
+  const startScanAnimations = () => {
     Animated.loop(
       Animated.stagger(200, [
         Animated.parallel([
@@ -126,6 +146,49 @@ export default function SADataSync() {
         ])
       ])
     ).start();
+  }
+
+  const stopScan = async () => {
+    if (scanning) {
+      setScanning(false);
+      // give the illusion that the scans have stopped normally unless the user is registering their device
+      if (!deviceID || deviceID.length === 0) {
+        GlobalBleHandler.stopScan();
+        await GlobalBleHandler.disconnect();
+      }
+    }
+  }
+
+  const startScan = async () => {
+    setScanning(true);
+    // first time so run the device registration proceduer
+    if (deviceID.length === 0) {
+      try {
+        const newDeviceID = await GlobalBleHandler.scanAndRegister();
+        const res = await Axios.post(ENDPOINTS.updateDeviceID, {
+          deviceID: newDeviceID,
+          userID: userDataContext._id,
+        });
+        if (!res.data.success) {
+          throw new Error(res.data.message);
+        }
+        await Promise.all([updateLocalUserInfo(), setNeedsFitnessUpdate(true)]);
+        GlobalBleHandler.setID(newDeviceID);
+        stopScanAnimations();
+        Alert.alert(
+          "All Set!",
+          "Successfully linked your new Athlos earbuds with this account :). Hit the gear icon on your profile if you" +
+          " ever want to link different earbuds to this account",
+          [{text: "Okay"}]
+        )
+      } catch(e) {
+        console.log(e);
+        showSnackBar('Something went wrong with the registration process. Please try again later.');
+      } finally {
+        await GlobalBleHandler.scanAndConnect(); // start the background scanning
+        return;
+      }
+    }
     try {
       await GlobalBleHandler.scanAndConnect();
       showSnackBar('Successfully synced with your Athlos earbuds. Your fitness records should be up to date in a minute :]');
@@ -134,13 +197,6 @@ export default function SADataSync() {
       showSnackBar("Something went wrong with syncing. Please try again.");
     } finally {
       setScanning(false);
-      stopScanAnimations();
-    }
-    try {
-      await Promise.all([updateLocalUserFitness(), updateLocalUserInfo()]);
-    } catch(e) {
-      console.log(e);
-      showSnackBar("Something went wrong with the server request. Please refresh and try again.");
     }
   }
 
@@ -154,10 +210,12 @@ export default function SADataSync() {
         {props => (
           <GestureRecognizer style={{flex: 1}}
             onSwipeDown={async (gestureState) => await startScan()}
+            onSwipeUp={async (gestureState) => await stopScan()}
           >
             <View style={styles.container}>
               {scanning ? 
                 <>
+                  <ThemeText style={styles.swipeContainer}>Swipe up to stop</ThemeText>
                   <Animated.View
                     style={[styles.rippleStyle, {
                       borderColor: 'white',
@@ -183,7 +241,15 @@ export default function SADataSync() {
                     }]}
                   ></Animated.View>
                 </>
-              : <ThemeText style={styles.swipeContainer}>Swipe to start sync</ThemeText> }
+              : <>
+                  <ThemeText style={styles.swipeContainer}>
+                    {`Swipe to ${!deviceID || deviceID.length === 0 ? 'link new earbuds' : 'start sync'}`}
+                  </ThemeText>
+                  <ThemeText style={[styles.swipeContainer, {fontSize: 12, top: 80}]}>
+                    Make sure no other Athlos earbuds are nearby and scanning
+                  </ThemeText>
+                </>
+              }
               <View style={[styles.imageContainer, {backgroundColor: colors.header}]}>
                 <Image
                   source={require('../assets/AthlosLogo.png')}
@@ -224,6 +290,12 @@ export default function SADataSync() {
           <ThemeText>aowiejfiow</ThemeText>
         )}
       </Stack.Screen>
+      {/* <Stack.Screen
+        name={SYNC_PAGE}
+        options={{ title: "Sync your device" }}
+      >
+
+      </Stack.Screen> */}
     </Stack.Navigator>
   );
 }
@@ -259,8 +331,6 @@ const styles = StyleSheet.create({
     height: 400,
     borderRadius: 200,
     position: 'absolute',
-    // top: Dimensions.get('window').height / 2,
-    // left: Dimensions.get('window').width / 2,
   },
   scanningText: {
     position: 'absolute',

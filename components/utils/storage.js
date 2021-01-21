@@ -4,8 +4,18 @@ const DATA_KEY = "data_key"; // app context/user data key
 const FITNESS_KEY = 'fitness_key'; // key for the queue of fitness raw data from earbuds
 const DEVICE_ID_KEY = 'device_id_key';
 const FITNESS_UPDATE_KEY = 'fitness_update_key'; // key of boolean to see if user fitness needs an update or not
+const FIRST_TIME_LOGIN_KEY = 'first time login key';
 const socketStorageKey = "socket";
 import AsyncStorage from '@react-native-community/async-storage';
+
+const getFirstTimeLogin = async () => {
+  const firstTime = await AsyncStorage.getItem(FIRST_TIME_LOGIN_KEY);
+  return firstTime === null;
+}
+
+const setFirstTimeLogin = async () => {
+  await AsyncStorage.setItem(FIRST_TIME_LOGIN_KEY, 'logged in');
+}
 
 const needsFitnessUpdate = async () => {
   return await AsyncStorage.getItem(FITNESS_UPDATE_KEY);
@@ -149,6 +159,8 @@ module.exports = {
   setDeviceId,
   needsFitnessUpdate,
   setNeedsFitnessUpdate,
+  getFirstTimeLogin,
+  setFirstTimeLogin,
   storeData,
   storeDataObj,
   getData,

@@ -10,6 +10,7 @@ export default function PoolLengthList(props) {
     <ListItem
       containerStyle={containerStyle}
       key={lengthObject.title}
+      topDivider
       bottomDivider
       onPress={() => {
         setPoolLength(lengthObject.title);

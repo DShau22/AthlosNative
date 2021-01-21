@@ -2,7 +2,7 @@ import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
 import React from 'react';
 import { View, ScrollView, StyleSheet, Alert, FlatList } from 'react-native';
-import { Tooltip, Text, ListItem } from 'react-native-elements';
+import { Tooltip, Text, ListItem, colors } from 'react-native-elements';
 import { UserDataContext, SettingsContext, AppFunctionsContext } from "../../Context";
 import LoadingScreen from "../generic/LoadingScreen";
 import { createStackNavigator } from '@react-navigation/stack';
@@ -37,6 +37,7 @@ const {
   BASIC_INFO_SETTINGS,
   UNIT_SYSTEM_SETTINGS,
   SWIM_SETTINGS,
+  DEVICE_SETTINGS,
 } = SETTINGS_CONSTANTS;
 const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS;
 
@@ -44,11 +45,16 @@ import ENDPOINTS from '../endpoints';
 import PrivacySetting from './settingScreens/PrivacySetting';
 import GeneralSetting from './settingScreens/GeneralSetting';
 import ThemeText from '../generic/ThemeText';
+import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
+
+/**
+ * THIS IS NO LONGER USED. ONLY SERVES AS A REFERENCE. ALL SETTINGS STUFF IS HANDLED IN PROFILE TEMPLATE NOW
+ */
 
 const Settings = (props) => {
   const { Stack, navigation } = props;
   const context = React.useContext(UserDataContext);
-  const { settings } = context;
+  const { settings, deviceID, _id } = context;
   const { setAppState } = React.useContext(AppFunctionsContext); 
 
   const [isLoading, setIsLoading] = React.useState(false);
@@ -176,16 +182,6 @@ const Settings = (props) => {
             options={{ title: "Your Settings" }}
           >
             {props => <SettingsMenu {...props} navigation={navigation} saveSettings={saveSettings}/>}
-          </Stack.Screen>
-          <Stack.Screen name={UNIT_SYSTEM_SETTINGS}>
-            {props => (
-              <GeneralSetting
-                initialChoice={settings.unitSystem}
-                settingsList={UNIT_SYSTEM_SETTINGS_LIST}
-                updateSettings={setUnitDisplayChoice}
-                defaultOption={unitDisplayChoice}
-              />
-            )}
           </Stack.Screen>
           {/* <Stack.Screen name={SWIM_SETTINGS}>
             {props => (

@@ -82,7 +82,7 @@ export default function IntervalEditScreen(props) {
 
   const getRoundsArray = () => {
     const res = [];
-    for (let i = 1; i <= 6; i++) {
+    for (let i = 1; i <= 10; i++) {
       res.push(i);
     }
     return res;
@@ -98,13 +98,11 @@ export default function IntervalEditScreen(props) {
 
   const renderListItem = ({item, index, drag, isActive}) => {
     const { time, rest } = item;
-    var hours = Math.floor(time / 3600);
     var mins = Math.floor(time / 60);
     var secs = time % 60;
-    var hoursText = hours === 0 ? '' : `${hours} ${hours === 1 ? 'hour' : 'hours'} `;
     var minsText = mins === 0 ? '' : `${mins} ${mins === 1 ? 'min' : 'mins'} `;
     var secsText = secs === 0 ? '' : `${secs} ${mins === 1 ? 'second' : 'seconds'}`;
-    var promptSubtitle = `${hoursText}${minsText}${secsText}`;
+    var promptSubtitle = `${minsText}${secsText}`;
     return (
       <View style={{
         padding: 5,
@@ -135,11 +133,11 @@ export default function IntervalEditScreen(props) {
         <MenuPrompt
           noDividers
           noChevron
-          pullUpTitle='hours | mins | secs'
-          promptTitle={`${capitalize(numToWord(index))} interval:`}
+          pullUpTitle='mins | secs'
+          promptTitle={`${capitalize(numToWord(index))} interval: ${renderIntervalType(rest)}`}
           promptSubtitle={promptSubtitle}
-          onSave={(hours, mins, secs) => {
-            totalSeconds = hours * 3600 + mins * 60 + secs;
+          onSave={(mins, secs) => {
+            const totalSeconds = mins * 60 + secs;
             setIntervals(prev => {
               const copy = [...prev];
               copy[index].time = totalSeconds;
@@ -148,115 +146,120 @@ export default function IntervalEditScreen(props) {
           }}
           onLongPress={drag}
           childArrays={[
-            Array.from(Array(3).keys()),
-            Array.from(Array(60).keys()),
+            Array.from(Array(15).keys()),
             Array.from(Array(60).keys())
           ]}
-          selectedItems={[hours, mins, secs,]}
+          selectedItems={[mins, secs]}
         />
       </View>
     )
   }
 
+  const renderIntervalType = (rest) => {
+    return rest ? 'rest' : 'work';
+  }
+
   return (
-    <DraggableFlatList
-      ListHeaderComponent={() => (
-        <>
-          <Spinner
-            visible={isLoading}
-            textContent='Saving...'
-            textStyle={{color: colors.textColor}}
-          />
-          <ThemeText style={{fontSize: 20, fontWeight: 'bold', alignSelf: 'flex-start', margin: 10}}>
-            Create an interval training timer:
-          </ThemeText>
-          <ThemeText style={{margin: 10}}>
-            Customize an interval timer by setting intervals for working and resting.
-            Your device will prompt you when it's time to work or rest so you can focus on training.
-          </ThemeText>
-          <ThemeText style={[styles.textHeader, {marginTop: 20, marginBottom: 20}]}>
-            Number of rounds
-          </ThemeText>
-          <MenuPrompt
-            promptTitle={`Rounds: ${numRounds}`}
-            childArrays={[getRoundsArray()]}
-            selectedItems={[numRounds]}
-            onSave={num => setNumRounds(num)}
-          />
-          <ThemeText style={[styles.textHeader,]}>
-            {`Total time per set: ${totalIntervalTime()}`}
-          </ThemeText>
-          <ThemeText style={[styles.textHeader,]}>
-            {`Total workout time: ${getTotalWorkoutTime()}`}
-          </ThemeText>
-        </>
-      )}
-      data={intervals}
-      renderItem={renderListItem}
-      keyExtractor={(item, index) => `draggable-item-${item.mode}-${index}`}
-      onDragEnd={({ data }) => {
-        setIntervals(data);
-      }}
-      ListFooterComponent={() => (
-        <>
-          <SaveButton
-            containerStyle={{
-              margin: 20,
-              alignSelf: 'center'
-            }}
-            onPress={saveEdits}
-          />
-          <ActionButton
-            position='right'
-            offsetX={15}
-            offsetY={15}
-            buttonColor={'#ff03b7'}
-            size={60}
-          >
-            <ActionButton.Item
-              size={52}
-              textContainerStyle={styles.actionButtonTextContainer}
-              textStyle={styles.actionButtonText}
-              buttonColor='#9cffb6'
-              title={WORK_COLOR}
-              onPress={() => {
-                if (intervals.length >= 6) {
-                  Alert.alert('Whoops', 'Cannot have more than 6 intervals', [{text: 'Okay'}]);
-                  return;
-                }
-                setIntervals(prev => {
-                  const copy = [...prev];
-                  copy.push({time: '60', rest: false});
-                  return copy;
-                });
+    <>
+      <DraggableFlatList
+        ListHeaderComponent={() => (
+          <>
+            <Spinner
+              visible={isLoading}
+              textContent='Saving...'
+              textStyle={{color: colors.textColor}}
+            />
+            <ThemeText style={{fontSize: 20, fontWeight: 'bold', alignSelf: 'flex-start', margin: 10}}>
+              Create an interval training timer:
+            </ThemeText>
+            <ThemeText style={{margin: 10}}>
+              Customize an interval timer by setting intervals for working and resting.
+              Your device will prompt you when it's time to work or rest so you can focus on training.
+            </ThemeText>
+            <ThemeText style={[styles.textHeader, {marginTop: 20, marginBottom: 20}]}>
+              Number of rounds
+            </ThemeText>
+            <MenuPrompt
+              promptTitle={`Rounds: ${numRounds}`}
+              childArrays={[getRoundsArray()]}
+              selectedItems={[numRounds]}
+              onSave={num => setNumRounds(num)}
+            />
+            <ThemeText style={[styles.textHeader,]}>
+              {`Total time per round: ${totalIntervalTime()}`}
+            </ThemeText>
+            <ThemeText style={[styles.textHeader,]}>
+              {`Total workout time: ${getTotalWorkoutTime()}`}
+            </ThemeText>
+          </>
+        )}
+        data={intervals}
+        renderItem={renderListItem}
+        keyExtractor={(item, index) => `draggable-item-${item.mode}-${index}`}
+        onDragEnd={({ data }) => {
+          setIntervals(data);
+        }}
+        ListFooterComponent={() => (
+          <>
+            <SaveButton
+              containerStyle={{
+                margin: 20,
+                alignSelf: 'center'
               }}
-            >
-              <MaterialCommunityIcons name="plus" style={styles.actionButtonIcon} />
-            </ActionButton.Item>
-            <ActionButton.Item
-              size={52}
-              textContainerStyle={styles.actionButtonTextContainer}
-              textStyle={styles.actionButtonText}
-              buttonColor={REST_COLOR}
-              title="Rest"
-              onPress={() => {
-                if (intervals.length >= 6) {
-                  Alert.alert('Whoops', 'Cannot have more than 6 intervals', [{text: 'Okay'}]);
-                  return;
-                }
-                setIntervals(prev => {
-                  const copy = [...prev];
-                  copy.push({time: '10', rest: true});
-                  return copy;
-                });
-              }}
-            >
-              <MaterialCommunityIcons name="plus" style={styles.actionButtonIcon} />
-            </ActionButton.Item>
-          </ActionButton>
-        </>
-      )}
-    />
+              onPress={saveEdits}
+            />
+          </>
+        )}
+      />
+      <ActionButton
+        position='right'
+        offsetX={15}
+        offsetY={15}
+        buttonColor={'#ff03b7'}
+        size={60}
+      >
+        <ActionButton.Item
+          size={52}
+          textContainerStyle={styles.actionButtonTextContainer}
+          textStyle={styles.actionButtonText}
+          buttonColor={WORK_COLOR}
+          title="Work"
+          onPress={() => {
+            if (intervals.length >= 6) {
+              Alert.alert('Whoops', 'Cannot have more than 6 intervals', [{text: 'Okay'}]);
+              return;
+            }
+            setIntervals(prev => {
+              const copy = [...prev];
+              copy.push({time: '60', rest: false});
+              return copy;
+            });
+          }}
+        >
+          <MaterialCommunityIcons name="plus" style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item
+          size={52}
+          textContainerStyle={styles.actionButtonTextContainer}
+          textStyle={styles.actionButtonText}
+          buttonColor={REST_COLOR}
+          title="Rest"
+          onPress={() => {
+            if (intervals.length >= 6) {
+              Alert.alert('Whoops', 'Cannot have more than 6 intervals', [{text: 'Okay'}]);
+              return;
+            }
+            setIntervals(prev => {
+              const copy = [...prev];
+              copy.push({time: '10', rest: true});
+              return copy;
+            });
+          }}
+        >
+          <MaterialCommunityIcons name="plus" style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+      </ActionButton>
+    </>
   )
 }
 
@@ -283,7 +286,8 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 14,
     color: 'black',
-    alignSelf: 'center'
+    alignSelf: 'center',
+    zIndex: 5,
   },
   listItemContainer: {
     padding: 2,
