@@ -347,7 +347,7 @@ const ProfileTemplate = (props) => {
                         if (deviceID.length === 0) {
                           Alert.alert(
                             "Whoops",
-                            "Looks like you don't actually have any Athlose earbuds linked to this device",
+                            "Looks like you don't actually have any Athlos earbuds linked to this account",
                             [{text: "Okay"}]);
                           return;
                         }
@@ -363,7 +363,7 @@ const ProfileTemplate = (props) => {
                           await setAppState(newState);
                           Alert.alert(
                             "All Done!",
-                            "Successfully unlinked your Athlos earbuds from this device.",
+                            "Successfully unlinked your Athlos earbuds from this account.",
                           [{text: "Okay"}]);
                         } catch(e) {
                           console.log(e);

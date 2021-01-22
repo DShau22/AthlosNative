@@ -40,7 +40,6 @@ const Carousel = (props) => {
         childArrays={[menuItems]}
         selectedItems={[menuItems[weekIndex]]}
         onSave={weekDate => pullUpMenuSelect(weekDate)}
-        noDividers
         pullUpTitle={"Week"}
       />
       <View style={styles.slideShow}>

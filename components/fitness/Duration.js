@@ -21,7 +21,7 @@ export default function Duration( props ) {
   return (
     <View style={[styles.durationCircle, {borderColor: getColorTheme()}]}>
       <Icon name="clock" style={[styles.clock, {color: getColorTheme()}]}/>
-      <ThemeText style={styles.text}>{duration / 10}</ThemeText>
+      <ThemeText style={styles.text}>{duration}</ThemeText>
     </View>
   )
 }

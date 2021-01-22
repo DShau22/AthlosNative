@@ -146,6 +146,7 @@ export default function withFitnessPage( WrappedComponent ) {
     if (activityJson.activityData.length > 0 && activityJson.activityData[weekIndex].length >= dayIndex) {
       sessionDay = activityJson.activityData[weekIndex][dayIndex];
     }
+    console.log("session Day: ", sessionDay);
     if (isLoading) {
       return <View></View>
     }

@@ -13,6 +13,7 @@ import ThemeText from '../generic/ThemeText';
 
 export default function Textbox(props) {
   const {
+    key,
     containerStyle,
     headerText,
     keyboardType,
@@ -36,7 +37,8 @@ export default function Textbox(props) {
       </ThemeText>
       <View style={styles.action}>
         {icon}
-        <TextInput 
+        <TextInput
+          key={key ? key : null}
           placeholder={placeholder}
           style={[styles.textInput, {
             color: textColor ? textColor : colors.textColor

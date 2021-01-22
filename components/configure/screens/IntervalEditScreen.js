@@ -230,8 +230,15 @@ export default function IntervalEditScreen(props) {
               return;
             }
             setIntervals(prev => {
+              var newTime = 600;
+              for (let i = prev.length - 1; i >= 0; i--) {
+                if (!prev[i].rest) {
+                  newTime = prev[i].time;
+                  break;
+                }
+              }
               const copy = [...prev];
-              copy.push({time: '60', rest: false});
+              copy.push({time: newTime, rest: false});
               return copy;
             });
           }}
@@ -250,8 +257,15 @@ export default function IntervalEditScreen(props) {
               return;
             }
             setIntervals(prev => {
+              var newTime = 100;
+              for (let i = prev.length - 1; i >= 0; i--) {
+                if (prev[i].rest) {
+                  newTime = prev[i].time;
+                  break;
+                }
+              }
               const copy = [...prev];
-              copy.push({time: '10', rest: true});
+              copy.push({time: newTime, rest: true});
               return copy;
             });
           }}

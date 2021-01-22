@@ -137,7 +137,7 @@ export default function TimerEditScreen(props) {
     }
     setSplits(prev => {
       const copy = [...prev];
-      copy.push(60);
+      copy.push(prev[prev.length - 1]);
       return copy;
     });
   }

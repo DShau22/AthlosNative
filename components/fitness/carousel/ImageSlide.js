@@ -17,10 +17,13 @@ import { parseDate } from "../../utils/dates";
 const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES;
 const ImageSlide = (props) => {
   const { activityJson, weekIndex, dayIndex } = props;
-  const { uploadDate } = activityJson.activityData[weekIndex][dayIndex];
+  const { activityData } = activityJson;
+  const { uploadDate } = activityData[weekIndex][dayIndex];
   const { colors } = useTheme();
+  const userDataContext = React.useContext(UserDataContext);
+  const { settings, goals } = userDataContext;
+  const { unitSystem } = settings;
   const getLabels = (action) => {
-    var { unitSystem } = React.useContext(UserDataContext).settings
     if (action === FITNESS_CONSTANTS.RUN) {
       return {
         numLabel: "steps",
@@ -46,12 +49,10 @@ const ImageSlide = (props) => {
   actionToIcon[FITNESS_CONSTANTS.JUMP] = <Icon name='chevrons-up' style={{position: 'absolute', top: '35%', color: 'white'}} size={50}/>
 
   const renderNum = (style) => {
-    var { activityData } = activityJson;
     var labels = getLabels(activityJson.action);
     var num = activityData.length === 0 ? 0 : activityData[weekIndex][dayIndex].num;
     return (
       <ThemeText style={style}> {`${num} ${labels.numLabel}`} </ThemeText>
-      // <Animatable.Text animation="slideInLeft">{`${num} ${labels.numLabel}`}</Animatable.Text>
     );
   }
 
@@ -79,20 +80,43 @@ const ImageSlide = (props) => {
         return JUMP_THEME;
     }
   }
+
+  const calcWeeklyProgress = () => {
+    var aggregateProgress = 0;
+    switch (activityJson.action) {
+      case FITNESS_CONSTANTS.RUN:
+        for (let i = 0; i <= dayIndex; i++) {
+          aggregateProgress += activityData[weekIndex][i].num;
+        }
+        return aggregateProgress / goals.goalSteps;
+      case FITNESS_CONSTANTS.SWIM:
+        for (let i = 0; i <= dayIndex; i++) {
+          aggregateProgress += activityData[weekIndex][i].num;
+        }
+        return aggregateProgress / goals.goalLaps;
+      case FITNESS_CONSTANTS.JUMP:
+        for (let i = 0; i <= dayIndex; i++) {
+          const bestHeightOfDay =  Math.max(...activityData[weekIndex][i].heights);
+          aggregateProgress = Math.max(aggregateProgress, bestHeightOfDay);
+        }
+        return aggregateProgress / goals.goalVertical;
+      default: 
+        break;
+    }
+  }
+
+
   return (
     <View style={styles.imageSlide}> 
       <ProgressCircle 
         style={{ height: '100%', width: '100%' }}
-        progress={activityJson.action === FITNESS_CONSTANTS.SWIM ? 0.20 : 0.7}
+        progress={calcWeeklyProgress()}
         progressColor={getActivityColor()}
         backgroundColor={colors.backgroundOffset}
         strokeWidth={8}
       />
       {renderDate()}
       {actionToIcon[activityJson.action]}
-      {/* <ThemeText style={{ position: 'absolute', top: '35%'}}>Img should go here!</ThemeText> */}
-      {/* add data through props */}
-      {/* <img src={activityJson.imageUrl} alt="loading..."/> */}
       {renderNum(styles.number)}
     </View>
   )
