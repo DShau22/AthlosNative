@@ -19,15 +19,14 @@ import FITNESS_CONTANTS from '../fitness/FitnessConstants'
 // 7. percentToGoal ? 
 export default function withFitnessPage( WrappedComponent ) {  
   const WithFitnessPage = (props) => {
-    const context = React.useContext(UserDataContext);
     const [weekIndex, setWeekIndex] = React.useState(0);
     const [dayIndex, setDayIndex] = React.useState(0);
 
     const [weeklyGraphLabels, setWeeklyGraphLabels] = React.useState([]);
     const [weeklyGraphData, setWeeklyGraphData] = React.useState([]);
-    const { activityJson, id } = props.route.params;
+    // const { activityJson, id } = props.route.params;
+    const { activityJson } = props;
     const [isLoading, setIsLoading] = React.useState(activityJson.activityData.length === 0);
-    console.log("with fitness page is loading: ", isLoading);
     React.useEffect(() => {
       if (activityJson.activityData.length > 0) {
         makeWeeklyGraphLabels();
@@ -89,7 +88,6 @@ export default function withFitnessPage( WrappedComponent ) {
         const monday = parseDate(week[0].uploadDate);
         const sunday = parseDate(week[week.length - 1].uploadDate);
         const dayMonth = `${monday[1]} ${monday[2]} - ${sunday[1]} ${sunday[2]}, ${sunday[3]}`
-        console.log(newWeekText, dayMonth);
         if (newWeekText === dayMonth) {
           break;
         } else {
@@ -146,7 +144,7 @@ export default function withFitnessPage( WrappedComponent ) {
     if (activityJson.activityData.length > 0 && activityJson.activityData[weekIndex].length >= dayIndex) {
       sessionDay = activityJson.activityData[weekIndex][dayIndex];
     }
-    console.log("session Day: ", sessionDay);
+    // console.log("session Day: ", sessionDay);
     if (isLoading) {
       return <View></View>
     }
@@ -183,7 +181,8 @@ export default function withFitnessPage( WrappedComponent ) {
           calcAvgCals={calcAvgCals}
           roundToNDecimals={roundToNDecimals}
           isNullOrUndefined={isNullOrUndefined}
-          {...props.route.params}
+          // {...props.route.params}
+          {...props}
         />
       </View>
     )

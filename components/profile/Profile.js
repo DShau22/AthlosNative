@@ -19,7 +19,7 @@ const Profile = (props) => {
   const userDataContext = React.useContext(UserDataContext)
 
   const [id, setId] = React.useState(_id)
-  console.log("profile id: ", id)
+  // console.log("profile id: ", id)
 
   // whenever the id changes, check if it matches the id of the user. If it does,
   // set the state based on the context. If not, do a fetch and set state based on

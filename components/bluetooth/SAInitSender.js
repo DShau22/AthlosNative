@@ -34,10 +34,12 @@ export default function SAInitSender(props) {
             "Whoops",
             Platform.OS === 'ios' ? 
               `Your Athlos earbuds are not connected to this device. `+
-              `Make sure you have bluetooth enabled for this device and that your Athlos earbuds are scanning for devices.`
+              `Make sure you have bluetooth enabled for this device and that your Athlos earbuds are connected with bluetooth.` +
+              ` If the issue still persists then sync first and try again.`
               : `Your Athlos earbuds have not yet connected to this device. `+
               `Make sure you have bluetooth enabled for this device and that your `+
-              `Athlos earbuds are scanning for devices. Please also make sure to enable location services for this app.`,
+              `Athlos earbuds are scanning for devices. Please also make sure to enable location services for this app.` +
+              ` If the issue still persists then sync first and try again.`,
             [{text: 'Okay'}]
           );
           return;

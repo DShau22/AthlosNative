@@ -35,7 +35,7 @@ export default function SADataSync() {
   const [scanning, setScanning] = React.useState(false);
   console.log("scanning: ", scanning);
   console.log("device ID: ", deviceID);
-  console.log("ble device: ", GlobalBleHandler.device);
+  // console.log("ble device: ", GlobalBleHandler.device);
 
   const timerRef = React.useRef();
 
@@ -154,15 +154,20 @@ export default function SADataSync() {
       // give the illusion that the scans have stopped normally unless the user is registering their device
       if (!deviceID || deviceID.length === 0) {
         GlobalBleHandler.stopScan();
-        await GlobalBleHandler.disconnect();
+        // await GlobalBleHandler.disconnect();
       }
     }
   }
 
   const startScan = async () => {
+    console.log("******* swiped down **********");
+    if (scanning) {
+      return;
+    }
     setScanning(true);
     // first time so run the device registration proceduer
     if (deviceID.length === 0) {
+      console.log("no device id, begin linking: ", deviceID);
       try {
         const newDeviceID = await GlobalBleHandler.scanAndRegister();
         const res = await Axios.post(ENDPOINTS.updateDeviceID, {
@@ -186,17 +191,22 @@ export default function SADataSync() {
         showSnackBar('Something went wrong with the registration process. Please try again later.');
       } finally {
         await GlobalBleHandler.scanAndConnect(); // start the background scanning
-        return;
       }
-    }
-    try {
-      await GlobalBleHandler.scanAndConnect();
-      showSnackBar('Successfully synced with your Athlos earbuds. Your fitness records should be up to date in a minute :]');
-    } catch(e) {
-      console.log("error with sync: ", e);
-      showSnackBar("Something went wrong with syncing. Please try again.");
-    } finally {
-      setScanning(false);
+    } else {
+      try {
+        console.log("begin syncing....")
+        await GlobalBleHandler.scanAndConnect();
+        await setNeedsFitnessUpdate(true);
+        showSnackBar('Successfully synced with your Athlos earbuds. Your fitness records should be up to date in a minute :]');
+      } catch(e) {
+        console.log("error with sync: ", e);
+        if (e !== 'stopped scan') {
+          showSnackBar("Something went wrong with syncing. Please try again.");
+        }
+      } finally {
+        setScanning(false);
+      }
+      await updateLocalUserFitness();
     }
   }
 

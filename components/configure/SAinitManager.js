@@ -281,7 +281,7 @@ class SAinit {
     console.log(SAinit.POOL_LENGTH_MAP[poolLength]);
     sainit[idx + 16] = SAinit.POOL_LENGTH_MAP[poolLength];
     // set reference times here
-    var dt = poolLength === OLYMPIC ? 0.8 : 0.4;
+    const dt = poolLength === OLYMPIC ? 0.8 : 0.4;
     console.log(`Reftimes fly: ${this.refTimes.fly}`); // 22 20
     console.log(`Reftimes back: ${this.refTimes.back}`); // 30 26
     console.log(`Reftimes breast: ${this.refTimes.breast}`); // 32 28

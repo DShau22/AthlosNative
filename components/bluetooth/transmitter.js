@@ -128,7 +128,6 @@ class BLEHandler {
           if (device.name === 'AthlosData') {
             // Stop scanning as it's not necessary if you are scanning for one device.
             this.stopScan();
-            console.log("ID: ", device.id);
             this.registerCompleter.complete(device.id);
           }
         });
@@ -141,13 +140,15 @@ class BLEHandler {
    * Stops scanning for devices. Must call scanAndConnect again to restart it
    */
   stopScan() {
-    this.manager.stopDeviceScan();
+    if (this.manager) {
+      this.manager.stopDeviceScan();
+    }
     if (this.scanSubscription) {
       this.scanSubscription.remove();
       this.scanSubscription = null;
     }
     if (this.saDataCompleter && !this.saDataCompleter.hasFinished()) {
-      this.saDataCompleter.error("started new scan");
+      this.saDataCompleter.error("stopped scan");
     }
   }
 
@@ -217,7 +218,7 @@ class BLEHandler {
   async _scanAndConnect() {
     await this.disconnect();
     console.log("scanning and connecting...");
-    console.log("device: ", this.device);
+    console.log("deviceID: ", this.userDeviceID);
     this.manager.startDeviceScan(null, null, async (error, device) => {
       if (error) {
         // Handle error (scanning will be stopped automatically)
@@ -228,10 +229,16 @@ class BLEHandler {
         }
         return;
       }
-      if (device.name === 'AthlosData' && device.id === this.userDeviceID) {
+      if (device.name === 'AthlosData') {
+        if (device.id !== this.userDeviceID) {
+          console.log("device ids do not match: ", device.id, this.userDeviceID);
+          return;
+        }
         // Stop scanning as it's not necessary if you are scanning for one device.
-        this.manager.stopDeviceScan();
-        console.log("found athlos device! ", device);
+        if (this.manager) { // sometimes it's null somehow...
+          this.manager.stopDeviceScan();
+        }
+        console.log("found athlos device! ", device.id);
         // Proceed with connection.
         try {
           console.log("connecting...");
@@ -266,11 +273,13 @@ class BLEHandler {
     if (!this.device || !(await this.device.isConnected()) ) {
       throw new Error("device is not yet connected");
     }
+    console.log("reading characteristics");
     try {
       var readChar = await this.device.readCharacteristicForService(SERVICE_UUID, RX);
     } catch(e) {
       console.log("failed to read characteristic: ", e);
     }
+    console.log("setting up monitor");
     this.readSubscription = readChar.monitor(async (err, c) => {
       console.log("******MONITOR CALLBACK******");
       if (err) {

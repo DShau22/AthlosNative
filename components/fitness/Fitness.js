@@ -34,13 +34,14 @@ const Fitness = (props) => {
   
   const { settings, relationshipStatus } = profileContext
   const { setAppState, updateLocalUserFitness } = appFunctionsContext
-  const { _id } = props
+  const { _id } = props;
   // if this is another user, must get the fitness from the server. Otherwise can just use
   // local async storage (the defaults used in the state)
   const getFitness = React.useCallback(async () => {
     setIsLoading(true);
     if (relationshipStatus === PROFILE_CONSTANTS.IS_SELF) {
       try {
+        console.log("updating local user fitness in FITNESS component");
         await updateLocalUserFitness();
       } catch(e) {
         console.log("error getting fitness in fitness component: ", e);
@@ -50,7 +51,7 @@ const Fitness = (props) => {
           [{text: 'Okay'}]
         );
       }
-      setIsLoading(false);
+      setIsLoading(_id.length === 0);
       return;
     }
     console.log('getting fitness with user id: ', _id)
@@ -164,31 +165,43 @@ const Fitness = (props) => {
         >
           <TopTab.Screen
             name={'Runs'}
-            component={Run}
-            initialParams={{
-              id: FITNESS_CONSTANTS.RUN,
-              activityJson: runJson,
-              settings: settings,
-            }}
-          />
+            // component={Run}
+            // initialParams={{
+            //   id: FITNESS_CONSTANTS.RUN,
+            //   activityJson: runJson,
+            //   settings: settings,
+            // }}
+          >
+            {props => (
+              <Run activityJson={runJson} settings={settings} />
+            )}
+          </TopTab.Screen>
           <TopTab.Screen
             name={'Swims'}
-            component={Swim}
-            initialParams={{
-              id: FITNESS_CONSTANTS.SWIM,
-              activityJson: swimJson,
-              settings: settings,
-            }}
-          />
+            // component={Swim}
+            // initialParams={{
+            //   id: FITNESS_CONSTANTS.SWIM,
+            //   activityJson: swimJson,
+            //   settings: settings,
+            // }}
+          >
+            {props => (
+              <Swim activityJson={swimJson} settings={settings} />
+            )}
+          </TopTab.Screen>
           <TopTab.Screen
             name={'Jumps'}
-            component={Jump}
-            initialParams={{
-              id: FITNESS_CONSTANTS.JUMP,
-              activityJson: jumpJson,
-              settings: settings,
-            }}
-          />
+            // component={Jump}
+            // initialParams={{
+            //   id: FITNESS_CONSTANTS.JUMP,
+            //   activityJson: jumpJson,
+            //   settings: settings,
+            // }}
+          >
+            {props => (
+              <Jump activityJson={jumpJson} settings={settings} />
+            )}
+          </TopTab.Screen>
         </TopTab.Navigator>
       }
     </ScrollView>

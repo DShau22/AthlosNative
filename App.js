@@ -28,7 +28,6 @@ function App() {
   const [token, setToken] = React.useState('');
 
   React.useEffect(() => {
-    console.log('using effect for app.js')
     const getToken = async () => {
       // await AsyncStorage.clear();
       const userToken = await getData();
@@ -37,9 +36,6 @@ function App() {
     }
     getToken();
   }, [token]);
-
-  console.log("token: ", token);
-  console.log("rendering app...")
   if (isLoading) {
     return ( <LoadingScreen />)
   }
