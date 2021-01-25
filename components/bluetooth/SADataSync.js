@@ -34,7 +34,7 @@ export default function SADataSync() {
   const { deviceID } = userDataContext;
   const [scanning, setScanning] = React.useState(false);
   console.log("scanning: ", scanning);
-  console.log("device ID: ", deviceID);
+  // console.log("device ID: ", deviceID);
   // console.log("ble device: ", GlobalBleHandler.device);
 
   const timerRef = React.useRef();
@@ -49,6 +49,7 @@ export default function SADataSync() {
   const arrowOpacity = React.useRef(new Animated.Value(1)).current;
 
   React.useEffect(() => {
+    console.log("using scanning effect: ", scanning);
     if (!scanning) {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
@@ -151,7 +152,6 @@ export default function SADataSync() {
   const stopScan = async () => {
     if (scanning) {
       setScanning(false);
-      // give the illusion that the scans have stopped normally unless the user is registering their device
       if (!deviceID || deviceID.length === 0) {
         GlobalBleHandler.stopScan();
         // await GlobalBleHandler.disconnect();
@@ -177,9 +177,8 @@ export default function SADataSync() {
         if (!res.data.success) {
           throw new Error(res.data.message);
         }
-        await Promise.all([updateLocalUserInfo(), setNeedsFitnessUpdate(true)]);
+        await updateLocalUserInfo();
         GlobalBleHandler.setID(newDeviceID);
-        stopScanAnimations();
         Alert.alert(
           "All Set!",
           "Successfully linked your new Athlos earbuds with this account :). Hit the gear icon on your profile if you" +
@@ -189,24 +188,36 @@ export default function SADataSync() {
       } catch(e) {
         console.log(e);
         showSnackBar('Something went wrong with the registration process. Please try again later.');
-      } finally {
+      }
+      try {
         await GlobalBleHandler.scanAndConnect(); // start the background scanning
+        await GlobalBleHandler.uploadToServer();
+        await updateLocalUserFitness();
+      } catch(e) {
+        console.log("error after linking in sa data sync: ", e);
+      } finally {
+        setScanning(false);
       }
     } else {
       try {
-        console.log("begin syncing....")
+        console.log("begin syncing....");
         await GlobalBleHandler.scanAndConnect();
-        await setNeedsFitnessUpdate(true);
+        console.log("finished scanning....");
+        setScanning(false);
         showSnackBar('Successfully synced with your Athlos earbuds. Your fitness records should be up to date in a minute :]');
       } catch(e) {
         console.log("error with sync: ", e);
         if (e !== 'stopped scan') {
+          setScanning(false);
           showSnackBar("Something went wrong with syncing. Please try again.");
         }
-      } finally {
-        setScanning(false);
       }
-      await updateLocalUserFitness();
+      try {
+        await GlobalBleHandler.uploadToServer();
+        await updateLocalUserFitness();
+      } catch(e) {
+        console.log("error after scan and connect in sa data sync: ", e);
+      }
     }
   }
 

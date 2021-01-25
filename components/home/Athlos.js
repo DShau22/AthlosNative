@@ -152,8 +152,8 @@ function Athlos(props) {
       const deviceID = userData ? userData.deviceID : state.deviceID;
       GlobalBleHandler.setID(deviceID);
       try {
-        // await GlobalBleHandler._uploadToServer();
         await GlobalBleHandler.scanAndConnect();
+        await GlobalBleHandler.uploadToServer();
         console.log("successfully read and saved sadata bytes");
       } catch(e) {
         console.log("error scanning and connecting: ", e);
@@ -228,8 +228,8 @@ function Athlos(props) {
     if (!userData) {
       userData = state;
     }
-    console.log("updating local user fitness: ", userData);
-    console.log("state in local user fitness: ", state);
+    // console.log("updating local user fitness: ", userData);
+    // console.log("state in local user fitness: ", state);
     const lastMonday = getLastMonday(today);
     const halfYearAgo = new Date();
     halfYearAgo.setDate(lastMonday.getDate() - NUM_WEEKS_IN_PAST * 7); // make sure its from that monday
@@ -306,8 +306,8 @@ function Athlos(props) {
 
   // remember index 0 is most recent data
   const updateActivityData = (prevActivityData, additionalActivityData) => {
-    console.log("prev activity data: ", prevActivityData);
-    console.log("new activity data: ", additionalActivityData);
+    // console.log("prev activity data: ", prevActivityData);
+    // console.log("new activity data: ", additionalActivityData);
     if (additionalActivityData.length === 0) {
       return prevActivityData;
     }

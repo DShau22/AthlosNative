@@ -3,7 +3,7 @@ import {
   getFitnessBytes,
   removeFitnessBytes,
   setNeedsFitnessUpdate,
-  removeFitnessRecord,
+  removeFitnessRecords,
   getData
 } from '../utils/storage';
 import ENDPOINTS from '../endpoints';
@@ -140,6 +140,9 @@ class BLEHandler {
    * Stops scanning for devices. Must call scanAndConnect again to restart it
    */
   stopScan() {
+    if (this.readSubscription) {
+      this.readSubscription.remove()
+    }
     if (this.manager) {
       this.manager.stopDeviceScan();
     }
@@ -157,6 +160,7 @@ class BLEHandler {
   */
   async disconnect() {
     if (this.device && (await this.device.isConnected())) {
+      console.log("disconnecting");
       await this.device.cancelConnection(); // this is async
     }
   }
@@ -217,8 +221,7 @@ class BLEHandler {
    */
   async _scanAndConnect() {
     await this.disconnect();
-    console.log("scanning and connecting...");
-    console.log("deviceID: ", this.userDeviceID);
+    console.log("scanning and connecting...", this.userDeviceID);
     this.manager.startDeviceScan(null, null, async (error, device) => {
       if (error) {
         // Handle error (scanning will be stopped automatically)
@@ -227,11 +230,13 @@ class BLEHandler {
         if (errorJson.errorCode === 101) {
           console.log("please make sure you enable bluetooth and location");
         }
+        this.saDataCompleter.error(`start device scan failed: ${error}`);
         return;
       }
       if (device.name === 'AthlosData') {
         if (device.id !== this.userDeviceID) {
-          console.log("device ids do not match: ", device.id, this.userDeviceID);
+          console.log("discovered device id: ", device.id);
+          console.log("user device id: ", this.userDeviceID);
           return;
         }
         // Stop scanning as it's not necessary if you are scanning for one device.
@@ -360,24 +365,14 @@ class BLEHandler {
       const concatentatedSadata = Buffer.concat(this.readBuffers, totalNumBytes);
       try {
         await this._saveToAsyncStorage(concatentatedSadata);
+        this.saDataCompleter.complete(concatentatedSadata);
       } catch(e) {
         console.log("Error storing fitness bytes! No way to handle this error yet other than not storing anything");
         this._resetReadState();
         this.saDataCompleter.error(e);
         return;
       }
-      try {
-        await this._uploadToServer();
-        await setNeedsFitnessUpdate(true);
-        // await removeFitnessBytes();
-        console.log("completing compelter...");
-        this.saDataCompleter.complete(concatentatedSadata);
-      } catch(e) {
-        console.log("error sending request to upload user data: ", e);
-        this.saDataCompleter.error(e);
-      }
       this._resetReadState();
-      // rewrite sadata somehow
     } else {
       // still expect to get more packages. Send a response to the earbuds
       await this._sendResponse(readValueInRawBytes);
@@ -402,14 +397,15 @@ class BLEHandler {
   /**
    * Sends the queue of utf8 encoded past sadatas stored in async storage. As long as server requests don't fail, this
    * queue should only have 1 element (the sadata we just read from the earbuds).
+   * CONSIDER TAKING OUT PROMISE.ALL HERE SINCE IT CAN CAUSE MONGO WRITE CONFLICTS
    */
-  async _uploadToServer() {
+  async uploadToServer() {
     const sessionByteList = await getFitnessBytes(); // list of utf8 encoded sadata bytes in async storage
     const userToken = await getData();
     const config = {
       headers: { 'Content-Type': 'application/json' },
     }
-    console.log("session byte list: ", sessionByteList);
+    console.log("session byte list: ", sessionByteList, sessionByteList.length);
     const uploadPromises = [];
     sessionByteList.forEach(({date, sessionBytes}, _) => {
       uploadPromises.push(axios.post(ENDPOINTS.upload, {
@@ -419,19 +415,23 @@ class BLEHandler {
       }, config));
     });
     const promiseResults = await Promise.all(uploadPromises);
+    var atLeastOneSuccess = false;
+    const recordIndexesToRemove = [];
     for (let i = 0; i < promiseResults.length; i++) {
-      const resJson = promiseResults[i].data
+      const resJson = promiseResults[i].data;
       console.log(`${i} axios response: ${resJson}`);
-      if (!resJson.success) {
-        throw new Error(resJson.message);
-      } else {
-        console.log(resJson.message);
+      atLeastOneSuccess = atLeastOneSuccess && resJson.success;
+      if (resJson.success) {
+        recordIndexesToRemove.push(i);
         // successfully updated this session byte record, so we can remove it now.
-        await removeFitnessRecord(i);
         const test = await getFitnessBytes();
         console.log("fitness bytes after removing: ", test);
+      } else {
+        console.log("failed: ", resJson.message);
       }
     }
+    await removeFitnessRecords(recordIndexesToRemove);
+    await setNeedsFitnessUpdate(atLeastOneSuccess && promiseResults.length > 0);
   }
 
   /**

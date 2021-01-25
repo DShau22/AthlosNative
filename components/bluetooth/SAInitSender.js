@@ -6,47 +6,61 @@ import ThemeText from '../generic/ThemeText';
 
 export default function SAInitSender(props) {
   const { colors } = useTheme();
-  const { saveAndCreateSaInit } = props;
+  const { saveAndCreateSaInit, containerStyle, setIsLoading } = props;
   return (
     <TouchableOpacity
       style={{
         backgroundColor: colors.backgroundOffset,
-        width: 300,
+        width: 220,
         height: 50,
         borderRadius: 10,
         alignItems: 'center',
         justifyContent: 'center',
         borderColor: colors.header,
-        borderWidth: 1
+        borderWidth: 1,
+        ...containerStyle
       }}
       onPress={async () => {
+        setIsLoading(true);
         if (GlobalBleHandler.isReading) {
+          setIsLoading(false);
           Alert.alert(
             "Whoops",
-            "Your earbuds are busy updating your fitness records. Hang tight and try again later",
+            "Your earbuds are busy syncing. Hang tight and try again later",
             [{text: 'Okay'}]
           );
           return;
         }
-        const connected = await GlobalBleHandler.isConnected();
-        if (!connected) {
+        try {
+          const connected = await GlobalBleHandler.isConnected();
+          if (!connected) {
+            Alert.alert(
+              "Whoops",
+              Platform.OS === 'ios' ? 
+                `Your Athlos earbuds are not connected to this device. `+
+                `Make sure you have bluetooth enabled for this device and that your Athlos earbuds are connected with bluetooth.` +
+                ` If the issue still persists, then sync first and try again.`
+                : `Your Athlos earbuds have not yet connected to this device. `+
+                `Make sure you have bluetooth enabled for this device and that your `+
+                `Athlos earbuds are scanning for devices. Please also make sure to enable location services for this app.` +
+                ` If the issue still persists, then sync first and try again.`,
+              [{text: 'Okay'}]
+            );
+            return;
+          }
+          const sainitBytes = await saveAndCreateSaInit();
+          console.log("Sending byte array!");
+          await GlobalBleHandler.sendByteArray(sainitBytes);
+        } catch(e) {
+          console.log("error sending sainit: ", e);
           Alert.alert(
-            "Whoops",
-            Platform.OS === 'ios' ? 
-              `Your Athlos earbuds are not connected to this device. `+
-              `Make sure you have bluetooth enabled for this device and that your Athlos earbuds are connected with bluetooth.` +
-              ` If the issue still persists then sync first and try again.`
-              : `Your Athlos earbuds have not yet connected to this device. `+
-              `Make sure you have bluetooth enabled for this device and that your `+
-              `Athlos earbuds are scanning for devices. Please also make sure to enable location services for this app.` +
-              ` If the issue still persists then sync first and try again.`,
+            "Oh no :(",
+            "There was an issue updating your Athlos device. Please try again later.",
             [{text: 'Okay'}]
           );
-          return;
+        } finally {
+          setIsLoading(false);
         }
-        const sainitBytes = await saveAndCreateSaInit();
-        console.log("Sending byte array!");
-        await GlobalBleHandler.sendByteArray(sainitBytes);
       }}
     >
       <ThemeText>

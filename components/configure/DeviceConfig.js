@@ -22,8 +22,6 @@ const {
   CONFIG_KEY,
   MODE_CONFIG
 } = DEVICE_CONFIG_CONSTANTS;
-import { COLOR_THEMES } from '../ColorThemes';
-import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
 
 // edit screens
 import RunEditScreen from './screens/RunEditScreen';
@@ -35,7 +33,6 @@ import MusicOnlyEditScreen from './screens/MusicOnlyScreen';
 import IntervalEditScreen from './screens/IntervalEditScreen';
 
 import SAinit from './SAinitManager';
-import BLEHandler from '../bluetooth/transmitter';
 import ThemeText from '../generic/ThemeText';
 import { Divider } from 'react-native-paper';
 import { useTheme } from '@react-navigation/native';
@@ -43,13 +40,6 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import SAInitSender from '../bluetooth/SAInitSender';
 import PullUpMenu from './screens/PullUpMenu';
 
-// CONSIDER USING REACT NATIVE PAPER FAB.GROUP INSTEAD OF A POPUP MODAL
-// WHEN ADDING A NEW MODE
-
-// OR ALSO REACT-NATIVE ACTION BUTTON https://github.com/mastermoo/react-native-action-button
-
-// ALSO LOOK AT REACT NATIVE NUMERIC INPUT https://github.com/himelbrand/react-native-numeric-input
-// FOR THE UP DOWN BUTTON STUFF
 const WIDTH = Dimensions.get('window').width;
 const FAB_SIZE = 60;
 const DeviceConfig = (props) => {
@@ -57,6 +47,7 @@ const DeviceConfig = (props) => {
 
   const userDataContext = React.useContext(UserDataContext);
   const { settings, cadenceThresholds, referenceTimes, runEfforts, swimEfforts, bests } = userDataContext;
+  const [isLoading, setIsLoading] = React.useState(false);
   const [deviceConfig, setDeviceConfig] = React.useState(getDefaultConfig());
   // keeps track of whether or not this is the first render of this component
   const firstUpdate = React.useRef(true);
@@ -179,6 +170,11 @@ const DeviceConfig = (props) => {
             <DraggableFlatList
               ListHeaderComponent={() => (
                 <>
+                  <Spinner
+                    visible={isLoading}
+                    textContent='Updating...'
+                    textStyle={{color: colors.textColor}}
+                  />
                   <ThemeText style={{ marginTop: 20, marginLeft: 10, fontSize: 20, fontWeight: 'bold' }}>
                     Tailor your device to your preferences:
                   </ThemeText>
@@ -209,6 +205,11 @@ const DeviceConfig = (props) => {
                 return (
                   <>
                     <SAInitSender
+                      containerStyle={{
+                        alignSelf: 'center',
+                        margin: 20
+                      }}
+                      setIsLoading={setIsLoading}
                       saveAndCreateSaInit={saveAndCreateSaInit}
                     />
                     {/* <Button 

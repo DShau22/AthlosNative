@@ -88,11 +88,11 @@ const getDataObj = async () => {
  * @param {Buffer} sessionBytes 
  */
 const storeFitnessBytes = async (sessionBytes) => {
-  await removeFitnessBytes(); // for now
+  // await removeFitnessBytes(); // for now
   console.log("storing this many bytes: ", sessionBytes.length);
   const byteQueueString = await AsyncStorage.getItem(FITNESS_KEY);
   var byteQueue = JSON.parse(byteQueueString);
-  console.log("byteQueue: ", byteQueue);
+  // console.log("byteQueue: ", byteQueue);
   if (byteQueue === null) {
     byteQueue = [{
       date: new Date(),
@@ -125,15 +125,20 @@ const removeFitnessBytes = async () => {
   await AsyncStorage.removeItem(FITNESS_KEY)
 }
 
-const removeFitnessRecord = async (idx) => {
-  console.log("removing fitness record at index: ", idx);
+// removes the fitness records in the byte queue at these particular list of indicies
+const removeFitnessRecords = async (indicies) => {
+  console.log("removing fitness record at indicies: ", indicies);
+  if (indicies.length === 0)
+    return;
   const byteQueueString = await AsyncStorage.getItem(FITNESS_KEY);
   if (byteQueueString !== null) {
     const parsed = JSON.parse(byteQueueString);
     if (parsed.length <= 1) {
       await removeFitnessBytes();
     } else {
-      parsed.splice(idx, 1);
+      for (let i = indicies.length -1; i >= 0; i--) {
+        parsed.splice(indicies[i], 1);
+      }
       await AsyncStorage.setItem(FITNESS_KEY, JSON.stringify(parsed));
     }
   } else {
@@ -169,5 +174,5 @@ module.exports = {
   storeFitnessBytes,
   getFitnessBytes,
   removeFitnessBytes,
-  removeFitnessRecord
+  removeFitnessRecords
 }
