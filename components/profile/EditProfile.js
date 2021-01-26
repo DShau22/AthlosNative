@@ -463,7 +463,7 @@ export default function EditProfile(props) {
         <Spinner
           visible={isLoading}
           textContent={'Loading...'}
-          textStyle={styles.spinnerTextStyle}
+          textStyle={{color: colors.textColor}}
         />
         <View style={{alignItems: 'center', marginTop: 15}}>
           <Image 
@@ -471,6 +471,40 @@ export default function EditProfile(props) {
             source={{uri: displayProfilePicUrl}}
           />
         </View>
+        <Button 
+          title={uploadImageTitle}
+          buttonStyle={[styles.uploadImageButton, {backgroundColor: colors.button}]}
+          titleStyle={{color: colors.textColor}}
+          onPress={() => {
+            ImagePicker.showImagePicker(imagePickerOptions, (response) => {
+              if (response.didCancel) {
+                console.log('User cancelled image picker');
+              } else if (response.error) {
+                console.log('ImagePicker Error: ', response.error);
+              } else if (response.customButton) {
+                console.log('User tapped custom button: ', response.customButton);
+              } else {
+                // if (response.type !== 'image/jpeg') {
+                //   Alert.alert(`Oh No :(`, `Image must be`, [{ text: "Okay" }]);
+                //   return;
+                // }
+                const photo = {
+                  uri:  Platform.OS === "android" ? response.uri : response.uri.replace("file://", ""),
+                  // uri: response.uri,
+                  name: response.fileName === null ? "newProfilePicture" : response.fileName,
+                  type: response.type
+                };
+                console.log(Object.keys(response))
+                console.log('uploaded photo: ', photo)
+                setUploadImageTitle(`uploaded a new photo`);
+                setUpdateProfilePic(photo);
+                setDisplayProfilePicUrl(photo.uri)
+                // You can also display the image using data:
+                // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+              }
+            });
+          }}
+        />
         <Textbox 
           containerStyle={[styles.textContainer, {borderColor: colors.border}]}
           headerText={"First Name"}
@@ -548,42 +582,8 @@ export default function EditProfile(props) {
             errMsg={state.locationMsg}
           />
         </View> */}
-        <Button 
-          title={uploadImageTitle}
-          buttonStyle={[styles.uploadImageButton, {backgroundColor: colors.button}]}
-          titleStyle={{color: colors.textColor}}
-          onPress={() => {
-            ImagePicker.showImagePicker(imagePickerOptions, (response) => {
-              if (response.didCancel) {
-                console.log('User cancelled image picker');
-              } else if (response.error) {
-                console.log('ImagePicker Error: ', response.error);
-              } else if (response.customButton) {
-                console.log('User tapped custom button: ', response.customButton);
-              } else {
-                // if (response.type !== 'image/jpeg') {
-                //   Alert.alert(`Oh No :(`, `Image must be`, [{ text: "Okay" }]);
-                //   return;
-                // }
-                const photo = {
-                  uri:  Platform.OS === "android" ? response.uri : response.uri.replace("file://", ""),
-                  // uri: response.uri,
-                  name: response.fileName === null ? "newProfilePicture" : response.fileName,
-                  type: response.type
-                };
-                console.log(Object.keys(response))
-                console.log('uploaded photo: ', photo)
-                setUploadImageTitle(`uploaded a new photo`);
-                setUpdateProfilePic(photo);
-                setDisplayProfilePicUrl(photo.uri)
-                // You can also display the image using data:
-                // const source = { uri: 'data:image/jpeg;base64,' + response.data };
-              }
-            });
-          }}
-        />
         <Button
-          buttonStyle={[styles.saveButton, {backgroundColor: colors.button}]}
+          buttonStyle={[styles.saveButton, {backgroundColor: colors.button, marginBottom: 20}]}
           title="Save changes"
           onPress={updateProfile}
         />
@@ -613,17 +613,14 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
   },
-  spinnerTextStyle: {
-    color: "black"
-  },
   englishHeightContainer: {
     flexDirection: 'column',
     // alignItems: 'center',
   },
   uploadImageButton: {
-    color: 'black',
+    marginTop: 20
   },
   saveButton: {
-    marginTop: 30,
+    margin: 30,
   }
 })

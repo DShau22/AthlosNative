@@ -51,7 +51,7 @@ export default function SplitInputs(props) {
         console.log(e);
         setSpecificSplit(idx, '');
         setErrorMsgs(prev => {
-          prev[idx] = e.toString();
+          prev[idx] = e.message.toString();
           return [...prev];
         })
       });

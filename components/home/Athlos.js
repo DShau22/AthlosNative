@@ -160,7 +160,8 @@ function Athlos(props) {
       }
       try {
         console.log("updating local user fitness after scan and connect finishes in athlos component");
-        await updateLocalUserFitness(); 
+        await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
+        await updateLocalUserInfo() // no promise.all to avoid race conditions with updating the state
       } catch(e) {
         console.log('error updating local user info after scanning and connecting: ', e);
       }

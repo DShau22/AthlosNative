@@ -54,6 +54,7 @@ class SAinit {
   // byte characters and their meanings in sainit
   static LOWER_X = 'x'.charCodeAt(0);
   static R = 'R'.charCodeAt(0);
+  static W = 'W'.charCodeAt(0);
   static ZERO = '0'.charCodeAt(0);
   static ONE = '1'.charCodeAt(0);
   static TWO = '2'.charCodeAt(0);
@@ -216,8 +217,8 @@ class SAinit {
    */
   _setRunConfig(sainit, runObject, idx) {
     console.log("setting run config: ", runObject);
-    const { trigger, numUntilTrigger, reportCalories } = runObject;
-    sainit[idx] = SAinit.R;
+    const { trigger, numUntilTrigger, reportCalories, walking } = runObject;
+    sainit[idx] = walking ? SAinit.W : SAinit.R;
     if (trigger === TRIGGER_STEPS) {
       if (reportCalories) {
         sainit[idx + 8] = SAinit.ONE;
@@ -235,10 +236,14 @@ class SAinit {
     // set cadence thresholds
     console.log(`cadence thresholds: ${this.cadenceThresholds}`); // 30 65 80
     sainit[idx + 24] = this.cadenceThresholds[0];
-    sainit[idx + 32] = this.cadenceThresholds[1];
-    sainit[idx + 40] = this.cadenceThresholds[2];
+    sainit[idx + 40] = 100; // make the +2 almost impossible to obtain for now. Would needa do 200 steps per minute
+    if (walking) {
+      sainit[idx + 32] = this.cadenceThresholds[1]; // walking cadence
+    } else {
+      sainit[idx + 32] = this.cadenceThresholds[2]; // running cadence
+    }
     // set neffort thresholds
-    console.log(`run efforts: ${this.runEfforts}`); // 1 2 4 6
+    console.log(`run efforts: ${this.runEfforts}`); // 1 2 4 6 default
     sainit[idx + 48] = this.runEfforts[0];
     sainit[idx + 56] = this.runEfforts[1];
     sainit[idx + 64] = this.runEfforts[2];

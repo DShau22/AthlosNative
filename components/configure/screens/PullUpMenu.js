@@ -1,8 +1,12 @@
 import React from 'react'
 import { View, TouchableOpacity, ScrollView, Button } from 'react-native';
 import { Text } from 'react-native-elements';
+import GLOBAL_CONSTANTS from '../../GlobalConstants';
+const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;
 import RBSheet from "react-native-raw-bottom-sheet";
-import ScrollPicker from "react-native-wheel-scrollview-picker";
+// import ScrollPicker from "react-native-wheel-scrollview-picker";
+import Picker from '@gregfrench/react-native-wheel-picker'
+var PickerItem = Picker.Item;
 
 export default function PullUpMenu(props) {
   const {
@@ -77,28 +81,44 @@ export default function PullUpMenu(props) {
             />
           </View>
         </View>
-        <View style={{flexDirection: 'row', }}>
+        <View style={{flexDirection: 'row', height: '100%'}}>
           {childArrays.map((list, listIdx) => (
-            <ScrollPicker
-              dataSource={list}
-              selectedIndex={selectedIndexes[listIdx]}
-              renderItem={(data, index) => {
-                <Text key={index}>{data}</Text>
-              }}
-              onValueChange={(data, idx) => {
+            <Picker 
+              style={{width: SCREEN_WIDTH/childArrays.length, height: SCREEN_HEIGHT/4}}
+              selectedValue={selectedIndexes[listIdx]}
+              itemStyle={{color:"black", fontSize:26}}
+              onValueChange={(idx) => {
                 setSelectedIndexes(prev => {
                   const copy = [...prev];
                   copy[listIdx] = idx;
                   return copy;
                 });
               }}
-              wrapperHeight={180}
-              wrapperWidth={150}
-              wrapperBackground={"#FFFFFF"}
-              itemHeight={60}
-              highlightColor={"#d8d8d8"}
-              highlightWidth={2}
-            />
+            >
+              {list.map((value, i) => (
+                <PickerItem label={`${value}`} value={i} key={`${value}-${i}`}/>
+              ))}
+            </Picker>
+            // <ScrollPicker
+            //   dataSource={list}
+            //   selectedIndex={selectedIndexes[listIdx]}
+            //   renderItem={(data, index) => {
+            //     <Text key={index}>{data}</Text>
+            //   }}
+            //   onValueChange={(data, idx) => {
+            //     setSelectedIndexes(prev => {
+            //       const copy = [...prev];
+            //       copy[listIdx] = idx;
+            //       return copy;
+            //     });
+            //   }}
+            //   wrapperHeight={180}
+            //   wrapperWidth={150}
+            //   wrapperBackground={"#FFFFFF"}
+            //   itemHeight={60}
+            //   highlightColor={"#d8d8d8"}
+            //   highlightWidth={2}
+            // />
           ))}
         </View>
       </View>

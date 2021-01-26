@@ -1,3 +1,5 @@
+import { Dimensions } from 'react-native';
+
 const GLOBAL_CONSTANTS = {
   METRIC: 'metric',
   ENGLISH: 'english',
@@ -9,6 +11,9 @@ const GLOBAL_CONSTANTS = {
   ONLY_ME: 'only me',
   FOLLOWERS: 'followers',
   EVERYONE: 'everyone',
+
+  SCREEN_WIDTH: Dimensions.get('window').width,
+  SCREEN_HEIGHT: Dimensions.get('window').height,
 
   HOME: 'Home',
   FITNESS: 'Fitness',

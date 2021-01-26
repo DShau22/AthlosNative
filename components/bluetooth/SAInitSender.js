@@ -51,6 +51,11 @@ export default function SAInitSender(props) {
           const sainitBytes = await saveAndCreateSaInit();
           console.log("Sending byte array!");
           await GlobalBleHandler.sendByteArray(sainitBytes);
+          Alert.alert(
+            "All done!",
+            "Your Athlos device has been updated! You must turn it off and on again for changes to be implemented.",
+            [{text: 'Okay'}]
+          );
         } catch(e) {
           console.log("error sending sainit: ", e);
           Alert.alert(

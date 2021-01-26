@@ -25,7 +25,7 @@ const ProfileAboutYou = (props) => {
 
   const { age, weight, height, gender, } = profileContext;
   const unitSystem = userDataContext.settings.unitSystem.toLowerCase();
-  const displayHeight = unitSystem === METRIC ? 
+  const displayHeight = unitSystem === METRIC ?
     `${Math.round(inchesToCm(height))} cm` : englishHeight(height);
   const displayWeight = unitSystem === METRIC ?
     `${Math.round(poundsToKg(weight) * 10) / 10} kg` : `${weight} lbs`;
@@ -33,22 +33,22 @@ const ProfileAboutYou = (props) => {
   const gridElements = [
     {
       icon: <MaterialCommunityIcons name='human-male-height' size={30} color={colors.textColor}/>,
-      textDisplay: displayHeight,
+      textDisplay: height > 0 ? displayHeight : '?',
       textDisplayTitle: 'Height'
     },
     {
       icon: <MaterialCommunityIcons name='scale' size={30} color={colors.textColor}/>,
-      textDisplay: displayWeight,
+      textDisplay: weight > 0 ? displayWeight : '?',
       textDisplayTitle: 'Weight'
     },
     {
       icon: <FontAwesome name='birthday-cake' size={30} color={colors.textColor}/>,
-      textDisplay: age,
+      textDisplay: age > 0 ? age : '?',
       textDisplayTitle: 'Age'
     },
     {
       icon: <FontAwesome name='transgender-alt' size={30} color={colors.textColor}/>,
-      textDisplay: gender,
+      textDisplay: gender.length > 0 ? gender : '?',
       textDisplayTitle: 'Gender'
     },
   ]

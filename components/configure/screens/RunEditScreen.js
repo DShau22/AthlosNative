@@ -29,9 +29,10 @@ export default function RunEditScreen(props) {
   const { colors } = useTheme();
   const { navigation, deviceConfig, setDeviceConfig } = props;
   const { editIdx } = props.route.params; // index of the object in deviceConfig array we are editing
-  const { numUntilTrigger, trigger } = deviceConfig[editIdx];
+  const { numUntilTrigger, trigger, walking } = deviceConfig[editIdx];
 
   const [isLoading, setIsLoading] = React.useState(false);
+  const [walkingEnabled, setWalkingEnabled] = React.useState(walking);
   const [runNumber, setRunNumber] = React.useState(numUntilTrigger);
   const [runTrigger, setRunTrigger] = React.useState(trigger);
   const [reportCalories, setReportCalories] = React.useState(deviceConfig[editIdx].reportCalories);
@@ -63,6 +64,7 @@ export default function RunEditScreen(props) {
     setDeviceConfig(prevConfig => {
       const newModeSettings = {
         mode: RUN,
+        walking: walkingEnabled,
         trigger: runTrigger,
         numUntilTrigger: runNumber,
         reportCalories,
@@ -155,6 +157,9 @@ export default function RunEditScreen(props) {
         childArrays={[renderMenuArray()]}
         selectedItems={[runTrigger === TRIGGER_MIN ? runNumber : runNumber * 100]}
       />
+      <ThemeText style={{fontSize: 20, fontWeight: 'bold', alignSelf: 'flex-start', margin: 10}}>
+        More options
+      </ThemeText>
       <ListItem
         containerStyle={{backgroundColor: colors.background}}
         bottomDivider
@@ -170,6 +175,28 @@ export default function RunEditScreen(props) {
           checked={reportCalories}
           checkedColor={colors.textColor}
           onPress={() => setReportCalories(prev => !prev)}
+        />
+      </ListItem>
+      <ListItem
+        containerStyle={{backgroundColor: colors.background}}
+        bottomDivider
+        topDivider
+        onPress={() => setReportCalories(prev => !prev)}
+      >
+        <ListItem.Content>
+          <ListItem.Title>
+            <ThemeText>Enable hiking mode?</ThemeText>
+          </ListItem.Title>
+          <ListItem.Subtitle>
+            <ThemeText>
+              Enable this option if you plan on hiking, walking, or strolling and still want live encouragement.
+            </ThemeText>
+          </ListItem.Subtitle>
+        </ListItem.Content>
+        <ListItem.CheckBox
+          checked={walkingEnabled}
+          checkedColor={colors.textColor}
+          onPress={() => setWalkingEnabled(prev => !prev)}
         />
       </ListItem>
       <ThemeText style={{fontSize: 14, alignSelf: 'flex-start', margin: 10}}>

@@ -192,7 +192,8 @@ export default function SADataSync() {
       try {
         await GlobalBleHandler.scanAndConnect(); // start the background scanning
         await GlobalBleHandler.uploadToServer();
-        await updateLocalUserFitness();
+        await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
+        await updateLocalUserInfo() // no promise.all to avoid race conditions with updating the state
       } catch(e) {
         console.log("error after linking in sa data sync: ", e);
       } finally {
@@ -214,7 +215,8 @@ export default function SADataSync() {
       }
       try {
         await GlobalBleHandler.uploadToServer();
-        await updateLocalUserFitness();
+        await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
+        await updateLocalUserInfo() // no promise.all to avoid race conditions with updating the state
       } catch(e) {
         console.log("error after scan and connect in sa data sync: ", e);
       }

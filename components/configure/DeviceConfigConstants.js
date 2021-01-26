@@ -123,6 +123,7 @@ const getDefaultRunMode = () => {
   return {
     // The device mode. Using make sure to make the keyExtractor take the mode
     mode: RUN,
+    walking: false,
     // background color of the list item
     // what metrics are reported. 
     metrics: [ STEP_COUNT, CALORIES, CADENCE ],
