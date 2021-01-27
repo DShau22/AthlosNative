@@ -31,6 +31,7 @@ export default function SADataSync() {
   const { updateLocalUserInfo, updateLocalUserFitness } = appFunctionsContext;
   const { deviceID } = userDataContext;
   const [scanning, setScanning] = React.useState(false);
+  const [connected, setConnected] = React.useState(false);
   // console.log("scanning: ", scanning);
   // console.log("device ID: ", deviceID);
   // console.log("ble device: ", GlobalBleHandler.device);
@@ -70,7 +71,8 @@ export default function SADataSync() {
       ).start();
     } else {
       timerRef.current = setTimeout(() => {
-        showSnackBar("Having trouble finding your Athlos earbuds. Make sure they're within an arm's reach and are also scanning.");
+        if (!connected)
+          showSnackBar("Having trouble finding your Athlos earbuds. Make sure they're within an arm's reach and are also scanning.");
       }, 10000);
       startScanAnimations();
       arrowOpacity.stopAnimation();
@@ -184,18 +186,13 @@ export default function SADataSync() {
       } finally {
         setScanning(false);
       }
-      try {
-        await GlobalBleHandler.scanAndConnect(); // start the background scanning
-        await GlobalBleHandler.uploadToServer();
-        await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
-        await updateLocalUserInfo(); // no promise.all to avoid race conditions with updating the state
-      } catch(e) {
-        console.log("error after linking in sa data sync: ", e);
-      }
     } else {
       try {
         console.log("begin syncing....");
         await GlobalBleHandler.scanAndConnect();
+        setConnected(true);
+        showSnackBar('Found your Athlos device! Transferring activity data...');
+        await GlobalBleHandler._setUpNotifyListener();
         console.log("finished scanning....");
         setScanning(false);
         showSnackBar('Successfully synced with your Athlos earbuds. Your fitness records should be up to date in a minute :]');

@@ -31,7 +31,7 @@ const calcNumSaDataBytes = (readValueInRawBytes) => {
   // start at idx 3 cuz first 3 bytes are metadata
   var totalNum = 0;
   for (let i = 3; i < 10; i++) {
-    totalNum += readValueInRawBytes[i] * 10**(9 - i); // start at 10^6 down to 10^0
+    totalNum += parseInt(String.fromCharCode(readValueInRawBytes[i])) * 10**(9 - i); // start at 10^6 down to 10^0
   }
   return totalNum;
 }
@@ -61,6 +61,7 @@ class BLEHandler {
     this.writePkgId = 0;
     this.lastPkgId = null; // for validating response packets
     
+    this.connectCompleter = null;
     this.registerCompleter = null;
     this.saDataCompleter = null // completer for when device is connected and sadata is read
     this.resCompleter = null; // completer for the next expected response
@@ -96,6 +97,7 @@ class BLEHandler {
     this.sainit = null;
     this.writePkgId = 0;
     this.lastPkgId = null;
+    this.connectCompleter = null;
     this.saDataCompleter = null;
     this.resCompleter = null;
     this.registerCompleter = null;
@@ -223,7 +225,8 @@ class BLEHandler {
       throw new Error("Athlos device has not been linked yet");
     }
     this.stopScan();
-    this.saDataCompleter = new Completer();
+    // this.saDataCompleter = new Completer();
+    this.connectCompleter = new Completer();
     this.scanSubscription = this.manager.onStateChange(async state => {
       console.log("state changed and is now: ", state);
       if (state === 'PoweredOn') {
@@ -232,7 +235,8 @@ class BLEHandler {
         this.scanSubscription.remove();
       }
     }, true);
-    return this.saDataCompleter.result; // .then this to do something once sadata is read and stored to async storage
+    // return this.saDataCompleter.result; // .then this to do something once sadata is read and stored to async storage
+    return this.connectCompleter.result;
   }
   /**
    * Repeatedly scan until we find the athlos earbuds. Once found, we subscribe to
@@ -249,7 +253,8 @@ class BLEHandler {
         if (errorJson.errorCode === 101) {
           console.log("please make sure you enable bluetooth and location");
         }
-        this.saDataCompleter.error(`start device scan failed: ${error}`);
+        // this.saDataCompleter.error(`start device scan failed: ${error}`);
+        this.connectCompleter.error(`start device scan failed: ${error}`);
         return;
       }
       if (device.name === 'AthlosData') {
@@ -278,7 +283,8 @@ class BLEHandler {
             this._resetReadState();
             this._scanAndConnect(); // try scanning and connecting again
           });
-          await this._setUpNotifyListener(); // for now just handle reading
+          // await this._setUpNotifyListener(); // for now just handle reading
+          this.connectCompleter.complete("successfully connected to Athlos device");
         } catch(e) {
           console.log("error connecting device and discovering services: ", e);
           this._scanAndConnect();
@@ -292,15 +298,17 @@ class BLEHandler {
    * so that we can read data that the earbuds send to this device.
    */
   async _setUpNotifyListener() {
+    this.saDataCompleter = new Completer();
     console.log("setting up notify listener");
-    const deviceConnected = await this.device.isConnected();
     if (!this.device || !(await this.device.isConnected()) ) {
-      throw new Error("device is not yet connected");
+      this.saDataCompleter.error("device is not yet connected");
+      // throw new Error("device is not yet connected");
     }
     console.log("reading characteristics");
     try {
       var readChar = await this.device.readCharacteristicForService(SERVICE_UUID, RX);
     } catch(e) {
+      this.saDataCompleter.error(`failed to read characteristic: ${e}`);
       console.log("failed to read characteristic: ", e);
     }
     console.log("setting up monitor");
@@ -341,6 +349,7 @@ class BLEHandler {
         readChar.isNotifying = false;
       }
     });
+    return this.saDataCompleter.result;
   }
 
   /**
@@ -357,6 +366,7 @@ class BLEHandler {
     if (this.readBuffers.length === 0) {
       // this is the first package sent over
       if (readValueInRawBytes[10] !== '\n'.charCodeAt(0)) { // 10 because first 3 bytes are metadata in the package
+        this.saDataCompleter.error(`invalid sadata: 4th byte (3rd index) should be $ but got ${readValueInRawBytes[10]}`);
         console.log(`invalid sadata: 4th byte (3rd index) should be $ but got ${readValueInRawBytes[10]}`);
         throw new Error(`invalid sadata: 4th byte (3rd index) should be $ but got ${readValueInRawBytes[10]}`);
       }

@@ -1,5 +1,6 @@
 import React from 'react'
-import { View, StyleSheet, Alert, ScrollView, SafeAreaView } from 'react-native'
+import { View, StyleSheet, Alert, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/stack';
 import { Button } from 'react-native-elements'
 import GLOBAL_CONSTANTS from '../GlobalConstants'
 import * as Yup from 'yup';
@@ -33,6 +34,7 @@ import { useTheme } from '@react-navigation/native'
 const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 
 export default function EditProfile(props) {
+  const headerHeight = useHeaderHeight();
   const context = React.useContext(UserDataContext);
   const { colors } = useTheme();
   const { updateLocalUserInfo, updateLocalUserFitness } = React.useContext(AppFunctionsContext);
@@ -209,7 +211,11 @@ export default function EditProfile(props) {
     asyncUpdateGoals();
   }
   return (
-    <SafeAreaView style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset = {headerHeight + 100} // adjust the value here if you need more padding
+    >
       <ScrollView contentContainerStyle={styles.scrollView}>
         <Spinner
           visible={isLoading}
@@ -262,7 +268,7 @@ export default function EditProfile(props) {
           onPress={updateGoals}
         />
       </ScrollView>
-    </SafeAreaView>
+    </KeyboardAvoidingView>
   )
 }
 const styles = StyleSheet.create({

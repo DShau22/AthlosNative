@@ -1,7 +1,7 @@
 import React from 'react'
-import { View, StyleSheet, Alert, ScrollView, SafeAreaView, Image } from 'react-native'
+import { View, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Image } from 'react-native'
 import { Button } from 'react-native-elements'
-import { Text } from 'react-native-elements'
+import { useHeaderHeight } from '@react-navigation/stack';
 import GLOBAL_CONSTANTS from '../GlobalConstants'
 import * as Yup from 'yup';
 import ImagePicker from 'react-native-image-picker';
@@ -41,6 +41,7 @@ MaterialCommunityIcons.loadFont();
 import Feather from 'react-native-vector-icons/dist/Feather';
 Feather.loadFont();
 import CustomIcon from '../../CustomIcons';
+import { Platform } from 'react-native'
 CustomIcon.loadFont();
 
 const updateProfileURL = ENDPOINTS.updateProfile
@@ -50,6 +51,7 @@ const imgAlt = "./default_profile.png"
 const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 
 export default function EditProfile(props) {
+  const headerHeight = useHeaderHeight();
   const context = React.useContext(UserDataContext);
   const { colors } = useTheme();
   const { updateLocalUserInfo, setAppState } = React.useContext(AppFunctionsContext);
@@ -455,7 +457,11 @@ export default function EditProfile(props) {
     asyncUpdateProfile();
   }
   return (
-    <SafeAreaView style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset = {headerHeight + 100} // adjust the value here if you need more padding
+      style={styles.container}
+    >
       <ScrollView contentContainerStyle={styles.scrollView}>
         <Spinner
           visible={isLoading}
@@ -585,7 +591,7 @@ export default function EditProfile(props) {
           onPress={updateProfile}
         />
       </ScrollView>
-    </SafeAreaView>
+    </KeyboardAvoidingView>
   )
 }
 const styles = StyleSheet.create({
