@@ -15,6 +15,7 @@ import { UserDataContext, ProfileContext } from '../../../Context';
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import { inchesToCm, poundsToKg, englishHeight } from '../../utils/unitConverter'
 import ProfileSectionGrid from './ProfileSectionGrid';
+import { capitalize } from '../../utils/strings';
 
 const { METRIC, ENGLISH } = GLOBAL_CONSTANTS;
 
@@ -48,7 +49,7 @@ const ProfileAboutYou = (props) => {
     },
     {
       icon: <FontAwesome name='transgender-alt' size={30} color={colors.textColor}/>,
-      textDisplay: gender.length > 0 ? gender : '?',
+      textDisplay: gender.length > 0 ? capitalize(gender) : '?',
       textDisplayTitle: 'Gender'
     },
   ]

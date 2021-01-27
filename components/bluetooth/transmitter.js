@@ -25,6 +25,17 @@ const calcChecksum = (bytes, start, end) => {
   return res;
 }
 
+const calcNumSaDataBytes = (readValueInRawBytes) => {
+  if (readValueInRawBytes.length < 10)
+    throw new Error("read value in raw bytes is too short to be valid: ", readValueInRawBytes);
+  // start at idx 3 cuz first 3 bytes are metadata
+  var totalNum = 0;
+  for (let i = 3; i < 10; i++) {
+    totalNum += readValueInRawBytes[i] * 10**(9 - i); // start at 10^6 down to 10^0
+  }
+  return totalNum;
+}
+
 class DataItem {
   constructor(data, tryCount) {
     this.data = data;
@@ -35,7 +46,7 @@ class DataItem {
 
 // destroying manager must be handled OUTSIDE this class (in case we setup manager, then navigate away before we are able to construct this class)
 class BLEHandler {
-  static MAX_PKG_LEN = 180;
+  static MAX_PKG_LEN = 64;
   static METADATA_SIZE = 5;
   constructor(manager) {
     this.readSubscription = null;
@@ -345,11 +356,12 @@ class BLEHandler {
     console.log("reading incoming bytes. ReadBuffers length is: ", this.readBuffers.length);
     if (this.readBuffers.length === 0) {
       // this is the first package sent over
-      if (readValueInRawBytes[6] !== '$'.charCodeAt(0)) { // 6 because first 3 bytes are metadata in the package
-        console.log(`invalid sadata: 4th byte (3rd index) should be $ but got ${readValueInRawBytes[6]}`);
-        throw new Error(`invalid sadata: 4th byte (3rd index) should be $ but got ${readValueInRawBytes[6]}`);
+      if (readValueInRawBytes[10] !== '\n'.charCodeAt(0)) { // 10 because first 3 bytes are metadata in the package
+        console.log(`invalid sadata: 4th byte (3rd index) should be $ but got ${readValueInRawBytes[10]}`);
+        throw new Error(`invalid sadata: 4th byte (3rd index) should be $ but got ${readValueInRawBytes[10]}`);
       }
-      this.totalNumSaDataBytes = (readValueInRawBytes[3] << 16) + (readValueInRawBytes[4] << 8) + readValueInRawBytes[5];
+      // butes 0-6 inclusive are character representation of how many bytes are valid in sadata
+      this.totalNumSaDataBytes = calcNumSaDataBytes(readValueInRawBytes);
       if (this.totalNumSaDataBytes <= 20) {
         // empty sadata
         this._resetReadState();

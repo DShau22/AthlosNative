@@ -162,7 +162,7 @@ function Athlos(props) {
       if (firstTime) {
         setShowWelcomeModal(true);
         GlobalBleHandler.setID(userData ? userData.deviceID : "");
-        await setFirstTimeLogin();
+        await Promise.all([setFirstTimeLogin(), setShouldAutoSync(true)]);
         return;
       }
       const deviceID = userData ? userData.deviceID : state.deviceID;
@@ -451,6 +451,15 @@ function Athlos(props) {
                 options={{
                   tabBarIcon: ({ color }) => (
                     <MaterialCommunityIcons name="account" color={color} size={26} />
+                    ),
+                  }}
+              />
+              <BottomTab.Screen
+                name={SYNC}
+                component={SADataSync}
+                options={{
+                  tabBarIcon: ({ color }) => (
+                    <Feather name="bluetooth" color={color} size={26} />
                   ),
                 }}
               />
@@ -467,15 +476,6 @@ function Athlos(props) {
                 options={{
                   tabBarIcon: ({ color }) => (
                     <Ionicons name="options" color={color} size={26} />
-                  ),
-                }}
-              />
-              <BottomTab.Screen
-                name={SYNC}
-                component={SADataSync}
-                options={{
-                  tabBarIcon: ({ color }) => (
-                    <Feather name="bluetooth" color={color} size={26} />
                   ),
                 }}
               />

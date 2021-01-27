@@ -302,7 +302,6 @@ export default function EditProfile(props) {
   }
 
   const renderHeightInput = () => {
-    const { unitSystem } = context.settings;
     if (unitSystem === METRIC) {
       // single textbox for cm
       return (
@@ -317,7 +316,7 @@ export default function EditProfile(props) {
           errMsg={state.heightCmMsg}
         />
       )
-    } else if (unitSystem === ENGLISH) {
+    } else {
       // text boxes for ft and in
       return (
         <View style={styles.englishHeightContainer}>
@@ -347,8 +346,6 @@ export default function EditProfile(props) {
           </View>
         </View>
       )
-    } else {
-      return <Text>unit system isn't english or metric...</Text>
     }
   }
 
@@ -468,7 +465,7 @@ export default function EditProfile(props) {
         <View style={{alignItems: 'center', marginTop: 15}}>
           <Image 
             style={{width: 140, height: 140, borderRadius: 140}}
-            source={{uri: displayProfilePicUrl}}
+            source={displayProfilePicUrl.length === 0 ? require('../assets/default_profile.png'): {uri: displayProfilePicUrl}}
           />
         </View>
         <Button 
