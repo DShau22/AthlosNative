@@ -7,6 +7,8 @@ import GestureRecognizer from 'react-native-swipe-gestures';
 import ThemeText from '../generic/ThemeText';
 import BLUETOOTH_CONSTANTS from './BluetoothConstants';
 const {STOP_SCAN_ERR} = BLUETOOTH_CONSTANTS;
+import GLOBAL_CONSTANTS from '../GlobalConstants';
+const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;
 import { showSnackBar } from '../utils/notifications';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import GlobalBleHandler from './GlobalBleHandler';
@@ -228,8 +230,25 @@ export default function SADataSync() {
           >
             <View style={styles.container}>
               {scanning ? 
-                <>
-                  <ThemeText style={styles.swipeContainer}>Swipe up to stop</ThemeText>
+                <View style={styles.topText}>
+                  <ThemeText style={styles.swipeText}>Swipe up to stop</ThemeText>
+                </View>
+              : <View style={styles.topText}>
+                  <ThemeText style={styles.swipeText}>
+                    {`Swipe down to ${!deviceID || deviceID.length === 0 ? 'link earbuds' : 'sync'}`}
+                  </ThemeText>
+                  <ThemeText style={[styles.swipeText, {fontSize: 12}]}>
+                    Make sure no other Athlos earbuds are scanning nearby
+                  </ThemeText>
+                </View>
+              }
+              <View style={styles.imageAndArrowContainer}>
+                <View style={[styles.imageContainer, {backgroundColor: colors.header}]}>
+                  <View style={[styles.imageContainerBackground, {backgroundColor: colors.header}]}></View>
+                  <Image
+                    source={require('../assets/AthlosLogo.png')}
+                    style={styles.swipeDownImage}
+                  />
                   <Animated.View
                     style={[styles.rippleStyle, {
                       borderColor: 'white',
@@ -237,7 +256,7 @@ export default function SADataSync() {
                       opacity: opacity3,
                       transform: [{scale: expand3}]
                     }]}
-                  ></Animated.View>
+                  />
                   <Animated.View
                     style={[styles.rippleStyle, {
                       borderColor: 'white',
@@ -245,7 +264,7 @@ export default function SADataSync() {
                       opacity: opacity2,
                       transform: [{scale: expand2}]
                     }]}
-                  ></Animated.View>
+                  />
                   <Animated.View
                     style={[styles.rippleStyle, {
                       borderColor: 'white',
@@ -253,45 +272,28 @@ export default function SADataSync() {
                       opacity: opacity1,
                       transform: [{scale: expand1}]
                     }]}
-                  ></Animated.View>
-                </>
-              : <>
-                  <ThemeText style={styles.swipeContainer}>
-                    {`Swipe to ${!deviceID || deviceID.length === 0 ? 'link new earbuds' : 'start sync'}`}
-                  </ThemeText>
-                  <ThemeText style={[styles.swipeContainer, {fontSize: 12, top: 80}]}>
-                    Make sure no other Athlos earbuds are nearby and scanning
-                  </ThemeText>
-                </>
-              }
-              <View style={[styles.imageContainer, {backgroundColor: colors.header}]}>
-                <Image
-                  source={require('../assets/AthlosLogo.png')}
-                  style={styles.swipeDownImage}
-                />
+                  />
+                </View>
+                {scanning ? 
+                  <View style={styles.scanningTextContainer}>
+                    <ThemeText style={styles.scanningText}>Scanning...</ThemeText>
+                    <ThemeText style={styles.scanningSubtitle}>
+                      Feel free to navigate to other pages in the meantime
+                    </ThemeText>
+                  </View> :
+                  <View style={styles.dragDownIconsContainer}>
+                    <Animated.View style={{marginTop: 20, opacity: arrowOpacity}}>
+                      <Icon name='chevron-down' color={colors.textColor} size={30} />
+                    </Animated.View>
+                    <Animated.View style={{opacity: arrowOpacity}}>
+                      <Icon name='chevron-down' color={colors.textColor} size={30} />
+                    </Animated.View>
+                    <Animated.View style={{opacity: arrowOpacity}}>
+                      <Icon name='chevron-down' color={colors.textColor} size={30} />
+                    </Animated.View>
+                  </View> 
+                }
               </View>
-              {scanning ? 
-                <>
-                  <ThemeText style={styles.scanningText}>Scanning...</ThemeText>
-                  <ThemeText style={styles.scanningSubtitle}>
-                    Feel free to navigate to other pages
-                  </ThemeText>
-                  <ThemeText style={styles.scanningSubSubtitle}>
-                    in the meantime
-                  </ThemeText>
-                </> :
-                <View style={styles.dragDownIconsContainer}>
-                  <Animated.View style={{marginTop: 20, opacity: arrowOpacity}}>
-                    <Icon name='chevron-down' color={colors.textColor} size={30} />
-                  </Animated.View>
-                  <Animated.View style={{opacity: arrowOpacity}}>
-                    <Icon name='chevron-down' color={colors.textColor} size={30} />
-                  </Animated.View>
-                  <Animated.View style={{opacity: arrowOpacity}}>
-                    <Icon name='chevron-down' color={colors.textColor} size={30} />
-                  </Animated.View>
-                </View> 
-              }
             </View>
           </GestureRecognizer>
         )}
@@ -318,55 +320,64 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
-  swipeContainer: {
+  imageAndArrowContainer: {
+    flex: 3,
+    width: '100%',
+    alignItems: 'center'
+  },
+  topText: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center'
+  },
+  dragDownIconsContainer: {
+    flexDirection: 'column',
+  },
+  swipeText: {
     fontSize: 22,
+    marginTop: 20,
     fontWeight: 'bold',
-    top: 30,
-    position: 'absolute'
-  },
-  swipeDownImage: {
-    alignSelf: 'center',
-    height: 150,
-    width: 200,
+    textAlign: 'center'
   },
   imageContainer: {
-    zIndex: 2,
-    width: 250,
-    height: 250,
-    borderRadius: 150,
-    position: 'absolute',
+    marginTop: 30,
+    width: 230,
+    height: 230,
+    borderRadius: 115,
     alignItems: 'center',
     justifyContent: 'center'
   },
+  swipeDownImage: {
+    zIndex: 3,
+    alignSelf: 'center',
+    height: 150,
+    width: 200,
+    position: 'absolute',
+  },
+  imageContainerBackground: {
+    width: 230,
+    height: 230,
+    borderRadius: 115,
+    zIndex: 2,
+  }, // this is just used to hide the beginnings of the concentric circle animation
   rippleStyle: {
     width: 400,
+    zIndex: 1,
     height: 400,
     borderRadius: 200,
     position: 'absolute',
   },
+  scanningTextContainer: {
+    margin: 20,
+    alignItems: 'center'
+  },
   scanningText: {
-    position: 'absolute',
-    bottom: 100,
-    fontSize: 24
+    fontSize: 24,
   },
   scanningSubtitle: {
-    position: 'absolute',
-    bottom: 75,
     fontSize: 14,
+    textAlign: 'center'
   },
-  scanningSubSubtitle: {
-    position: 'absolute',
-    bottom: 55,
-    fontSize: 14,
-  },
-  dragDownIconsContainer: {
-    flexDirection: 'column',
-    position: 'absolute',
-    bottom: 60
-  },
-  dragDownIcon: {
-
-  }
 });
