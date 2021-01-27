@@ -2,7 +2,9 @@ import GLOBAL_CONSTANTS from '../GlobalConstants'
 const {
   EVERYONE,
   FOLLOWERS,
-  ONLY_ME
+  ONLY_ME,
+  ENGLISH,
+  METRIC
 } = GLOBAL_CONSTANTS;
 const SETTINGS_CONSTANTS = {
   POOL_LENGTH_CHOICES: {
@@ -99,11 +101,11 @@ const SETTINGS_CONSTANTS = {
   ],
   UNIT_SYSTEM_SETTINGS_LIST: [
     {
-      title: 'English',
+      title: ENGLISH,
       subtitle: 'yards, feet, inches, etc...',  
     },
     {
-      title: 'Metric',
+      title: METRIC,
       subtitle: 'meters, centimeters, kilometers, etc...',
     },
   ],

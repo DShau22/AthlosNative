@@ -9,6 +9,18 @@ const AUTO_SYNC_KEY = 'should auto sync?'; // key for if the user wants to auto 
 const socketStorageKey = "socket";
 import AsyncStorage from '@react-native-community/async-storage';
 
+const logOut = async () => {
+  await AsyncStorage.multiRemove([
+    TOKEN_KEY,
+    DATA_KEY,
+    FITNESS_KEY,
+    DEVICE_ID_KEY,
+    FITNESS_UPDATE_KEY,
+    FIRST_TIME_LOGIN_KEY,
+    AUTO_SYNC_KEY,
+  ]);
+}
+
 const getShouldAutoSync = async () => {
   const res = await AsyncStorage.getItem(AUTO_SYNC_KEY);
   console.log("should auto sync: ", res);
@@ -175,6 +187,7 @@ const storeNewState = async (prevState, newFields) => {
 module.exports = {
   TOKEN_KEY,
   DATA_KEY,
+  logOut,
   getDeviceId,
   setDeviceId,
   getShouldAutoSync,

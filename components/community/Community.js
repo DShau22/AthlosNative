@@ -54,7 +54,7 @@ const Community = (props) => {
   const source = CancelToken.source();
 
   React.useEffect(() => {
-    console.log("Community Nav has mounted");
+    // console.log("Community Nav has mounted");
     return () => {
       console.log("cleanup community nav")
       source.cancel('Operation has been canceled')

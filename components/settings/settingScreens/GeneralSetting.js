@@ -7,12 +7,13 @@ import { Text, ListItem } from 'react-native-elements';
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
 import { useTheme } from '@react-navigation/native';
 import ThemeText from '../../generic/ThemeText';
+import { capitalize } from '../../utils/strings';
 
 const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS
 
 const GeneralSetting = (props) => {
   const { colors } = useTheme();
-  const { initialChoice, choices, settingsList, updateSettings } = props;
+  const { initialChoice, saveSettings, settingsList, updateSettings } = props;
   console.log(initialChoice);
 
   const [buttonPressed, setButtonPressed] = React.useState(initialChoice.toLowerCase());
@@ -33,7 +34,7 @@ const GeneralSetting = (props) => {
         >
           <ListItem.Content>
             <ListItem.Title>
-              <ThemeText>{item.title}</ThemeText>
+              <ThemeText>{capitalize(item.title)}</ThemeText>
             </ListItem.Title>
             <ListItem.Subtitle>
               <ThemeText>
@@ -42,13 +43,27 @@ const GeneralSetting = (props) => {
             </ListItem.Subtitle>
           </ListItem.Content>
           <ListItem.CheckBox
+            onPress={() => {
+              setButtonPressed(item.title.toLowerCase());
+              updateSettings(item.title.toLowerCase());
+            }}
             checked={buttonPressed === item.title.toLowerCase()}
             checkedColor={colors.textColor}
+            checkedIcon='dot-circle-o'
+            uncheckedIcon='circle-o'
           />
         </ListItem>
       )}
       renderSectionHeader={({ section: { title } }) => (
         <Text style={styles.header}>{title}</Text>
+      )}
+      ListFooterComponent={() => (
+        <TouchableOpacity
+          style={[styles.saveButton, {backgroundColor: colors.button}]}
+          onPress={saveSettings}
+        >
+          <ThemeText>Save Settings</ThemeText>
+        </TouchableOpacity>
       )}
     />
   )
@@ -67,8 +82,15 @@ const styles = StyleSheet.create({
     fontSize: 22,
     backgroundColor: "#fff"
   },
-  scrollContents: {
-
-  },
+  saveButton: {
+    borderRadius: 10,
+    alignSelf: 'center',
+    marginBottom: 10,
+    marginTop: 20, 
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 200,
+    height: 50,
+  }
 })
 export default gestureHandlerRootHOC(GeneralSetting)

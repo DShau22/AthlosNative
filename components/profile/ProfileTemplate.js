@@ -54,7 +54,7 @@ import GeneralSetting from '../settings/settingScreens/GeneralSetting';
 import SettingsMenu from '../settings/settingScreens/SettingsMenu';
 import Spinner from 'react-native-loading-spinner-overlay';
 import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
-
+import Settings from '../settings/Settings';
 const ProfileTemplate = (props) => {
   const userDataContext = React.useContext(UserDataContext)
   const {
@@ -150,7 +150,6 @@ const ProfileTemplate = (props) => {
   const [bestsChoice, setBestsChoice] = React.useState(settings.seeBests);
   const [totalsChoice, setTotalsChoice] = React.useState(settings.seeTotals);
   const [autoSync, setAutoSync] = React.useState(false);
-  const firstUpdate = React.useRef(true);
 
   // cancel token for cancelling Axios requests on unmount
   const CancelToken = axios.CancelToken;
@@ -364,22 +363,16 @@ const ProfileTemplate = (props) => {
           name={GLOBAL_CONSTANTS.SETTINGS}
           options={{ title: 'App Settings' }}
         >
-          {props => (
-            <>
-              {/* <Spinner
-                visible={isLoading}
-                textContent={'Saving...'}
-                textStyle={{color: colors.textColor}}
-              /> */}
-              <SettingsMenu
-                {...props}
-                navigation={props.navigation}
-                saveSettings={saveSettings}
-              />
-            </>
+          {screenProps => (
+            <Settings />
+            // <SettingsMenu
+            //   {...props}
+            //   navigation={props.navigation}
+            //   saveSettings={saveSettings}
+            // />
           )}
         </Stack.Screen>
-        <Stack.Screen name={SETTINGS_CONSTANTS.UNIT_SYSTEM_SETTINGS}>
+        {/* <Stack.Screen name={SETTINGS_CONSTANTS.UNIT_SYSTEM_SETTINGS}>
           {props => (
             <GeneralSetting
               initialChoice={unitDisplayChoice}
@@ -464,11 +457,11 @@ const ProfileTemplate = (props) => {
               </ListItem>
             </>
           )}
-        </Stack.Screen>
+        </Stack.Screen> */}
         {/*============================== settings stuff =======================================*/}
         <Stack.Screen
           name={GLOBAL_CONSTANTS.FITNESS}
-          options={{ title: relationshipStatus === IS_SELF ? 'Your Fitness' : `${profileContext.firstName}'s Fitness` }}
+          options={{ title: relationshipStatus === IS_SELF ? 'Your Activities' : `${profileContext.firstName}'s Activities` }}
         >
           {props => (
             <Fitness

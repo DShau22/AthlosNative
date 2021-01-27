@@ -372,7 +372,7 @@ class BLEHandler {
       }
       // butes 0-6 inclusive are character representation of how many bytes are valid in sadata
       this.totalNumSaDataBytes = calcNumSaDataBytes(readValueInRawBytes);
-      if (this.totalNumSaDataBytes <= 20) {
+      if (this.totalNumSaDataBytes <= 24) {
         // empty sadata
         this._resetReadState();
         this.saDataCompleter.complete(null);
@@ -392,7 +392,7 @@ class BLEHandler {
     });
     if (totalNumBytes != this.numSaDataBytesRead)
       console.log(`num bytes in read buffers ${totalNumBytes} not same as total num bytes read (${this.numSaDataBytesRead})`);
-    if (this.numSaDataBytesRead >= this.totalNumSaDataBytes) {
+    if (0) {
       console.log("done reading...");
       const concatentatedSadata = Buffer.concat(this.readBuffers, totalNumBytes);
       try {

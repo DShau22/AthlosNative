@@ -46,40 +46,51 @@ import PrivacySetting from './settingScreens/PrivacySetting';
 import GeneralSetting from './settingScreens/GeneralSetting';
 import ThemeText from '../generic/ThemeText';
 import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
-
+import {
+  getShouldAutoSync,
+  setShouldAutoSync,
+} from '../utils/storage';
+import {
+  showSnackBar
+} from '../utils/notifications'
+import { List } from 'react-native-paper';
 /**
  * THIS IS NO LONGER USED. ONLY SERVES AS A REFERENCE. ALL SETTINGS STUFF IS HANDLED IN PROFILE TEMPLATE NOW
  */
 
 const Settings = (props) => {
-  const { Stack, navigation } = props;
   const context = React.useContext(UserDataContext);
   const { settings, deviceID, _id } = context;
   const { setAppState } = React.useContext(AppFunctionsContext); 
 
   const [isLoading, setIsLoading] = React.useState(false);
-  const [customSwimUnits, setCustomSwimUnits] = React.useState('Yards');
-  const [currCustomSwimLength, setCurrCustomSwimLength] = React.useState('');
-  const [customSwimLength, setCustomSwimLength] = React.useState(0);
-  const [communityChoice, setCommunityChoice] = React.useState(settings.seeCommunity);
-  const [fitnessChoice, setFitnessChoice] = React.useState(settings.seeFitness);
-  const [basicInfoChoice, setBasicInfoChoice] = React.useState(settings.seeBasicInfo);
-  const [bestsChoice, setBestsChoice] = React.useState(settings.seeBests);
-  const [totalsChoice, setTotalsChoice] = React.useState(settings.seeTotals);
-  const [unitDisplayChoice, setUnitDisplayChoice] = React.useState(settings.unitSystem);
+  // NOT CURRENTLY IN USE
+  // const [customSwimUnits, setCustomSwimUnits] = React.useState('Yards');
+  // const [currCustomSwimLength, setCurrCustomSwimLength] = React.useState('');
+  // const [customSwimLength, setCustomSwimLength] = React.useState(0);
+  // const [communityChoice, setCommunityChoice] = React.useState(settings.seeCommunity);
+  // const [fitnessChoice, setFitnessChoice] = React.useState(settings.seeFitness);
+  // const [basicInfoChoice, setBasicInfoChoice] = React.useState(settings.seeBasicInfo);
+  // const [bestsChoice, setBestsChoice] = React.useState(settings.seeBests);
+  // const [totalsChoice, setTotalsChoice] = React.useState(settings.seeTotals);
   const [swimLengthChoice, setSwimLengthChoice] = React.useState(settings.poolLength);
+
+  const [unitDisplayChoice, setUnitDisplayChoice] = React.useState(settings.unitSystem);
+  const [autoSync, setAutoSync] = React.useState(false);
 
   // cancel token for cancelling Axios requests on unmount
   const CancelToken = axios.CancelToken;
   const source = CancelToken.source();
 
   React.useEffect(() => {
-    console.log("Community Nav has mounted");
+    getShouldAutoSync().then(bool => {
+      setAutoSync(bool);
+    });
     return () => {
       console.log("Settings requests are being canceled")
       source.cancel('Operation has been canceled')
     };
-  }, [])
+  }, []);
 
   const saveSettings = () => {
     const asyncSaveSettings = async () => {
@@ -104,16 +115,15 @@ const Settings = (props) => {
           headers: { 'Content-Type': 'application/json' },
           cancelToken: source.token
         }
-        console.log(bestsChoice, totalsChoice)
         var res = await axios.post(ENDPOINTS.updateSettings, {
           userToken: token,
-          seeCommunity: communityChoice,
-          seeFitness: fitnessChoice,
-          seeBests: bestsChoice,
-          seeTotals: totalsChoice,
-          seeBasicInfo: basicInfoChoice,
+          // seeCommunity: communityChoice,
+          // seeFitness: fitnessChoice,
+          // seeBests: bestsChoice,
+          // seeTotals: totalsChoice,
+          // seeBasicInfo: basicInfoChoice,
+          // poolLength: swimLengthChoice,
           unitSystem: unitDisplayChoice,
-          poolLength: swimLengthChoice
         }, config)
         var json = res.data
         console.log("axios response: ", json)
@@ -160,8 +170,57 @@ const Settings = (props) => {
     asyncSaveSettings();
   }
 
+  const forgetEarbuds = () => {
+    Alert.alert(
+      'Are you sure?',
+      "You'll have to relink another pair on the sync tab.",
+      [
+        {
+          text: 'Cancel',
+        },
+        {
+          text: 'Yes',
+          onPress: async () => {
+            console.log("", deviceID);
+            if (deviceID.length === 0) {
+              Alert.alert(
+                "Whoops",
+                "Looks like you don't actually have any Athlos earbuds linked to this account",
+                [{text: "Okay"}]);
+                return;
+            }
+            setIsLoading(true);
+            try {
+              const res = await axios.post(ENDPOINTS.updateDeviceID, {
+                userID: _id,
+                deviceID: "",
+              });
+              if (!res.data.success)
+                throw new Error(res.data.message);
+              const newState = {...context, deviceID: ""}
+              GlobalBleHandler.setID("");
+              await setAppState(newState);
+              Alert.alert(
+                "All Done!",
+                "Successfully unlinked your Athlos earbuds from this account.",
+              [{text: "Okay"}]);
+            } catch(e) {
+              console.log(e);
+              Alert.alert(
+                "Whoops",
+                "Something went wrong with the network request. Please try again.",
+                [{text: "Okay"}]);
+            } finally {
+              setIsLoading(false);
+            }
+          },
+        },
+      ],
+    );
+  }
+
   // for navigating to each setting page
-  // const Stack = createStackNavigator();
+  const Stack = createStackNavigator();
   // if the firstname in the context is blank then it hasnt finished populating yet
   if (!context.firstName) {
     return ( <LoadingScreen/>)
@@ -175,14 +234,106 @@ const Settings = (props) => {
           textContent={'Saving...'}
           textStyle={styles.spinnerTextStyle}
         />
-        {/* <Stack.Navigator> */}
+        <Stack.Navigator
+          headerMode='none'
+        >
         {/* <SettingsMenu navigation={navigation} saveSettings={saveSettings}/> */}
           <Stack.Screen
             name={SETTINGS_MENU}
             options={{ title: "Your Settings" }}
           >
-            {props => <SettingsMenu {...props} navigation={navigation} saveSettings={saveSettings}/>}
+            {screenProps => 
+              <View style={{flex: 1}}>
+                <SettingsMenu {...screenProps} saveSettings={saveSettings}/>
+              </View>
+            }
           </Stack.Screen>
+          <Stack.Screen name={SETTINGS_CONSTANTS.UNIT_SYSTEM_SETTINGS}>
+          {props => (
+            <GeneralSetting
+              initialChoice={unitDisplayChoice}
+              settingsList={UNIT_SYSTEM_SETTINGS_LIST}
+              updateSettings={setUnitDisplayChoice}
+              saveSettings={saveSettings}
+            />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name={SETTINGS_CONSTANTS.DEVICE_SETTINGS} options={{title: "Athlos device settings"}}>
+          {props => (
+            <>
+              <ListItem 
+                containerStyle={{backgroundColor: colors.backgroundColor}}
+                topDivider
+                bottomDivider
+                onPress={forgetEarbuds}
+              >
+                <ListItem.Content>
+                  <ListItem.Title>
+                    <ThemeText>Forget Earbuds</ThemeText>
+                  </ListItem.Title>
+                  <ListItem.Subtitle>
+                    <ThemeText>
+                      Unlinks your current Athlos earbuds from this device.
+                      You'll have to relink another pair on the sync tab.
+                    </ThemeText>
+                  </ListItem.Subtitle>
+                </ListItem.Content>
+                <ListItem.Chevron />
+              </ListItem>
+              <ListItem 
+                containerStyle={{backgroundColor: colors.backgroundColor}}
+                topDivider
+                bottomDivider
+                onPress={() => {
+                  // setIsLoading(true);
+                  setShouldAutoSync(!autoSync).then(() => {
+                    const oldAutoSync = autoSync;
+                    setAutoSync(!autoSync);
+                    console.log("old auto sync: ", oldAutoSync)
+                    if (oldAutoSync) {
+                      GlobalBleHandler.stopScan();
+                    } // previously true means it's now false
+                    showSnackBar(`Auto sync ${oldAutoSync ? 'disabled' : 'enabled'}. Restart the app for the effects to be enabled`);
+                    // setIsLoading(false);
+                  })
+                }}
+              >
+                <ListItem.Content>
+                  <ListItem.Title>
+                    <ThemeText>Enable Auto-sync</ThemeText>
+                  </ListItem.Title>
+                  <ListItem.Subtitle>
+                    <ThemeText>
+                      Auto-sync causes your mobile device to automatically sync with your 
+                      Athlos earbuds when they are scanning for devices. We'll notify you 
+                      once auto-sync succeeds, and you can still manually sync with the sync 
+                      tab if auto-sync is taking too long or fails.
+                    </ThemeText>
+                  </ListItem.Subtitle>
+                </ListItem.Content>
+                <ListItem.CheckBox
+                  checked={autoSync}
+                  checkedColor={colors.textColor}
+                  checkedIcon='dot-circle-o'
+                  uncheckedIcon='circle-o'
+                  onPress={() => {
+                    // setIsLoading(true);
+                    setShouldAutoSync(!autoSync).then(() => {
+                      const oldAutoSync = autoSync;
+                      setAutoSync(!autoSync);
+                      console.log("old auto sync: ", oldAutoSync)
+                      if (oldAutoSync) {
+                        GlobalBleHandler.stopScan();
+                      } // previously true means it's now false
+                      showSnackBar(`Auto sync ${oldAutoSync ? 'disabled' : 'enabled'}. Restart the app for the effects to be enabled`);
+                      // setIsLoading(false);
+                    })
+                  }}
+                />
+              </ListItem>
+            </>
+          )}
+        </Stack.Screen>
           {/* <Stack.Screen name={SWIM_SETTINGS}>
             {props => (
               <GeneralSetting
@@ -239,7 +390,7 @@ const Settings = (props) => {
               />
             )}
           </Stack.Screen> */}
-        {/* </Stack.Navigator> */}
+        </Stack.Navigator>
       </SettingsContext.Provider>
     )
   }

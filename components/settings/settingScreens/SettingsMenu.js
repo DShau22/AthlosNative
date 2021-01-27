@@ -7,11 +7,14 @@ import { useTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useFocusEffect } from '@react-navigation/native';
 
-import { UserDataContext, SettingsContext } from "../../../Context";
+import { AppContext } from "../../../Context";
 import LoadingScreen from "../../generic/LoadingScreen";
 import SETTINGS_CONSTANTS from '../SettingsConstants';
 import ThemeText from '../../generic/ThemeText';
 import { Platform } from 'react-native';
+import { logOut } from '../../utils/storage';
+import GlobalBleHandler from '../../bluetooth/GlobalBleHandler';
+import { showSnackBar } from '../../utils/notifications';
 
 const {
   COMMUNITY_SETTINGS,
@@ -25,7 +28,7 @@ const {
 } = SETTINGS_CONSTANTS
 
 const SettingsMenu = (props) => {
-  const settingsContext = React.useContext(SettingsContext);
+  const setToken = React.useContext(AppContext);
   const { colors } = useTheme();
   const settingsList = [
     {
@@ -67,7 +70,7 @@ const SettingsMenu = (props) => {
     },
   ]
   return (
-    <SafeAreaView style={[styles.container, {backgroundColor: colors.background}]}>
+    <SafeAreaView style={[styles.container, {flex: 1}]}>
       <SectionList
         sections={settingsList}
         renderSectionHeader={({section}) => {
@@ -84,7 +87,7 @@ const SettingsMenu = (props) => {
             key={item.title}
             bottomDivider
             topDivider
-            onPress={() => {
+            onPress={async () => {
               props.navigation.navigate(item.title)
             }}
           >
@@ -95,13 +98,44 @@ const SettingsMenu = (props) => {
             <ListItem.Chevron color={colors.textColor}/>
           </ListItem>
         )}
+        ListFooterComponent={() => (
+          <ListItem
+            topDivider
+            bottomDivider
+            containerStyle={{backgroundColor: colors.backgroundColor}}
+            onPress={() => {
+              Alert.alert(
+                "Sign out?",
+                "You'll be logged out of your account on this device",
+                [
+                  {text: 'Cancel'},
+                  {
+                    text: 'Okay',
+                    onPress: async () => {
+                      try {
+                        await GlobalBleHandler.uploadToServer();
+                        await logOut();
+                        setToken("");
+                      } catch(e) {
+                        console.log(e);
+                        showSnackBar(`Something went wrong with the sign out process. Please try again later and make sure your interent connection is strong ${e}`);
+                      }
+                    }
+                  }
+                ]
+
+              )
+            }}
+          >
+            <ListItem.Content>
+              <ListItem.Title>
+                <ThemeText>Sign Out</ThemeText>
+              </ListItem.Title>
+            </ListItem.Content>
+            <ListItem.Chevron />
+          </ListItem>
+        )}
       />
-      <TouchableOpacity
-        style={[styles.saveButton, {backgroundColor: colors.button}]}
-        onPress={props.saveSettings}
-      >
-        <ThemeText>Save Settings</ThemeText>
-      </TouchableOpacity>
     </SafeAreaView>
   )
 }
