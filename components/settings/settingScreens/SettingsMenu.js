@@ -37,7 +37,7 @@ const SettingsMenu = (props) => {
         },
         {
           title: DEVICE_SETTINGS,
-          subtitle: 'Unlink your Athlos earbuds',
+          subtitle: 'Unlink your earbuds or change auto-syncing',
         },
         // {
         //   title: SWIM_SETTINGS,

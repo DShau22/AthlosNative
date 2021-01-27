@@ -116,7 +116,8 @@ const SignUp = ({navigation}) => {
           email,
           firstName,
           lastName,
-          username
+          username,
+          deviceID: "",
         }),
       })
       var json = await res.json();

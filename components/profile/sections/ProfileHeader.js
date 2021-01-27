@@ -33,6 +33,7 @@ import FollowerButton from '../actionButtons/FollowerButton'
 import SelfButton from '../actionButtons/SelfButton'
 import UnrelatedButton from '../actionButtons/UnrelatedButton'
 import FollowingButton from '../actionButtons/FollowingButton'
+import { capitalize } from '../../utils/strings';
 
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 EvilIcons.loadFont();
@@ -66,7 +67,7 @@ const ProfileHeader = (props) => {
     lastName: lastName,
     profilePicUrl: profilePicture.profileURL
   }
-  console.log('user info: ', searchUserInfo)
+  // console.log('user info: ', searchUserInfo)
   // tracks whether or not the user tapped on the friend action button
   // button will be disabled or will load after this
   const [buttonLoading, setButtonLoading] = React.useState(false)
@@ -115,10 +116,6 @@ const ProfileHeader = (props) => {
     </TouchableOpacity>
   )
 
-  const renderModals = () => {
-
-  }
-
   return (
     <View style={[styles.container]}>
       <TouchableOpacity
@@ -133,7 +130,7 @@ const ProfileHeader = (props) => {
         <View style={styles.imageContainer}>
           <Image 
             style={styles.profilePic}
-            source={{uri: profileURL}}
+            source={profileURL.length > 0 ? {uri: profileURL} : require('../../assets/default_profile.png')}
             // defaultSource={{uri: imgAlt}}
           />
         </View>
@@ -143,7 +140,7 @@ const ProfileHeader = (props) => {
           { renderCommunityButton(COMMUNITY_CONSTANTS.RIVALS, rivals.length, 'Rivals') }
         </View> */}
       </View>
-      <Text h4 style={[styles.nameText, {color: colors.textColor}]}>{`${firstName} ${lastName}`}</Text>
+      <Text h4 style={[styles.nameText, {color: colors.textColor}]}>{`${capitalize(firstName)} ${capitalize(lastName)}`}</Text>
       {/* {relationshipMap[relationshipStatus]} */}
       {/* <Button
         title={relationshipMap[relationshipStatus].initText}

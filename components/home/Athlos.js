@@ -1,10 +1,13 @@
 import * as React from 'react';
-import { Text, View, StyleSheet, Alert, ScrollView, SafeAreaView } from 'react-native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Text, View, StyleSheet, Alert, ScrollView, } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+// import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
+
 import {
   getData,
-  getDeviceId,
-  setDeviceId,
+  getShouldAutoSync,
+  setShouldAutoSync,
   storeDataObj,
   getDataObj,
   needsFitnessUpdate,
@@ -19,6 +22,17 @@ import {
   parseDate,
   sameDate,
 } from "../utils/dates";
+
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+MaterialCommunityIcons.loadFont();
+import Ionicons from 'react-native-vector-icons/Ionicons';
+Ionicons.loadFont();
+import Feather from 'react-native-vector-icons/Feather';
+Feather.loadFont();
+
+import { showSnackBar } from '../utils/notifications';
+import BLUETOOTH_CONSTANTS from '../bluetooth/BluetoothConstants';
+const {STOP_SCAN_ERR} = BLUETOOTH_CONSTANTS;
 import LoadingSpin from '../generic/LoadingSpin';
 import Fitness from "../fitness/Fitness";
 import { UserDataContext, AppFunctionsContext } from "../../Context";
@@ -46,8 +60,10 @@ const {
   NUM_WEEKS_IN_PAST
 } = FITNESS_CONTANTS;
 import ThemeText from '../generic/ThemeText';
+import { useTheme } from '@react-navigation/native';
 
 function Athlos(props) {
+  const { colors } = useTheme();
   const [isLoading, setIsLoading] = React.useState(true);
   const [isError, setIsError] = React.useState(false); // controls when to set an error screen
   // const [rivals, setRivals] = React.useState([]);
@@ -118,12 +134,12 @@ function Athlos(props) {
       // first check if info is in Async storage
       const token = await getData();
       const userData = await getDataObj();
-      console.log("user data: ", userData);
+      // console.log("user data: ", userData);
       if (!token) {
         console.log("This is weird. Somehow log them out and redirect to login page")
       }
       if (userData && userData._id.length > 0) {
-        console.log("there is valid data is async storage");
+        // console.log("there is valid data is async storage");
         // console.log("setting state in beginning of use effect: ", userData);
         setState(userData);
         setIsLoading(false);
@@ -151,17 +167,26 @@ function Athlos(props) {
       }
       const deviceID = userData ? userData.deviceID : state.deviceID;
       GlobalBleHandler.setID(deviceID);
-      try {
-        await GlobalBleHandler.scanAndConnect();
-        await GlobalBleHandler.uploadToServer();
-        console.log("successfully read and saved sadata bytes");
-      } catch(e) {
-        console.log("error scanning and connecting: ", e);
+      if ((await getShouldAutoSync())) {
+        try {
+          showSnackBar("Auto-syncing...", 'length_long', "Okay");
+          await GlobalBleHandler.scanAndConnect();
+          console.log("successfully read and saved sadata bytes");
+          await GlobalBleHandler.uploadToServer();
+          showSnackBar("Successfully auto-synced with your Athlos earbuds. Your activity records should be ready in a minute :]");
+        } catch(e) {
+          console.log("error scanning and connecting: ", e);
+          if (e.toString() === STOP_SCAN_ERR) {
+            showSnackBar("Stopped auto-syncing");
+          } else {
+            showSnackBar("Failed to auto-sync with your Athlos earbuds. ", e);
+          }
+        }
       }
       try {
         console.log("updating local user fitness after scan and connect finishes in athlos component");
         await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
-        await updateLocalUserInfo() // no promise.all to avoid race conditions with updating the state
+        await updateLocalUserInfo(); // no promise.all to avoid race conditions with updating the state
       } catch(e) {
         console.log('error updating local user info after scanning and connecting: ', e);
       }
@@ -179,8 +204,6 @@ function Athlos(props) {
       GlobalBleHandler.reinit();
     }
   }, []);
-  console.log("last monday: ", getLastMonday());
-  console.log("next sunday: ", getNextSunday());
 
   React.useEffect(() => {
     // console.log("use effect with state: ", state);
@@ -196,7 +219,7 @@ function Athlos(props) {
     const lastMonday = getLastMonday();
     const needsThisWeekData = await needsFitnessUpdate();
     if (sameDate(lastUpdated, lastMonday) && !needsThisWeekData) {
-      console.log("fitness already fully updated: ", parseDate(lastUpdated));
+      // console.log("fitness already fully updated: ", parseDate(lastUpdated));
       return {
         success: true,
         activityData: [] // no additional activityData to append
@@ -298,9 +321,9 @@ function Athlos(props) {
       setState(newState);
       await setNeedsFitnessUpdate(false);
     } else {
-      console.log("additional swim data: ", additionalSwimData);
-      console.log("additional run data: ", additionalRunData);
-      console.log("additional jump data: ", additionalJumpData);
+      // console.log("additional swim data: ", additionalSwimData);
+      // console.log("additional run data: ", additionalRunData);
+      // console.log("additional jump data: ", additionalJumpData);
       throw new Error("failed to get all user info");
     }
   }
@@ -330,19 +353,19 @@ function Athlos(props) {
     // for the remaining weeks in the prev activity data, only add weeks that are older than mondayDate
     var idxToStartAddingFrom = 0;
     var currMondayDate = prevActivityData[0][0].uploadDate;
-    console.log(currMondayDate, newActivityData.length);
+    // console.log(currMondayDate, newActivityData.length);
     while (mondayDate <= currMondayDate) {
       idxToStartAddingFrom += 1;
       console.log(currMondayDate, idxToStartAddingFrom);
       currMondayDate = prevActivityData[idxToStartAddingFrom][0].uploadDate;
     }
-    console.log(idxToStartAddingFrom);
-    console.log(NUM_WEEKS_IN_PAST - newActivityData.length);
+    // console.log(idxToStartAddingFrom);
+    // console.log(NUM_WEEKS_IN_PAST - newActivityData.length);
     const newWeeksAddedSoFar = newActivityData.length;
     for (let i = 0; i < NUM_WEEKS_IN_PAST - newWeeksAddedSoFar; i++) {
       newActivityData.push(prevActivityData[i + idxToStartAddingFrom]);
     }
-    console.log(newActivityData.length);
+    // console.log(newActivityData.length);
     return newActivityData;
   }
 
@@ -389,49 +412,79 @@ function Athlos(props) {
     }
   }
 
-  const BottomTab = createBottomTabNavigator();
-  console.log("Athlos context: ", state);
+  // const BottomTab = createBottomTabNavigator();
+  const BottomTab = createMaterialBottomTabNavigator();
+  // console.log("Athlos context: ", state);
   if (isError) {
     return (<View><Text>shit something went wrong with the server :(</Text></View>)
   }
   return (
-    <UserDataContext.Provider value={state}>
-      <AppFunctionsContext.Provider
-        value={{
-          setAppState: async (newState) => {
-            setState(newState);
-            storeDataObj(newState);
-          },
-          updateLocalUserInfo,
-          updateLocalUserFitness,
-        }}
-      >
-      { isLoading ? <View style={styles.container}><LoadingSpin/></View> : 
-        <>
-          <WelcomeModal
-            isVisible={showWelcomeModal}
-            setVisible={setShowWelcomeModal}
-          />
-          <BottomTab.Navigator>
-            {/* <BottomTab.Screen name={HOME} component={Home} /> */}
-            {/* <BottomTab.Screen name={PROFILE}>
-              {props => <Profile {...props} initialId={state._id}/>}
-            </BottomTab.Screen> */}
-            <BottomTab.Screen name={PROFILE} component={Profile} initialParams={{_id: state._id,}} />
-            {/* <BottomTab.Screen name={FITNESS} component={Fitness} initialParams={{_id: state._id,}} /> */}
-            {/* something like this for passing the navigation props and other props too */}
-            {/* <Stack.Screen name={COMMUNITY_CONSTANTS.COMMUNITY}>
-              {(props) => <CommunityNav {...props} />}
-            </Stack.Screen> */}
-            {/* <BottomTab.Screen name={SETTINGS} component={Settings} /> */}
-            {/* <BottomTab.Screen name={COMMUNITY} component={Community} /> */}
-            <BottomTab.Screen name={DEVICE_CONFIG} component={DeviceConfig} />
-            <BottomTab.Screen name={SYNC} component={SADataSync} />
-          </BottomTab.Navigator>
-        </>
-      }
-      </AppFunctionsContext.Provider>
-    </UserDataContext.Provider>
+    <SafeAreaProvider>
+      <UserDataContext.Provider value={state}>
+        <AppFunctionsContext.Provider
+          value={{
+            setAppState: async (newState) => {
+              setState(newState);
+              storeDataObj(newState);
+            },
+            updateLocalUserInfo,
+            updateLocalUserFitness,
+          }}
+        >
+        { isLoading ? <View style={styles.container}><LoadingSpin/></View> : 
+          <SafeAreaView style={{flex: 1}}>
+            <WelcomeModal
+              isVisible={showWelcomeModal}
+              setVisible={setShowWelcomeModal}
+            />
+            <BottomTab.Navigator barStyle={{
+              backgroundColor: colors.header,
+            }}>
+              {/* <BottomTab.Screen name={HOME} component={Home} /> */}
+              {/* <BottomTab.Screen name={PROFILE}>
+                {props => <Profile {...props} initialId={state._id}/>}
+              </BottomTab.Screen> */}
+              <BottomTab.Screen
+                name={PROFILE}
+                component={Profile}
+                initialParams={{_id: state._id,}}
+                options={{
+                  tabBarIcon: ({ color }) => (
+                    <MaterialCommunityIcons name="account" color={color} size={26} />
+                  ),
+                }}
+              />
+              {/* <BottomTab.Screen name={FITNESS} component={Fitness} initialParams={{_id: state._id,}} /> */}
+              {/* something like this for passing the navigation props and other props too */}
+              {/* <Stack.Screen name={COMMUNITY_CONSTANTS.COMMUNITY}>
+                {(props) => <CommunityNav {...props} />}
+              </Stack.Screen> */}
+              {/* <BottomTab.Screen name={SETTINGS} component={Settings} /> */}
+              {/* <BottomTab.Screen name={COMMUNITY} component={Community} /> */}
+              <BottomTab.Screen
+                name={DEVICE_CONFIG}
+                component={DeviceConfig}
+                options={{
+                  tabBarIcon: ({ color }) => (
+                    <Ionicons name="options" color={color} size={26} />
+                  ),
+                }}
+              />
+              <BottomTab.Screen
+                name={SYNC}
+                component={SADataSync}
+                options={{
+                  tabBarIcon: ({ color }) => (
+                    <Feather name="bluetooth" color={color} size={26} />
+                  ),
+                }}
+              />
+            </BottomTab.Navigator>
+          </SafeAreaView>
+        }
+        </AppFunctionsContext.Provider>
+      </UserDataContext.Provider>
+    </SafeAreaProvider>
   )
 }
 

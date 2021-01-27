@@ -6,6 +6,8 @@ import {
   removeFitnessRecords,
   getData
 } from '../utils/storage';
+import BLUETOOTH_CONSTANTS from './BluetoothConstants';
+const {STOP_SCAN_ERR} = BLUETOOTH_CONSTANTS;
 import ENDPOINTS from '../endpoints';
 const Buffer = require('buffer/').Buffer;
 const SERVICE_UUID = 'e49a25f0-f69a-11e8-8eb2-f2801f1b9fd1';
@@ -33,22 +35,22 @@ class DataItem {
 
 // destroying manager must be handled OUTSIDE this class (in case we setup manager, then navigate away before we are able to construct this class)
 class BLEHandler {
-  static MAX_PKG_LEN = 200;
+  static MAX_PKG_LEN = 180;
   static METADATA_SIZE = 5;
   constructor(manager) {
     this.readSubscription = null;
     this.scanSubscription = null;
-    this.registerCompleter = null;
     this.disconnectSubscription = null;
     this.manager = manager;
     this.device = null;
     this.userDeviceID = ""; // the device id that belongs to this particular user. Stored in Mongo
-
+    
     this.sainit = null;
     
     this.writePkgId = 0;
     this.lastPkgId = null; // for validating response packets
-
+    
+    this.registerCompleter = null;
     this.saDataCompleter = null // completer for when device is connected and sadata is read
     this.resCompleter = null; // completer for the next expected response
     this.currItem = null; // current item that we are trying to send
@@ -100,6 +102,7 @@ class BLEHandler {
   }
 
   setID(userDeviceID) {
+    console.log("setting new device id to: ", userDeviceID);
     this.userDeviceID = userDeviceID;
   }
 
@@ -140,6 +143,7 @@ class BLEHandler {
    * Stops scanning for devices. Must call scanAndConnect again to restart it
    */
   stopScan() {
+    console.log("stopping scan", this.saDataCompleter);
     if (this.readSubscription) {
       this.readSubscription.remove()
     }
@@ -151,7 +155,8 @@ class BLEHandler {
       this.scanSubscription = null;
     }
     if (this.saDataCompleter && !this.saDataCompleter.hasFinished()) {
-      this.saDataCompleter.error("stopped scan");
+      console.log("completer erroring");
+      this.saDataCompleter.error(STOP_SCAN_ERR);
     }
   }
 
@@ -203,6 +208,9 @@ class BLEHandler {
    * with a resolve value of the session bytes Buffer
    */
   async scanAndConnect() {
+    if (!this.userDeviceID || this.userDeviceID.length === 0) {
+      throw new Error("Athlos device has not been linked yet");
+    }
     this.stopScan();
     this.saDataCompleter = new Completer();
     this.scanSubscription = this.manager.onStateChange(async state => {
@@ -221,7 +229,7 @@ class BLEHandler {
    */
   async _scanAndConnect() {
     await this.disconnect();
-    console.log("scanning and connecting...", this.userDeviceID);
+    console.log("scanning and connecting for id: ", this.userDeviceID);
     this.manager.startDeviceScan(null, null, async (error, device) => {
       if (error) {
         // Handle error (scanning will be stopped automatically)
@@ -250,7 +258,7 @@ class BLEHandler {
           const connectedDevice = await device.connect();
           const deviceWithServices = await connectedDevice.discoverAllServicesAndCharacteristics();
           this.device = deviceWithServices;
-          console.log("connected...");
+          console.log("connected to device with MTU: ", this.device.mtu);
           // ADD ON DISCONNECT HERE
           this.disconnectSubscription = this.device.onDisconnected((err, device) => {
             console.log("device disconnected: ", err);
@@ -294,6 +302,8 @@ class BLEHandler {
       readChar.isNotifying = true;
       var readValueInRawBytes = Buffer.from(c.value, 'base64');
       console.log("Buffer contents: ", readValueInRawBytes);
+      console.log("Buffer contents length: ", readValueInRawBytes.length);
+      console.log("Buffer contents readable value: ", readValueInRawBytes.toString('utf8'));
       const len = readValueInRawBytes.length;
       try {
         if (len === 2) {
@@ -401,6 +411,10 @@ class BLEHandler {
    */
   async uploadToServer() {
     const sessionByteList = await getFitnessBytes(); // list of utf8 encoded sadata bytes in async storage
+    if (sessionByteList === null) {
+      console.log("session byte list is null");
+      return;
+    }
     const userToken = await getData();
     const config = {
       headers: { 'Content-Type': 'application/json' },
@@ -424,13 +438,13 @@ class BLEHandler {
       if (resJson.success) {
         recordIndexesToRemove.push(i);
         // successfully updated this session byte record, so we can remove it now.
-        const test = await getFitnessBytes();
-        console.log("fitness bytes after removing: ", test);
       } else {
         console.log("failed: ", resJson.message);
       }
     }
     await removeFitnessRecords(recordIndexesToRemove);
+    const test = await getFitnessBytes();
+    console.log("fitness bytes after removing: ", test);
     await setNeedsFitnessUpdate(atLeastOneSuccess && promiseResults.length > 0);
   }
 
@@ -447,7 +461,6 @@ class BLEHandler {
     const len = readValueInRawBytes.length;
     const pkgId = readValueInRawBytes[len - 2];
     console.log("num bytes: ", len);
-    console.log("readable value: ", readValueInRawBytes.toString('utf8'));
     console.log("below is all the stuff in base 64");
     console.log('checkSum: ', readValueInRawBytes[len - 1]);
     console.log('package id: ', pkgId);

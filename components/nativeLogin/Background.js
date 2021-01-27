@@ -70,7 +70,7 @@ const Background = ({ navigation }) => {
   )
 }
 
-const {height} = Dimensions.get("screen");
+const { height} = Dimensions.get("screen");
 const height_logo = height * 0.28;
 
 const styles = StyleSheet.create({
@@ -80,14 +80,14 @@ const styles = StyleSheet.create({
   header: {
     flex: 2,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   footer: {
     height: '45%',
   },
   logo: {
-    width: height_logo,
-    height: height_logo
+    width: 270,
+    height: 210,
   },
   title: {
     marginLeft: 30,

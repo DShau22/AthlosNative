@@ -2,11 +2,26 @@
 const TOKEN_KEY =  "token_key"; // login token key
 const DATA_KEY = "data_key"; // app context/user data key
 const FITNESS_KEY = 'fitness_key'; // key for the queue of fitness raw data from earbuds
-const DEVICE_ID_KEY = 'device_id_key';
+const DEVICE_ID_KEY = 'device_id_key'; // key for string of the device id. Currently not used in the actual App
 const FITNESS_UPDATE_KEY = 'fitness_update_key'; // key of boolean to see if user fitness needs an update or not
-const FIRST_TIME_LOGIN_KEY = 'first time login key';
+const FIRST_TIME_LOGIN_KEY = 'first time login key'; // key of boolean to see if this is the user's first time logging on or after logging out
+const AUTO_SYNC_KEY = 'should auto sync?'; // key for if the user wants to auto sync with this device or not
 const socketStorageKey = "socket";
 import AsyncStorage from '@react-native-community/async-storage';
+
+const getShouldAutoSync = async () => {
+  const res = await AsyncStorage.getItem(AUTO_SYNC_KEY);
+  console.log("should auto sync: ", res);
+  return res;
+}
+
+const setShouldAutoSync = async (bool) => {
+  if (bool) {
+    await AsyncStorage.setItem(AUTO_SYNC_KEY, JSON.stringify(true));
+  } else {
+    await AsyncStorage.removeItem(AUTO_SYNC_KEY);
+  }
+}
 
 const getFirstTimeLogin = async () => {
   const firstTime = await AsyncStorage.getItem(FIRST_TIME_LOGIN_KEY);
@@ -162,6 +177,8 @@ module.exports = {
   DATA_KEY,
   getDeviceId,
   setDeviceId,
+  getShouldAutoSync,
+  setShouldAutoSync,
   needsFitnessUpdate,
   setNeedsFitnessUpdate,
   getFirstTimeLogin,

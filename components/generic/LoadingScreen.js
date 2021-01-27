@@ -1,14 +1,19 @@
+import { useTheme } from '@react-navigation/native';
 import React, { Component } from 'react';
 import { Text, View } from 'react-native';
+import Spinner from 'react-native-loading-spinner-overlay';
 
-class LoadingScreen extends Component {
-  render() {
-    return (
-      <View style={styles}>
-        <Text>Loading...</Text>
-      </View>
-    )
-  }
+export default function LoadingScreen(props) {
+  const { colors } = useTheme();
+  return (
+    <View style={styles}>
+      <Spinner
+        visible={true}
+        textContent={props.text}
+        textStyle={{color: colors.textColor}}
+      />
+    </View>
+  )
 }
 
 const styles = {
@@ -16,5 +21,3 @@ const styles = {
   justifyContent: 'center',
   alignItems: 'center'
 }
-
-export default LoadingScreen

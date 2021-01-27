@@ -20,7 +20,7 @@ import FITNESS_CONTANTS from '../fitness/FitnessConstants'
 export default function withFitnessPage( WrappedComponent ) {  
   const WithFitnessPage = (props) => {
     const [weekIndex, setWeekIndex] = React.useState(0);
-    const [dayIndex, setDayIndex] = React.useState(0);
+    const [dayIndex, setDayIndex] = React.useState(((new Date()).getDay()+6) % 7); // set the day index to be the date of today
 
     const [weeklyGraphLabels, setWeeklyGraphLabels] = React.useState([]);
     const [weeklyGraphData, setWeeklyGraphData] = React.useState([]);

@@ -5,6 +5,12 @@ Runnning on iOS:
 Running on Android:
   Open Android studio, go to configure > AVD manager, and launch a device emulator
   Run npx react-native run-android
+  To run on an Android phone, make sure developer mode is enabled. Then run the adb reverse command below
+  and then react-native run-android.
+
+Running on iOS phone:
+  Open ios/athlosNative.xcworkspace with XCode. Then click Product > Run. Instructions are here:
+  https://reactnative.dev/docs/running-on-device
 
 Any new screens created should be wrapped in the gestureHandlerRootHOC Higher order component
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';

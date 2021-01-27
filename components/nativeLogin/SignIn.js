@@ -176,10 +176,10 @@ const SignIn = ({ navigation }) => {
       >
         <Text style={[styles.text_footer, {
           color: colors.text
-        }]}>Username</Text>
+        }]}>Email</Text>
         <View style={styles.action}>
-          <FontAwesome 
-            name="user-o"
+          <Feather 
+            name="mail"
             color={colors.text}
             size={20}
           />

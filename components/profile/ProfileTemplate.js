@@ -27,7 +27,14 @@ const {
   IS_FOLLOWING,
   IS_FOLLOWER_PENDING,
   IS_FOLLOWING_PENDING,
-} = PROFILE_CONSTANTS
+} = PROFILE_CONSTANTS;
+import {
+  getShouldAutoSync,
+  setShouldAutoSync,
+} from '../utils/storage';
+import {
+  showSnackBar
+} from '../utils/notifications'
 import GLOBAL_CONSTANTS from '../GlobalConstants'
 const { METRIC, ENGLISH, EVERYONE, FOLLOWERS, ONLY_ME } = GLOBAL_CONSTANTS
 import Community from '../community/Community'
@@ -48,9 +55,6 @@ import SettingsMenu from '../settings/settingScreens/SettingsMenu';
 import Spinner from 'react-native-loading-spinner-overlay';
 import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
 
-// replace with default avatar link
-const imgAlt = "./default_profile.png"
-
 const ProfileTemplate = (props) => {
   const userDataContext = React.useContext(UserDataContext)
   const {
@@ -69,6 +73,7 @@ const ProfileTemplate = (props) => {
     onRefresh,
     rootNav,
   } = props;
+  const [isLoading, setIsLoading] = React.useState(false);
   const { settings } = profileContext
   const { colors } = useTheme();
 
@@ -137,7 +142,6 @@ const ProfileTemplate = (props) => {
   const context = React.useContext(UserDataContext);
   const { setAppState } = React.useContext(AppFunctionsContext); 
 
-  const [isLoading, setIsLoading] = React.useState(false);
   const [unitDisplayChoice, setUnitDisplayChoice] = React.useState(settings.unitSystem);
   // NOT IN USE AT THE MOMENT FOR SETTINGS
   const [communityChoice, setCommunityChoice] = React.useState(settings.seeCommunity);
@@ -145,17 +149,22 @@ const ProfileTemplate = (props) => {
   const [basicInfoChoice, setBasicInfoChoice] = React.useState(settings.seeBasicInfo);
   const [bestsChoice, setBestsChoice] = React.useState(settings.seeBests);
   const [totalsChoice, setTotalsChoice] = React.useState(settings.seeTotals);
+  const [autoSync, setAutoSync] = React.useState(false);
+  const firstUpdate = React.useRef(true);
 
   // cancel token for cancelling Axios requests on unmount
   const CancelToken = axios.CancelToken;
   const source = CancelToken.source();
 
   React.useEffect(() => {
+    getShouldAutoSync().then(bool => {
+      setAutoSync(bool);
+    });
     return () => {
       console.log("Settings requests are being canceled")
       source.cancel('Operation has been canceled')
     };
-  }, [])
+  }, []);
 
   const saveSettings = () => {
     const asyncSaveSettings = async () => {
@@ -233,11 +242,65 @@ const ProfileTemplate = (props) => {
     asyncSaveSettings();
   }
 
+  const forgetEarbuds = () => {
+    Alert.alert(
+      'Are you sure?',
+      "You'll have to relink another pair on the sync tab.",
+      [
+        {
+          text: 'Cancel',
+        },
+        {
+          text: 'Yes',
+          onPress: async () => {
+            console.log("", deviceID);
+            if (deviceID.length === 0) {
+              Alert.alert(
+                "Whoops",
+                "Looks like you don't actually have any Athlos earbuds linked to this account",
+                [{text: "Okay"}]);
+                return;
+            }
+            setIsLoading(true);
+            try {
+              const res = await axios.post(ENDPOINTS.updateDeviceID, {
+                userID: _id,
+                deviceID: "",
+              });
+              if (!res.data.success)
+                throw new Error(res.data.message);
+              const newState = {...context, deviceID: ""}
+              GlobalBleHandler.setID("");
+              await setAppState(newState);
+              Alert.alert(
+                "All Done!",
+                "Successfully unlinked your Athlos earbuds from this account.",
+              [{text: "Okay"}]);
+            } catch(e) {
+              console.log(e);
+              Alert.alert(
+                "Whoops",
+                "Something went wrong with the network request. Please try again.",
+                [{text: "Okay"}]);
+            } finally {
+              setIsLoading(false);
+            }
+          },
+        },
+      ],
+    );
+  }
+
   const Stack = createStackNavigator();
   const profileScreenName = relationshipStatus === IS_SELF ? USER_PROFILE : SEARCH_PROFILE
   return (
     // context for when fitness was part of profile
     <ProfileContext.Provider value={{...profileContext, relationshipStatus, setId, _id}}> 
+      <Spinner
+        visible={isLoading}
+        textContent={'Saving...'}
+        textStyle={{color: colors.textColor}}
+      />
       <Stack.Navigator initialRouteName={profileScreenName}>
         <Stack.Screen
           name={profileScreenName}
@@ -265,7 +328,7 @@ const ProfileTemplate = (props) => {
                 <View style={styles.viewFitness}>
                   {canViewFitness() ?
                     <Button
-                      title='View Your Fitness'
+                      title='View Past Activities'
                       containerStyle={{width: '90%', alignSelf: 'center', marginTop: 10, marginBottom: 10}}
                       buttonStyle={{
                         backgroundColor: colors.button
@@ -303,11 +366,11 @@ const ProfileTemplate = (props) => {
         >
           {props => (
             <>
-              <Spinner
+              {/* <Spinner
                 visible={isLoading}
                 textContent={'Saving...'}
                 textStyle={{color: colors.textColor}}
-              />
+              /> */}
               <SettingsMenu
                 {...props}
                 navigation={props.navigation}
@@ -328,69 +391,78 @@ const ProfileTemplate = (props) => {
         </Stack.Screen>
         <Stack.Screen name={SETTINGS_CONSTANTS.DEVICE_SETTINGS} options={{title: "Athlos device settings"}}>
           {props => (
-            <ListItem 
-              containerStyle={{backgroundColor: colors.backgroundColor}}
-              topDivider
-              bottomDivider
-              onPress={() => {
-                Alert.alert(
-                  'Are you sure?',
-                  "You'll have to relink another pair on the sync tab.",
-                  [
-                    {
-                      text: 'Cancel',
-                    },
-                    {
-                      text: 'Yes',
-                      onPress: async () => {
-                        console.log("", deviceID);
-                        if (deviceID.length === 0) {
-                          Alert.alert(
-                            "Whoops",
-                            "Looks like you don't actually have any Athlos earbuds linked to this account",
-                            [{text: "Okay"}]);
-                          return;
-                        }
-                        try {
-                          const res = await axios.post(ENDPOINTS.updateDeviceID, {
-                            userID: _id,
-                            deviceID: "",
-                          });
-                          if (!res.data.success)
-                            throw new Error(res.data.message);
-                          const newState = {...context, deviceID: ""}
-                          GlobalBleHandler.setID("");
-                          await setAppState(newState);
-                          Alert.alert(
-                            "All Done!",
-                            "Successfully unlinked your Athlos earbuds from this account.",
-                          [{text: "Okay"}]);
-                        } catch(e) {
-                          console.log(e);
-                          Alert.alert(
-                            "Whoops",
-                            "Something went wrong with the network request. Please try again.",
-                            [{text: "Okay"}]);
-                        }
-                      },
-                    },
-                  ],
-                );
-              }}
-            >
-              <ListItem.Content>
-                <ListItem.Title>
-                  <ThemeText>Forget Earbuds</ThemeText>
-                </ListItem.Title>
-                <ListItem.Subtitle>
-                  <ThemeText>
-                    Unlinks your current Athlos earbuds from this device.
-                    You'll have to relink another pair on the sync tab.
-                  </ThemeText>
-                </ListItem.Subtitle>
-              </ListItem.Content>
-              <ListItem.Chevron />
-            </ListItem>
+            <>
+              <ListItem 
+                containerStyle={{backgroundColor: colors.backgroundColor}}
+                topDivider
+                bottomDivider
+                onPress={forgetEarbuds}
+              >
+                <ListItem.Content>
+                  <ListItem.Title>
+                    <ThemeText>Forget Earbuds</ThemeText>
+                  </ListItem.Title>
+                  <ListItem.Subtitle>
+                    <ThemeText>
+                      Unlinks your current Athlos earbuds from this device.
+                      You'll have to relink another pair on the sync tab.
+                    </ThemeText>
+                  </ListItem.Subtitle>
+                </ListItem.Content>
+                <ListItem.Chevron />
+              </ListItem>
+              <ListItem 
+                containerStyle={{backgroundColor: colors.backgroundColor}}
+                topDivider
+                bottomDivider
+                onPress={() => {
+                  // setIsLoading(true);
+                  setShouldAutoSync(!autoSync).then(() => {
+                    const oldAutoSync = autoSync;
+                    setAutoSync(!autoSync);
+                    console.log("old auto sync: ", oldAutoSync)
+                    if (oldAutoSync) {
+                      GlobalBleHandler.stopScan();
+                    } // previously true means it's now false
+                    showSnackBar(`Auto sync ${oldAutoSync ? 'disabled' : 'enabled'}. Restart the app for the effects to be enabled`);
+                    // setIsLoading(false);
+                  })
+                }}
+              >
+                <ListItem.Content>
+                  <ListItem.Title>
+                    <ThemeText>Enable Auto-sync</ThemeText>
+                  </ListItem.Title>
+                  <ListItem.Subtitle>
+                    <ThemeText>
+                      Auto-sync causes your mobile device to automatically sync with your 
+                      Athlos earbuds when they are scanning for devices. We'll notify you 
+                      once auto-sync succeeds, and you can still manually sync with the sync 
+                      tab if auto-sync is taking too long or fails.
+                    </ThemeText>
+                  </ListItem.Subtitle>
+                </ListItem.Content>
+                <ListItem.CheckBox
+                  checked={autoSync}
+                  checkedColor={colors.textColor}
+                  checkedIcon='dot-circle-o'
+                  uncheckedIcon='circle-o'
+                  onPress={() => {
+                    // setIsLoading(true);
+                    setShouldAutoSync(!autoSync).then(() => {
+                      const oldAutoSync = autoSync;
+                      setAutoSync(!autoSync);
+                      console.log("old auto sync: ", oldAutoSync)
+                      if (oldAutoSync) {
+                        GlobalBleHandler.stopScan();
+                      } // previously true means it's now false
+                      showSnackBar(`Auto sync ${oldAutoSync ? 'disabled' : 'enabled'}. Restart the app for the effects to be enabled`);
+                      // setIsLoading(false);
+                    })
+                  }}
+                />
+              </ListItem>
+            </>
           )}
         </Stack.Screen>
         {/*============================== settings stuff =======================================*/}

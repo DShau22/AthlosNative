@@ -137,6 +137,11 @@ const SETTINGS_CONSTANTS = {
     {
       title: 'Forget Earbuds',
       subtitle: "Unlinks your current Athlos earbuds from this device. You'll have to relink another pair on the sync tab."
+    },
+    {
+      title: 'Enable Auto-sync',
+      subtitle: "Auto-sync causes your mobile device to automatically sync with your Athlos earbuds when they are scanning for devices. " +
+      "We'll alert you once auto-sync succeeds, and you can still manually sync with the sync tab if auto-sync is taking too long or fails.",
     }
   ],
 }

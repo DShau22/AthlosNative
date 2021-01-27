@@ -21,6 +21,9 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 import { AppContext } from "./Context"
 import { LIGHT_THEME, DARK_THEME } from './components/ColorThemes'
+import { LogBox } from 'react-native';
+
+console.disableYellowBox = true;
 
 function App() {
   

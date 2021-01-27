@@ -4,14 +4,10 @@ import React from 'react';
 import { AppFunctionsContext, UserDataContext } from '../../Context';
 import { View, StyleSheet, Image, Animated } from 'react-native';
 import GestureRecognizer from 'react-native-swipe-gestures';
-import Snackbar from 'react-native-snackbar';
-import {
-  setNeedsFitnessUpdate,
-} from '../utils/storage';
-
 import ThemeText from '../generic/ThemeText';
 import BLUETOOTH_CONSTANTS from './BluetoothConstants';
-
+const {STOP_SCAN_ERR} = BLUETOOTH_CONSTANTS;
+import { showSnackBar } from '../utils/notifications';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import GlobalBleHandler from './GlobalBleHandler';
 import Axios from 'axios';
@@ -33,7 +29,7 @@ export default function SADataSync() {
   const { updateLocalUserInfo, updateLocalUserFitness } = appFunctionsContext;
   const { deviceID } = userDataContext;
   const [scanning, setScanning] = React.useState(false);
-  console.log("scanning: ", scanning);
+  // console.log("scanning: ", scanning);
   // console.log("device ID: ", deviceID);
   // console.log("ble device: ", GlobalBleHandler.device);
 
@@ -49,7 +45,7 @@ export default function SADataSync() {
   const arrowOpacity = React.useRef(new Animated.Value(1)).current;
 
   React.useEffect(() => {
-    console.log("using scanning effect: ", scanning);
+    // console.log("using scanning effect: ", scanning);
     if (!scanning) {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
@@ -92,18 +88,6 @@ export default function SADataSync() {
     opacity2.setValue(1);
     expand3.setValue(0);
     opacity3.setValue(1);
-  }
-
-  const showSnackBar = (text) => {
-    Snackbar.show({
-      text: text,
-      duration: Snackbar.LENGTH_INDEFINITE,
-      action: {
-        text: 'Okay',
-        textColor: colors.textHighlight,
-      },
-      numberOfLines: 5
-    });
   }
 
   const startScanAnimations = () => {
@@ -149,19 +133,26 @@ export default function SADataSync() {
     ).start();
   }
 
-  const stopScan = async () => {
+  const stopScan = () => {
     if (scanning) {
       setScanning(false);
-      if (!deviceID || deviceID.length === 0) {
-        GlobalBleHandler.stopScan();
-        // await GlobalBleHandler.disconnect();
-      }
+      GlobalBleHandler.stopScan();
     }
   }
 
   const startScan = async () => {
     console.log("******* swiped down **********");
     if (scanning) {
+      return;
+    }
+    // reinit the BLE handler. Can cause an issue with race conditions tho with stopScan
+    try {
+      GlobalBleHandler.stopScan();
+      GlobalBleHandler.destroy();
+      GlobalBleHandler.reinit(deviceID);
+    } catch(e) {
+      console.log("error with start scan. Either stop scan, destroy, or reinit failed: ", e);
+      showSnackBar(`Something went wrong. Please try again in a moment. ${e}`);
       return;
     }
     setScanning(true);
@@ -182,22 +173,22 @@ export default function SADataSync() {
         Alert.alert(
           "All Set!",
           "Successfully linked your new Athlos earbuds with this account :). Hit the gear icon on your profile if you" +
-          " ever want to link different earbuds to this account",
+          " want to re-link with different earbuds.",
           [{text: "Okay"}]
-        )
+        );
       } catch(e) {
         console.log(e);
-        showSnackBar('Something went wrong with the registration process. Please try again later.');
+        showSnackBar(`Something went wrong with the registration process. Please try again later. ${e.toString()}`);
+      } finally {
+        setScanning(false);
       }
       try {
         await GlobalBleHandler.scanAndConnect(); // start the background scanning
         await GlobalBleHandler.uploadToServer();
         await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
-        await updateLocalUserInfo() // no promise.all to avoid race conditions with updating the state
+        await updateLocalUserInfo(); // no promise.all to avoid race conditions with updating the state
       } catch(e) {
         console.log("error after linking in sa data sync: ", e);
-      } finally {
-        setScanning(false);
       }
     } else {
       try {
@@ -208,9 +199,9 @@ export default function SADataSync() {
         showSnackBar('Successfully synced with your Athlos earbuds. Your fitness records should be up to date in a minute :]');
       } catch(e) {
         console.log("error with sync: ", e);
-        if (e !== 'stopped scan') {
+        if (e.toString() !== STOP_SCAN_ERR) {
           setScanning(false);
-          showSnackBar("Something went wrong with syncing. Please try again.");
+          showSnackBar(`Something went wrong with syncing. Please try again. ${e.toString()}`);
         }
       }
       try {
@@ -330,7 +321,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   swipeContainer: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: 'bold',
     top: 30,
     position: 'absolute'

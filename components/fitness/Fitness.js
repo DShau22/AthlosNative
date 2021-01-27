@@ -150,7 +150,7 @@ const Fitness = (props) => {
         />
       }
     >
-      { isLoading ? <LoadingScreen /> :
+      { isLoading ? <LoadingScreen text='fetching your activities'/> :
         <TopTab.Navigator
           tabBarOptions={{
             activeTintColor: colors.textColor,
