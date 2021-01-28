@@ -2,7 +2,7 @@ import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
 import React from 'react';
 import { View, ScrollView, StyleSheet, Alert, FlatList } from 'react-native';
-import { Tooltip, Text, ListItem, colors } from 'react-native-elements';
+import { Tooltip, Text, ListItem } from 'react-native-elements';
 import { UserDataContext, SettingsContext, AppFunctionsContext } from "../../Context";
 import LoadingScreen from "../generic/LoadingScreen";
 import { createStackNavigator } from '@react-navigation/stack';
@@ -54,11 +54,13 @@ import {
   showSnackBar
 } from '../utils/notifications'
 import { List } from 'react-native-paper';
+import { useTheme } from '@react-navigation/native';
 /**
  * THIS IS NO LONGER USED. ONLY SERVES AS A REFERENCE. ALL SETTINGS STUFF IS HANDLED IN PROFILE TEMPLATE NOW
  */
 
 const Settings = (props) => {
+  const { colors } = useTheme();
   const context = React.useContext(UserDataContext);
   const { settings, deviceID, _id } = context;
   const { setAppState } = React.useContext(AppFunctionsContext); 
@@ -232,7 +234,7 @@ const Settings = (props) => {
         <Spinner
           visible={isLoading}
           textContent={'Saving...'}
-          textStyle={styles.spinnerTextStyle}
+          textStyle={{color: colors.textColor}}
         />
         <Stack.Navigator
           headerMode='none'

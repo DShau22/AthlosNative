@@ -472,6 +472,8 @@ class SAinit {
     } else if (repetition === CYCLES) {
       offset8[0] |= 0x08;
       sainit[idx + 16] = numRepetitions * splits.length + SAinit.ZERO; // no repeat periods for now to simplify interface
+    } else { // ends after last period
+      sainit[idx + 16] = splits.length + SAinit.ZERO;
     }
     sainit[idx + 8] = offset8[0] + SAinit.ZERO;
     splits.forEach((timeInTenths, i) => {

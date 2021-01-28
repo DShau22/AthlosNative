@@ -7,7 +7,7 @@ import {
   getData
 } from '../utils/storage';
 import BLUETOOTH_CONSTANTS from './BluetoothConstants';
-const {STOP_SCAN_ERR} = BLUETOOTH_CONSTANTS;
+const {STOP_SCAN_ERR, DISCONNECT_ERR} = BLUETOOTH_CONSTANTS;
 import ENDPOINTS from '../endpoints';
 const Buffer = require('buffer/').Buffer;
 const SERVICE_UUID = 'e49a25f0-f69a-11e8-8eb2-f2801f1b9fd1';
@@ -156,7 +156,7 @@ class BLEHandler {
    * Stops scanning for devices. Must call scanAndConnect again to restart it
    */
   stopScan() {
-    console.log("stopping scan", this.saDataCompleter);
+    console.log("stopping scan");
     if (this.readSubscription) {
       this.readSubscription.remove()
     }
@@ -167,8 +167,12 @@ class BLEHandler {
       this.scanSubscription.remove();
       this.scanSubscription = null;
     }
+    if (this.connectCompleter && !this.connectCompleter.hasFinished()) {
+      console.log("scan completer erroring");
+      this.connectCompleter.error(STOP_SCAN_ERR);
+    }
     if (this.saDataCompleter && !this.saDataCompleter.hasFinished()) {
-      console.log("completer erroring");
+      console.log("sa data completer erroring");
       this.saDataCompleter.error(STOP_SCAN_ERR);
     }
   }
@@ -281,9 +285,12 @@ class BLEHandler {
             this.disconnectSubscription.remove();
             this._resetAfterSendBytes();
             this._resetReadState();
-            this._scanAndConnect(); // try scanning and connecting again
+            if (this.saDataCompleter && !this.saDataCompleter.hasFinished()) {
+              this.saDataCompleter.error(DISCONNECT_ERR); 
+            }
+            // this._scanAndConnect(); // try scanning and connecting again
           });
-          // await this._setUpNotifyListener(); // for now just handle reading
+          // await this.setUpNotifyListener(); // for now just handle reading
           this.connectCompleter.complete("successfully connected to Athlos device");
         } catch(e) {
           console.log("error connecting device and discovering services: ", e);
@@ -297,7 +304,7 @@ class BLEHandler {
    * Called after the device finds the athlos earbuds. This sets up a subscription to the RX characteristic
    * so that we can read data that the earbuds send to this device.
    */
-  async _setUpNotifyListener() {
+  async setUpNotifyListener() {
     this.saDataCompleter = new Completer();
     console.log("setting up notify listener");
     if (!this.device || !(await this.device.isConnected()) ) {
@@ -392,7 +399,7 @@ class BLEHandler {
     });
     if (totalNumBytes != this.numSaDataBytesRead)
       console.log(`num bytes in read buffers ${totalNumBytes} not same as total num bytes read (${this.numSaDataBytesRead})`);
-    if (0) {
+    if (this.numSaDataBytesRead >= this.totalNumSaDataBytes) {
       console.log("done reading...");
       const concatentatedSadata = Buffer.concat(this.readBuffers, totalNumBytes);
       try {
@@ -561,12 +568,13 @@ class BLEHandler {
       throw new Error("device is not yet connected");
     }
     console.log("****** SENDING BYTE ARRAY ******");
+    console.log("byte array: ", bytes, bytes.length);
     if (this.isTransmitting) {
       console.log("Already sending data. Please wait");
       return;
     }
     let currId = 0;
-    const numPackagesNeeded = Math.floor((bytes.length + BLEHandler.MAX_PKG_LEN) / BLEHandler.MAX_PKG_LEN);
+    const numPackagesNeeded = Math.ceil(bytes.length  / BLEHandler.MAX_PKG_LEN);
     for (let i = 0; i < bytes.length; i+= BLEHandler.MAX_PKG_LEN) {
       const packageSize = Math.min(bytes.length - i, BLEHandler.MAX_PKG_LEN) + BLEHandler.METADATA_SIZE;
       const pkg = Buffer.alloc(packageSize);
@@ -575,7 +583,7 @@ class BLEHandler {
       currId += 1; // HANDLE OVERFLOW LATER
       pkg[2] = numPackagesNeeded;
       for (let j = 3; j < packageSize - 2; j++) {
-        pkg[j] = bytes[j - 3];
+        pkg[j] = bytes[i + j - 3];
       }
       pkg[packageSize - 2] = this.writePkgId;
       pkg[packageSize - 1] = calcChecksum(pkg, 0, pkg.length - 1);

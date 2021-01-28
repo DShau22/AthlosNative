@@ -171,13 +171,14 @@ function Athlos(props) {
         try {
           showSnackBar("Auto-syncing...", 'length_long', "Okay");
           await GlobalBleHandler.scanAndConnect();
+          await GlobalBleHandler.setUpNotifyListener();
           console.log("successfully read and saved sadata bytes");
           await GlobalBleHandler.uploadToServer();
           showSnackBar("Successfully auto-synced with your Athlos earbuds. Your activity records should be ready in a minute :]");
         } catch(e) {
           console.log("error scanning and connecting: ", e);
-          if (e.toString() === STOP_SCAN_ERR) {
-            showSnackBar("Stopped auto-syncing");
+          if (e === STOP_SCAN_ERR) {
+            showSnackBar("Stopped auto-syncing", 'length_long');
           } else {
             showSnackBar("Failed to auto-sync with your Athlos earbuds. ", e);
           }
