@@ -1,7 +1,7 @@
 import React from 'react'
 import { Divider, Button } from 'react-native-elements'
 import { View, StyleSheet, ScrollView } from 'react-native'
-import { UserDataContext } from "../../Context"
+const { DateTime } = require('luxon');
 import { parseDate } from "../utils/dates"
 import Carousel from './carousel/Carousel'
 import Calories from './Calories'
@@ -20,8 +20,7 @@ import FITNESS_CONTANTS from '../fitness/FitnessConstants'
 export default function withFitnessPage( WrappedComponent ) {  
   const WithFitnessPage = (props) => {
     const [weekIndex, setWeekIndex] = React.useState(0);
-    const [dayIndex, setDayIndex] = React.useState(((new Date()).getDay()+6) % 7); // set the day index to be the date of today
-
+    const [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday - 1); // 1 is monday 7 is sunday for .weekday
     const [weeklyGraphLabels, setWeeklyGraphLabels] = React.useState([]);
     const [weeklyGraphData, setWeeklyGraphData] = React.useState([]);
     // const { activityJson, id } = props.route.params;
@@ -51,9 +50,8 @@ export default function withFitnessPage( WrappedComponent ) {
       const week = activityJson.activityData[weekIndex];
       week.forEach((session, idx) => {
         const { uploadDate } = session;
-        const dateInfo = parseDate(uploadDate);
-        const month = new Date(uploadDate).getMonth() + 1;
-        weeklyGraphLabels.push(`${dateInfo[0]}, ${month}/${dateInfo[2]}`);
+        const dateObject = DateTime.fromISO(uploadDate);
+        weeklyGraphLabels.push(`${dateObject.weekdayShort}, ${dateObject.month}/${dateObject.day}`);
       });
       setWeeklyGraphLabels(weeklyGraphLabels);
     }
@@ -87,6 +85,7 @@ export default function withFitnessPage( WrappedComponent ) {
         const week = activityJson.activityData[i];
         const monday = parseDate(week[0].uploadDate);
         const sunday = parseDate(week[week.length - 1].uploadDate);
+        console.log("monday: ", monday);
         const dayMonth = `${monday[1]} ${monday[2]} - ${sunday[1]} ${sunday[2]}, ${sunday[3]}`
         if (newWeekText === dayMonth) {
           break;

@@ -9,6 +9,9 @@ import BLUETOOTH_CONSTANTS from './BluetoothConstants';
 const {STOP_SCAN_ERR} = BLUETOOTH_CONSTANTS;
 import GLOBAL_CONSTANTS from '../GlobalConstants';
 const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;
+import {
+  needsFitnessUpdate,
+} from '../utils/storage';
 import { showSnackBar } from '../utils/notifications';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import GlobalBleHandler from './GlobalBleHandler';
@@ -78,12 +81,30 @@ export default function SADataSync() {
       startScanAnimations();
       arrowOpacity.stopAnimation();
     }
+    return () => {
+      stopScan();
+      setConnected(false);
+      if (connectTimerRef.current)
+        clearTimeout(connectTimerRef.current)
+      if (transferTimerRef.current)
+        clearTimeout(transferTimerRef.current)
+    }
   }, [scanning]);
 
   React.useEffect(() => {
     if (connected) { // get rid of the timer for trying to find athlos earbuds after connection is made
       if (connectTimerRef.current) {
         clearTimeout(connectTimerRef.current);
+      }
+      transferTimerRef.current = setTimeout(() => {
+        showSnackBar("Having trouble transferring over activity data. Please try syncing again");
+        stopScan();
+        setConnected(false);
+      }, 10000);
+    } else {
+      if (transferTimerRef.current) {
+        clearTimeout(transferTimerRef.current);
+        transferTimerRef.current = null;
       }
     }
   }, [connected]);
@@ -154,6 +175,7 @@ export default function SADataSync() {
   }
 
   const startScan = async () => {
+    setConnected(false);
     console.log("******* swiped down **********");
     if (scanning) {
       return;
@@ -161,7 +183,7 @@ export default function SADataSync() {
     // reinit the BLE handler. Can cause an issue with race conditions tho with stopScan
     try {
       GlobalBleHandler.stopScan();
-      GlobalBleHandler.destroy();
+      await GlobalBleHandler.destroy();
       GlobalBleHandler.reinit(deviceID);
     } catch(e) {
       console.log("error with start scan. Either stop scan, destroy, or reinit failed: ", e);
@@ -221,31 +243,39 @@ export default function SADataSync() {
       if (tryCount === 0) {
         showSnackBar(`Something went wrong with syncing. Please try again. ${e.toString()}`);
       } else {
-        showSnackBar('Successfully synced with your Athlos earbuds. Your fitness records should be up to date in a minute :]');
+        showSnackBar('Successfully synced with your Athlos earbuds. Your activity records are almost ready :]');
         setScanning(false);
       }
-      // try {
-      //   await GlobalBleHandler.scanAndConnect();
-      //   showSnackBar('Found your Athlos device! Transferring activity data...');
-      //   await GlobalBleHandler.setUpNotifyListener();
-      //   console.log("finished scanning....");
-      //   setScanning(false);
-      //   showSnackBar('Successfully synced with your Athlos earbuds. Your fitness records should be up to date in a minute :]');
-      // } catch(e) {
-      //   console.log("error with sync: ", e);
-      //   if (e.toString() !== STOP_SCAN_ERR) {
-      //     setScanning(false);
-      //     showSnackBar(`Something went wrong with syncing. Please try again. ${e.toString()}`);
-      //   }
-      // }
-      try {
-        await GlobalBleHandler.uploadToServer();
-        await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
-        await updateLocalUserInfo() // no promise.all to avoid race conditions with updating the state
-      } catch(e) {
-        console.log("error after scan and connect in sa data sync: ", e);
+      let uploadCount = 3;
+      let uploadSuccess = false;
+      while (uploadCount > 0 && !uploadSuccess) {
+        uploadCount -= 1;
+        try {
+          await GlobalBleHandler.uploadToServer();
+          if (!(await needsFitnessUpdate())) {
+            showSnackBar('Your activity records are already updated.');
+            setConnected(false);
+            return;
+          }
+          uploadSuccess = true;
+        } catch(e) {
+          console.log("upload with sync failed. Trying again");
+        }
+      }
+      if (!uploadSuccess) {
+        showSnackBar('Your activity records could not be updated. Try syncing again and make sure your internet connection is strong');
+      } else {
+        try {
+          await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
+          await updateLocalUserInfo(); // no promise.all to avoid race conditions with updating the state
+          showSnackBar('Your activity records have been updated!');
+        } catch(e) {
+          console.log("update local user fitness or local info failed: ", e);
+          showSnackBar('Your activity records have been updated! Please refresh to view updates.');
+        }
       }
     }
+    setConnected(false);
   }
 
   const Stack = createStackNavigator();
@@ -338,12 +368,6 @@ export default function SADataSync() {
           <ThemeText>aowiejfiow</ThemeText>
         )}
       </Stack.Screen>
-      {/* <Stack.Screen
-        name={SYNC_PAGE}
-        options={{ title: "Sync your device" }}
-      >
-
-      </Stack.Screen> */}
     </Stack.Navigator>
   );
 }
@@ -355,9 +379,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   imageAndArrowContainer: {
-    flex: 3,
+    flex: 4,
     width: '100%',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   topText: {
     flex: 1,

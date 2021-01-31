@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, Alert, ScrollView, } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 // import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
-
+var { DateTime } = require('luxon');
 import {
   getData,
   getShouldAutoSync,
@@ -61,6 +61,7 @@ const {
 } = FITNESS_CONTANTS;
 import ThemeText from '../generic/ThemeText';
 import { useTheme } from '@react-navigation/native';
+import Axios from 'axios';
 
 function Athlos(props) {
   const { colors } = useTheme();
@@ -162,7 +163,7 @@ function Athlos(props) {
       if (firstTime) {
         setShowWelcomeModal(true);
         GlobalBleHandler.setID(userData ? userData.deviceID : "");
-        await Promise.all([setFirstTimeLogin(), setShouldAutoSync(true)]);
+        await Promise.all([setFirstTimeLogin(), setShouldAutoSync(false)]);
         return;
       }
       const deviceID = userData ? userData.deviceID : state.deviceID;
@@ -205,6 +206,9 @@ function Athlos(props) {
       GlobalBleHandler.reinit();
     }
   }, []);
+  console.log("last monday: ", getLastMonday());
+  console.log("next sunday: ", getNextSunday());
+  console.log("test: ", DateTime.local());
 
   React.useEffect(() => {
     // console.log("use effect with state: ", state);
@@ -219,25 +223,24 @@ function Athlos(props) {
     // If it's completely updated, then don't do anything
     const lastMonday = getLastMonday();
     const needsThisWeekData = await needsFitnessUpdate();
+    console.log(activity, " last updated: ", lastUpdated);
+    console.log("last monday: ", lastMonday);
+    console.log("needs fitness update: ", needsThisWeekData);
     if (sameDate(lastUpdated, lastMonday) && !needsThisWeekData) {
-      // console.log("fitness already fully updated: ", parseDate(lastUpdated));
+      console.log("fitness already fully updated. Last updated: ", lastUpdated);
       return {
         success: true,
         activityData: [] // no additional activityData to append
       };
     }
-    var headers = new Headers();
-    var token = await getData();
-    if (!token) { token = props.token; }
-    headers.append("authorization", `Bearer ${token}`);
-    headers.append("activity", activity);
-    headers.append("last_updated", lastUpdated.getTime().toString()); // apparently the backend can't handle camel case with middleware
-
-    var res = await fetch(ENDPOINTS.getData, {
-      method: "GET",
-      headers: headers,
-    })
-    var additionalActivityData = await res.json();
+    const token = await getData();
+    const res = await Axios.post(ENDPOINTS.getData, {
+      userToken: token,
+      activity,
+      lastUpdated: lastUpdated.toISO(),
+      userToday: DateTime.local().toISO(), // use the zone rn because if last updated was b4 DST it'll be off for server
+    });
+    const additionalActivityData = res.data;
     if (!additionalActivityData.success) {
       throw new Error(additionalActivityData.message);
     }
@@ -248,43 +251,49 @@ function Athlos(props) {
    * Updates only the state and therefore local storage for the user's fitness data
    */
   const updateLocalUserFitness = async () => {
-    const today = new Date();
+    const today = DateTime.local();
     var userData = await getDataObj();
     if (!userData) {
       userData = state;
     }
     // console.log("updating local user fitness: ", userData);
     // console.log("state in local user fitness: ", state);
-    const lastMonday = getLastMonday(today);
-    const halfYearAgo = new Date();
-    halfYearAgo.setDate(lastMonday.getDate() - NUM_WEEKS_IN_PAST * 7); // make sure its from that monday
+    const halfYearAgo = getLastMonday().minus({day: NUM_WEEKS_IN_PAST * 7}).set({
+      hour: 0, minute: 0, second: 0, millisecond: 0
+    });
     // figure out the latest locally updated week. Assume jumpJson, swimJson, runJson are accurate
     var lastJumpUpdated;
     if (userData && userData.jumpJson && userData.jumpJson.activityData.length > 0) {
-      lastJumpUpdated = new Date(userData.jumpJson.activityData[0][0].uploadDate); // get upload date of the monday of most recent week
-      lastJumpUpdated = lastJumpUpdated < halfYearAgo ? new Date(halfYearAgo) : lastJumpUpdated;
-      lastJumpUpdated.setHours(0,0,0,0);
+      lastJumpUpdated = DateTime.fromISO(userData.jumpJson.activityData[0][0].uploadDate); // get upload date of the monday of most recent week
+      lastJumpUpdated = lastJumpUpdated < halfYearAgo ? DateTime.fromISO(halfYearAgo.toISO()) : lastJumpUpdated;
+      lastJumpUpdated.set({
+        hour: 0, minute: 0, second: 0, millisecond: 0
+      });
     } else {
       // if userData does not exist, then get the Monday 26 weeks ago and start from there
-      lastJumpUpdated = new Date(halfYearAgo);
+      lastJumpUpdated = DateTime.fromISO(halfYearAgo.toISO());
     }
     var lastSwimUpdated;
     if (userData && userData.swimJson && userData.swimJson.activityData.length > 0) {
-      lastSwimUpdated = new Date(userData.swimJson.activityData[0][0].uploadDate);
-      lastSwimUpdated = lastSwimUpdated < halfYearAgo ? new Date(halfYearAgo) : lastSwimUpdated;
-      lastSwimUpdated.setHours(0,0,0,0);
+      lastSwimUpdated = DateTime.fromISO(userData.swimJson.activityData[0][0].uploadDate);
+      lastSwimUpdated = lastSwimUpdated < halfYearAgo ? DateTime.fromISO(halfYearAgo.toISO()) : lastSwimUpdated;
+      lastSwimUpdated.set({
+        hour: 0, minute: 0, second: 0, millisecond: 0
+      });
     } else {
-      lastSwimUpdated = new Date(halfYearAgo);
+      lastSwimUpdated = DateTime.fromISO(halfYearAgo.toISO());
     }
     var lastRunUpdated;
     if (userData && userData.runJson && userData.runJson.activityData.length > 0) {
       console.log("user data does exist!");
-      lastRunUpdated = new Date(userData.runJson.activityData[0][0].uploadDate);
-      lastRunUpdated = lastRunUpdated < halfYearAgo ? new Date(halfYearAgo) : lastRunUpdated;
-      lastRunUpdated.setHours(0,0,0,0);
+      lastRunUpdated = DateTime.fromISO(userData.runJson.activityData[0][0].uploadDate);
+      lastRunUpdated = lastRunUpdated < halfYearAgo ? DateTime.fromISO(halfYearAgo.toISO()) : lastRunUpdated;
+      lastRunUpdated.set({
+        hour: 0, minute: 0, second: 0, millisecond: 0
+      });
     } else {
       console.log("user data does not exist!");
-      lastRunUpdated = new Date(halfYearAgo);
+      lastRunUpdated = DateTime.fromISO(halfYearAgo.toISO());
     }
     // dates to get activity data from and onwards
     // console.log("jump monday: ", lastJumpUpdated.getMonth(), lastJumpUpdated.getDate());

@@ -53,7 +53,7 @@ export default function SAInitSender(props) {
           await GlobalBleHandler.sendByteArray(sainitBytes);
           Alert.alert(
             "All done!",
-            "Your Athlos device has been updated! You must turn it off and on again for changes to be implemented.",
+            "Your Athlos device has been updated!",
             [{text: 'Okay'}]
           );
         } catch(e) {

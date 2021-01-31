@@ -25,7 +25,7 @@ export default function Calories( props ) {
         name='fire'
         style={[styles.fire, {color: getColorTheme()}]}
       />
-      <ThemeText>{cals}</ThemeText>
+      <ThemeText>{isNaN(cals) ? 'N/A' : cals}</ThemeText>
     </View>
   )
 }

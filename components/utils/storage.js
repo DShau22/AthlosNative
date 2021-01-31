@@ -1,3 +1,4 @@
+const { DateTime } = require('luxon');
 // save tokens to the browser storage to remember if user signed in or not
 const TOKEN_KEY =  "token_key"; // login token key
 const DATA_KEY = "data_key"; // app context/user data key
@@ -6,7 +7,6 @@ const DEVICE_ID_KEY = 'device_id_key'; // key for string of the device id. Curre
 const FITNESS_UPDATE_KEY = 'fitness_update_key'; // key of boolean to see if user fitness needs an update or not
 const FIRST_TIME_LOGIN_KEY = 'first time login key'; // key of boolean to see if this is the user's first time logging on or after logging out
 const AUTO_SYNC_KEY = 'should auto sync?'; // key for if the user wants to auto sync with this device or not
-const socketStorageKey = "socket";
 import AsyncStorage from '@react-native-community/async-storage';
 
 const logOut = async () => {
@@ -122,12 +122,12 @@ const storeFitnessBytes = async (sessionBytes) => {
   // console.log("byteQueue: ", byteQueue);
   if (byteQueue === null) {
     byteQueue = [{
-      date: new Date(),
+      date: DateTime.local().toISO(),
       sessionBytes: sessionBytes.toString('base64'),
     }];
   } else {
     byteQueue.push({
-      date: new Date(),
+      date: DateTime.local().toISO(),
       sessionBytes: sessionBytes.toString('base64'),
     });
   }

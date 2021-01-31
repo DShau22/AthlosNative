@@ -13,6 +13,7 @@ import Community from '../community/Community'
 
 import ProfileHeader from './sections/ProfileHeader'
 import ProfileTemplate from './ProfileTemplate'
+import { Alert } from 'react-native';
 // replace with default avatar link
 const imgAlt = "./default_profile.png"
 
@@ -24,7 +25,15 @@ const UserProfile = (props) => {
   const [refreshing, setRefreshing] = React.useState(false);
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    await updateLocalUserInfo();
+    try {
+      await updateLocalUserInfo();
+    } catch(e) {
+      Alert.alert(
+        "Oh no :(",
+        `Something went wrong with the request to the server. Please try again later. ${e}`,
+        [{text: 'Okay'}]
+      );
+    }
     setRefreshing(false);
   }, []);
 

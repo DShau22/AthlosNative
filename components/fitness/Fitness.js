@@ -20,6 +20,7 @@ import {
   storeDataObj,
   getDataObj
 } from '../utils/storage';
+import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
 
 const Fitness = (props) => {
   const userDataContext = React.useContext(UserDataContext);
@@ -42,6 +43,7 @@ const Fitness = (props) => {
     if (relationshipStatus === PROFILE_CONSTANTS.IS_SELF) {
       try {
         console.log("updating local user fitness in FITNESS component");
+        await GlobalBleHandler.uploadToServer();
         await updateLocalUserFitness();
       } catch(e) {
         console.log("error getting fitness in fitness component: ", e);

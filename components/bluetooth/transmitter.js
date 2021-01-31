@@ -79,16 +79,17 @@ class BLEHandler {
    * Issue if destroy while transmitting or reading?
    */
   async destroy() {
-    if (this.device) {
-      await this.device.cancelConnection();
-    }
+    await this.disconnect();
     if (this.readSubscription) {
       this.readSubscription.remove();
     }
     if (this.scanSubscription) {
       this.scanSubscription.remove();
     }
-    this.manager.destroy();
+    if (this.manager) {
+      this.manager.destroy();
+    }
+    this.manager = null;
     this.readSubscription = null;
     this.scanSubscription = null;
     this.userDeviceID = "";
@@ -401,6 +402,9 @@ class BLEHandler {
       console.log(`num bytes in read buffers ${totalNumBytes} not same as total num bytes read (${this.numSaDataBytesRead})`);
     if (this.numSaDataBytesRead >= this.totalNumSaDataBytes) {
       console.log("done reading...");
+      // send package to tell the earbuds to rewrite sadata. Don't needa await this one
+      const confPkg = this._createConfirmationPackage();
+      this.device.writeCharacteristicWithoutResponseForService(SERVICE_UUID, TX, confPkg);
       const concatentatedSadata = Buffer.concat(this.readBuffers, totalNumBytes);
       try {
         await this._saveToAsyncStorage(concatentatedSadata);
@@ -416,6 +420,17 @@ class BLEHandler {
       // still expect to get more packages. Send a response to the earbuds
       await this._sendResponse(readValueInRawBytes);
     }
+  }
+
+  _createConfirmationPackage() {
+    const confPkg = Buffer.alloc(13);
+    confPkg[0] = 3; // 3 means rewrite sadata
+    confPkg[1] = 0; // pkgid is 0
+    confPkg[2] = 1; // 1 pkg total
+    confPkg[confPkg.length - 1] = calcChecksum(confPkg, 0, confPkg.length - 1); // checksum
+    confPkg[confPkg.length - 2] = this.writePkgId; // overall pkg id
+    this.writePkgId += 1; // HANDLE OVERFLOW LATER
+    return confPkg.toString('base64');
   }
 
   /**
@@ -463,7 +478,7 @@ class BLEHandler {
     for (let i = 0; i < promiseResults.length; i++) {
       const resJson = promiseResults[i].data;
       console.log(`${i} axios response: ${resJson}`);
-      atLeastOneSuccess = atLeastOneSuccess && resJson.success;
+      atLeastOneSuccess = atLeastOneSuccess || resJson.success;
       if (resJson.success) {
         recordIndexesToRemove.push(i);
         // successfully updated this session byte record, so we can remove it now.
