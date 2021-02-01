@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Text, View, StyleSheet, Alert, ScrollView, } from 'react-native';
+import { Text, View, StyleSheet, Alert, DeviceEventEmitter, } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-// import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
+import LocationServicesDialogBox from "react-native-android-location-services-dialog-box";
 var { DateTime } = require('luxon');
 import {
   getData,
@@ -19,11 +19,11 @@ import ENDPOINTS from "../endpoints";
 import {
   getLastMonday,
   getNextSunday,
-  parseDate,
   sameDate,
 } from "../utils/dates";
 import {
-  requestLocationPermission
+  requestLocationPermission,
+  requestLocationServices
 } from '../utils/permissions';
 
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -130,7 +130,20 @@ function Athlos(props) {
   });
   // setting up the Athlos app
   React.useEffect(() => {
+
     const setUpApp = async () => {
+      await requestLocationServices();
+      DeviceEventEmitter.addListener('locationProviderStatusChange', function(status) { // only trigger when "providerListener" is enabled
+        if (!status.enabled) {
+          console.log(status);
+          Alert.alert(
+            "Whoops",
+            "You'll need to turn on your phone's location services for this app to be able to make Bluetooth connections " +
+            "with your Athlos earbuds. Android requires location services to be on for Bluetooth access.",
+            [{text: 'Okay'}]
+          );
+        }
+      });
       await requestLocationPermission(); // request location permissions for Android users
       // await GlobalBleHandler.destroy();
       // GlobalBleHandler.reinit();
@@ -206,6 +219,7 @@ function Athlos(props) {
       })
     return () => {
       console.log("unmounting");
+      LocationServicesDialogBox.stopListener();
       GlobalBleHandler.destroy().then(() => {console.log("destroyed")});
       GlobalBleHandler.reinit();
     }

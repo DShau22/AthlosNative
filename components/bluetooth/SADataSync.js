@@ -7,7 +7,6 @@ import GestureRecognizer from 'react-native-swipe-gestures';
 import ThemeText from '../generic/ThemeText';
 import BLUETOOTH_CONSTANTS from './BluetoothConstants';
 const {STOP_SCAN_ERR} = BLUETOOTH_CONSTANTS;
-import GLOBAL_CONSTANTS from '../GlobalConstants';
 import {
   requestLocationPermission,
   hasLocationPermission

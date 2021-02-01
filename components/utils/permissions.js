@@ -1,5 +1,31 @@
 import {request, check, PERMISSIONS, RESULTS} from 'react-native-permissions';
-import {Platform, Alert} from 'react-native';
+import {Platform, Alert, DeviceEventEmitter} from 'react-native';
+import LocationServicesDialogBox from "react-native-android-location-services-dialog-box";
+
+const requestLocationServices = async () => {
+  try {
+    const locationCheck = await LocationServicesDialogBox.checkLocationServicesIsEnabled({
+      message: "<h2 style='color: #0af13e'>Enable Location?</h2>Android apps need location services to be able to make Bluetooth connections",
+      ok: "Yes",
+      cancel: "No",
+      enableHighAccuracy: true, // true => GPS AND NETWORK PROVIDER, false => GPS OR NETWORK PROVIDER
+      showDialog: true, // false => Opens the Location access page directly
+      openLocationServices: true, // false => Directly catch method is called if location services are turned off
+      preventOutSideTouch: true, // true => To prevent the location services window from closing when it is clicked outside
+      preventBackClick: true, // true => To prevent the location services popup from closing when it is clicked back button
+      providerListener: true, // true ==> Trigger locationProviderStatusChange listener when the location state changes
+    });
+    console.log(locationCheck);
+  } catch(e) {
+    console.log(e);
+    Alert.alert(
+      "Whoops",
+      "You'll need to turn on your phone's location services for this app to be able to make Bluetooth connections " +
+      "with your Athlos earbuds. Android requires location services to be on for Bluetooth access.",
+      [{text: 'Okay'}]
+    );
+  }
+}
 
 const requestLocationPermission = async () => {
   if (Platform.OS === 'android') {
@@ -65,4 +91,5 @@ const hasLocationPermission = async () => {
 export {
   requestLocationPermission,
   hasLocationPermission,
+  requestLocationServices
 }
