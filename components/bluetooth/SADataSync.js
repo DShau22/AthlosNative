@@ -8,7 +8,10 @@ import ThemeText from '../generic/ThemeText';
 import BLUETOOTH_CONSTANTS from './BluetoothConstants';
 const {STOP_SCAN_ERR} = BLUETOOTH_CONSTANTS;
 import GLOBAL_CONSTANTS from '../GlobalConstants';
-const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;
+import {
+  requestLocationPermission,
+  hasLocationPermission
+} from '../utils/permissions';
 import {
   needsFitnessUpdate,
 } from '../utils/storage';
@@ -175,6 +178,10 @@ export default function SADataSync() {
   }
 
   const startScan = async () => {
+    if (!(await hasLocationPermission())) {
+      await requestLocationPermission();
+      return;
+    }
     setConnected(false);
     console.log("******* swiped down **********");
     if (scanning) {
@@ -215,7 +222,7 @@ export default function SADataSync() {
         console.log(e);
         showSnackBar(`Something went wrong with the registration process. Please try again later. ${e.toString()}`);
       } finally {
-        setScanning(false);
+        stopScan();
       }
     } else {
       let tryCount = 3;
@@ -240,12 +247,12 @@ export default function SADataSync() {
           tryCount -= 1;
         }
       }
-      if (tryCount === 0) {
-        showSnackBar(`Something went wrong with syncing. Please try again. ${e.toString()}`);
+      if (!success) {
+        showSnackBar(`Something went wrong with syncing. Please try again.`);
       } else {
         showSnackBar('Successfully synced with your Athlos earbuds. Your activity records are almost ready :]');
-        setScanning(false);
       }
+      setScanning(false);
       let uploadCount = 3;
       let uploadSuccess = false;
       while (uploadCount > 0 && !uploadSuccess) {

@@ -78,6 +78,7 @@ import com.android.build.OutputFile
  */
 
 project.ext.react = [
+    bundleInDebug: true, // THIS IS FOR APP DISTRIBUTION
     enableHermes: false,  // clean and rebuild if changing
 ]
 apply from: "../../node_modules/react-native/react.gradle"
@@ -148,6 +149,12 @@ android {
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'
+        }
+        release {
+          storeFile file('athlosKey.keystore')
+          storePassword 'Bluesushi123'
+          keyAlias 'Athlos'
+          keyPassword 'Bluesushi123'
         }
     }
     buildTypes {

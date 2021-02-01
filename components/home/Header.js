@@ -45,10 +45,10 @@ import EditProfile from "../profile/EditProfile";
 import ENDPOINTS from "../endpoints"
 // server url
 const getUserInfoURL = ENDPOINTS.getUserInfo
-const defaultProfile = "./profile/default_profile.png"
+const defaultProfile = "./profile/profile.png"
 const root = "/app"
 
-const imgAlt = "../profile/default_profile.png"
+const imgAlt = "../profile/profile.png"
 
 const sidebarMediaQuery = '600px'
 const dataURL = ENDPOINTS.getData

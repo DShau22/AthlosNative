@@ -130,7 +130,7 @@ const ProfileHeader = (props) => {
         <View style={styles.imageContainer}>
           <Image 
             style={styles.profilePic}
-            source={profileURL.length > 0 ? {uri: profileURL} : require('../../assets/default_profile.png')}
+            source={profileURL.length > 0 ? {uri: profileURL} : require('../../assets/profile.png')}
             // defaultSource={{uri: imgAlt}}
           />
         </View>

@@ -15,7 +15,7 @@ import ProfileHeader from './sections/ProfileHeader'
 import ProfileTemplate from './ProfileTemplate'
 import { Alert } from 'react-native';
 // replace with default avatar link
-const imgAlt = "./default_profile.png"
+const imgAlt = "./profile.png"
 
 const UserProfile = (props) => {
   const context = React.useContext(UserDataContext);

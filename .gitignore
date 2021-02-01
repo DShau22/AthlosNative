@@ -1,7 +1,7 @@
 # OSX
 #
 .DS_Store
-
+athlosKey.keystore
 # Xcode
 #
 build/
@@ -23,6 +23,7 @@ DerivedData
 
 # Android/IntelliJ
 #
+android/java_pid5471.hprof
 build/
 .idea
 .gradle

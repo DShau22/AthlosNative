@@ -6,7 +6,7 @@ import {
 import "./css/sidebar.css"
 import SpaContext from '../Context';
 
-const imgAlt = "../profile/default_profile.png"
+const imgAlt = "../profile/profile.png"
 
 
 class Navbar extends Component {

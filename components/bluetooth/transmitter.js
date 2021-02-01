@@ -157,10 +157,11 @@ class BLEHandler {
    * Stops scanning for devices. Must call scanAndConnect again to restart it
    */
   stopScan() {
-    console.log("stopping scan");
-    if (this.readSubscription) {
-      this.readSubscription.remove()
-    }
+    // console.log("stopping scan");
+    // if (this.readSubscription) {
+    //   this.readSubscription.remove();
+    //   this.readSubscription = null;
+    // }
     if (this.manager) {
       this.manager.stopDeviceScan();
     }
@@ -179,13 +180,18 @@ class BLEHandler {
   }
 
   /**
-  * disconnects from connected Athlos device
+  * disconnects from connected Athlos device and removes the read subscription
   */
   async disconnect() {
+    if (this.readSubscription) {
+      this.readSubscription.remove();
+      this.readSubscription = null;
+    }
     if (this.device && (await this.device.isConnected())) {
       console.log("disconnecting");
       await this.device.cancelConnection(); // this is async
     }
+    
   }
 
   /**
@@ -198,6 +204,7 @@ class BLEHandler {
       return;
     }
     this.readSubscription.remove();
+    this.readSubscription = null;
   }
 
   /**
@@ -289,6 +296,9 @@ class BLEHandler {
             if (this.saDataCompleter && !this.saDataCompleter.hasFinished()) {
               this.saDataCompleter.error(DISCONNECT_ERR); 
             }
+            if (this.resCompleter && !this.resCompleter.hasFinished()) {
+              this.resCompleter.error(DISCONNECT_ERR);
+            }
             // this._scanAndConnect(); // try scanning and connecting again
           });
           // await this.setUpNotifyListener(); // for now just handle reading
@@ -320,6 +330,10 @@ class BLEHandler {
       console.log("failed to read characteristic: ", e);
     }
     console.log("setting up monitor");
+    if (this.readSubscription) {
+      this.readSubscription.remove();
+      this.readSubscription = null;
+    }
     this.readSubscription = readChar.monitor(async (err, c) => {
       console.log("******MONITOR CALLBACK******");
       if (err) {
@@ -579,6 +593,7 @@ class BLEHandler {
    */
   // have settings/getters for all the sainit indices that correspond to different settings
   async sendByteArray(bytes) { // bytes should be a Buffer type already but no checksum or metadata yet
+    console.log(this.subscription)
     if (!this.device || !(await this.device.isConnected())) {
       throw new Error("device is not yet connected");
     }
@@ -605,12 +620,7 @@ class BLEHandler {
       this.lastPkgId = this.writePkgId;
       this.writePkgId += 1; // HANDLE OVERFLOW LATER
       console.log("sending: ", pkg);
-      try {
-        const expectedPkgId = await this._sendAndWaitResponse(new DataItem(pkg, 5)); // keep trying until timeout? check about promise timeouts...
-      } catch(e) {
-        console.log("error processing next in sendSaInitBytes: ", e);
-        break;
-      }
+      await this._sendAndWaitResponse(new DataItem(pkg, 5)); // keep trying until timeout? check about promise timeouts...
     }
     this._resetAfterSendBytes();
   }

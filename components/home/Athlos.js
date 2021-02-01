@@ -22,6 +22,9 @@ import {
   parseDate,
   sameDate,
 } from "../utils/dates";
+import {
+  requestLocationPermission
+} from '../utils/permissions';
 
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 MaterialCommunityIcons.loadFont();
@@ -128,6 +131,7 @@ function Athlos(props) {
   // setting up the Athlos app
   React.useEffect(() => {
     const setUpApp = async () => {
+      await requestLocationPermission(); // request location permissions for Android users
       // await GlobalBleHandler.destroy();
       // GlobalBleHandler.reinit();
       console.log("Athlos component using effect");

@@ -47,7 +47,7 @@ CustomIcon.loadFont();
 const updateProfileURL = ENDPOINTS.updateProfile
 const checkDuplicateURL = ENDPOINTS.checkDuplicatePic
 const uploadPicURL = ENDPOINTS.uploadProfilePic
-const imgAlt = "./default_profile.png"
+const imgAlt = "./profile.png"
 const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 
 export default function EditProfile(props) {
@@ -471,7 +471,7 @@ export default function EditProfile(props) {
         <View style={{alignItems: 'center', marginTop: 15}}>
           <Image 
             style={{width: 140, height: 140, borderRadius: 140}}
-            source={displayProfilePicUrl.length === 0 ? require('../assets/default_profile.png'): {uri: displayProfilePicUrl}}
+            source={displayProfilePicUrl.length === 0 ? require('../assets/profile.png'): {uri: displayProfilePicUrl}}
           />
         </View>
         <Button 

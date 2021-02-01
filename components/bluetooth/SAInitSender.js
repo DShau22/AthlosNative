@@ -3,10 +3,30 @@ import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
 import { View, Alert, TouchableOpacity } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import ThemeText from '../generic/ThemeText';
+import BLUETOOTH_CONSTANTS from '../bluetooth/BluetoothConstants';
+const { DISCONNECT_ERR } = BLUETOOTH_CONSTANTS;
 
 export default function SAInitSender(props) {
   const { colors } = useTheme();
   const { saveAndCreateSaInit, containerStyle, setIsLoading } = props;
+  const [transmitting, setTransmitting] = React.useState(false);
+  const transmittingRef = React.useRef();
+  React.useEffect(() => {
+    if (transmitting) {
+      transmitting.current = setTimeout(() => {
+        Alert.alert(
+          "Timeout",
+          "Transmitting timed out because the app could not receive anything from the earbuds. Please try again.",
+          [{text: 'Okay'}]
+        )
+      }, 8000);
+    } else {
+      if (transmitting.current) {
+        clearTimeout(transmitting.current);
+        transmitting.current = null;
+      }
+    }
+  }, [transmitting]);
   return (
     <TouchableOpacity
       style={{
@@ -58,11 +78,19 @@ export default function SAInitSender(props) {
           );
         } catch(e) {
           console.log("error sending sainit: ", e);
-          Alert.alert(
-            "Oh no :(",
-            "There was an issue updating your Athlos device. Please try again later.",
-            [{text: 'Okay'}]
-          );
+          if (e === DISCONNECT_ERR) {
+            Alert.alert(
+              "Whoops",
+              "Your earbuds have disconnected in the middle of updating. Please resync and try again.",
+              [{text: 'Okay'}]
+            );
+          } else {
+            Alert.alert(
+              "Oh no :(",
+              "There was an issue updating your Athlos device. Please try again later.",
+              [{text: 'Okay'}]
+            );
+          }
         } finally {
           setIsLoading(false);
         }
