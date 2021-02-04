@@ -9,24 +9,23 @@ const { DISCONNECT_ERR } = BLUETOOTH_CONSTANTS;
 export default function SAInitSender(props) {
   const { colors } = useTheme();
   const { saveAndCreateSaInit, containerStyle, setIsLoading } = props;
-  const [transmitting, setTransmitting] = React.useState(false);
-  const transmittingRef = React.useRef();
-  React.useEffect(() => {
-    if (transmitting) {
-      transmitting.current = setTimeout(() => {
-        Alert.alert(
-          "Timeout",
-          "Transmitting timed out because the app could not receive anything from the earbuds. Please try again.",
-          [{text: 'Okay'}]
-        )
-      }, 8000);
-    } else {
-      if (transmitting.current) {
-        clearTimeout(transmitting.current);
-        transmitting.current = null;
-      }
-    }
-  }, [transmitting]);
+  // const [transmitting, setTransmitting] = React.useState(false);
+  // React.useEffect(() => {
+  //   if (transmitting) {
+  //     transmitting.current = setTimeout(() => {
+  //       Alert.alert(
+  //         "Timeout",
+  //         "Transmitting timed out. Please try again.",
+  //         [{text: 'Okay'}]
+  //       )
+  //     }, 8000);
+  //   } else {
+  //     if (transmitting.current) {
+  //       clearTimeout(transmitting.current);
+  //       transmitting.current = null;
+  //     }
+  //   }
+  // }, [transmitting]);
   return (
     <TouchableOpacity
       style={{
@@ -87,12 +86,13 @@ export default function SAInitSender(props) {
           } else {
             Alert.alert(
               "Oh no :(",
-              "There was an issue updating your Athlos device. Please try again later.",
+              `There was an issue updating your Athlos device: ${e}`,
               [{text: 'Okay'}]
             );
           }
         } finally {
           setIsLoading(false);
+          GlobalBleHandler.stopSendBytes();
         }
       }}
     >

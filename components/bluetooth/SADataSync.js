@@ -60,6 +60,7 @@ export default function SADataSync() {
         clearTimeout(connectTimerRef.current);
         connectTimerRef.current = null;
       }
+      GlobalBleHandler.stopScan();
       stopScanAnimations();
       Animated.loop(
         Animated.sequence([
@@ -78,13 +79,15 @@ export default function SADataSync() {
     } else {
       connectTimerRef.current = setTimeout(() => {
         showSnackBar("Having trouble finding your Athlos earbuds. Make sure they're within an arm's reach and are also scanning.");
-        stopScan();
+        GlobalBleHandler.stopScan();
       }, 15000);
       startScanAnimations();
       arrowOpacity.stopAnimation();
     }
     return () => {
-      stopScan();
+      if (scanning) {
+        GlobalBleHandler.stopScan();
+      }
       setConnected(false);
       if (connectTimerRef.current)
         clearTimeout(connectTimerRef.current)
@@ -100,7 +103,7 @@ export default function SADataSync() {
       }
       transferTimerRef.current = setTimeout(() => {
         showSnackBar("Having trouble transferring over activity data. Please try syncing again");
-        stopScan();
+        GlobalBleHandler.stopScan();
         setConnected(false);
       }, 10000);
     } else {
@@ -169,13 +172,6 @@ export default function SADataSync() {
     ).start();
   }
 
-  const stopScan = () => {
-    if (scanning) {
-      setScanning(false);
-      GlobalBleHandler.stopScan();
-    }
-  }
-
   const startScan = async () => {
     if (!(await hasLocationPermission())) {
       await requestLocationPermission();
@@ -209,7 +205,7 @@ export default function SADataSync() {
         if (!res.data.success) {
           throw new Error(res.data.message);
         }
-        await updateLocalUserInfo();
+        // await updateLocalUserInfo();
         GlobalBleHandler.setID(newDeviceID);
         Alert.alert(
           "All Set!",
@@ -221,7 +217,12 @@ export default function SADataSync() {
         console.log(e);
         showSnackBar(`Something went wrong with the registration process. Please try again later. ${e.toString()}`);
       } finally {
-        stopScan();
+        setScanning(false);
+      }
+      try {
+        await updateLocalUserInfo();
+      } catch(e) {
+        showSnackBar(`Failed to sync new deviceID with server. This is fine for now.`);
       }
     } else {
       let tryCount = 3;

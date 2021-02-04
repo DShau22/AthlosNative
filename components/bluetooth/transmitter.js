@@ -49,6 +49,9 @@ class BLEHandler {
   static MAX_PKG_LEN = 64;
   static METADATA_SIZE = 5;
   constructor(manager) {
+    this.athlosResponses = [], // for JJ's debug purposes
+    this.sendTimer = null;
+
     this.readSubscription = null;
     this.scanSubscription = null;
     this.disconnectSubscription = null;
@@ -90,6 +93,8 @@ class BLEHandler {
       this.manager.destroy();
     }
     this.manager = null;
+    this.athlosResponses = [], // for JJ's debug purposes
+    this.sendTimer = null;
     this.readSubscription = null;
     this.scanSubscription = null;
     this.userDeviceID = "";
@@ -349,6 +354,7 @@ class BLEHandler {
       try {
         if (len === 2) {
           // phone is transmitting to athlos earbuds
+          this.athlosResponses.push(Buffer.from(readValueInRawBytes, 'base64'));
           await this._validateResponse(readValueInRawBytes);
         } else if (len > 2) {
           this.isReading = true;
@@ -387,11 +393,12 @@ class BLEHandler {
     console.log("reading incoming bytes. ReadBuffers length is: ", this.readBuffers.length);
     if (this.readBuffers.length === 0) {
       // this is the first package sent over
-      if (readValueInRawBytes[10] !== '\n'.charCodeAt(0)) { // 10 because first 3 bytes are metadata in the package
-        this.saDataCompleter.error(`invalid sadata: 4th byte (3rd index) should be $ but got ${readValueInRawBytes[10]}`);
-        console.log(`invalid sadata: 4th byte (3rd index) should be $ but got ${readValueInRawBytes[10]}`);
-        throw new Error(`invalid sadata: 4th byte (3rd index) should be $ but got ${readValueInRawBytes[10]}`);
-      }
+      // if (readValueInRawBytes[10] !== '\n'.charCodeAt(0)) { // 10 because first 3 bytes are metadata in the package
+      //   this.saDataCompleter.error(`invalid sadata: 11th byte (10rd index) should be $ but got ${readValueInRawBytes[10]}`);
+      //   this._resetReadState();
+      //   console.log(`invalid sadata: 11th byte (10rd index) should be $ but got ${readValueInRawBytes[10]}`);
+      //   throw new Error(`invalid sadata: 11th byte (10rd index) should be $ but got ${readValueInRawBytes[10]}`);
+      // }
       // butes 0-6 inclusive are character representation of how many bytes are valid in sadata
       this.totalNumSaDataBytes = calcNumSaDataBytes(readValueInRawBytes);
       if (this.totalNumSaDataBytes <= 24) {
@@ -559,6 +566,10 @@ class BLEHandler {
     // if both checks pass, then we resolve the promise so that sendAndWaitResponse ends
     this.currItem = null;
     this.resCompleter.complete(pkgId);
+    if (this.sendTimer) {
+      clearTimeout(this.sendTimer);
+      this.sendTimer = null;
+    }
     console.log(`******validated response******`);
   }
 
@@ -574,6 +585,13 @@ class BLEHandler {
     this.isTransmitting = true;
     // return a promise that resolves once the monitor receives a response package and validates it
     this.resCompleter = new Completer(); // is there an issue if the old this.resCompleter hasnt resolved yet?
+    // set the timeout here after rescompleter is initialized for the closure
+    this.sendTimer = setTimeout(() => {
+      console.log(this.resCompleter);
+      if (this.resCompleter && !this.resCompleter.hasFinished()) {
+        this.resCompleter.error(`Timed out. The last response packages received from the earbuds were: ${this.athlosResponses}`);
+      }
+    }, 8000);
     this.currItem = dataItem;
     // send
     try {
@@ -593,7 +611,6 @@ class BLEHandler {
    */
   // have settings/getters for all the sainit indices that correspond to different settings
   async sendByteArray(bytes) { // bytes should be a Buffer type already but no checksum or metadata yet
-    console.log(this.subscription)
     if (!this.device || !(await this.device.isConnected())) {
       throw new Error("device is not yet connected");
     }
@@ -626,9 +643,17 @@ class BLEHandler {
   }
 
   /**
+   * Stops sending byte array but just resetting
+   */
+  stopSendBytes() {
+    this._resetAfterSendBytes();
+  }
+
+  /**
    * Resets the class state after we finish transmitting a byte array over to the earbuds.
    */
   _resetAfterSendBytes() {
+    this.athlosResponses = [];
     this.isTransmitting = false;
     this.currItem = null;
     this.lastPkgId = null;
