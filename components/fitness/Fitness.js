@@ -25,7 +25,7 @@ import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
 const Fitness = (props) => {
   const userDataContext = React.useContext(UserDataContext);
   const { runJson, swimJson, jumpJson } = userDataContext;
-  console.log("Fitness context: ", userDataContext.runJson.activityData.length);
+  // console.log("Fitness context: ", userDataContext.runJson.activityData.length);
   const appFunctionsContext = React.useContext(AppFunctionsContext);
   const profileContext = React.useContext(ProfileContext);
   const { colors } = useTheme()
@@ -42,7 +42,7 @@ const Fitness = (props) => {
     setIsLoading(true);
     if (relationshipStatus === PROFILE_CONSTANTS.IS_SELF) {
       try {
-        console.log("updating local user fitness in FITNESS component");
+        // console.log("updating local user fitness in FITNESS component");
         await GlobalBleHandler.uploadToServer();
         await updateLocalUserFitness();
       } catch(e) {
@@ -112,7 +112,7 @@ const Fitness = (props) => {
   }, [])
 
   React.useEffect(() => {
-    console.log("using fitness effect")
+    // console.log("using fitness effect")
     getFitness();
     return () => {
       console.log("Fitness requests are being canceled")

@@ -68,7 +68,7 @@ export default function SAInitSender(props) {
             return;
           }
           const sainitBytes = await saveAndCreateSaInit();
-          console.log("Sending byte array!");
+          // console.log("Sending byte array!");
           await GlobalBleHandler.sendByteArray(sainitBytes);
           Alert.alert(
             "All done!",

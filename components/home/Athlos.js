@@ -135,7 +135,7 @@ function Athlos(props) {
       await requestLocationServices();
       DeviceEventEmitter.addListener('locationProviderStatusChange', function(status) { // only trigger when "providerListener" is enabled
         if (!status.enabled) {
-          console.log(status);
+          // console.log(status);
           Alert.alert(
             "Whoops",
             "You'll need to turn on your phone's location services for this app to be able to make Bluetooth connections " +
@@ -147,7 +147,7 @@ function Athlos(props) {
       await requestLocationPermission(); // request location permissions for Android users
       // await GlobalBleHandler.destroy();
       // GlobalBleHandler.reinit();
-      console.log("Athlos component using effect");
+      // console.log("Athlos component using effect");
       setIsLoading(true);
       // first check if info is in Async storage
       const token = await getData();
@@ -203,7 +203,7 @@ function Athlos(props) {
         }
       }
       try {
-        console.log("updating local user fitness after scan and connect finishes in athlos component");
+        // console.log("updating local user fitness after scan and connect finishes in athlos component");
         await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
         await updateLocalUserInfo(); // no promise.all to avoid race conditions with updating the state
       } catch(e) {
@@ -224,9 +224,6 @@ function Athlos(props) {
       GlobalBleHandler.reinit();
     }
   }, []);
-  console.log("last monday: ", getLastMonday());
-  console.log("next sunday: ", getNextSunday());
-  console.log("test: ", DateTime.local());
 
   React.useEffect(() => {
     // console.log("use effect with state: ", state);
@@ -241,11 +238,11 @@ function Athlos(props) {
     // If it's completely updated, then don't do anything
     const lastMonday = getLastMonday();
     const needsThisWeekData = await needsFitnessUpdate();
-    console.log(activity, " last updated: ", lastUpdated);
-    console.log("last monday: ", lastMonday);
-    console.log("needs fitness update: ", needsThisWeekData);
+    // console.log(activity, " last updated: ", lastUpdated);
+    // console.log("last monday: ", lastMonday);
+    // console.log("needs fitness update: ", needsThisWeekData);
     if (sameDate(lastUpdated, lastMonday) && !needsThisWeekData) {
-      console.log("fitness already fully updated. Last updated: ", lastUpdated);
+      // console.log("fitness already fully updated. Last updated: ", lastUpdated);
       return {
         success: true,
         activityData: [] // no additional activityData to append
@@ -303,14 +300,14 @@ function Athlos(props) {
     }
     var lastRunUpdated;
     if (userData && userData.runJson && userData.runJson.activityData.length > 0) {
-      console.log("user data does exist!");
+      // console.log("user data does exist!");
       lastRunUpdated = DateTime.fromISO(userData.runJson.activityData[0][0].uploadDate);
       lastRunUpdated = lastRunUpdated < halfYearAgo ? DateTime.fromISO(halfYearAgo.toISO()) : lastRunUpdated;
       lastRunUpdated.set({
         hour: 0, minute: 0, second: 0, millisecond: 0
       });
     } else {
-      console.log("user data does not exist!");
+      // console.log("user data does not exist!");
       lastRunUpdated = DateTime.fromISO(halfYearAgo.toISO());
     }
     // dates to get activity data from and onwards
@@ -327,7 +324,7 @@ function Athlos(props) {
     // console.log("more runs: ", additionalRunData.activityData[0]);
     var gotAllInfo = additionalJumpData.success && additionalSwimData.success && additionalRunData.success;
     if (gotAllInfo) {
-      console.log("successfully got all user fitness");
+      // console.log("successfully got all user fitness");
       // console.log(additionalJumpData.activityData.length, additionalRunData.activityData.length, additionalSwimData.activityData.length);
       const newState = {
         ...userData,
@@ -367,7 +364,7 @@ function Athlos(props) {
       return additionalActivityData.slice(0, NUM_WEEKS_IN_PAST);
     }
     if (additionalActivityData.length > NUM_WEEKS_IN_PAST) {
-      console.log("additional data larger than 26: ", additionalActivityData.length);
+      // console.log("additional data larger than 26: ", additionalActivityData.length);
       additionalActivityData.splice(
         NUM_WEEKS_IN_PAST, // take off anything at index 26 (num_Weeks_in_past) and beyond
         additionalActivityData.length, // fine if it's an overestimate
@@ -384,7 +381,7 @@ function Athlos(props) {
     // console.log(currMondayDate, newActivityData.length);
     while (mondayDate <= currMondayDate) {
       idxToStartAddingFrom += 1;
-      console.log(currMondayDate, idxToStartAddingFrom);
+      // console.log(currMondayDate, idxToStartAddingFrom);
       currMondayDate = prevActivityData[idxToStartAddingFrom][0].uploadDate;
     }
     // console.log(idxToStartAddingFrom);
@@ -417,11 +414,11 @@ function Athlos(props) {
     var res = await fetch(ENDPOINTS.getUserInfo, { method: "GET", headers });
     var userJson = await res.json();
     if (!userJson.success) {
-      console.log("get user info failed: ", userJson);
+      // console.log("get user info failed: ", userJson);
       Alert.alert(`Oh No :(`, "Something went wrong with the request to the server. Please refresh.", [{ text: "Okay" }]);
       return;
     } else {
-      console.log("successfully got all user info");
+      // console.log("successfully got all user info");
       const newState = {
         ...userData,
         ...userJson,

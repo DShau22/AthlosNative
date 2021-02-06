@@ -234,7 +234,7 @@ export default function SADataSync() {
           setConnected(true);
           showSnackBar('Found your Athlos device! Transferring activity data...');
           await GlobalBleHandler.setUpNotifyListener();
-          console.log("finished scanning....");
+          console.log("finished scanning and transferring activity data....");
           success = true;
         } catch(e) {
           console.log("error with sync: ", e);

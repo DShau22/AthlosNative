@@ -390,7 +390,7 @@ class BLEHandler {
    * @param {Buffer} readValueInRawBytes 
    */
   async _readIncomingBytesAndSendResponse(readValueInRawBytes) {
-    console.log("reading incoming bytes. ReadBuffers length is: ", this.readBuffers.length);
+    // console.log("reading incoming bytes. ReadBuffers length is: ", this.readBuffers.length);
     if (this.readBuffers.length === 0) {
       // this is the first package sent over
       // if (readValueInRawBytes[10] !== '\n'.charCodeAt(0)) { // 10 because first 3 bytes are metadata in the package
@@ -409,8 +409,8 @@ class BLEHandler {
       }
       this.numSaDataBytesRead = 0;
     }
-    console.log("total num expected: ", this.totalNumSaDataBytes);
-    console.log("total num read: ", this.numSaDataBytesRead);
+    console.log("total num bytes to read expected: ", this.totalNumSaDataBytes);
+    console.log("total num bytes read so far: ", this.numSaDataBytesRead);
     this.readBuffers.push(readValueInRawBytes.slice(3, readValueInRawBytes.length - 2)); // first 3 bytes, last 2 bytes are metadata
     this.numSaDataBytesRead += readValueInRawBytes.length - BLEHandler.METADATA_SIZE;
     // save data to async storage and send to server.
@@ -477,14 +477,14 @@ class BLEHandler {
   async uploadToServer() {
     const sessionByteList = await getFitnessBytes(); // list of utf8 encoded sadata bytes in async storage
     if (sessionByteList === null) {
-      console.log("session byte list is null");
+      // console.log("session byte list is null");
       return;
     }
     const userToken = await getData();
     const config = {
       headers: { 'Content-Type': 'application/json' },
     }
-    console.log("session byte list: ", sessionByteList, sessionByteList.length);
+    // console.log("session byte list: ", sessionByteList, sessionByteList.length);
     const uploadPromises = [];
     sessionByteList.forEach(({date, sessionBytes}, _) => {
       uploadPromises.push(axios.post(ENDPOINTS.upload, {
@@ -509,7 +509,7 @@ class BLEHandler {
     }
     await removeFitnessRecords(recordIndexesToRemove);
     const test = await getFitnessBytes();
-    console.log("fitness bytes after removing: ", test);
+    // console.log("fitness bytes after removing: ", test);
     await setNeedsFitnessUpdate(atLeastOneSuccess && promiseResults.length > 0);
   }
 
@@ -525,12 +525,11 @@ class BLEHandler {
     console.log("********SENDING RESPONSE********")
     const len = readValueInRawBytes.length;
     const pkgId = readValueInRawBytes[len - 2];
-    console.log("num bytes: ", len);
-    console.log("below is all the stuff in base 64");
-    console.log('checkSum: ', readValueInRawBytes[len - 1]);
-    console.log('package id: ', pkgId);
-    console.log('first byte: ', readValueInRawBytes[0]);
-    console.log('second byte: ', readValueInRawBytes[1]);
+    // console.log("num bytes: ", len);
+    // console.log('checkSum: ', readValueInRawBytes[len - 1]);
+    // console.log('package id: ', pkgId);
+    // console.log('first byte: ', readValueInRawBytes[0]);
+    // console.log('second byte: ', readValueInRawBytes[1]);
     var resPackage = Buffer.from([pkgId, pkgId]).toString('base64');
     try {
       await this.device.writeCharacteristicWithoutResponseForService(SERVICE_UUID, TX, resPackage);
@@ -636,7 +635,7 @@ class BLEHandler {
       pkg[packageSize - 1] = calcChecksum(pkg, 0, pkg.length - 1);
       this.lastPkgId = this.writePkgId;
       this.writePkgId += 1; // HANDLE OVERFLOW LATER
-      console.log("sending: ", pkg);
+      // console.log("sending: ", pkg);
       await this._sendAndWaitResponse(new DataItem(pkg, 5)); // keep trying until timeout? check about promise timeouts...
     }
     this._resetAfterSendBytes();

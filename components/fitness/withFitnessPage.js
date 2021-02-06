@@ -85,7 +85,6 @@ export default function withFitnessPage( WrappedComponent ) {
         const week = activityJson.activityData[i];
         const monday = parseDate(week[0].uploadDate);
         const sunday = parseDate(week[week.length - 1].uploadDate);
-        console.log("monday: ", monday);
         const dayMonth = `${monday[1]} ${monday[2]} - ${sunday[1]} ${sunday[2]}, ${sunday[3]}`
         if (newWeekText === dayMonth) {
           break;
