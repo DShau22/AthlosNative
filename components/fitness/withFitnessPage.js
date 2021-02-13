@@ -8,22 +8,12 @@ import Calories from './Calories'
 import Duration from './Duration'
 
 import FITNESS_CONTANTS from '../fitness/FitnessConstants'
-// HOC for run, swim, jump fitness pages.
-// reuses label and data getting for:
-// 1. past laps/jumps/steps (num)
-// 2. Carousel display
-// 3. Cals and duration circles
-// 4. details link button
-// 5. pace/jump/time (swim) progressions (swim still adds laps of each stroke done)
-// 6. average jumps/steps/laps (num)
-// 7. percentToGoal ? 
 export default function withFitnessPage( WrappedComponent ) {  
   const WithFitnessPage = (props) => {
     const [weekIndex, setWeekIndex] = React.useState(0);
     const [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday - 1); // 1 is monday 7 is sunday for .weekday
     const [weeklyGraphLabels, setWeeklyGraphLabels] = React.useState([]);
     const [weeklyGraphData, setWeeklyGraphData] = React.useState([]);
-    // const { activityJson, id } = props.route.params;
     const { activityJson } = props;
     const [isLoading, setIsLoading] = React.useState(activityJson.activityData.length === 0);
     React.useEffect(() => {

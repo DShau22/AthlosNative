@@ -8,7 +8,11 @@ import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Entypo';
 Icon.loadFont();
 
-import { DEVICE_CONFIG_CONSTANTS, getDefaultConfig, getDefaultModeObject } from './DeviceConfigConstants';
+import {
+  DEVICE_CONFIG_CONSTANTS,
+  getDefaultConfig,
+  getDefaultModeObject,
+} from './DeviceConfigConstants';
 import { UserDataContext } from '../../Context';
 import ModeItem from './ModeItem';
 const {
@@ -22,6 +26,8 @@ const {
   CONFIG_KEY,
   MODE_CONFIG
 } = DEVICE_CONFIG_CONSTANTS;
+import GLOBAL_CONSTANTS from '../GlobalConstants';
+const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;
 
 // edit screens
 import RunEditScreen from './screens/RunEditScreen';
@@ -40,7 +46,6 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import SAInitSender from '../bluetooth/SAInitSender';
 import PullUpMenu from './screens/PullUpMenu';
 
-const WIDTH = Dimensions.get('window').width;
 const FAB_SIZE = 60;
 const DeviceConfig = (props) => {
   const { colors } = useTheme();
@@ -241,15 +246,21 @@ const DeviceConfig = (props) => {
             <PullUpMenu
               refRBSheet={addRBSheetRef}
               pullUpTitle={'Modes'}
-              childArrays={[[
-                MUSIC_ONLY,
-                RUN,
-                SWIM,
-                JUMP,
-                SWIMMING_EVENT,
-                INTERVAL,
-                TIMER,
-              ]]}
+              childArrays={[
+                {
+                  title: "Mode",
+                  width: SCREEN_WIDTH,
+                  array: [
+                    MUSIC_ONLY,
+                    RUN,
+                    SWIM,
+                    JUMP,
+                    SWIMMING_EVENT,
+                    INTERVAL,
+                    TIMER,
+                  ]
+                }
+              ]}
               selectedItems={[MUSIC_ONLY]}
               onSave={(chosenMode) => addMode(chosenMode)}
             />

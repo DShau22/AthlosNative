@@ -4,7 +4,6 @@ import { Text } from 'react-native-elements';
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
 const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;
 import RBSheet from "react-native-raw-bottom-sheet";
-// import ScrollPicker from "react-native-wheel-scrollview-picker";
 import Picker from '@gregfrench/react-native-wheel-picker'
 var PickerItem = Picker.Item;
 
@@ -23,8 +22,8 @@ export default function PullUpMenu(props) {
 
   const getSelectedIndexes = () => {
     const res = [];
-    childArrays.forEach((list, listIdx) => {
-      res.push(list.indexOf(selectedItems[listIdx]));
+    childArrays.forEach(({title, width, array}, listIdx) => {
+      res.push(array.indexOf(selectedItems[listIdx]));
     });
     return res;
   }
@@ -72,53 +71,42 @@ export default function PullUpMenu(props) {
               title='Done'
               onPress={() => {
                 onSave(
-                  childArrays[0][selectedIndexes[0]],
-                  childArrays[1] ? childArrays[1][selectedIndexes[1]] : null,
-                  childArrays[2] ? childArrays[2][selectedIndexes[2]] : null,
+                  childArrays[0].array[selectedIndexes[0]],
+                  childArrays[1] ? childArrays[1].array[selectedIndexes[1]] : null,
+                  childArrays[2] ? childArrays[2].array[selectedIndexes[2]] : null,
                 );
                 refRBSheet.current.close();
               }}
             />
           </View>
         </View>
-        <View style={{flexDirection: 'row', height: '100%'}}>
-          {childArrays.map((list, listIdx) => (
-            <Picker 
-              style={{width: SCREEN_WIDTH/childArrays.length, height: SCREEN_HEIGHT/4}}
-              selectedValue={selectedIndexes[listIdx]}
-              itemStyle={{color:"black", fontSize:26}}
-              onValueChange={(idx) => {
-                setSelectedIndexes(prev => {
-                  const copy = [...prev];
-                  copy[listIdx] = idx;
-                  return copy;
-                });
-              }}
-            >
-              {list.map((value, i) => (
-                <PickerItem label={`${value}`} value={i} key={`${value}-${i}`}/>
-              ))}
-            </Picker>
-            // <ScrollPicker
-            //   dataSource={list}
-            //   selectedIndex={selectedIndexes[listIdx]}
-            //   renderItem={(data, index) => {
-            //     <Text key={index}>{data}</Text>
-            //   }}
-            //   onValueChange={(data, idx) => {
-            //     setSelectedIndexes(prev => {
-            //       const copy = [...prev];
-            //       copy[listIdx] = idx;
-            //       return copy;
-            //     });
-            //   }}
-            //   wrapperHeight={180}
-            //   wrapperWidth={150}
-            //   wrapperBackground={"#FFFFFF"}
-            //   itemHeight={60}
-            //   highlightColor={"#d8d8d8"}
-            //   highlightWidth={2}
-            // />
+        <View style={{flexDirection: 'row', height: '100%', justifyContent: 'center'}}>
+          {childArrays.map(({title, width, array}, listIdx) => (
+            <View style={{
+              flexDirection: 'column',
+              height: '100%',
+              alignItems: 'center',
+              marginBottom: 20
+            }}>
+              {/* <Text>{title}</Text> */}
+              <Picker 
+                style={{width: width, height: SCREEN_HEIGHT/4}}
+                selectedValue={selectedIndexes[listIdx]}
+                itemStyle={{color:"black", fontSize: 24}}
+                itemSpace={30}
+                onValueChange={(idx) => {
+                  setSelectedIndexes(prev => {
+                    const copy = [...prev];
+                    copy[listIdx] = idx;
+                    return copy;
+                  });
+                }}
+              >
+                {array.map((value, i) => (
+                  <PickerItem label={`${value}`} value={i} key={`${value}-${i}`}/>
+                ))}
+              </Picker>
+            </View>
           ))}
         </View>
       </View>

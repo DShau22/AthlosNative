@@ -5,7 +5,6 @@ import { Divider } from 'react-native-elements'
 import { View, Text, StyleSheet, ScrollView, FlatList, Dimensions, Image } from 'react-native'
 import WeeklyBarChart from "../charts/WeeklyBarChart"
 import withFitnessPage from "../withFitnessPage"
-import StatCard from '../StatCard'
 import ThemeText from '../../generic/ThemeText'
 import { UserDataContext } from "../../../Context"
 import { COLOR_THEMES } from '../../ColorThemes'
@@ -77,16 +76,14 @@ const Run = (props) => {
   // and the total time the user spent on running mode. Only displays
   // the label for every 5 minutes
   const makeCadenceLabels = () => {
-    let timeInterval = Math.floor(currentDay.time / currentDay.cadences.length);
-    let timeSeries   = [];
-
-    // add 1 to length of cadences array cuz you wanna start with 0
-    // on the display chart
-    for (let i = 0; i < currentDay.cadences.length + 1; i+=5) {
-      timeSeries.push(`${Math.floor(timeInterval * i)}`);
+    let timeSeries = [];
+    // cadences are in 30 second intervals
+    for (let i = 0; i < currentDay.cadences.length + 1; i+=10) {
+      timeSeries.push(`${i/2} min`);
     }
     return timeSeries;
   }
+
   return (
     <View style={styles.container}>
       <View style={{alignItems: 'center'}}>
@@ -131,23 +128,6 @@ const Run = (props) => {
           activity="Runs"
         />
       </ScrollView>
-      {/* <View style={{alignItems: 'center'}}>
-        <StatCard
-          imageUri='https://reactnative.dev/img/tiny_logo.png'
-          label='Average steps per session'
-          stat={calcAvgNum()}
-        />
-        <StatCard
-          imageUri='https://reactnative.dev/img/tiny_logo.png'
-          label='Average cadence per Session'
-          stat={calcAvgCadence()}
-        />
-        <StatCard
-          imageUri='https://reactnative.dev/img/tiny_logo.png'
-          label='Average Calories burned per Session'
-          stat={calcAvgCals()}
-        />
-      </View> */}
     </View>
   )
 }

@@ -44,6 +44,38 @@ class DataItem {
   }
 }
 
+/**
+ * New App workflow:
+ * On first time, still keep everything the same except after linking is finished, call connect()
+ * Syncing still works the same way except now no need to destroy and reinit every time
+ * 
+ * 
+ * New API:
+ * All the instance variables will still be the same
+ * 
+ * link(): Scans and gets the Athlos earbuds' device ID. Does not actually connect
+ * 
+ * connect(): scans and connects to the bluetooth device with matching device id.
+ * ON DISCONNECT HANDLER must be set and when it happens call connect again. 
+ * 
+ * disconnect(): if connected, disconnects app from device
+ * 
+ * sendByteArray(dir, file, bytes): Takes in a byte array and sends it to the connected buds. Also takes in
+ * a file name and directory name. This is for generic writing to the earbuds.
+ * 
+ * readActivityData(): sends the read package to the earbuds and reads sadata. Need a completer
+ * for the entirety and a timer for timeout. Also must send a P package to reset the byte ptr
+ * 
+ * readFile(dir, file): Generic reading for any file. Takes in a directory and file name
+ * 
+ * destroy(): same as rn. Deallocates the BLEManager
+ * 
+ * reinit(): same as rn. Reinits with a new BLEManager and device id
+ * 
+ * Now all the read methods will check for an 'E' package instead of counting bytes.
+ * When sending sainit is finished, make sure to send an 'E' package too
+ */
+
 // destroying manager must be handled OUTSIDE this class (in case we setup manager, then navigate away before we are able to construct this class)
 class BLEHandler {
   static MAX_PKG_LEN = 64;
@@ -304,7 +336,7 @@ class BLEHandler {
             if (this.resCompleter && !this.resCompleter.hasFinished()) {
               this.resCompleter.error(DISCONNECT_ERR);
             }
-            // this._scanAndConnect(); // try scanning and connecting again
+            this._scanAndConnect(); // try scanning and connecting again
           });
           // await this.setUpNotifyListener(); // for now just handle reading
           this.connectCompleter.complete("successfully connected to Athlos device");
@@ -317,8 +349,8 @@ class BLEHandler {
   }
 
   /**
-   * Called after the device finds the athlos earbuds. This sets up a subscription to the RX characteristic
-   * so that we can read data that the earbuds send to this device.
+   * Called after connection made to earbuds. Sets up listener and nothing else. Takes
+   * it down in the beginning if it already exists so multiple aren't set up.
    */
   async setUpNotifyListener() {
     this.saDataCompleter = new Completer();

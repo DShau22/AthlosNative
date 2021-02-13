@@ -65,7 +65,10 @@ const DEVICE_CONFIG_CONSTANTS = {
   IM: 'Individual Medley',
 
   YARDS: 'yd',
-  METERS: 'm'
+  METERS: 'm',
+
+  WORK: 'Work',
+  REST: 'Rest',
 }
 const {
   POOL_LENGTH_CHOICES,
@@ -99,7 +102,54 @@ const {
   ENDS,
   REPEAT_LAST,
   CYCLES,
+  WORK,
+  REST,
 } = DEVICE_CONFIG_CONSTANTS;
+
+const MUSCLE_GROUP_LIST = [
+  "Abductors",
+  "Abs",
+  "Adductors",
+  "Arms",
+  "Back",
+  "Balance",
+  "Biceps",
+  "Calves",
+  "Cardio",
+  "Chest",
+  "Cool Down",
+  "Core",
+  "Deltoids",
+  "Forearms",
+  "Glutes",
+  "Groin",
+  "Hamstrings",
+  "Hiking",
+  "Hip Flexors",
+  "Hips",
+  "Jog",
+  "Lats",
+  "Legs",
+  "Lower Back",
+  "Neck",
+  "Obliques",
+  "Quads",
+  "Recovery",
+  REST,
+  "Rotator Cuff",
+  "Run",
+  "Scapulas",
+  "Shoulders",
+  "Spring",
+  "Stretch",
+  "Strolling",
+  "Traps",
+  "Triceps",
+  "Upper Back",
+  "Warm Up",
+  "Weights",
+  WORK,
+];
 
 const getDefaultConfig = () => {
   return [
@@ -180,10 +230,10 @@ const getDefaultIntervalMode = () => {
   return {
     mode: INTERVAL,
     intervals: [
-      {time: 30, rest: false},
-      {time: 10, rest: true},
-      {time: 30, rest: false},
-      {time: 10, rest: true},
+      {muscleGroup: 'Work', time: 30},
+      {muscleGroup: 'Rest', time: 10},
+      {muscleGroup: 'Work', time: 30},
+      {muscleGroup: 'Rest', time: 10},
     ],
     numRounds: 1 // if 0, then repeat the last split over and over again
   };
@@ -217,6 +267,7 @@ const getDefaultModeObject = (mode) => {
 
 module.exports = {
   DEVICE_CONFIG_CONSTANTS,
+  MUSCLE_GROUP_LIST,
   getDefaultConfig,
   getDefaultModeObject
 }

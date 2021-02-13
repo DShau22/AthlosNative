@@ -4,9 +4,7 @@
 const Buffer = require('buffer/').Buffer;
 import {
   DEVICE_CONFIG_CONSTANTS,
-  DEFAULT_CONFIG,
-  MODES,
-  getDefaultModeObject,
+  MUSCLE_GROUP_LIST
 } from './DeviceConfigConstants';
 const {
   POOL_LENGTH_CHOICES,
@@ -36,7 +34,7 @@ const {
   BACKSTROKE,
   BREASTROKE,
   FREESTYLE,
-  IM
+  IM,
 } = DEVICE_CONFIG_CONSTANTS;
 
 const {
@@ -438,13 +436,11 @@ class SAinit {
     }
     sainit[idx + 8] = offset8[0] + SAinit.ZERO;
     sainit[idx + 16] = numRounds * intervals.length + SAinit.ZERO; // total time periods
-    intervals.forEach(({time, rest}, i) => {
+    intervals.forEach(({time, muscleGroup}, i) => {
       // upper 10 bits is time in seconds
       sainit[idx + 32 + i*16] = (time & 0x03fc) >> 2; // bits 9:2 shifted right by two
       sainit[idx + 32 + i*16+8] = (time & 0x03) << 6; // bits 1:0 shifted 6 since 6 LSBs are for file selection
-      if (!rest) {
-        sainit[idx + 32 + i*16+8] |= 0x01; // set lsb to 1 if this is a rest interval
-      }
+      sainit[idx + 32 + i*16+8] = MUSCLE_GROUP_LIST.indexOf(muscleGroup);
     });
     console.log("set interval config: ", sainit);
   }

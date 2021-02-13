@@ -7,11 +7,15 @@ MaterialCommunityIcons.loadFont();
 import Entypo from 'react-native-vector-icons/Entypo';
 Entypo.loadFont();
 
-import { DEVICE_CONFIG_CONSTANTS, } from '../DeviceConfigConstants';
+import { DEVICE_CONFIG_CONSTANTS, MUSCLE_GROUP_LIST } from '../DeviceConfigConstants';
 const {
   INTERVAL,
-  MODE_CONFIG
+  MODE_CONFIG,
+  WORK,
+  REST
 } = DEVICE_CONFIG_CONSTANTS;
+import GLOBAL_CONSTANTS from '../../GlobalConstants';
+const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;
 import { useTheme } from '@react-navigation/native';
 import ThemeText from '../../generic/ThemeText';
 import SaveButton from './SaveButton';
@@ -97,7 +101,7 @@ export default function IntervalEditScreen(props) {
   }
 
   const renderListItem = ({item, index, drag, isActive}) => {
-    const { time, rest } = item;
+    const { time, muscleGroup } = item;
     var mins = Math.floor(time / 60);
     var secs = time % 60;
     var minsText = mins === 0 ? '' : `${mins} ${mins === 1 ? 'min' : 'mins'} `;
@@ -109,7 +113,7 @@ export default function IntervalEditScreen(props) {
         marginTop: 10,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: rest ? REST_COLOR : WORK_COLOR,
+        borderColor: muscleGroup === REST ? REST_COLOR : WORK_COLOR,
         width: '94%',
         alignSelf: 'center',
       }}>
@@ -133,30 +137,41 @@ export default function IntervalEditScreen(props) {
         <MenuPrompt
           noDividers
           noChevron
-          pullUpTitle='mins | secs'
-          promptTitle={`${capitalize(numToWord(index))} interval: ${renderIntervalType(rest)}`}
+          pullUpTitle="Activity & time"
+          promptTitle={`${index + 1}: ${muscleGroup}`}
           promptSubtitle={promptSubtitle}
-          onSave={(mins, secs) => {
-            const totalSeconds = mins * 60 + secs;
+          onSave={(muscleGroup, mins, secs) => {
+            const totalSeconds = parseInt(mins) * 60 + parseInt(secs);
             setIntervals(prev => {
               const copy = [...prev];
               copy[index].time = totalSeconds;
+              copy[index].muscleGroup = muscleGroup;
               return copy;
             });
           }}
           onLongPress={drag}
           childArrays={[
-            Array.from(Array(15).keys()),
-            Array.from(Array(60).keys())
+            {
+              title: 'Muscle group',
+              width: SCREEN_WIDTH / 2,
+              array: MUSCLE_GROUP_LIST
+            },
+            {
+              title: 'Minutes',
+              width: SCREEN_WIDTH / 4,
+              array: Array.from({length: 15}, (_, i) => `${i} min`)
+            },
+            {
+              title: 'Seconds',
+              width: SCREEN_WIDTH / 4,
+              array: Array.from({length: 12}, (_, i) => `${i * 5} sec`)
+
+            },
           ]}
-          selectedItems={[mins, secs]}
+          selectedItems={[muscleGroup, `${mins} min`, `${secs} sec`]}
         />
       </View>
     )
-  }
-
-  const renderIntervalType = (rest) => {
-    return rest ? 'rest' : 'work';
   }
 
   return (
@@ -181,7 +196,13 @@ export default function IntervalEditScreen(props) {
             </ThemeText>
             <MenuPrompt
               promptTitle={`Rounds: ${numRounds}`}
-              childArrays={[getRoundsArray()]}
+              childArrays={[
+                {
+                  title: "Number of rounds",
+                  width: SCREEN_WIDTH,
+                  array: getRoundsArray()
+                }
+              ]}
               selectedItems={[numRounds]}
               onSave={num => setNumRounds(num)}
             />
@@ -231,14 +252,16 @@ export default function IntervalEditScreen(props) {
             }
             setIntervals(prev => {
               var newTime = 600;
+              var prevMuscleGroup = WORK;
               for (let i = prev.length - 1; i >= 0; i--) {
-                if (!prev[i].rest) {
+                if (!(prev[i].muscleGroup === REST)) {
                   newTime = prev[i].time;
+                  prevMuscleGroup = prev[i].muscleGroup;
                   break;
                 }
               }
               const copy = [...prev];
-              copy.push({time: newTime, rest: false});
+              copy.push({time: newTime, muscleGroup: prevMuscleGroup});
               return copy;
             });
           }}
@@ -259,13 +282,13 @@ export default function IntervalEditScreen(props) {
             setIntervals(prev => {
               var newTime = 100;
               for (let i = prev.length - 1; i >= 0; i--) {
-                if (prev[i].rest) {
+                if (prev[i].muscleGroup === REST) {
                   newTime = prev[i].time;
                   break;
                 }
               }
               const copy = [...prev];
-              copy.push({time: newTime, rest: true});
+              copy.push({time: newTime, muscleGroup: REST});
               return copy;
             });
           }}

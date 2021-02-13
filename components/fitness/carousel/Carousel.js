@@ -1,12 +1,10 @@
 import { StyleSheet, View, Text, TouchableOpacity, Button, ScrollView } from "react-native"
-import DropDownPicker from 'react-native-dropdown-picker';
 import ImageSlide from "./ImageSlide"
-// import "./Carousel.css"
 import Arrow from "./Arrow"
 import React from 'react'
 import { parseDate } from "../../utils/dates"
-import { ProgressCircle } from 'react-native-svg-charts'
-import { useTheme } from '@react-navigation/native';
+import GLOBAL_CONSTANTS from '../../GlobalConstants';
+const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;import { useTheme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/dist/Feather';
 import MenuPrompt from "../../configure/screens/MenuPrompt";
 
@@ -31,16 +29,21 @@ const Carousel = (props) => {
     return weeks;
   }
   const menuItems = createMenuItems();
-  const promptTitle = menuItems.length === 0 ? 
-  `You have no recorded ${activityJson.action.toLowerCase()} sessions`: menuItems[weekIndex];
+  const promptTitle = menuItems[weekIndex];
   return (
     <View style={styles.carousel}>
       <MenuPrompt
         promptTitle={promptTitle}
-        childArrays={[menuItems]}
+        childArrays={[
+          {
+            title: 'Week',
+            width: SCREEN_WIDTH,
+            array: menuItems,
+          }
+        ]}
         selectedItems={[menuItems[weekIndex]]}
         onSave={weekDate => pullUpMenuSelect(weekDate)}
-        pullUpTitle={"Week"}
+        pullUpTitle="Week"
       />
       <View style={styles.slideShow}>
         <Arrow
