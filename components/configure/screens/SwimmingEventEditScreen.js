@@ -17,7 +17,7 @@ const {
 } = DEVICE_CONFIG_CONSTANTS;
 import { useTheme } from '@react-navigation/native';
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
-const { METRIC } = GLOBAL_CONSTANTS;
+const { SCREEN_WIDTH } = GLOBAL_CONSTANTS;
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 Icon.loadFont();
 import SplitInputs from '../popups/SplitInputs';
@@ -247,7 +247,13 @@ export default function SwimmingEventEditScreen(props) {
       <ThemeText style={styles.textHeader}>Pick a Stroke</ThemeText>
       <MenuPrompt
         promptTitle={stroke}
-        childArrays={[STROKES]}
+        childArrays={[
+          {
+            title: "Strokes",
+            width: SCREEN_WIDTH,
+            array: STROKES
+          }
+        ]}
         selectedItems={[stroke]}
         onSave={(chosenStroke) => {
           switchStrokes(chosenStroke);
@@ -257,7 +263,13 @@ export default function SwimmingEventEditScreen(props) {
       <ThemeText style={styles.textHeader}>Pick a distance</ThemeText>
       <MenuPrompt
         promptTitle={distance}
-        childArrays={[DISTANCES[getDistanceMetric()][stroke]]}
+        childArrays={[
+          {
+            title: 'Distance',
+            width: SCREEN_WIDTH,
+            array: DISTANCES[getDistanceMetric()][stroke]
+          }
+        ]}
         selectedItems={[distance]}
         onSave={(chosenDistance) => {
           switchDistance(chosenDistance);

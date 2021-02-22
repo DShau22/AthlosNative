@@ -72,6 +72,8 @@ class DataItem {
  * 
  * reinit(): same as rn. Reinits with a new BLEManager and device id
  * 
+ * stopTransmit(): Stops sending/reading data to/from the Athlos device. Used on timeouts
+ * 
  * Now all the read methods will check for an 'E' package instead of counting bytes.
  * When sending sainit is finished, make sure to send an 'E' package too
  */
@@ -83,6 +85,7 @@ class BLEHandler {
   constructor(manager) {
     this.athlosResponses = [], // for JJ's debug purposes
     this.sendTimer = null;
+    this.setConnected = (_) => {};
 
     this.readSubscription = null;
     this.scanSubscription = null;
@@ -102,11 +105,20 @@ class BLEHandler {
     this.resCompleter = null; // completer for the next expected response
     this.currItem = null; // current item that we are trying to send
     this.isTransmitting = false; // flag for if the phone is currently sending sainit
+    this.isConnected = false; // public exposure to connected that isn't async
 
     this.readBuffers = []; // list of Buffers/byte arrays to be concatenated once all of sadata is received
     this.totalNumSaDataBytes = 0; // number of sadata bytes to expect when sadata is being sent over
     this.numSaDataBytesRead = 0; // current number of bytes read in from earbuds for sadata. Stop reading when this hits totalNumSaDataBytes
     this.isReading = false;
+  }
+
+  /**
+   * The BLE handler accepts a function that sets the state of a particular component
+   * This is so that the Athlos component knows when the device disconnects
+   */
+  addSetConnectedFunction(fn) {
+    this.setConnected = fn;
   }
 
   /**
@@ -157,6 +169,10 @@ class BLEHandler {
     this.userDeviceID = userDeviceID;
   }
 
+  hasID() {
+    return this.userDeviceID && this.userDeviceID.length > 0;
+  }
+
   /**
    * Scans for devices and returns the device ID. Used in the SADataSync component when
    * the user is registering their device for the first time.
@@ -194,11 +210,6 @@ class BLEHandler {
    * Stops scanning for devices. Must call scanAndConnect again to restart it
    */
   stopScan() {
-    // console.log("stopping scan");
-    // if (this.readSubscription) {
-    //   this.readSubscription.remove();
-    //   this.readSubscription = null;
-    // }
     if (this.manager) {
       this.manager.stopDeviceScan();
     }
@@ -224,7 +235,8 @@ class BLEHandler {
       this.readSubscription.remove();
       this.readSubscription = null;
     }
-    if (this.device && (await this.device.isConnected())) {
+    if (this.device && (await this.device.isConnected())) { // THIS FOR SOME REASON DOESN'T WORK ON BATTERY OUT
+      console.log("is connected in disconnect: ", (await this.device.isConnected()));
       console.log("disconnecting");
       await this.device.cancelConnection(); // this is async
     }
@@ -254,16 +266,17 @@ class BLEHandler {
     this.sainit = sainit;
   }
 
-  /**
-   * Returns a boolean indicating if this device is connected to the athlos earbuds 
-   * on the BLE channel
-   */
-  async isConnected() {
-    if (this.device === null || this.device === undefined) {
-      return false;
+  stopTransmit() {
+    if (this.saDataCompleter && !this.saDataCompleter.hasFinished()) {
+      this.saDataCompleter.error(STOP_SCAN_ERR);
     }
-    return await this.device.isConnected();
+    if (this.resCompleter && !this.resCompleter.hasFinished()) {
+      this.resCompleter.error(STOP_SCAN_ERR);
+    }
+    this._resetAfterSendBytes();
+    this._resetReadState();
   }
+
   /**
    * According to the docs, we must wait until the state changes to powered on before
    * scanning and connecting. Returns a promise that resolves once sadata has been read and stored in async storage
@@ -324,21 +337,28 @@ class BLEHandler {
           const deviceWithServices = await connectedDevice.discoverAllServicesAndCharacteristics();
           this.device = deviceWithServices;
           console.log("connected to device with MTU: ", this.device.mtu);
-          // ADD ON DISCONNECT HERE
           this.disconnectSubscription = this.device.onDisconnected((err, device) => {
             console.log("device disconnected: ", err);
+            this.setConnected(false);
+            this.isConnected = false;
             this.disconnectSubscription.remove();
             this._resetAfterSendBytes();
             this._resetReadState();
+            if (this.readSubscription) {
+              this.readSubscription.remove();
+              this.readSubscription = null;
+            }
             if (this.saDataCompleter && !this.saDataCompleter.hasFinished()) {
               this.saDataCompleter.error(DISCONNECT_ERR); 
             }
             if (this.resCompleter && !this.resCompleter.hasFinished()) {
               this.resCompleter.error(DISCONNECT_ERR);
             }
-            this._scanAndConnect(); // try scanning and connecting again
+            this._scanAndConnect(); // try scanning and connecting again on disconnect
           });
-          // await this.setUpNotifyListener(); // for now just handle reading
+          this.setConnected(true);
+          this.isConnected = true;
+          await this.setUpNotifyListener();
           this.connectCompleter.complete("successfully connected to Athlos device");
         } catch(e) {
           console.log("error connecting device and discovering services: ", e);
@@ -353,19 +373,12 @@ class BLEHandler {
    * it down in the beginning if it already exists so multiple aren't set up.
    */
   async setUpNotifyListener() {
-    this.saDataCompleter = new Completer();
     console.log("setting up notify listener");
     if (!this.device || !(await this.device.isConnected()) ) {
-      this.saDataCompleter.error("device is not yet connected");
-      // throw new Error("device is not yet connected");
+      throw new Error("device is not yet connected");
     }
     console.log("reading characteristics");
-    try {
-      var readChar = await this.device.readCharacteristicForService(SERVICE_UUID, RX);
-    } catch(e) {
-      this.saDataCompleter.error(`failed to read characteristic: ${e}`);
-      console.log("failed to read characteristic: ", e);
-    }
+    var readChar = await this.device.readCharacteristicForService(SERVICE_UUID, RX);
     console.log("setting up monitor");
     if (this.readSubscription) {
       this.readSubscription.remove();
@@ -388,8 +401,10 @@ class BLEHandler {
           // phone is transmitting to athlos earbuds
           this.athlosResponses.push(Buffer.from(readValueInRawBytes, 'base64'));
           await this._validateResponse(readValueInRawBytes);
+        } else if (this._isEchoPkg(readValueInRawBytes)) {
+          this.resCompleter.complete();
+          await this._sendResponse(readValueInRawBytes);
         } else if (len > 2) {
-          this.isReading = true;
           // earbuds are transmitting to phone
           // first validate the incoming package. Don't do anything if the checksum is off
           const checksum = readValueInRawBytes[readValueInRawBytes.length - 1]
@@ -409,7 +424,77 @@ class BLEHandler {
         readChar.isNotifying = false;
       }
     });
+  }
+
+  async readActivityData() {
+    if (!this.device || !(await this.device.isConnected())) {
+      console.log("device is not connected: ", this.device);
+      return;
+    }
+    this.isReading = true;
+    this.saDataCompleter = new Completer();
+    // send special read sadata package
+    const readSaDataPkg = Buffer.alloc(6);
+    readSaDataPkg[0] = 'C'.charCodeAt(0);
+    readSaDataPkg[1] = 0;
+    readSaDataPkg[2] = 1;
+    readSaDataPkg[3] = 'D'.charCodeAt(0);
+    readSaDataPkg[4] = this.writePkgId;
+    readSaDataPkg[5] = calcChecksum(readSaDataPkg, 0, readSaDataPkg.length - 1);
+    await this._sendAndWaitResponse(readSaDataPkg);
     return this.saDataCompleter.result;
+  }
+
+  _isSaDataConf(readValueInRawBytes) {
+    return readValueInRawBytes[0] === 'C'.charCodeAt(0) &&
+          readValueInRawBytes[1] === 0 && 
+          readValueInRawBytes[2] === 1 && 
+          readValueInRawBytes[3] === 'D'.charCodeAt(0);
+  }
+
+  /**
+   * Returns true if this is an 'E' package. Indicates the earbuds finished writing/sending its data for reading.
+   * @param {Buffer} readValueInRawBytes 
+   */
+  _isFinishTransmit(readValueInRawBytes) {
+    return readValueInRawBytes[0] === 'E'.charCodeAt(0) && 
+          readValueInRawBytes[1] === 'E'.charCodeAt(0) && 
+          readValueInRawBytes[2] === 'E'.charCodeAt(0);
+  }
+
+  /**
+   * Wrapper for sending any package.
+   * Sets the currItem field to the correct thing.
+   * Increments package id by 1.
+   * So that I don't have to keep repeating those two above
+   * @param {Buffer} packageInBytes 
+   */
+  async _sendPackage(packageInBytes) {
+    this.currItem = new DataItem(packageInBytes, 3);
+    this.lastPkgId = this.writePkgId;
+    this.writePkgId += 1;
+    await this.device.writeCharacteristicWithoutResponseForService(SERVICE_UUID, TX, packageInBytes.toString('base64'));
+  }
+
+  /**
+   * checks to see if this package is equal to this.currItem (the package that was last sent by this phone)
+   * @param {Buffer} readValueInRawBytes 
+   */
+  _isEchoPkg(readValueInRawBytes) {
+    if (!this.currItem) {
+      console.log("is not echo package cuz this.currItem is null: ", readValueInRawBytes);
+      return false;
+    }
+    if (this.currItem.length !== readValueInRawBytes.length) {
+      return false;
+    }
+    for (let i = 0; i < this.currItem.length; i++) {
+      if (this.currItem.data[i] !== readValueInRawBytes[i]) {
+        return false;
+      }
+    }
+    console.log("is echo package!");
+    return true;
   }
 
   /**
@@ -422,83 +507,70 @@ class BLEHandler {
    * @param {Buffer} readValueInRawBytes 
    */
   async _readIncomingBytesAndSendResponse(readValueInRawBytes) {
-    // console.log("reading incoming bytes. ReadBuffers length is: ", this.readBuffers.length);
+    // handle accordingly if this is the first SADATA package
     if (this.readBuffers.length === 0) {
-      // this is the first package sent over
-      // if (readValueInRawBytes[10] !== '\n'.charCodeAt(0)) { // 10 because first 3 bytes are metadata in the package
-      //   this.saDataCompleter.error(`invalid sadata: 11th byte (10rd index) should be $ but got ${readValueInRawBytes[10]}`);
-      //   this._resetReadState();
-      //   console.log(`invalid sadata: 11th byte (10rd index) should be $ but got ${readValueInRawBytes[10]}`);
-      //   throw new Error(`invalid sadata: 11th byte (10rd index) should be $ but got ${readValueInRawBytes[10]}`);
-      // }
-      // butes 0-6 inclusive are character representation of how many bytes are valid in sadata
-      this.totalNumSaDataBytes = calcNumSaDataBytes(readValueInRawBytes);
-      if (this.totalNumSaDataBytes <= 24) {
-        // empty sadata
+      // this is the first DATA package sent over
+      if (readValueInRawBytes[10] !== '\n'.charCodeAt(0)) { // 9 because first 3 bytes are metadata in the package
+        this.saDataCompleter.error(`invalid sadata: 11th byte (10th index) should be $ but got ${readValueInRawBytes[10]}`);
         this._resetReadState();
-        this.saDataCompleter.complete(null);
-        return;
+        console.log(`invalid sadata: 11th byte (10th index) should be $ but got ${readValueInRawBytes[10]}`);
+        throw new Error(`invalid sadata: 11th byte (10th index) should be $ but got ${readValueInRawBytes[10]}`);
       }
+      // bytes 0-6 inclusive are character representation of how many bytes are valid in sadata
+      this.totalNumSaDataBytes = calcNumSaDataBytes(readValueInRawBytes);
+      // if (this.totalNumSaDataBytes <= 8) {
+      //   this._resetReadState();
+      //   this.saDataCompleter.complete(null);
+      //   return;
+      // }
       this.numSaDataBytesRead = 0;
     }
     console.log("total num bytes to read expected: ", this.totalNumSaDataBytes);
     console.log("total num bytes read so far: ", this.numSaDataBytesRead);
     this.readBuffers.push(readValueInRawBytes.slice(3, readValueInRawBytes.length - 2)); // first 3 bytes, last 2 bytes are metadata
     this.numSaDataBytesRead += readValueInRawBytes.length - BLEHandler.METADATA_SIZE;
-    // save data to async storage and send to server.
-    // if server request fails, you still have data in async storage
     var totalNumBytes = 0;
     this.readBuffers.forEach((buffer, _) => {
       totalNumBytes += buffer.length;
     });
     if (totalNumBytes != this.numSaDataBytesRead)
       console.log(`num bytes in read buffers ${totalNumBytes} not same as total num bytes read (${this.numSaDataBytesRead})`);
-    if (this.numSaDataBytesRead >= this.totalNumSaDataBytes) {
+    if (this._isFinishTransmit(readValueInRawBytes)) {
       console.log("done reading...");
-      // send package to tell the earbuds to rewrite sadata. Don't needa await this one
-      const confPkg = this._createConfirmationPackage();
-      this.device.writeCharacteristicWithoutResponseForService(SERVICE_UUID, TX, confPkg);
+      // send package to tell the earbuds to rewrite sadata. Shouldnt need to await
+      await this._sendResetSaDataPkg();
       const concatentatedSadata = Buffer.concat(this.readBuffers, totalNumBytes);
       try {
-        await this._saveToAsyncStorage(concatentatedSadata);
+        await storeFitnessBytes(concatentatedSadata);
         this.saDataCompleter.complete(concatentatedSadata);
       } catch(e) {
         console.log("Error storing fitness bytes! No way to handle this error yet other than not storing anything");
-        this._resetReadState();
         this.saDataCompleter.error(e);
-        return;
       }
-      this._resetReadState();
     } else {
-      // still expect to get more packages. Send a response to the earbuds
       await this._sendResponse(readValueInRawBytes);
-    }
-  }
-
-  _createConfirmationPackage() {
-    const confPkg = Buffer.alloc(13);
-    confPkg[0] = 3; // 3 means rewrite sadata
-    confPkg[1] = 0; // pkgid is 0
-    confPkg[2] = 1; // 1 pkg total
-    confPkg[confPkg.length - 1] = calcChecksum(confPkg, 0, confPkg.length - 1); // checksum
-    confPkg[confPkg.length - 2] = this.writePkgId; // overall pkg id
-    this.writePkgId += 1; // HANDLE OVERFLOW LATER
-    return confPkg.toString('base64');
-  }
-
-  /**
-   * Saves the sadata bytes in async storage as a base64 encoded string
-   * @param {Buffer} concatentatedSadata 
-   */
-  async _saveToAsyncStorage(concatentatedSadata) {
-    try {
-      await storeFitnessBytes(concatentatedSadata);
-    } catch(e) {
-      console.log("Error storing fitness bytes! No way to handle this error yet other than not storing anything");
-      this._resetReadState();
-      this.saDataCompleter.error(e);
       return;
     }
+  }
+
+  async _sendResetSaDataPkg() {
+    console.log("sending reset package...")   
+    const resetPkg = Buffer.alloc(12);
+    resetPkg[0] = 'C'.charCodeAt(0); // 3 means rewrite sadata
+    resetPkg[1] = 0; // pkgid is 0
+    resetPkg[2] = 1; // 1 pkg total
+    resetPkg[3] = 'P'.charCodeAt(0);
+    resetPkg[4] = '0'.charCodeAt(0);
+    resetPkg[5] = '0'.charCodeAt(0);
+    resetPkg[6] = '0'.charCodeAt(0);
+    resetPkg[7] = '0'.charCodeAt(0);
+    resetPkg[8] = '0'.charCodeAt(0);
+    resetPkg[9] = '8'.charCodeAt(0);
+    resetPkg[resetPkg.length - 2] = this.writePkgId; // overall pkg id
+    resetPkg[resetPkg.length - 1] = calcChecksum(resetPkg, 0, resetPkg.length - 1); // checksum
+    await this._sendAndWaitResponse(resetPkg);
+    console.log("resetting read state");
+    this._resetReadState();
   }
 
   /**
@@ -509,7 +581,7 @@ class BLEHandler {
   async uploadToServer() {
     const sessionByteList = await getFitnessBytes(); // list of utf8 encoded sadata bytes in async storage
     if (sessionByteList === null) {
-      // console.log("session byte list is null");
+      console.log("session byte list is null");
       return;
     }
     const userToken = await getData();
@@ -595,7 +667,6 @@ class BLEHandler {
       return;
     }
     // if both checks pass, then we resolve the promise so that sendAndWaitResponse ends
-    this.currItem = null;
     this.resCompleter.complete(pkgId);
     if (this.sendTimer) {
       clearTimeout(this.sendTimer);
@@ -607,9 +678,9 @@ class BLEHandler {
   /**
    * Called when we want to send a packet from this device to the earbuds. This function resolves once
    * we receive a validated response
-   * @param {DataItem} dataItem 
+   * @param {Buffer} packageInBytes 
    */
-  async _sendAndWaitResponse(dataItem) {
+  async _sendAndWaitResponse(packageInBytes) {
     if (!this.device || !(await this.device.isConnected())) {
       throw new Error("device is not yet connected");
     }
@@ -623,11 +694,9 @@ class BLEHandler {
         this.resCompleter.error(`Timed out. The last response packages received from the earbuds were: ${this.athlosResponses}`);
       }
     }, 8000);
-    this.currItem = dataItem;
     // send
     try {
-      const pkg = this.currItem.data.toString('base64');
-      await this.device.writeCharacteristicWithoutResponseForService(SERVICE_UUID, TX, pkg);
+      await this._sendPackage(packageInBytes);
     } catch(e) {
       // how does writeCharacteristicWithoutResponseForService fail exactly?
       console.log("failed to transmit next package: ", e);
@@ -665,10 +734,8 @@ class BLEHandler {
       }
       pkg[packageSize - 2] = this.writePkgId;
       pkg[packageSize - 1] = calcChecksum(pkg, 0, pkg.length - 1);
-      this.lastPkgId = this.writePkgId;
-      this.writePkgId += 1; // HANDLE OVERFLOW LATER
       // console.log("sending: ", pkg);
-      await this._sendAndWaitResponse(new DataItem(pkg, 5)); // keep trying until timeout? check about promise timeouts...
+      await this._sendAndWaitResponse(pkg); // keep trying until timeout? check about promise timeouts...
     }
     this._resetAfterSendBytes();
   }
@@ -687,7 +754,6 @@ class BLEHandler {
     this.athlosResponses = [];
     this.isTransmitting = false;
     this.currItem = null;
-    this.lastPkgId = null;
     this.resCompleter = null;
   }
 
@@ -699,6 +765,7 @@ class BLEHandler {
     this.totalNumSaDataBytes = 0;
     this.numSaDataBytesRead = 0;
     this.isReading = false;
+    this.currItem = null;
   }
 }
 

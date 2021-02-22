@@ -5,6 +5,7 @@ import { AppFunctionsContext, UserDataContext } from '../../Context';
 import { View, StyleSheet, Image, Animated } from 'react-native';
 import GestureRecognizer from 'react-native-swipe-gestures';
 import ThemeText from '../generic/ThemeText';
+import { useFocusEffect } from '@react-navigation/native';
 import BLUETOOTH_CONSTANTS from './BluetoothConstants';
 const {STOP_SCAN_ERR} = BLUETOOTH_CONSTANTS;
 import {
@@ -20,6 +21,7 @@ import GlobalBleHandler from './GlobalBleHandler';
 import Axios from 'axios';
 import ENDPOINTS from '../endpoints';
 import { Alert } from 'react-native';
+import { BLEHandler } from './transmitter';
 Icon.loadFont();
 
 const { SYNC_PAGE, SYNC_HELP_PAGE } = BLUETOOTH_CONSTANTS;
@@ -29,19 +31,18 @@ const { SYNC_PAGE, SYNC_HELP_PAGE } = BLUETOOTH_CONSTANTS;
  * the earbuds to resend sadata. Registering a device is necessary otherwise someone else might try to connect their athlos
  * earbuds to their phone while this user is around, and this user will then "steal" their fitness data.
  */
-export default function SADataSync() {
+export default function SADataSync(props) {
+  const { athlosConnected } = props;
   const { colors } = useTheme();
   const appFunctionsContext = React.useContext(AppFunctionsContext);
   const userDataContext = React.useContext(UserDataContext);
   const { updateLocalUserInfo, updateLocalUserFitness } = appFunctionsContext;
   const { deviceID } = userDataContext;
-  const [scanning, setScanning] = React.useState(false);
-  const [connected, setConnected] = React.useState(false);
+  const [transmitting, setTransmitting] = React.useState(false);
   // console.log("scanning: ", scanning);
   // console.log("device ID: ", deviceID);
   // console.log("ble device: ", GlobalBleHandler.device);
 
-  const connectTimerRef = React.useRef();
   const transferTimerRef = React.useRef();
 
   const expand1  = React.useRef(new Animated.Value(0)).current;
@@ -54,13 +55,16 @@ export default function SADataSync() {
   const arrowOpacity = React.useRef(new Animated.Value(1)).current;
 
   React.useEffect(() => {
-    // console.log("using scanning effect: ", scanning);
-    if (!scanning) {
-      if (connectTimerRef.current) {
-        clearTimeout(connectTimerRef.current);
-        connectTimerRef.current = null;
+    console.log("connected: ", athlosConnected);
+  }, [athlosConnected]);
+
+  React.useEffect(() => {
+    console.log("using transmitting effect: ", transmitting);
+    if (!transmitting) {
+      if (transferTimerRef.current) {
+        clearTimeout(transferTimerRef.current);
+        transferTimerRef.current = null;
       }
-      GlobalBleHandler.stopScan();
       stopScanAnimations();
       Animated.loop(
         Animated.sequence([
@@ -77,42 +81,31 @@ export default function SADataSync() {
         ])
       ).start();
     } else {
-      connectTimerRef.current = setTimeout(() => {
-        showSnackBar("Having trouble finding your Athlos earbuds. Make sure they're within an arm's reach and are also scanning.");
-        GlobalBleHandler.stopScan();
+      transferTimerRef.current = setTimeout(() => {
+        showSnackBar(`Having trouble ${GlobalBleHandler.hasID() ? 'syncing with' : 'linking'} your Athlos earbuds. Please try again.`);
+        GlobalBleHandler.stopTransmit();
+        setTransmitting(false);
       }, 15000);
-      startScanAnimations();
       arrowOpacity.stopAnimation();
+      startScanAnimations();
     }
     return () => {
-      if (scanning) {
-        GlobalBleHandler.stopScan();
+      console.log("Unmounting. Transmitting is: ", transmitting);
+      if (transmitting) {
+        GlobalBleHandler.stopTransmit();
       }
-      setConnected(false);
-      if (connectTimerRef.current)
-        clearTimeout(connectTimerRef.current)
       if (transferTimerRef.current)
         clearTimeout(transferTimerRef.current)
     }
-  }, [scanning]);
+  }, [transmitting]);
 
-  React.useEffect(() => {
-    if (connected) { // get rid of the timer for trying to find athlos earbuds after connection is made
-      if (connectTimerRef.current) {
-        clearTimeout(connectTimerRef.current);
-      }
-      transferTimerRef.current = setTimeout(() => {
-        showSnackBar("Having trouble transferring over activity data. Please try syncing again");
-        GlobalBleHandler.stopScan();
-        setConnected(false);
-      }, 10000);
-    } else {
-      if (transferTimerRef.current) {
-        clearTimeout(transferTimerRef.current);
-        transferTimerRef.current = null;
-      }
-    }
-  }, [connected]);
+  // React.useEffect(() => {
+  //   if (connected) {
+  //     showSnackBar("Your Athlos earbuds are connected :)");
+  //   } else {
+  //     showSnackBar("Your Athlos earbuds are not connected. Make sure they have bluetooth enabled.");
+  //   }
+  // }, [connected]);
 
   const stopScanAnimations = () => {
     expand1.stopAnimation();
@@ -172,117 +165,112 @@ export default function SADataSync() {
     ).start();
   }
 
-  const startScan = async () => {
+  const link = async () => {
     if (!(await hasLocationPermission())) {
       await requestLocationPermission();
       return;
     }
-    setConnected(false);
-    console.log("******* swiped down **********");
-    if (scanning) {
+    console.log("******* swiped down to link **********");
+    if (transmitting) {
       return;
     }
-    // reinit the BLE handler. Can cause an issue with race conditions tho with stopScan
+    setTransmitting(true);
     try {
-      GlobalBleHandler.stopScan();
-      await GlobalBleHandler.destroy();
-      GlobalBleHandler.reinit(deviceID);
+      const newDeviceID = await GlobalBleHandler.scanAndRegister();
+      const res = await Axios.post(ENDPOINTS.updateDeviceID, {
+        deviceID: newDeviceID,
+        userID: userDataContext._id,
+      });
+      if (!res.data.success) {
+        throw new Error(res.data.message);
+      }
+      GlobalBleHandler.setID(newDeviceID);
+      Alert.alert(
+        "All Set!",
+        "Successfully linked your new Athlos earbuds with this account :). Hit the gear icon on your profile if you" +
+        " want to re-link with different earbuds.",
+        [{text: "Okay"}]
+      );
     } catch(e) {
-      console.log("error with start scan. Either stop scan, destroy, or reinit failed: ", e);
-      showSnackBar(`Something went wrong. Please try again in a moment. ${e}`);
+      console.log(e);
+      showSnackBar(`Something went wrong with the registration process. Please try again later. ${e.toString()}`);
+    }
+    try {
+      await updateLocalUserInfo();
+    } catch(e) {
+      showSnackBar(`Failed to sync new deviceID with server. This is fine for now.`);
+    }
+    setTransmitting(false);
+  }
+
+  const readActivityData = async () => {
+    if (!(await hasLocationPermission())) {
+      await requestLocationPermission();
       return;
     }
-    setScanning(true);
-    // first time so run the device registration proceduer
-    if (deviceID.length === 0) {
-      console.log("no device id, begin linking: ", deviceID);
+    console.log("******* swiped down to read **********");
+    if (transmitting) {
+      return;
+    }
+    if (!GlobalBleHandler.isConnected) {
+      showSnackBar("Your device is not connected. Please make sure your earbuds are within range and are in Bluetooth mode");
+      return;
+    }
+    setTransmitting(true);
+    // if (!connected) {
+    //   showSnackBar("Your Athlos device is not connected or has momentarily lost connection. Make sure it is on Bluetooth and try again.");
+    //   setTransmitting(false);
+    //   return;
+    // }
+    let tryCount = 3;
+    let success = false;
+    console.log("begin syncing....");
+    while (tryCount > 0 && !success) {
       try {
-        const newDeviceID = await GlobalBleHandler.scanAndRegister();
-        const res = await Axios.post(ENDPOINTS.updateDeviceID, {
-          deviceID: newDeviceID,
-          userID: userDataContext._id,
-        });
-        if (!res.data.success) {
-          throw new Error(res.data.message);
-        }
-        // await updateLocalUserInfo();
-        GlobalBleHandler.setID(newDeviceID);
-        Alert.alert(
-          "All Set!",
-          "Successfully linked your new Athlos earbuds with this account :). Hit the gear icon on your profile if you" +
-          " want to re-link with different earbuds.",
-          [{text: "Okay"}]
-        );
+        await GlobalBleHandler.readActivityData();
+        console.log("finished transferring activity data....");
+        success = true;
       } catch(e) {
-        console.log(e);
-        showSnackBar(`Something went wrong with the registration process. Please try again later. ${e.toString()}`);
-      } finally {
-        setScanning(false);
-      }
-      try {
-        await updateLocalUserInfo();
-      } catch(e) {
-        showSnackBar(`Failed to sync new deviceID with server. This is fine for now.`);
-      }
-    } else {
-      let tryCount = 3;
-      let success = false;
-      console.log("begin syncing....");
-      while (tryCount > 0 && !success) {
-        try {
-          await GlobalBleHandler.scanAndConnect();
-          setConnected(true);
-          showSnackBar('Found your Athlos device! Transferring activity data...');
-          await GlobalBleHandler.setUpNotifyListener();
-          console.log("finished scanning and transferring activity data....");
-          success = true;
-        } catch(e) {
-          console.log("error with sync: ", e);
-          if (e === STOP_SCAN_ERR) { // if we manually or programmatically stopped the scan, then stop the animation and don't try again.
-            setScanning(false);
-            return;
-          }
-          setConnected(false);
-          showSnackBar(`${e}. Trying again...`);
-          tryCount -= 1;
+        console.log("error with sync: ", e);
+        if (e === STOP_SCAN_ERR) { // if we manually or programmatically stopped the scan, then stop the animation and don't try again.
+          setTransmitting(false);
+          return;
         }
-      }
-      if (!success) {
-        showSnackBar(`Something went wrong with syncing. Please try again.`);
-      } else {
-        showSnackBar('Successfully synced with your Athlos earbuds. Your activity records are almost ready :]');
-      }
-      setScanning(false);
-      let uploadCount = 3;
-      let uploadSuccess = false;
-      while (uploadCount > 0 && !uploadSuccess) {
-        uploadCount -= 1;
-        try {
-          await GlobalBleHandler.uploadToServer();
-          if (!(await needsFitnessUpdate())) {
-            showSnackBar('Your activity records are already updated.');
-            setConnected(false);
-            return;
-          }
-          uploadSuccess = true;
-        } catch(e) {
-          console.log("upload with sync failed. Trying again");
-        }
-      }
-      if (!uploadSuccess) {
-        showSnackBar('Your activity records could not be updated. Try syncing again and make sure your internet connection is strong');
-      } else {
-        try {
-          await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
-          await updateLocalUserInfo(); // no promise.all to avoid race conditions with updating the state
-          showSnackBar('Your activity records have been updated!');
-        } catch(e) {
-          console.log("update local user fitness or local info failed: ", e);
-          showSnackBar('Your activity records have been updated! Please refresh to view updates.');
-        }
+        showSnackBar(`${e}. Trying again...`);
+        tryCount -= 1;
       }
     }
-    setConnected(false);
+    if (!success) {
+      showSnackBar(`Something went wrong with syncing. Please try again.`);
+      return;
+    } else {
+      showSnackBar('Successfully synced with your Athlos earbuds. Your activity records are almost ready :]');
+    }
+    setTransmitting(false);
+    let uploadCount = 3;
+    let uploadSuccess = false;
+    while (uploadCount > 0 && !uploadSuccess) {
+      uploadCount -= 1;
+      try {
+        await GlobalBleHandler.uploadToServer();
+        uploadSuccess = true;
+      } catch(e) {
+        console.log("upload with sync failed. Trying again");
+      }
+    }
+    if (!uploadSuccess) {
+      showSnackBar('Your activity records could not be updated. Try syncing again and make sure your internet connection is strong');
+    } else {
+      try {
+        await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
+        await updateLocalUserInfo(); // no promise.all to avoid race conditions with updating the state
+        showSnackBar('Your activity records have been updated!');
+      } catch(e) {
+        console.log("update local user fitness or local info failed: ", e);
+        showSnackBar('Your activity records have been updated! Please refresh to view updates.');
+      }
+    }
+    setTransmitting(false);
   }
 
   const Stack = createStackNavigator();
@@ -294,11 +282,17 @@ export default function SADataSync() {
       >
         {props => (
           <GestureRecognizer style={{flex: 1}}
-            onSwipeDown={async (gestureState) => await startScan()}
+            onSwipeDown={async (gestureState) => {
+              if (GlobalBleHandler.hasID()) {
+                await readActivityData();
+              } else {
+                await link();
+              }
+            }}
             // onSwipeUp={async (gestureState) => await stopScan()}
           >
             <View style={styles.container}>
-              {scanning ? 
+              {transmitting ? 
                 <View style={styles.topText}>
                   <ThemeText style={styles.swipeText}>This may take some time</ThemeText>
                 </View>
@@ -343,10 +337,10 @@ export default function SADataSync() {
                     }]}
                   />
                 </View>
-                {scanning ? 
-                  <View style={styles.scanningTextContainer}>
-                    <ThemeText style={styles.scanningText}>{connected ? 'Transferring data...' : 'Scanning...'}</ThemeText>
-                    <ThemeText style={styles.scanningSubtitle}>
+                {transmitting ? 
+                  <View style={styles.transmittingTextContainer}>
+                    <ThemeText style={styles.transmittingText}>{GlobalBleHandler.hasID() > 0 ? 'Syncing...' : 'Linking...'}</ThemeText>
+                    <ThemeText style={styles.transmittingSubtitle}>
                       Feel free to navigate to other pages in the meantime
                     </ThemeText>
                   </View> :
@@ -432,14 +426,14 @@ const styles = StyleSheet.create({
     borderRadius: 200,
     position: 'absolute',
   },
-  scanningTextContainer: {
+  transmittingTextContainer: {
     margin: 20,
     alignItems: 'center'
   },
-  scanningText: {
+  transmittingText: {
     fontSize: 24,
   },
-  scanningSubtitle: {
+  transmittingSubtitle: {
     fontSize: 14,
     textAlign: 'center'
   },

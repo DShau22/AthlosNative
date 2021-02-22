@@ -9,23 +9,7 @@ const { DISCONNECT_ERR } = BLUETOOTH_CONSTANTS;
 export default function SAInitSender(props) {
   const { colors } = useTheme();
   const { saveAndCreateSaInit, containerStyle, setIsLoading } = props;
-  // const [transmitting, setTransmitting] = React.useState(false);
-  // React.useEffect(() => {
-  //   if (transmitting) {
-  //     transmitting.current = setTimeout(() => {
-  //       Alert.alert(
-  //         "Timeout",
-  //         "Transmitting timed out. Please try again.",
-  //         [{text: 'Okay'}]
-  //       )
-  //     }, 8000);
-  //   } else {
-  //     if (transmitting.current) {
-  //       clearTimeout(transmitting.current);
-  //       transmitting.current = null;
-  //     }
-  //   }
-  // }, [transmitting]);
+
   return (
     <TouchableOpacity
       style={{
@@ -51,24 +35,22 @@ export default function SAInitSender(props) {
           return;
         }
         try {
-          const connected = await GlobalBleHandler.isConnected();
-          if (!connected) {
+          if (!GlobalBleHandler.isConnected) {
             Alert.alert(
               "Whoops",
               Platform.OS === 'ios' ? 
                 `Your Athlos earbuds are not connected to this device. `+
-                `Make sure you have bluetooth enabled for this device and that your Athlos earbuds are connected with bluetooth.` +
-                ` If the issue still persists, then sync first and try again.`
+                `Make sure you have bluetooth enabled for this device and ` +
+                `that your Athlos earbuds are connected with bluetooth.`
                 : `Your Athlos earbuds have not yet connected to this device. `+
                 `Make sure you have bluetooth enabled for this device and that your `+
-                `Athlos earbuds are scanning for devices. Please also make sure to enable location services for this app.` +
-                ` If the issue still persists, then sync first and try again.`,
+                `Athlos earbuds are scanning for devices. Please also make sure ` +
+                `to enable location services for this app.`
               [{text: 'Okay'}]
             );
             return;
           }
           const sainitBytes = await saveAndCreateSaInit();
-          // console.log("Sending byte array!");
           await GlobalBleHandler.sendByteArray(sainitBytes);
           Alert.alert(
             "All done!",

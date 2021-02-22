@@ -13,7 +13,7 @@ const {
 import ActionButton from 'react-native-action-button';
 import { useTheme } from '@react-navigation/native';
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
-const { METRIC } = GLOBAL_CONSTANTS;
+const { SCREEN_WIDTH } = GLOBAL_CONSTANTS;
 import Entypo from 'react-native-vector-icons/Entypo';
 Entypo.loadFont();
 import ThemeText from '../../generic/ThemeText';
@@ -197,9 +197,21 @@ export default function TimerEditScreen(props) {
             })
           }}
           childArrays={[
-            Array.from(Array(60).keys()),
-            Array.from(Array(60).keys()),
-            Array.from(Array(10).keys())
+            {
+              title: "Minutes",
+              width: SCREEN_WIDTH/3,
+              array: Array.from(Array(60).keys())
+            },
+            {
+              title: "Seconds",
+              width: SCREEN_WIDTH/3,
+              array: Array.from(Array(60).keys()),
+            },
+            {
+              title: "Tenths",
+              width: SCREEN_WIDTH/3,
+              array: Array.from(Array(10).keys())
+            },
           ]}
           selectedItems={[
             mins,
@@ -240,7 +252,13 @@ export default function TimerEditScreen(props) {
                 onSave={(newNumRepetitions) => {
                   setNumRepetitions(newNumRepetitions);
                 }}
-                childArrays={[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]}
+                childArrays={[
+                  {
+                    title: `Number of ${repetition === CYCLES ? 'cycles' : 'repeats'}`,
+                    width: SCREEN_WIDTH,
+                    array: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                  }
+                ]}
                 selectedItems={[numRepetitions]}
               />
             </>

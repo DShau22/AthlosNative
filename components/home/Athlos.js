@@ -70,6 +70,10 @@ function Athlos(props) {
   const { colors } = useTheme();
   const [isLoading, setIsLoading] = React.useState(true);
   const [isError, setIsError] = React.useState(false); // controls when to set an error screen
+  const [athlosConnected, setAthlosConnected] = React.useState(false);
+
+  const firstUpdate = React.useRef(true);
+
   // const [rivals, setRivals] = React.useState([]);
   // const [rivalsPending, setRivalsPending] = React.useState([]);
   // const [rivalRequests, setRivalRequests] = React.useState([]);
@@ -130,8 +134,8 @@ function Athlos(props) {
   });
   // setting up the Athlos app
   React.useEffect(() => {
-
     const setUpApp = async () => {
+      GlobalBleHandler.addSetConnectedFunction(setAthlosConnected);
       await requestLocationServices();
       DeviceEventEmitter.addListener('locationProviderStatusChange', function(status) { // only trigger when "providerListener" is enabled
         if (!status.enabled) {
@@ -185,23 +189,35 @@ function Athlos(props) {
       }
       const deviceID = userData ? userData.deviceID : state.deviceID;
       GlobalBleHandler.setID(deviceID);
-      if ((await getShouldAutoSync())) {
-        try {
-          showSnackBar("Auto-syncing...", 'length_long', "Okay");
-          await GlobalBleHandler.scanAndConnect();
-          await GlobalBleHandler.setUpNotifyListener();
-          console.log("successfully read and saved sadata bytes");
-          await GlobalBleHandler.uploadToServer();
-          showSnackBar("Successfully auto-synced with your Athlos earbuds. Your activity records should be ready in a minute :]");
-        } catch(e) {
-          console.log("error scanning and connecting: ", e);
-          if (e === STOP_SCAN_ERR) {
-            showSnackBar("Stopped auto-syncing", 'length_long');
-          } else {
-            showSnackBar("Failed to auto-sync with your Athlos earbuds. ", e);
-          }
-        }
+      // keep trying connect to athlos device
+      if (userData.deviceID.length > 0) {
+        showSnackBar("Searching for your Athlos device...", "long");
       }
+      GlobalBleHandler.scanAndConnect()
+        .then(() => {
+          console.log("found athlos device");
+          setAthlosConnected(true);
+        })
+        .catch((e) => {
+          console.log("error connecting to device: ", e);
+        });
+      // if ((await getShouldAutoSync())) {
+      //   try {
+      //     showSnackBar("Auto-syncing...", 'length_long', "Okay");
+      //     await GlobalBleHandler.scanAndConnect();
+      //     await GlobalBleHandler.setUpNotifyListener();
+      //     console.log("successfully read and saved sadata bytes");
+      //     await GlobalBleHandler.uploadToServer();
+      //     showSnackBar("Successfully auto-synced with your Athlos earbuds. Your activity records should be ready in a minute :]");
+      //   } catch(e) {
+      //     console.log("error scanning and connecting: ", e);
+      //     if (e === STOP_SCAN_ERR) {
+      //       showSnackBar("Stopped auto-syncing", 'length_long');
+      //     } else {
+      //       showSnackBar("Failed to auto-sync with your Athlos earbuds. ", e);
+      //     }
+      //   }
+      // }
       try {
         // console.log("updating local user fitness after scan and connect finishes in athlos component");
         await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
@@ -224,6 +240,18 @@ function Athlos(props) {
       GlobalBleHandler.reinit();
     }
   }, []);
+
+  React.useEffect(() => {
+    if (firstUpdate.current) {
+      firstUpdate.current = false;
+      return;
+    }
+    if (athlosConnected) {
+      showSnackBar("Athlos device connected!", "long");
+    } else {
+      showSnackBar("Athlos device disconnected. Trying to reconnect...", "long");
+    }
+  }, [athlosConnected]);
 
   React.useEffect(() => {
     // console.log("use effect with state: ", state);
@@ -481,13 +509,14 @@ function Athlos(props) {
               />
               <BottomTab.Screen
                 name={SYNC}
-                component={SADataSync}
                 options={{
                   tabBarIcon: ({ color }) => (
                     <Feather name="bluetooth" color={color} size={26} />
                   ),
                 }}
-              />
+              >
+                {props => <SADataSync {...props} athlosConnected={athlosConnected}/>}
+              </BottomTab.Screen>
               {/* <BottomTab.Screen name={FITNESS} component={Fitness} initialParams={{_id: state._id,}} /> */}
               {/* something like this for passing the navigation props and other props too */}
               {/* <Stack.Screen name={COMMUNITY_CONSTANTS.COMMUNITY}>
