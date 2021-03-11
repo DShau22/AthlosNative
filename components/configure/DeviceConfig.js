@@ -3,11 +3,10 @@ import DraggableFlatList from 'react-native-draggable-flatlist';
 import React from 'react';
 import { View, StyleSheet, Dimensions, Alert, Button } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import AsyncStorage from '@react-native-community/async-storage';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Entypo';
 Icon.loadFont();
-
+import { storeSaInitConfig, getSaInitConfig } from '../utils/storage';
 import {
   DEVICE_CONFIG_CONSTANTS,
   getDefaultConfig,
@@ -23,7 +22,6 @@ const {
   INTERVAL,
   MUSIC_ONLY,
   TIMER,
-  CONFIG_KEY,
   MODE_CONFIG
 } = DEVICE_CONFIG_CONSTANTS;
 import GLOBAL_CONSTANTS from '../GlobalConstants';
@@ -38,7 +36,7 @@ import SwimmingEventEditScreen from './screens/SwimmingEventEditScreen';
 import MusicOnlyEditScreen from './screens/MusicOnlyScreen';
 import IntervalEditScreen from './screens/IntervalEditScreen';
 
-import SAinit from './SAinitManager';
+import SAinit from '../bluetooth/SAinitManager';
 import ThemeText from '../generic/ThemeText';
 import { Divider } from 'react-native-paper';
 import { useTheme } from '@react-navigation/native';
@@ -71,7 +69,7 @@ const DeviceConfig = (props) => {
     try {
       // await AsyncStorage.removeItem(CONFIG_KEY);
       console.log("getting config from async storage");
-      const initialConfig = await AsyncStorage.getItem(CONFIG_KEY);
+      const initialConfig = await getSaInitConfig();
       console.log("config got: ", initialConfig);
       firstUpdate.current = false;
       if (initialConfig !== null) {
@@ -91,7 +89,7 @@ const DeviceConfig = (props) => {
   // run this on every other render
   const storeConfig = async () => {
     try {
-      await AsyncStorage.setItem(CONFIG_KEY, JSON.stringify(deviceConfig));
+      await storeSaInitConfig(JSON.stringify(deviceConfig));
       console.log("new config stored: ", deviceConfig);
     } catch(e) {
       console.log(e)

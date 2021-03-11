@@ -235,9 +235,7 @@ class BLEHandler {
       this.readSubscription.remove();
       this.readSubscription = null;
     }
-    if (this.device && (await this.device.isConnected())) { // THIS FOR SOME REASON DOESN'T WORK ON BATTERY OUT
-      console.log("is connected in disconnect: ", (await this.device.isConnected()));
-      console.log("disconnecting");
+    if (this.device && this.isConnected) { // THIS FOR SOME REASON DOESN'T WORK ON BATTERY OUT
       await this.device.cancelConnection(); // this is async
     }
     
@@ -401,6 +399,8 @@ class BLEHandler {
           // phone is transmitting to athlos earbuds
           this.athlosResponses.push(Buffer.from(readValueInRawBytes, 'base64'));
           await this._validateResponse(readValueInRawBytes);
+        } else if (readValueInRawBytes[0] === 'X'.charCodeAt(0)) {
+          this.resCompleter.error("Got an X package");
         } else if (this._isEchoPkg(readValueInRawBytes)) {
           this.resCompleter.complete();
           await this._sendResponse(readValueInRawBytes);
@@ -516,13 +516,7 @@ class BLEHandler {
         console.log(`invalid sadata: 11th byte (10th index) should be $ but got ${readValueInRawBytes[10]}`);
         throw new Error(`invalid sadata: 11th byte (10th index) should be $ but got ${readValueInRawBytes[10]}`);
       }
-      // bytes 0-6 inclusive are character representation of how many bytes are valid in sadata
-      this.totalNumSaDataBytes = calcNumSaDataBytes(readValueInRawBytes);
-      // if (this.totalNumSaDataBytes <= 8) {
-      //   this._resetReadState();
-      //   this.saDataCompleter.complete(null);
-      //   return;
-      // }
+      this.totalNumSaDataBytes = calcNumSaDataBytes(readValueInRawBytes);;
       this.numSaDataBytesRead = 0;
     }
     console.log("total num bytes to read expected: ", this.totalNumSaDataBytes);
@@ -537,12 +531,16 @@ class BLEHandler {
       console.log(`num bytes in read buffers ${totalNumBytes} not same as total num bytes read (${this.numSaDataBytesRead})`);
     if (this._isFinishTransmit(readValueInRawBytes)) {
       console.log("done reading...");
-      // send package to tell the earbuds to rewrite sadata. Shouldnt need to await
-      await this._sendResetSaDataPkg();
       const concatentatedSadata = Buffer.concat(this.readBuffers, totalNumBytes);
       try {
-        await storeFitnessBytes(concatentatedSadata);
-        this.saDataCompleter.complete(concatentatedSadata);
+        if (this.totalNumSaDataBytes > 8) {
+          await storeFitnessBytes(concatentatedSadata);
+          await this._sendResetSaDataPkg();
+        }
+        // send package to tell the earbuds to rewrite sadata. Shouldnt need to await
+        this.saDataCompleter.complete(this.totalNumSaDataBytes);
+        console.log("resetting read state");
+        this._resetReadState();
       } catch(e) {
         console.log("Error storing fitness bytes! No way to handle this error yet other than not storing anything");
         this.saDataCompleter.error(e);
@@ -569,8 +567,6 @@ class BLEHandler {
     resetPkg[resetPkg.length - 2] = this.writePkgId; // overall pkg id
     resetPkg[resetPkg.length - 1] = calcChecksum(resetPkg, 0, resetPkg.length - 1); // checksum
     await this._sendAndWaitResponse(resetPkg);
-    console.log("resetting read state");
-    this._resetReadState();
   }
 
   /**
@@ -612,8 +608,6 @@ class BLEHandler {
       }
     }
     await removeFitnessRecords(recordIndexesToRemove);
-    const test = await getFitnessBytes();
-    // console.log("fitness bytes after removing: ", test);
     await setNeedsFitnessUpdate(atLeastOneSuccess && promiseResults.length > 0);
   }
 
@@ -765,6 +759,7 @@ class BLEHandler {
     this.totalNumSaDataBytes = 0;
     this.numSaDataBytesRead = 0;
     this.isReading = false;
+    this.isTransmitting = false;
     this.currItem = null;
   }
 }

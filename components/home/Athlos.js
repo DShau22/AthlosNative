@@ -14,6 +14,7 @@ import {
   setNeedsFitnessUpdate,
   getFirstTimeLogin,
   setFirstTimeLogin,
+  getDeviceId,
 } from '../utils/storage';
 import ENDPOINTS from "../endpoints";
 import {
@@ -110,7 +111,6 @@ function Athlos(props) {
     age: "",
     profilePicture: "",
     settings: {},
-    deviceID: "",
     numFriendsDisplay: 25,
     goals: {
       goalSteps: 1,
@@ -149,20 +149,14 @@ function Athlos(props) {
         }
       });
       await requestLocationPermission(); // request location permissions for Android users
-      // await GlobalBleHandler.destroy();
-      // GlobalBleHandler.reinit();
-      // console.log("Athlos component using effect");
       setIsLoading(true);
       // first check if info is in Async storage
       const token = await getData();
       const userData = await getDataObj();
-      // console.log("user data: ", userData);
       if (!token) {
         console.log("This is weird. Somehow log them out and redirect to login page")
       }
       if (userData && userData._id.length > 0) {
-        // console.log("there is valid data is async storage");
-        // console.log("setting state in beginning of use effect: ", userData);
         setState(userData);
         setIsLoading(false);
       } else {
@@ -183,24 +177,23 @@ function Athlos(props) {
       const firstTime = await getFirstTimeLogin();
       if (firstTime) {
         setShowWelcomeModal(true);
-        GlobalBleHandler.setID(userData ? userData.deviceID : "");
         await Promise.all([setFirstTimeLogin(), setShouldAutoSync(false)]);
         return;
       }
-      const deviceID = userData ? userData.deviceID : state.deviceID;
+      const deviceID = await getDeviceId();
       GlobalBleHandler.setID(deviceID);
       // keep trying connect to athlos device
-      if (userData.deviceID.length > 0) {
+      if (deviceID.length > 0) {
         showSnackBar("Searching for your Athlos device...", "long");
+        GlobalBleHandler.scanAndConnect()
+          .then(() => {
+            console.log("found athlos device");
+            setAthlosConnected(true);
+          })
+          .catch((e) => {
+            console.log("error connecting to device: ", e);
+          });
       }
-      GlobalBleHandler.scanAndConnect()
-        .then(() => {
-          console.log("found athlos device");
-          setAthlosConnected(true);
-        })
-        .catch((e) => {
-          console.log("error connecting to device: ", e);
-        });
       // if ((await getShouldAutoSync())) {
       //   try {
       //     showSnackBar("Auto-syncing...", 'length_long', "Okay");
@@ -219,7 +212,6 @@ function Athlos(props) {
       //   }
       // }
       try {
-        // console.log("updating local user fitness after scan and connect finishes in athlos component");
         await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
         await updateLocalUserInfo(); // no promise.all to avoid race conditions with updating the state
       } catch(e) {
@@ -257,7 +249,6 @@ function Athlos(props) {
     // console.log("use effect with state: ", state);
     if (state._id.length > 0) {
       storeDataObj(state);
-      GlobalBleHandler.setID(state.deviceID);
     }
   }, [state]); // store the state in async storage every time it gets updated
 

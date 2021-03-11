@@ -12,6 +12,7 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import {
   getData,
   storeDataObj,
+  setDeviceId
 } from '../utils/storage';
 
 import SettingsMenu from "./settingScreens/SettingsMenu";
@@ -49,6 +50,7 @@ import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
 import {
   getShouldAutoSync,
   setShouldAutoSync,
+  getDeviceId,
 } from '../utils/storage';
 import {
   showSnackBar
@@ -62,7 +64,7 @@ import { useTheme } from '@react-navigation/native';
 const Settings = (props) => {
   const { colors } = useTheme();
   const context = React.useContext(UserDataContext);
-  const { settings, deviceID, _id } = context;
+  const { settings, _id } = context;
   const { setAppState } = React.useContext(AppFunctionsContext); 
 
   const [isLoading, setIsLoading] = React.useState(false);
@@ -183,28 +185,23 @@ const Settings = (props) => {
         {
           text: 'Yes',
           onPress: async () => {
-            console.log("", deviceID);
+            const deviceID = await getDeviceId();
             if (deviceID.length === 0) {
               Alert.alert(
                 "Whoops",
-                "Looks like you don't actually have any Athlos earbuds linked to this account",
+                "Looks like you don't actually have any Athlos earbuds linked to this device",
                 [{text: "Okay"}]);
                 return;
             }
             setIsLoading(true);
             try {
-              const res = await axios.post(ENDPOINTS.updateDeviceID, {
-                userID: _id,
-                deviceID: "",
-              });
-              if (!res.data.success)
-                throw new Error(res.data.message);
-              const newState = {...context, deviceID: ""}
+              await GlobalBleHandler.disconnect();
+              GlobalBleHandler.stopScan();
               GlobalBleHandler.setID("");
-              await setAppState(newState);
+              await setDeviceId(null);
               Alert.alert(
                 "All Done!",
-                "Successfully unlinked your Athlos earbuds from this account.",
+                "Successfully unlinked your Athlos earbuds from this device.",
               [{text: "Okay"}]);
             } catch(e) {
               console.log(e);

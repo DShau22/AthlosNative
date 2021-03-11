@@ -13,9 +13,6 @@ const DEVICE_CONFIG_CONSTANTS = {
 
   MODE_CONFIG: 'Mode Configurations',
 
-  // async storage keys
-  CONFIG_KEY: 'Config Key',
-
   // mode titles
   MUSIC_ONLY: 'Music Only',
   RUN: 'Run',

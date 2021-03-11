@@ -7,6 +7,7 @@ const DEVICE_ID_KEY = 'device_id_key'; // key for string of the device id. Curre
 const FITNESS_UPDATE_KEY = 'fitness_update_key'; // key of boolean to see if user fitness needs an update or not
 const FIRST_TIME_LOGIN_KEY = 'first time login key'; // key of boolean to see if this is the user's first time logging on or after logging out
 const AUTO_SYNC_KEY = 'should auto sync?'; // key for if the user wants to auto sync with this device or not
+const CONFIG_KEY = 'Config Key'; // key that stores saInit in human readable json form
 import AsyncStorage from '@react-native-community/async-storage';
 
 const logOut = async () => {
@@ -58,11 +59,15 @@ const setNeedsFitnessUpdate = async (needsUpdate) => {
 
 const getDeviceId = async () => {
   const deviceID = await AsyncStorage.getItem(DEVICE_ID_KEY);
-  return deviceID;
+  return deviceID ? JSON.parse(deviceID) : "";
 }
 
 const setDeviceId = async (newID) => {
-  await AsyncStorage.setItem(DEVICE_ID_KEY, JSON.stringify(newID));
+  if (newID) {
+    await AsyncStorage.setItem(DEVICE_ID_KEY, JSON.stringify(newID));
+  } else {
+    await AsyncStorage.removeItem(DEVICE_ID_KEY);
+  }
 }
 
 const storeData = async (value) => {
@@ -184,6 +189,14 @@ const storeNewState = async (prevState, newFields) => {
   return newState
 }
 
+const storeSaInitConfig = async (deviceConfig) => {
+  await AsyncStorage.setItem(CONFIG_KEY, JSON.stringify(deviceConfig));
+}
+
+const getSaInitConfig = async () => {
+  return JSON.parse(await AsyncStorage.getItem(CONFIG_KEY));
+}
+
 module.exports = {
   TOKEN_KEY,
   DATA_KEY,
@@ -204,5 +217,7 @@ module.exports = {
   storeFitnessBytes,
   getFitnessBytes,
   removeFitnessBytes,
-  removeFitnessRecords
+  removeFitnessRecords,
+  storeSaInitConfig,
+  getSaInitConfig
 }

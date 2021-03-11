@@ -12,8 +12,11 @@ import {
   requestLocationPermission,
   hasLocationPermission
 } from '../utils/permissions';
+import SAinit from '../bluetooth/SAinitManager';
 import {
   needsFitnessUpdate,
+  setDeviceId,
+  getSaInitConfig,
 } from '../utils/storage';
 import { showSnackBar } from '../utils/notifications';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -36,12 +39,9 @@ export default function SADataSync(props) {
   const { colors } = useTheme();
   const appFunctionsContext = React.useContext(AppFunctionsContext);
   const userDataContext = React.useContext(UserDataContext);
-  const { updateLocalUserInfo, updateLocalUserFitness } = appFunctionsContext;
-  const { deviceID } = userDataContext;
+  const { updateLocalUserInfo, updateLocalUserFitness, setAppState } = appFunctionsContext;
   const [transmitting, setTransmitting] = React.useState(false);
-  // console.log("scanning: ", scanning);
-  // console.log("device ID: ", deviceID);
-  // console.log("ble device: ", GlobalBleHandler.device);
+  const [isLinked, setIsLinked] = React.useState(GlobalBleHandler.hasID());
 
   const transferTimerRef = React.useRef();
 
@@ -53,6 +53,11 @@ export default function SADataSync(props) {
   const opacity3 = React.useRef(new Animated.Value(1)).current;
 
   const arrowOpacity = React.useRef(new Animated.Value(1)).current;
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsLinked(GlobalBleHandler.hasID());
+    }, [])
+  );
 
   React.useEffect(() => {
     console.log("connected: ", athlosConnected);
@@ -82,10 +87,11 @@ export default function SADataSync(props) {
       ).start();
     } else {
       transferTimerRef.current = setTimeout(() => {
-        showSnackBar(`Having trouble ${GlobalBleHandler.hasID() ? 'syncing with' : 'linking'} your Athlos earbuds. Please try again.`);
         GlobalBleHandler.stopTransmit();
+        GlobalBleHandler.stopScan();
+        showSnackBar(`Having trouble ${isLinked ? 'syncing with' : 'linking'} your Athlos earbuds. Please try again.`);
         setTransmitting(false);
-      }, 15000);
+      }, 30000);
       arrowOpacity.stopAnimation();
       startScanAnimations();
     }
@@ -98,14 +104,6 @@ export default function SADataSync(props) {
         clearTimeout(transferTimerRef.current)
     }
   }, [transmitting]);
-
-  // React.useEffect(() => {
-  //   if (connected) {
-  //     showSnackBar("Your Athlos earbuds are connected :)");
-  //   } else {
-  //     showSnackBar("Your Athlos earbuds are not connected. Make sure they have bluetooth enabled.");
-  //   }
-  // }, [connected]);
 
   const stopScanAnimations = () => {
     expand1.stopAnimation();
@@ -177,28 +175,24 @@ export default function SADataSync(props) {
     setTransmitting(true);
     try {
       const newDeviceID = await GlobalBleHandler.scanAndRegister();
-      const res = await Axios.post(ENDPOINTS.updateDeviceID, {
-        deviceID: newDeviceID,
-        userID: userDataContext._id,
-      });
-      if (!res.data.success) {
-        throw new Error(res.data.message);
-      }
-      GlobalBleHandler.setID(newDeviceID);
+      console.log("registered: ", newDeviceID);
+      GlobalBleHandler.setID(newDeviceID); // THIS HAS TO HAPPEN BEFORE SCAN AND CONNECT
+      await GlobalBleHandler.scanAndConnect();
+      console.log("connected: ", newDeviceID);
+      await setDeviceId(newDeviceID);
+      setIsLinked(true);
       Alert.alert(
         "All Set!",
-        "Successfully linked your new Athlos earbuds with this account :). Hit the gear icon on your profile if you" +
+        "Successfully linked your new Athlos earbuds with this device :). Hit the gear icon on your profile if you" +
         " want to re-link with different earbuds.",
         [{text: "Okay"}]
       );
     } catch(e) {
       console.log(e);
-      showSnackBar(`Something went wrong with the registration process. Please try again later. ${e.toString()}`);
-    }
-    try {
-      await updateLocalUserInfo();
-    } catch(e) {
-      showSnackBar(`Failed to sync new deviceID with server. This is fine for now.`);
+      GlobalBleHandler.setID("");
+      await GlobalBleHandler.disconnect();
+      GlobalBleHandler.stopScan();
+      showSnackBar(`Something went wrong with the linking process. Please try again later. ${e.toString()}`);
     }
     setTransmitting(false);
   }
@@ -217,17 +211,18 @@ export default function SADataSync(props) {
       return;
     }
     setTransmitting(true);
-    // if (!connected) {
-    //   showSnackBar("Your Athlos device is not connected or has momentarily lost connection. Make sure it is on Bluetooth and try again.");
-    //   setTransmitting(false);
-    //   return;
-    // }
     let tryCount = 3;
     let success = false;
     console.log("begin syncing....");
     while (tryCount > 0 && !success) {
       try {
-        await GlobalBleHandler.readActivityData();
+        var numBytesRead = await GlobalBleHandler.readActivityData();
+        if (numBytesRead <= 8) {
+          showSnackBar("Your activity records are already synced. Uploading any activities that failed previously...");
+          await uploadToServer();
+          setTransmitting(false);
+          return;
+        }
         console.log("finished transferring activity data....");
         success = true;
       } catch(e) {
@@ -246,7 +241,38 @@ export default function SADataSync(props) {
     } else {
       showSnackBar('Successfully synced with your Athlos earbuds. Your activity records are almost ready :]');
     }
+    showSnackBar("Updating Sainit with new info...");
+    await uploadToServer();
+    await updateLocalUserInfo();
+    await updateSaInit();
     setTransmitting(false);
+  }
+
+  const updateSaInit = async () => {
+    // store the device config in local storage first
+    const saInitConfig = await getSaInitConfig();
+    console.log("sainit is: ", saInitConfig);
+    if (!saInitConfig) {
+      console.log("no sa init stored yet");
+      return;
+    }
+    console.log("before run efforts: ", userDataContext.runEfforts);
+    const { settings, cadenceThresholds, referenceTimes, runEfforts, swimEfforts, bests } = userDataContext;
+    console.log("after run efforts: ", runEfforts);
+    const sainitManager = new SAinit(
+      saInitConfig,
+      settings,
+      runEfforts,
+      swimEfforts,
+      referenceTimes,
+      cadenceThresholds,
+      bests.highestJump,
+    );
+    const saInitBytes = sainitManager.createSaInit(); // should return byte array
+    await GlobalBleHandler.sendByteArray(saInitBytes);
+  }
+
+  const uploadToServer = async () => {
     let uploadCount = 3;
     let uploadSuccess = false;
     while (uploadCount > 0 && !uploadSuccess) {
@@ -270,7 +296,6 @@ export default function SADataSync(props) {
         showSnackBar('Your activity records have been updated! Please refresh to view updates.');
       }
     }
-    setTransmitting(false);
   }
 
   const Stack = createStackNavigator();
@@ -283,7 +308,7 @@ export default function SADataSync(props) {
         {props => (
           <GestureRecognizer style={{flex: 1}}
             onSwipeDown={async (gestureState) => {
-              if (GlobalBleHandler.hasID()) {
+              if (isLinked) {
                 await readActivityData();
               } else {
                 await link();
@@ -298,7 +323,7 @@ export default function SADataSync(props) {
                 </View>
               : <View style={styles.topText}>
                   <ThemeText style={styles.swipeText}>
-                    {`Swipe down to ${!deviceID || deviceID.length === 0 ? 'link earbuds' : 'sync'}`}
+                    {`Swipe down to ${isLinked ? 'sync' : 'link'}`}
                   </ThemeText>
                   <ThemeText style={[styles.swipeText, {fontSize: 12}]}>
                     Make sure no other Athlos earbuds are scanning nearby

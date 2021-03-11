@@ -12,6 +12,8 @@ import ThemeText from '../../generic/ThemeText';
 import SaveButton from './SaveButton';
 import MenuPrompt from './MenuPrompt';
 import {capitalize} from '../../utils/strings';
+import GLOBAL_CONSTANTS from '../../GlobalConstants';
+const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;
 
 const RUN_TRIGGER_LIST = [
   {
@@ -154,7 +156,13 @@ export default function RunEditScreen(props) {
         onSave={(newRunNumber) => {
           setRunNumber(runTrigger === TRIGGER_MIN ? newRunNumber : newRunNumber / 100);
         }}
-        childArrays={[renderMenuArray()]}
+        childArrays={[
+          {
+            title: 'Frequency',
+            width: SCREEN_WIDTH,
+            array: renderMenuArray()
+          },
+        ]}
         selectedItems={[runTrigger === TRIGGER_MIN ? runNumber : runNumber * 100]}
       />
       <ThemeText style={{fontSize: 20, fontWeight: 'bold', alignSelf: 'flex-start', margin: 10}}>
