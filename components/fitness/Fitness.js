@@ -14,12 +14,6 @@ import PROFILE_CONSTANTS from '../profile/ProfileConstants'
 import ENDPOINTS from '../endpoints'
 import axios from 'axios';
 import FITNESS_CONSTANTS from './FitnessConstants'
-import {
-  getData,
-  storeData,
-  storeDataObj,
-  getDataObj
-} from '../utils/storage';
 import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
 
 const Fitness = (props) => {
@@ -98,7 +92,7 @@ const Fitness = (props) => {
     //       action: FITNESS_CONSTANTS.JUMP,
     //       imageUrl: FITNESS_CONSTANTS.JUMP
     //     }}
-    //     storeDataObj(newAppState)
+    //     storeUserData(newAppState)
     //     return newAppState
     //   })
 

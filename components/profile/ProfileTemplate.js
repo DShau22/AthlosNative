@@ -2,7 +2,7 @@
 // has many holes that need to be filled with a shit ton of props
 // oassed in from the profile component
 import React from 'react'
-import { getData, storeDataObj } from '../utils/storage';
+import { getToken, storeUserData } from '../utils/storage';
 import { View, ScrollView, StyleSheet, RefreshControl, Alert } from 'react-native'
 import { Text, Button, Divider, ListItem } from 'react-native-elements'
 import { createStackNavigator } from '@react-navigation/stack';
@@ -171,7 +171,7 @@ const ProfileTemplate = (props) => {
       setIsLoading(true);
       // get user token
       try {
-        var token = await getData()
+        var token = await getToken();
         console.log("token: ", token);
         if (!token) {
           // send them back to the login page
@@ -231,7 +231,7 @@ const ProfileTemplate = (props) => {
       try {
         // THIS DOESN'T ACTUALLY WORK DOESNT SEEM LIKE CONTEXT DOESNT GET UPDATED FUCK
         console.log("storing data object: ", newState)
-        await storeDataObj(newState)
+        await storeUserData(newState)
         console.log("async storage updated")
       } catch(e) {
         console.error(e)

@@ -12,8 +12,8 @@ Ionicons.loadFont();
 import RootStackScreen from './components/nativeLogin/RootStackScreen';
 
 import {
-  getData,
-  storeData
+  getToken,
+  storeToken
 } from './components/utils/storage';
 import LoadingScreen from './components/generic/LoadingScreen';
 import Athlos from "./components/home/Athlos"
@@ -32,7 +32,7 @@ function App() {
   React.useEffect(() => {
     const getToken = async () => {
       // await AsyncStorage.clear();
-      const userToken = await getData();
+      const userToken = await getToken();
       setToken(userToken);
       setIsLoading(false);
     }

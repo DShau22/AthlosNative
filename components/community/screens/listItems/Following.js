@@ -100,7 +100,7 @@ class Following extends Component {
         })
       }
       console.log('setting new state: ', newState)
-      await storeDataObj(newState)
+      await storeUserData(newState)
       // start the disappearing animation
       this.disappear()
       // delay setting app state so diappear animation can complete
@@ -162,7 +162,7 @@ class Following extends Component {
         })
       }
       console.log('setting new state: ', newState)
-      await storeDataObj(newState)
+      await storeUserData(newState)
       // start the disappearing animation
       this.disappear()
       // delay setting app state so diappear animation can complete

@@ -12,7 +12,7 @@ import {
   Alert
 } from 'react-native';
 import {
-  storeData
+  storeToken
 } from '../utils/storage';
 import Axios from 'axios';
 
@@ -131,7 +131,7 @@ const SignIn = ({ navigation }) => {
         var json = await res.json();
         if (json.success) {
           console.log("login succeeded");
-          await storeData(json.token);
+          await storeToken(json.token);
           // navigate away to the main Athlos app
           // by setting the token and changing the App.js state
           setToken(json.token);

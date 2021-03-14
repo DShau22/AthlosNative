@@ -8,7 +8,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import { Text } from 'react-native-elements'
 import Spinner from 'react-native-loading-spinner-overlay';
-import { getData } from "../utils/storage"
+import { getToken } from "../utils/storage"
 import ENDPOINTS from '../endpoints'
 import GLOBAL_CONSTANTS from "../GlobalConstants"
 const { ONLY_ME, FOLLOWERS, EVERYONE } = GLOBAL_CONSTANTS
@@ -65,7 +65,7 @@ const SearchProfile = (props) => {
   const setup = async () => {
     console.log("setting up search profile...")
     // query this user's settings, bests, totals and set state
-    const token = await getData()
+    const token = await getToken()
     try {
       const res = await fetch(ENDPOINTS.getSearchUser, {
         method: "POST",

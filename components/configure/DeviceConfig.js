@@ -72,8 +72,8 @@ const DeviceConfig = (props) => {
       const initialConfig = await getSaInitConfig();
       console.log("config got: ", initialConfig);
       firstUpdate.current = false;
-      if (initialConfig !== null) {
-        setDeviceConfig(JSON.parse(initialConfig));
+      if (!initialConfig) {
+        setDeviceConfig(initialConfig);
       } else {
         setDeviceConfig(getDefaultConfig());
       }

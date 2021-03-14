@@ -1,6 +1,6 @@
 const { DateTime } = require('luxon');
 
-function parseDate(uploadDate) {
+function parseDate(uploadDate): Array<string> {
   // parses the UTC date object
   var timestampToDate = new Date(uploadDate)
   var dateString = timestampToDate.toString()
@@ -13,7 +13,7 @@ function parseDate(uploadDate) {
  * returns a date object representing last Monday from the day that is passed in
  * @param {DateTime} day 
  */
-function getLastMonday(date) { // if day isn't passed in, assume its the actual today
+function getLastMonday(date?: typeof DateTime): typeof DateTime { // if day isn't passed in, assume its the actual today
   if (!date) {
     var lastMonday = DateTime.local();
   } else {
@@ -33,7 +33,7 @@ function getLastMonday(date) { // if day isn't passed in, assume its the actual 
  * returns a date object representing next Sunday from the day that is passed in
  * @param {DateTime} day 
  */
-function getNextSunday(date) {
+function getNextSunday(date?: typeof DateTime): typeof DateTime {
   if (!date) {
     var nextSunday = DateTime.local();
   } else {
@@ -54,7 +54,7 @@ function getNextSunday(date) {
  * @param {DateTime} day1 
  * @param {DateTime} day2 
  */
-function sameDate(date1, date2) {
+function sameDate(date1: typeof DateTime , date2: typeof DateTime): typeof DateTime  {
   return date1.day === date2.day &&
         date1.month === date2.month &&
         date1.year === date2.year;

@@ -3,13 +3,13 @@ import { Text, View, StyleSheet, Alert, DeviceEventEmitter, } from 'react-native
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import LocationServicesDialogBox from "react-native-android-location-services-dialog-box";
-var { DateTime } = require('luxon');
+const { DateTime } = require('luxon');
 import {
-  getData,
+  getToken,
   getShouldAutoSync,
   setShouldAutoSync,
-  storeDataObj,
-  getDataObj,
+  storeUserData,
+  getUserData,
   needsFitnessUpdate,
   setNeedsFitnessUpdate,
   getFirstTimeLogin,
@@ -26,6 +26,13 @@ import {
   requestLocationPermission,
   requestLocationServices
 } from '../utils/permissions';
+import {
+  UserActivities
+} from '../fitness/data/UserActivities';
+import {
+  getUserActivityData,
+  updateActivityData,
+} from '../fitness/data/localStorage';
 
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 MaterialCommunityIcons.loadFont();
@@ -151,8 +158,8 @@ function Athlos(props) {
       await requestLocationPermission(); // request location permissions for Android users
       setIsLoading(true);
       // first check if info is in Async storage
-      const token = await getData();
-      const userData = await getDataObj();
+      const token = await getToken();
+      const userData = await getUserData();
       if (!token) {
         console.log("This is weird. Somehow log them out and redirect to login page")
       }
@@ -248,7 +255,7 @@ function Athlos(props) {
   React.useEffect(() => {
     // console.log("use effect with state: ", state);
     if (state._id.length > 0) {
-      storeDataObj(state);
+      storeUserData(state);
     }
   }, [state]); // store the state in async storage every time it gets updated
 
@@ -267,8 +274,8 @@ function Athlos(props) {
         activityData: [] // no additional activityData to append
       };
     }
-    const token = await getData();
-    const res = await Axios.post(ENDPOINTS.getData, {
+    const token = await getToken();
+    const res = await Axios.post(ENDPOINTS.getUserFitness, {
       userToken: token,
       activity,
       lastUpdated: lastUpdated.toISO(),
@@ -285,8 +292,8 @@ function Athlos(props) {
    * Updates only the state and therefore local storage for the user's fitness data
    */
   const updateLocalUserFitness = async () => {
-    const today = DateTime.local();
-    var userData = await getDataObj();
+
+    var userData = await getUserData();
     if (!userData) {
       userData = state;
     }
@@ -420,8 +427,8 @@ function Athlos(props) {
   const updateLocalUserInfo = async () => {
     // get the user's information here from database
     // make request to server to user information and set state
-    var userToken = await getData();
-    var userData = await getDataObj();
+    var userToken = await getToken();
+    var userData = await getUserData();
     if (!userToken) { // this means it's probably right after a login
       userToken = props.token; 
     }
@@ -469,7 +476,7 @@ function Athlos(props) {
           value={{
             setAppState: async (newState) => {
               setState(newState);
-              storeDataObj(newState);
+              storeUserData(newState);
             },
             updateLocalUserInfo,
             updateLocalUserFitness,
@@ -482,7 +489,7 @@ function Athlos(props) {
               setVisible={setShowWelcomeModal}
             />
             <BottomTab.Navigator barStyle={{
-              backgroundColor: colors.header,
+              // backgroundColor: colors.header,
             }}>
               {/* <BottomTab.Screen name={HOME} component={Home} /> */}
               {/* <BottomTab.Screen name={PROFILE}>

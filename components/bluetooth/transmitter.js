@@ -4,7 +4,7 @@ import {
   removeFitnessBytes,
   setNeedsFitnessUpdate,
   removeFitnessRecords,
-  getData
+  getToken
 } from '../utils/storage';
 import BLUETOOTH_CONSTANTS from './BluetoothConstants';
 const {STOP_SCAN_ERR, DISCONNECT_ERR} = BLUETOOTH_CONSTANTS;
@@ -580,7 +580,7 @@ class BLEHandler {
       console.log("session byte list is null");
       return;
     }
-    const userToken = await getData();
+    const userToken = await getToken();
     const config = {
       headers: { 'Content-Type': 'application/json' },
     }

@@ -10,8 +10,8 @@ import axios from 'axios';
 
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
-  getData,
-  storeDataObj,
+  getToken,
+  storeUserData,
   setDeviceId
 } from '../utils/storage';
 
@@ -102,7 +102,7 @@ const Settings = (props) => {
       setIsLoading(true);
       // get user token
       try {
-        var token = await getData()
+        var token = await getToken()
         if (!token) {
           // send them back to the login page
           console.log("WOT they have no token hmmmm")
@@ -164,7 +164,7 @@ const Settings = (props) => {
       try {
         // THIS DOESN'T ACTUALLY WORK DOESNT SEEM LIKE CONTEXT DOESNT GET UPDATED FUCK
         console.log("storing data object: ", newState)
-        await storeDataObj(newState)
+        await storeUserData(newState)
         console.log("async storage updated")
       } catch(e) {
         console.error(e)

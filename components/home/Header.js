@@ -51,7 +51,7 @@ const root = "/app"
 const imgAlt = "../profile/profile.png"
 
 const sidebarMediaQuery = '600px'
-const dataURL = ENDPOINTS.getData
+const dataURL = ENDPOINTS.getUserFitness
 class Header extends Component {
   constructor(props) {
     super(props)

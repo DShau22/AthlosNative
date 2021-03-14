@@ -9,7 +9,7 @@ import axios from 'axios';
 
 import { UserDataContext, AppFunctionsContext } from "../../Context"
 import {
-  getData,
+  getToken,
 } from '../utils/storage';
 const imagePickerOptions = {
   title: 'Select a photo',
@@ -359,7 +359,7 @@ export default function EditProfile(props) {
       var { updateHeightFt, updateHeightIn, updateHeightCm, updateWeight, updateAge } = state;
       var { unitSystem } = context.settings;
       unitSystem = unitSystem.toLowerCase();
-      var userToken = await getData();
+      var userToken = await getToken();
 
       // turn this into a function that returns a promise later and await/.then it
       try {

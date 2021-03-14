@@ -1,11 +1,10 @@
 
-const devServerURL = "http://localhost:8080"
+const devServerURL = "http://localhost:8080";
 // const devServerURL = "http://10.0.2.2:8080"
-// const prodServerURL = "https://us-central1-athlos-live-beta.cloudfunctions.net/athlos-server"
 const prodServerURL = "https://us-central1-athlos-live.cloudfunctions.net/athlos-server";
 // toggle on/off for if working with dev env or prod
 const dev = true;
-const serverURL = dev ? devServerURL : prodServerURL
+const serverURL = dev ? devServerURL : prodServerURL;
 const ENDPOINTS = {
     server: `${serverURL}`,
     // login, signup, and emails
@@ -43,7 +42,7 @@ const ENDPOINTS = {
     updateDeviceID: `${serverURL}/updateDeviceID`,
 
     // user data and info
-    getData: `${serverURL}/getUserFitness`,
+    getUserFitness: `${serverURL}/getUserFitness`,
     getUserInfo: `${serverURL}/getUserInfo`,
     updateProfile: `${serverURL}/updateProfile`,
     checkDuplicatePic: `${serverURL}/checkDuplicatePic`,
@@ -53,7 +52,8 @@ const ENDPOINTS = {
     getUsername: `${serverURL}/getUsername`,
     updateSettings: `${serverURL}/updateSettings`,
     upload: `${serverURL}/upload`,
-    updateWeeklyGoals: `${serverURL}/updateWeeklyGoals`
-}
+    updateWeeklyGoals: `${serverURL}/updateWeeklyGoals`,
+    uploadOldFitnessRecords: `${serverURL}/updateOldFitnessRecords`,
+};
 
 export default ENDPOINTS

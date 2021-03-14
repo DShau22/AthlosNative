@@ -8,7 +8,10 @@ const FITNESS_UPDATE_KEY = 'fitness_update_key'; // key of boolean to see if use
 const FIRST_TIME_LOGIN_KEY = 'first time login key'; // key of boolean to see if this is the user's first time logging on or after logging out
 const AUTO_SYNC_KEY = 'should auto sync?'; // key for if the user wants to auto sync with this device or not
 const CONFIG_KEY = 'Config Key'; // key that stores saInit in human readable json form
+const FITNESS_DATA_KEY = "Fitness data key"; // key that stores the user's fitness data to display
+const OLD_FITNESS_RECORDS_KEY = "Old fitness records key";
 import AsyncStorage from '@react-native-community/async-storage';
+import { ActivitiesInterface, DaySchema } from '../fitness/data/UserActivities';
 
 const logOut = async () => {
   await AsyncStorage.multiRemove([
@@ -28,7 +31,7 @@ const getShouldAutoSync = async () => {
   return res;
 }
 
-const setShouldAutoSync = async (bool) => {
+const setShouldAutoSync = async (bool: boolean) => {
   if (bool) {
     await AsyncStorage.setItem(AUTO_SYNC_KEY, JSON.stringify(true));
   } else {
@@ -49,7 +52,7 @@ const needsFitnessUpdate = async () => {
   return await AsyncStorage.getItem(FITNESS_UPDATE_KEY);
 }
 
-const setNeedsFitnessUpdate = async (needsUpdate) => {
+const setNeedsFitnessUpdate = async (needsUpdate: boolean) => {
   if (needsUpdate) {
     await AsyncStorage.setItem(FITNESS_UPDATE_KEY, JSON.stringify(true));
   } else {
@@ -62,7 +65,7 @@ const getDeviceId = async () => {
   return deviceID ? JSON.parse(deviceID) : "";
 }
 
-const setDeviceId = async (newID) => {
+const setDeviceId = async (newID: string) => {
   if (newID) {
     await AsyncStorage.setItem(DEVICE_ID_KEY, JSON.stringify(newID));
   } else {
@@ -70,7 +73,7 @@ const setDeviceId = async (newID) => {
   }
 }
 
-const storeData = async (value) => {
+const storeToken = async (value) => {
   try {
     await AsyncStorage.setItem(TOKEN_KEY, value)
   } catch (e) {
@@ -79,7 +82,7 @@ const storeData = async (value) => {
   }
 }
 
-const storeDataObj = async (value) => {
+const storeUserData = async (value) => {
   try {
     const jsonValue = JSON.stringify(value)
     await AsyncStorage.setItem(DATA_KEY, jsonValue)
@@ -90,7 +93,7 @@ const storeDataObj = async (value) => {
 }
 
 // gets an item that's stored as a string. If it doesn't exist, return empty string
-const getData = async () => {
+const getToken = async () => {
   try {
     const value = await AsyncStorage.getItem(TOKEN_KEY)
     return value ? value : ''
@@ -100,7 +103,7 @@ const getData = async () => {
   }
 }
 
-const getDataObj = async () => {
+const getUserData = async () => {
   try {
     const jsonValue = await AsyncStorage.getItem(DATA_KEY)
     return jsonValue != null ? JSON.parse(jsonValue) : null;
@@ -185,7 +188,7 @@ const storeNewState = async (prevState, newFields) => {
     ...prevState,
     ...newFields
   }
-  await storeDataObj(newState);
+  await storeUserData(newState);
   return newState
 }
 
@@ -197,7 +200,29 @@ const getSaInitConfig = async () => {
   return JSON.parse(await AsyncStorage.getItem(CONFIG_KEY));
 }
 
-module.exports = {
+const getUserFitnessData = async (): Promise<ActivitiesInterface> => {
+  return JSON.parse(await AsyncStorage.getItem(FITNESS_DATA_KEY));
+}
+
+const setUserFitnessData = async (newData) => {
+  await AsyncStorage.setItem(FITNESS_DATA_KEY, newData);
+}
+
+const getOldFitnessRecords = async (): Promise<Array<DaySchema>> => {
+  return JSON.parse(await AsyncStorage.getItem(OLD_FITNESS_RECORDS_KEY));
+}
+
+const addOldFitnessRecords = async (newRecords: Array<DaySchema>) => {
+  var oldFitnessRecords = await getOldFitnessRecords();
+  oldFitnessRecords.push(...newRecords);
+  await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(oldFitnessRecords));
+}
+
+const setOldFitnessRecords = async (newRecords: Array<DaySchema>) => {
+  await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(newRecords));
+}
+
+export {
   TOKEN_KEY,
   DATA_KEY,
   logOut,
@@ -209,15 +234,20 @@ module.exports = {
   setNeedsFitnessUpdate,
   getFirstTimeLogin,
   setFirstTimeLogin,
-  storeData,
-  storeDataObj,
-  getData,
-  getDataObj,
+  storeToken,
+  storeUserData,
+  getToken,
+  getUserData,
   storeNewState,
   storeFitnessBytes,
   getFitnessBytes,
   removeFitnessBytes,
   removeFitnessRecords,
   storeSaInitConfig,
-  getSaInitConfig
+  getSaInitConfig,
+  getUserFitnessData,
+  setUserFitnessData,
+  getOldFitnessRecords,
+  addOldFitnessRecords,
+  setOldFitnessRecords
 }
