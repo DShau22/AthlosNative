@@ -2,10 +2,9 @@
  * A class with factory constructors that represent a user's fitness.
  * Can be easily worked with to display different statistics
  */
-import React from 'react';
-import AsyncStorage from '@react-native-community/async-storage';
+import FITNESS_CONSTANTS from '../FitnessConstants';
 import {
-  addOldFitnessRecords,
+  storeOldFitnessRecords,
   getOldFitnessRecords,
   getToken,
   getUserFitnessData,
@@ -17,18 +16,21 @@ import {
 } from '../../utils/dates';
 import ENDPOINTS from '../../endpoints';
 import Axios from 'axios';
-import { DateTime } from 'luxon';
-import { User } from '../../../../nativeBackend/server/database/MongoConfig';
 const { DateTime } = require('luxon');
 
+type ACTIVITY_ENUMS = "run" | "swim" | "jump";
+type DAY_INDICES = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
 interface RunSchema {
-  _id: string,
+  _id?: string,
   userID: string,
   uploadDate: string,
   num: number,
   cadences: Array<number>,
+  walkCadences?: Array<number>,
   calories: number,
   time: number,
+  uploadedToServer: boolean,
 }
 
 interface Lap {
@@ -36,7 +38,7 @@ interface Lap {
   lapTime: number,
 }
 interface SwimSchema {
-  _id: string,
+  _id?: string,
   userID: string,
   uploadDate: string,
   num: number,
@@ -44,73 +46,93 @@ interface SwimSchema {
   strokes: Array<string>,
   calories: number,
   time: number,
+  uploadedToServer: boolean,
 }
 
 interface JumpSchema {
-  _id: string,
+  _id?: string,
   userID: string,
   uploadDate: string,
   num: number,
   heights: Array<number>,
   shotsMade: number,
   time: number,
+  uploadedToServer: boolean,
 }
 
-interface DaySchema {
-  run: RunSchema,
-  swim: SwimSchema,
-  jump: JumpSchema,
-}
-
-interface ActivitiesInterface {
-  [weekMondayDate: string]: Array<DaySchema>;
+interface RunActivitiesInterface {
+  [weekMondayDate: string]: Array<RunSchema>;
 };
+interface SwimActivitiesInterface {
+  [weekMondayDate: string]: Array<SwimSchema>;
+};
+interface JumpActivitiesInterface {
+  [weekMondayDate: string]: Array<JumpSchema>;
+};
+
+interface SerializedActivities {
+  run: RunActivitiesInterface,
+  swim: SwimActivitiesInterface,
+  jump: JumpActivitiesInterface
+}
+
+interface OldRecords {
+  oldRuns: Array<RunSchema>,
+  oldSwims: Array<SwimSchema>,
+  oldJumps: Array<JumpSchema>
+}
+
+interface SwimReferenceTimes {
+  fly: Array<number>,
+  back: Array<number>,
+  breast: Array<number>,
+  free: Array<number>
+}
 
 const blank_run = (date: typeof DateTime): RunSchema => (
   {
-    _id: '',
     userID: '',
     uploadDate: date.toISODate(),
     num: 0,
     cadences: [],
     calories: 0,
     time: 0,
+    uploadedToServer: false,
   }
 )
 
 const blank_swim = (date: typeof DateTime): SwimSchema => (
   {
-    _id: '',
     userID: '',
     uploadDate: date.toISODate(),
     num: 0,
     lapTimes: [],
     strokes: [],
     calories: 0,
-    time: 0
+    time: 0,
+    uploadedToServer: false,
   }
 )
 
 const blank_jump = (date: typeof DateTime): JumpSchema => (
   {
-    _id: '',
     userID: '',
     uploadDate: date.toISODate(),
     num: 0,
     heights: [],
     shotsMade: 0,
     time: 0,
+    uploadedToServer: false,
   }
 )
 
-const blank_week = (mondayDate: typeof DateTime): Array<DaySchema> => {
-  var result = Array(7);
+const blank_week = (activity: ACTIVITY_ENUMS, mondayDate: typeof DateTime) => {
+  var result = Array(7);    
   for (let day = 0; day < 7; day ++) {
-    result[day] = {
-      run: blank_run(mondayDate.plus(day)),
-      swim: blank_swim(mondayDate.plus(day)),
-      jump: blank_jump(mondayDate.plus(day)),
-    };
+    result[day] =
+      activity === "run" ? blank_run(mondayDate.plus(day)) :
+      activity === "swim" ? blank_swim(mondayDate.plus(day)) :
+      activity === "jump" ? blank_jump(mondayDate.plus(day)) : null;
   }
   return result;
 } 
@@ -118,10 +140,12 @@ const blank_week = (mondayDate: typeof DateTime): Array<DaySchema> => {
 // Object remplate for storing to async storage
 
 class UserActivities {
-  private activities : ActivitiesInterface;
+  public runs: RunActivitiesInterface;
+  public swims: SwimActivitiesInterface;
+  public jumps: JumpActivitiesInterface;
   public static WEEKS_BACK = 26;
   static async createFromStorage(): Promise<UserActivities> {
-    const userActivityData = await getUserFitnessData();
+    const userActivityData: SerializedActivities = await getUserFitnessData();
     if (userActivityData) {
       return new this(userActivityData);
     } else {
@@ -134,17 +158,21 @@ class UserActivities {
   }
 
   static async createFromServer(): Promise<UserActivities> {
-    const newActivities: ActivitiesInterface = {};
+    const newActivities: SerializedActivities = {
+      run: {},
+      swim: {},
+      jump: {},
+    };
     // grab fitness from server and store it
     var lastUpdated = getLastMonday();
     lastUpdated.minus({days: (UserActivities.WEEKS_BACK + 1) * 7});
     const userToken: string = await getToken();
-    const activities  = ["run", "swim", "jump"];
-    const activityData = [];
+    const activities: Array<ACTIVITY_ENUMS> = ["run", "swim", "jump"];
+    const activityData = {};
     for (let i = 0; i < activities.length; i++) {      
       const res = await Axios.post(ENDPOINTS.getUserFitness, {
         userToken,
-        activity: "run",
+        activity: activities[i],
         lastUpdated: lastUpdated.toISODate(),
         userToday: DateTime.local().toISODate(), // use the zone rn because if last updated was b4 DST it'll be off for server
       });
@@ -152,74 +180,114 @@ class UserActivities {
       if (!res.data.success) {
         throw new Error(res.data.message);
       }
-      activityData.push(res.data);
+      activityData[activities[i]] = res.data.activitiyData;
     }
-    for (let i = 0; i < activityData.length; i++) {
-      for (let j = 0; j < activityData[i].length; j++) {
-        let week = activityData[i][j];
+    for (let i = 0; i < activities.length; i++) {
+      let activity = activities[i];
+      for (let j = 0; j < activityData[activity].length; j++) {
+        let week = activityData[activity][j];
         let weekMondayDate = DateTime.fromISO(week[0].run.uploadDate);
-        newActivities[weekMondayDate.toISODate()] = week;
+        newActivities[activity][weekMondayDate] = week;
       }
     }
+    console.log("new activity keys: ", Object.keys(newActivities));
+    console.log("new activities: ", newActivities);
     return new this(newActivities);
   }
 
-  constructor(activitiesObj?: ActivitiesInterface) {
+  constructor(activitiesObj?: SerializedActivities) {
     if (activitiesObj) {
-      this.activities = activitiesObj;
+      this.runs = activitiesObj.run;
+      this.swims = activitiesObj.swim;
+      this.jumps = activitiesObj.jump;
       this.fillAndRemoveOldRecords();
-      setUserFitnessData(this.activities);
+      setUserFitnessData(activitiesObj);
     } else {
-      var blankActivities: ActivitiesInterface = {};
+      const blankActivities: SerializedActivities = {
+        run: {},
+        swim: {},
+        jump: {},
+      };
       const today = DateTime.local();
       var startMondayDate : typeof DateTime = getLastMonday(today.minus({days: UserActivities.WEEKS_BACK * 7}));
       var startMondayString = startMondayDate.toISODate();
-      for (let i = 0; i <= UserActivities.WEEKS_BACK; i++) {
-        blankActivities[startMondayString] = blank_week(startMondayDate);
+      for (let j = 0; j <= UserActivities.WEEKS_BACK; j++) {
+        blankActivities.run[startMondayString] = blank_week("run", startMondayDate);
+        blankActivities.swim[startMondayString] = blank_week("swim", startMondayDate);
+        blankActivities.jump[startMondayString] = blank_week("jump", startMondayDate);
         startMondayDate = startMondayDate.plus({days: 7});
       }
-      this.activities = blankActivities;
+      this.runs = blankActivities.run;
+      this.swims = blankActivities.swim;
+      this.jumps = blankActivities.jump;
     }
   }
 
   // fills with empty fitness records and removes old ones if needed
   // Tries to upload old records to DB. If fail then store to Async storage and try again
   // next time.
+
   async fillAndRemoveOldRecords() {
     const today = DateTime.local();
     var userLastUpdated = this.getLastUpdated();
     // fill in empty fitness records if needed
     userLastUpdated.plus({days: 7});
     while (userLastUpdated.startOf("day") <= today.startOf("day")) {
-      this.activities[userLastUpdated.toISODate()] = blank_week(userLastUpdated);
+      this.runs[userLastUpdated.toISODate()] = blank_week("run", userLastUpdated);
+      this.swims[userLastUpdated.toISODate()] = blank_week("swim", userLastUpdated);
+      this.jumps[userLastUpdated.toISODate()] = blank_week("jump", userLastUpdated);
       userLastUpdated.plus({days: 7});
     }
-
     // remove old records and store to async storage
     var oldestDate = this.getOldestDate();
-    var numToRemove = Object.keys(this.activities).length - UserActivities.WEEKS_BACK;
-    const oldRecords: Array<DaySchema> = [];
+    var numToRemove = Object.keys(this.runs).length - UserActivities.WEEKS_BACK;
+    const oldRecords: OldRecords = {
+      oldRuns: [],
+      oldSwims: [],
+      oldJumps: [],
+    };
     // INEFFICIENT. CONSIDER SORTING AND REMOVING OLDEST ___ DATES 
     while (numToRemove > 0) {
       const oldestDateString = oldestDate.toISODate();
-      oldRecords.push(...this.activities[oldestDateString]);
-      delete this.activities[oldestDateString];
+      oldRecords.oldRuns.push(...this.runs[oldestDateString]);
+      oldRecords.oldSwims.push(...this.swims[oldestDateString]);
+      oldRecords.oldJumps.push(...this.jumps[oldestDateString]);
+      delete this.runs[oldestDateString];
+      delete this.swims[oldestDateString];
+      delete this.jumps[oldestDateString];
       numToRemove -= 1;
       oldestDate = this.getOldestDate();
     }
-    await addOldFitnessRecords(oldRecords);
-    try {
-      // await this.uploadStoredOldRecords();
-      await setOldFitnessRecords([]);
-    } catch(e) {
-      console.log(e);
-    }
+    await storeOldFitnessRecords(oldRecords);
   }
 
   async uploadStoredOldRecords() {
-    const oldFitnessRecords : Array<DaySchema> = await getOldFitnessRecords();
-    const res = await Axios.post(ENDPOINTS.uploadOldFitnessRecords, {
-      oldFitnessRecords,
+    const oldFitnessRecords: OldRecords = await getOldFitnessRecords();
+    const token = await getToken();
+    const res = await Axios.post(ENDPOINTS.uploadFitnessRecords, {
+      token,
+      runs: oldFitnessRecords.oldRuns,
+      swims: oldFitnessRecords.oldSwims,
+      jumps: oldFitnessRecords.oldJumps,
+    });
+    if (!res.data.success) {
+      throw new Error(res.data.message);
+    }
+    await setOldFitnessRecords({
+      oldRuns: [],
+      oldSwims: [],
+      oldJumps: [],
+    });
+  }
+
+  async uploadDayRecord(activity: ACTIVITY_ENUMS, week: string | typeof DateTime, day: DAY_INDICES) {
+    const weekKey = typeof week === "string" ? week : week.toISODate(); 
+    const token = await getToken();
+    const res = await Axios.post(ENDPOINTS.uploadFitnessRecords, {
+      token,
+      runs: activity === "run" ? [this.runs[weekKey][day]] : [],
+      swims: activity === "swim" ? [this.swims[weekKey][day]] : [],
+      jumps: activity === "jump" ? [this.jumps[weekKey][day]] : []
     });
     if (!res.data.success) {
       throw new Error(res.data.message);
@@ -227,20 +295,39 @@ class UserActivities {
   }
 
   async storeToAsyncStorage() {
-    await setUserFitnessData(this.activities);
+    const serialized: SerializedActivities = {
+      run: this.runs,
+      swim: this.swims,
+      jump: this.jumps,
+    }
+    await setUserFitnessData(serialized);
   }
 
-  getWeekData(week: string | typeof DateTime): Array<DaySchema> {
-    return this.activities[typeof week === DateTime ? week.toISODate() : week];
+  getWeekData(activity: ACTIVITY_ENUMS, week: string | typeof DateTime): Array<RunSchema | SwimSchema | JumpSchema> {
+    const weekKey = typeof week === "string" ? week : week.toISODate();
+    if (activity === "run") {
+      return this.runs[weekKey];
+    } else if (activity === "swim") {
+      return this.swims[weekKey];
+    } else {
+      return this.jumps[weekKey];
+    }
   }
 
-  getDayData(week: string | typeof DateTime, day: number): DaySchema {
-    return this.activities[typeof week === DateTime ? week.toISODate() : week][day];
+  getDayData(activity: ACTIVITY_ENUMS, week: string | typeof DateTime, day: DAY_INDICES): RunSchema | SwimSchema | JumpSchema {
+    const weekKey = typeof week === "string" ? week : week.toISODate();
+    if (activity === "run") {
+      return this.runs[weekKey][day];
+    } else if (activity === "swim") {
+      return this.swims[weekKey][day];
+    } else {
+      return this.jumps[weekKey][day];
+    }
   }
 
   getLastUpdated(): typeof DateTime {
     var userLastUpdated : typeof DateTime = null; // should end up being monday of last updated week
-    Object.keys(this.activities).forEach((dateString: string, _) => {
+    Object.keys(this.runs).forEach((dateString: string, _) => {
       var keyDate = DateTime.fromISO(dateString, {zone: 'utc'});
       if (!userLastUpdated) {
         userLastUpdated = keyDate;
@@ -252,7 +339,7 @@ class UserActivities {
 
   getOldestDate(): typeof DateTime {
     var oldestUpdated : typeof DateTime = null; // should end up being monday of oldest week
-    Object.keys(this.activities).forEach((dateString: string, _) => {
+    Object.keys(this.runs).forEach((dateString: string, _) => {
       var keyDate = DateTime.fromISO(dateString, {zone: 'utc'});
       if (!oldestUpdated) {
         oldestUpdated = keyDate;
@@ -262,25 +349,33 @@ class UserActivities {
     });
   }
 
-  getActivities(): ActivitiesInterface {
-    return this.activities;
-  }
-
-  addSession(date: DateTime, session: DaySchema) {
+  addSession(activity: ACTIVITY_ENUMS, date: typeof DateTime, session: RunSchema | SwimSchema | JumpSchema) {
     const dayIndex = date.weekday - 1;
     const dateISOString = date.toISODate();
-    if (!this.activities[dateISOString]) {
-      this.activities[dateISOString] = blank_week(date);
+    var activities: RunActivitiesInterface | SwimActivitiesInterface | JumpActivitiesInterface;
+    if (activity === "run") {
+      activities = this.runs;
+    } else if (activity === "swim") {
+      activities = this.swims;
+    } else {
+      activities = this.jumps;
     }
-    this.activities[dateISOString][dayIndex] = session;
+    if (!activities[dateISOString]) {
+      activities[dateISOString] = blank_week(activity, date);
+    }
+    activities[dateISOString][dayIndex] = session;
   }
 }
 
 export {
-  ActivitiesInterface,
+  OldRecords,
+  RunActivitiesInterface,
+  SwimActivitiesInterface,
+  JumpActivitiesInterface,
+  SerializedActivities,
   UserActivities,
   RunSchema,
   SwimSchema,
   JumpSchema,
-  DaySchema,
+  SwimReferenceTimes,
 }

@@ -53,7 +53,7 @@ const ENDPOINTS = {
     updateSettings: `${serverURL}/updateSettings`,
     upload: `${serverURL}/upload`,
     updateWeeklyGoals: `${serverURL}/updateWeeklyGoals`,
-    uploadOldFitnessRecords: `${serverURL}/updateOldFitnessRecords`,
+    uploadFitnessRecords: `${serverURL}/uploadFitnessRecords`,
 };
 
 export default ENDPOINTS

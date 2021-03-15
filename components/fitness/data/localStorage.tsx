@@ -2,12 +2,13 @@ import Axios from "axios";
 import ENDPOINTS from "../../endpoints";
 import { getToken } from "../../utils/storage";
 import { 
-  ActivitiesInterface,
+  RunActivitiesInterface,
+  SwimActivitiesInterface,
+  JumpActivitiesInterface,
   UserActivities,
   RunSchema,
   SwimSchema,
   JumpSchema,
-  DaySchema,
 } from './UserActivities';
 import {
   getUserData,
@@ -58,61 +59,6 @@ const { DateTime } = require('luxon');
 const WALK_CADENCE = DEFAULT_CADENCES[1] * 2;
 const RUN_CADENCE = DEFAULT_CADENCES[2] * 2;
 
-// maximum number of activity documents to query for a given activity
-// max possible days you can go back according to frontend is 27 mondays ago
-// 27 not 26 cuz if the current day is not a monday then you'll go back 27 else 26.
-const MAX_DOCUMENTS = 27 * 7;
-
-function reverse(array) {
-  var i = 0,
-      n = array.length,
-      middle = Math.floor(n / 2),
-      temp = null;
-
-  for (; i < middle; i += 1) {
-     temp = array[i];
-     array[i] = array[n - 1 - i];
-     array[n - 1 - i] = temp;
-  }
-}
-
-// returns the default empty session object given the user's id and an uploadDate
-const activityToSession = (activity, uploadDate, userID) => {
-  switch(activity) {
-    case "run":
-      return {
-        _id: '',
-        userID,
-        uploadDate: uploadDate.toISO(),
-        num: 0,
-        cadences: [],
-        calories: 0,
-        time: 0
-      }
-    case "swim":
-      return {
-        _id: '',
-        userID,
-        uploadDate: uploadDate.toISO(),
-        num: 0,
-        lapTimes: [],
-        strokes: [],
-        calories: 0,
-        time: 0
-      }
-    case "jump":
-      return {
-        _id: '',
-        userID,
-        uploadDate: uploadDate.toISO(),
-        num: 0,
-        heights: [],
-        shotsMade: 0,
-        time: 0
-      }
-  }
-};
-
 /**
  * Reads from async storage the user fitness (which is in UTC).
  * Looks at the current date (in their timezone), converts that date to UTC,
@@ -137,10 +83,7 @@ const getUserActivityData = async (): Promise<UserActivities> => {
     // delete old fitness records and upload those to database if they have data
     await userActivities.fillAndRemoveOldRecords();
     await userActivities.uploadStoredOldRecords();
-    // get most recent date in this user's fitness
-    console.log(userActivities.getActivities());
-    var lastUpdated: typeof DateTime = userActivities.getLastUpdated();
-    console.log(lastUpdated);
+    console.log("user runs: ", userActivities.runs);
     return userActivities;
   }
 }
@@ -149,7 +92,7 @@ const getUserActivityData = async (): Promise<UserActivities> => {
  * Backend route that takes in a list of scrambled byte arrays, unscrambles them, decodes them
  * into session statistics, and updates the user's fitness in the async storage
  */
-const updateActivityData = async (userID: string, date: typeof DateTime, sessionBytes: string) => {
+const updateActivityData = async (userID: string, date: typeof DateTime, sessionBytes: Buffer) => {
   console.log("date that user sent: ", date);
   var sessionMidnightDate = date.set({
     hour: 0, minute: 0, second: 0, millisecond: 0
@@ -163,7 +106,9 @@ const updateActivityData = async (userID: string, date: typeof DateTime, session
   // at this point find out where to insert it into the async storage UserActivity
   const userActivities: UserActivities = await UserActivities.createFromStorage();
   await userActivities.fillAndRemoveOldRecords();
-  userActivities.addSession(sessionMidnightDate, sessionJsons);
+  userActivities.addSession("run", sessionMidnightDate, run);
+  userActivities.addSession("swim", sessionMidnightDate, swim);
+  userActivities.addSession("jump", sessionMidnightDate, jump);
 
   // update the other user data such as bests, nefforts, thresholds, etc...
   const userData = await getUserData();

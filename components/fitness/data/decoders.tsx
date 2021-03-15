@@ -2,6 +2,18 @@
  * Utilities for managin the local storage of user fitness
  * and syncing with the server and database.
  */
+import {
+  RunActivitiesInterface,
+  SwimActivitiesInterface,
+  JumpActivitiesInterface,
+  RunSchema,
+  SwimSchema,
+  JumpSchema,
+  SwimReferenceTimes,
+} from './UserActivities';
+
+
+const { DateTime } = require("luxon");
 
 const eventTable = [
   // 50 yd free
@@ -46,8 +58,7 @@ const swimSet = new Set([
 const jumpSet = new Set(['3'.charCodeAt(0), '4'.charCodeAt(0), '5'.charCodeAt(0)]);
 const stepSet = new Set(['R'.charCodeAt(0), 'W'.charCodeAt(0)]);
 
-// IF THIS IS FALSE, SEND A FAILED REQUEST SOMEHOW
-function validate(byte: number, idx: number) {
+function validate(byte: number, idx: number): boolean {
   if (!markerSet.has(byte)) {
     console.log("*********** NOT A VALID FILE ************");
     console.log(`${String.fromCharCode(byte)} is not part of the cEvent marker set`);
@@ -55,11 +66,11 @@ function validate(byte: number, idx: number) {
   return markerSet.has(byte);
 } 
 
-function merge_two_bytes(first8: number, second8: number) {
+function merge_two_bytes(first8: number, second8: number): number {
   return (first8 << 8) + second8;
 }
 
-function merge_three_bytes(first8: number, second8: number, third8: number) {
+function merge_three_bytes(first8: number, second8: number, third8: number): number {
   return (first8 << 16) + (second8 << 8) + third8;
 }
 
@@ -78,29 +89,37 @@ function merge_three_bytes(first8: number, second8: number, third8: number) {
  * @param {Buffer} byteArr 
  * returns a list of lists where the sublists contain 6 elements representing a stat report.
  */
-const unscrambleSessionBytes = (byteArr) => {
-  var converted = [];
+interface ReadableSession {
+  cEvent: number,
+  lapCount: number,
+  ndata: number,
+  stepCount: number,
+  lapTime: number,
+  calories: number,
+}
+const unscrambleSessionBytes = (byteArr: Buffer) => {
+  var converted: Array<ReadableSession> = [];
   var idx = 0;
-  var cEvent;
-  var lapCount; 
-  var ndata;
-  var stepCount;
-  var lapTime;
-  var calorie;
+  var cEvent: number;
+  var lapCount: number;
+  var ndata: number;
+  var stepCount: number;
+  var lapTime: number;
+  var calories: number;
   while (idx < (byteArr.length - 15)) {
     // console.log(`idx: ${idx}, byte: ${byteArr[idx]}`);
     if ((byteArr[idx+15] === semicolon_ascii) && validate(byteArr[idx], idx)) {
       // console.log(`valid!: ${byteArr[idx]}`);
       cEvent = byteArr[idx];
       if (cEvent === M_ascii) {
-        converted.push([cEvent, 0, 0, 0, 0, 0]);
+        converted.push({cEvent, lapCount: 0, ndata: 0, stepCount: 0, lapTime: 0, calories: 0});
       } else {
         lapCount = merge_two_bytes(byteArr[idx + 1],byteArr[idx + 2]);
         ndata = merge_three_bytes(byteArr[idx + 5], byteArr[idx + 4], byteArr[idx + 6]);
         stepCount = merge_three_bytes(byteArr[idx + 10], byteArr[idx + 8], byteArr[idx + 9]);
         lapTime = merge_three_bytes(byteArr[idx + 11], byteArr[idx + 7], byteArr[idx + 3]);
-        calorie = merge_three_bytes(byteArr[idx + 12], byteArr[idx + 13], byteArr[idx + 14]);
-        converted.push([cEvent, lapCount, ndata, stepCount, lapTime, calorie]);
+        calories = merge_three_bytes(byteArr[idx + 12], byteArr[idx + 13], byteArr[idx + 14]);
+        converted.push({cEvent, lapCount, ndata, stepCount, lapTime, calories});
         // console.log("ndata: ", ndata);
       }
       idx += 16;
@@ -124,36 +143,38 @@ const calcHeight = (hangtime) => {
  * @param {String} userID: user's id in the mongo users collection
  * @param {Date} sessionDate: the date that this session byte array was stored on the user's phone
  */
-const createSessionJsons = (unscrambled, userID, sessionDate) => {
+const createSessionJsons = (unscrambled: Array<ReadableSession>, userID: string, sessionDate: typeof DateTime) => {
   console.log("unscrambled: ", unscrambled);
-  const sessionJsons = {
-    run: { // contains the combined run an walk data
-      userID,
-      uploadDate: sessionDate,
-      num: 0,
-      cadences: [],
-      calories: 0,
-      time: 0,
-      walkCadences: [], // cadences for when the user has hiking mode enabled to support JJ
-    },
-    swim: {
-      userID,
-      uploadDate: sessionDate,
-      num: 0,
-      lapTimes: [],
-      strokes: [],
-      calories: 0,
-      time: 0
-    },
-    jump: {
-      userID,
-      uploadDate: sessionDate,
-      num: 0,
-      heights: [],
-      shotsMade: 0,
-      time: 0
-    },
+  var run: RunSchema = {
+    userID,
+    uploadDate: sessionDate,
+    num: 0,
+    cadences: [],
+    calories: 0,
+    time: 0,
+    walkCadences: [], // cadences for when the user has hiking mode enabled to support JJ
+    uploadedToServer: false,
   }
+  var swim: SwimSchema = {
+    userID,
+    uploadDate: sessionDate,
+    num: 0,
+    lapTimes: [],
+    strokes: [],
+    calories: 0,
+    time: 0,
+    uploadedToServer: false,
+  }
+  var jump: JumpSchema = {
+    userID,
+    uploadDate: sessionDate,
+    num: 0,
+    heights: [],
+    shotsMade: 0,
+    time: 0,
+    uploadedToServer: false,
+  }
+  const sessionJsons = {run, swim, jump};
   var statReportIdx = 0;
   var cEvent = null;
   var statReport = null;
@@ -226,7 +247,10 @@ const createSessionJsons = (unscrambled, userID, sessionDate) => {
   return sessionJsons;
 }
 
-const calcReferenceTimes = (oldRefTimes, swimJson) => {
+
+
+
+const calcReferenceTimes = (oldRefTimes: SwimReferenceTimes, swimJson: SwimSchema): SwimReferenceTimes => {
   const { lapTimes, strokes } = swimJson;
   var flyAvg = oldRefTimes.fly[0] / 1.1;
   var backAvg = oldRefTimes.back[0] / 1.1;

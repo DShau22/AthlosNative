@@ -11,7 +11,7 @@ const CONFIG_KEY = 'Config Key'; // key that stores saInit in human readable jso
 const FITNESS_DATA_KEY = "Fitness data key"; // key that stores the user's fitness data to display
 const OLD_FITNESS_RECORDS_KEY = "Old fitness records key";
 import AsyncStorage from '@react-native-community/async-storage';
-import { ActivitiesInterface, DaySchema } from '../fitness/data/UserActivities';
+import { OldRecords, SerializedActivities } from '../fitness/data/UserActivities';
 
 const logOut = async () => {
   await AsyncStorage.multiRemove([
@@ -200,25 +200,27 @@ const getSaInitConfig = async () => {
   return JSON.parse(await AsyncStorage.getItem(CONFIG_KEY));
 }
 
-const getUserFitnessData = async (): Promise<ActivitiesInterface> => {
+const getUserFitnessData = async (): Promise<SerializedActivities> => {
   return JSON.parse(await AsyncStorage.getItem(FITNESS_DATA_KEY));
 }
 
-const setUserFitnessData = async (newData) => {
-  await AsyncStorage.setItem(FITNESS_DATA_KEY, newData);
+const setUserFitnessData = async (newData: SerializedActivities) => {
+  await AsyncStorage.setItem(FITNESS_DATA_KEY, JSON.stringify(newData));
 }
 
-const getOldFitnessRecords = async (): Promise<Array<DaySchema>> => {
+const getOldFitnessRecords = async (): Promise<OldRecords> => {
   return JSON.parse(await AsyncStorage.getItem(OLD_FITNESS_RECORDS_KEY));
 }
 
-const addOldFitnessRecords = async (newRecords: Array<DaySchema>) => {
+const storeOldFitnessRecords = async (newRecords: OldRecords) => {
   var oldFitnessRecords = await getOldFitnessRecords();
-  oldFitnessRecords.push(...newRecords);
+  oldFitnessRecords.oldRuns.push(...newRecords.oldRuns);
+  oldFitnessRecords.oldSwims.push(...newRecords.oldSwims);
+  oldFitnessRecords.oldJumps.push(...newRecords.oldJumps);
   await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(oldFitnessRecords));
 }
 
-const setOldFitnessRecords = async (newRecords: Array<DaySchema>) => {
+const setOldFitnessRecords = async (newRecords: OldRecords) => {
   await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(newRecords));
 }
 
@@ -248,6 +250,6 @@ export {
   getUserFitnessData,
   setUserFitnessData,
   getOldFitnessRecords,
-  addOldFitnessRecords,
+  storeOldFitnessRecords,
   setOldFitnessRecords
 }
