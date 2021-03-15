@@ -92,14 +92,14 @@ const getUserActivityData = async (): Promise<UserActivities> => {
  * Backend route that takes in a list of scrambled byte arrays, unscrambles them, decodes them
  * into session statistics, and updates the user's fitness in the async storage
  */
-const updateActivityData = async (userID: string, date: typeof DateTime, sessionBytes: Buffer) => {
+const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) => {
   console.log("date that user sent: ", date);
   var sessionMidnightDate = date.set({
     hour: 0, minute: 0, second: 0, millisecond: 0
   }).toUTC();
   console.log("session date midnight: ", sessionMidnightDate);
   const unscrambledBytes = unscrambleSessionBytes(sessionBytes);
-  const sessionJsons = createSessionJsons(unscrambledBytes, userID, sessionMidnightDate);
+  const sessionJsons = createSessionJsons(unscrambledBytes, sessionMidnightDate);
   const {run, swim, jump} = sessionJsons;
   console.log("session jsons: ", sessionJsons);
 

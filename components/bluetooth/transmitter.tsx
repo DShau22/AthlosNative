@@ -15,6 +15,7 @@ const TX = 'e49a25f1-f69a-11e8-8eb2-f2801f1b9fd1';
 const RX = 'e49a28f2-f69a-11e8-8eb2-f2801f1b9fd1';
 import axios from 'axios';
 import { BleManager } from 'react-native-ble-plx';
+import { updateActivityData } from '../fitness/data/localStorage';
 
 const calcChecksum = (bytes, start, end) => {
   let res = 0;
@@ -27,7 +28,7 @@ const calcChecksum = (bytes, start, end) => {
 
 const calcNumSaDataBytes = (readValueInRawBytes) => {
   if (readValueInRawBytes.length < 10)
-    throw new Error("read value in raw bytes is too short to be valid: ", readValueInRawBytes);
+    throw new Error(`read value in raw bytes is too short to be valid: ${readValueInRawBytes}`);
   // start at idx 3 cuz first 3 bytes are metadata
   var totalNum = 0;
   for (let i = 3; i < 10; i++) {
@@ -37,6 +38,9 @@ const calcNumSaDataBytes = (readValueInRawBytes) => {
 }
 
 class DataItem {
+  data: any;
+  tryCount: any;
+  length: any;
   constructor(data, tryCount) {
     this.data = data;
     this.tryCount = tryCount;
@@ -82,7 +86,30 @@ class DataItem {
 class BLEHandler {
   static MAX_PKG_LEN = 64;
   static METADATA_SIZE = 5;
-  constructor(manager) {
+  athlosResponses: any[];
+  sendTimer: any;
+  setConnected: (_: any) => void;
+  readSubscription: any;
+  scanSubscription: any;
+  disconnectSubscription: any;
+  manager: BleManager;
+  device: any;
+  userDeviceID: string;
+  sainit: any;
+  writePkgId: number;
+  lastPkgId: any;
+  connectCompleter: any;
+  registerCompleter: any;
+  saDataCompleter: any;
+  resCompleter: any;
+  currItem: any;
+  isTransmitting: boolean;
+  isConnected: boolean;
+  readBuffers: any[];
+  totalNumSaDataBytes: number;
+  numSaDataBytesRead: number;
+  isReading: boolean;
+  constructor(manager: BleManager) {
     this.athlosResponses = [], // for JJ's debug purposes
     this.sendTimer = null;
     this.setConnected = (_) => {};
@@ -534,7 +561,7 @@ class BLEHandler {
       const concatentatedSadata = Buffer.concat(this.readBuffers, totalNumBytes);
       try {
         if (this.totalNumSaDataBytes > 8) {
-          await storeFitnessBytes(concatentatedSadata);
+          await updateActivityData(DateTime.local(), concatentatedSadata);
           await this._sendResetSaDataPkg();
         }
         // send package to tell the earbuds to rewrite sadata. Shouldnt need to await
@@ -766,6 +793,9 @@ class BLEHandler {
 
 // allows for better programmatic control of when promise is resolved/rejected
 class Completer {
+  result: Promise<unknown>;
+  _resolve: (value: unknown) => void;
+  _reject: (reason?: any) => void;
   constructor() {
     this.result = new Promise((resolve, reject) => {
       this._resolve = resolve;

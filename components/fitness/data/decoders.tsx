@@ -143,10 +143,10 @@ const calcHeight = (hangtime) => {
  * @param {String} userID: user's id in the mongo users collection
  * @param {Date} sessionDate: the date that this session byte array was stored on the user's phone
  */
-const createSessionJsons = (unscrambled: Array<ReadableSession>, userID: string, sessionDate: typeof DateTime) => {
+const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: typeof DateTime) => {
   console.log("unscrambled: ", unscrambled);
   var run: RunSchema = {
-    userID,
+    userID: "", // these will be set by the server in the backend once uploaded with the token
     uploadDate: sessionDate,
     num: 0,
     cadences: [],
@@ -156,7 +156,7 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, userID: string,
     uploadedToServer: false,
   }
   var swim: SwimSchema = {
-    userID,
+    userID: "",
     uploadDate: sessionDate,
     num: 0,
     lapTimes: [],
@@ -166,7 +166,7 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, userID: string,
     uploadedToServer: false,
   }
   var jump: JumpSchema = {
-    userID,
+    userID: "",
     uploadDate: sessionDate,
     num: 0,
     heights: [],
