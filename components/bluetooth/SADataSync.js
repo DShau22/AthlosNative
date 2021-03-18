@@ -24,7 +24,6 @@ import GlobalBleHandler from './GlobalBleHandler';
 import Axios from 'axios';
 import ENDPOINTS from '../endpoints';
 import { Alert } from 'react-native';
-import { BLEHandler } from './transmitter';
 Icon.loadFont();
 
 const { SYNC_PAGE, SYNC_HELP_PAGE } = BLUETOOTH_CONSTANTS;
@@ -219,7 +218,7 @@ export default function SADataSync(props) {
         var numBytesRead = await GlobalBleHandler.readActivityData();
         if (numBytesRead <= 8) {
           showSnackBar("Your activity records are already synced. Uploading any activities that failed previously...");
-          await uploadToServer();
+          // await uploadToServer();
           setTransmitting(false);
           return;
         }
@@ -237,15 +236,17 @@ export default function SADataSync(props) {
     }
     if (!success) {
       showSnackBar(`Something went wrong with syncing. Please try again.`);
+      setTransmitting(false);
       return;
     } else {
       showSnackBar('Successfully synced with your Athlos earbuds. Your activity records are almost ready :]');
     }
-    showSnackBar("Updating Sainit with new info...");
-    await uploadToServer();
+    showSnackBar("Updating Sainit with new info...", "long");
+    // await uploadToServer();
     await updateLocalUserInfo();
     await updateSaInit();
     setTransmitting(false);
+    showSnackBar("Successfully updated your activities!", "long");
   }
 
   const updateSaInit = async () => {
@@ -272,31 +273,31 @@ export default function SADataSync(props) {
     await GlobalBleHandler.sendByteArray(saInitBytes);
   }
 
-  const uploadToServer = async () => {
-    let uploadCount = 3;
-    let uploadSuccess = false;
-    while (uploadCount > 0 && !uploadSuccess) {
-      uploadCount -= 1;
-      try {
-        await GlobalBleHandler.uploadToServer();
-        uploadSuccess = true;
-      } catch(e) {
-        console.log("upload with sync failed. Trying again");
-      }
-    }
-    if (!uploadSuccess) {
-      showSnackBar('Your activity records could not be updated. Try syncing again and make sure your internet connection is strong');
-    } else {
-      try {
-        await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
-        await updateLocalUserInfo(); // no promise.all to avoid race conditions with updating the state
-        showSnackBar('Your activity records have been updated!');
-      } catch(e) {
-        console.log("update local user fitness or local info failed: ", e);
-        showSnackBar('Your activity records have been updated! Please refresh to view updates.');
-      }
-    }
-  }
+  // const uploadToServer = async () => {
+  //   let uploadCount = 3;
+  //   let uploadSuccess = false;
+  //   while (uploadCount > 0 && !uploadSuccess) {
+  //     uploadCount -= 1;
+  //     try {
+  //       await GlobalBleHandler.uploadToServer();
+  //       uploadSuccess = true;
+  //     } catch(e) {
+  //       console.log("upload with sync failed. Trying again");
+  //     }
+  //   }
+  //   if (!uploadSuccess) {
+  //     showSnackBar('Your activity records could not be updated. Try syncing again and make sure your internet connection is strong');
+  //   } else {
+  //     try {
+  //       await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
+  //       await updateLocalUserInfo(); // no promise.all to avoid race conditions with updating the state
+  //       showSnackBar('Your activity records have been updated!');
+  //     } catch(e) {
+  //       console.log("update local user fitness or local info failed: ", e);
+  //       showSnackBar('Your activity records have been updated! Please refresh to view updates.');
+  //     }
+  //   }
+  // }
 
   const Stack = createStackNavigator();
   return (

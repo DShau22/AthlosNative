@@ -97,7 +97,7 @@ const DARK_THEME = {
   },
 };
 
-module.exports = {
+export {
   COLOR_THEMES,
   LIGHT_THEME,
   DARK_THEME

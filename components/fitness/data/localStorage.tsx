@@ -28,6 +28,7 @@ import {
   createSessionJsons,
   calcReferenceTimes,
 } from "./decoders";
+import { Use } from "react-native-svg";
 /**
  * Utilities for managing the local storage of user fitness
  * and syncing with the server and database.
@@ -72,6 +73,7 @@ const getUserActivityData = async (): Promise<UserActivities> => {
   var userActivities: UserActivities = await UserActivities.createFromStorage();
   if (!userActivities) {
     // grab fitness from server and store it
+    console.log("creating from server...");
     try {
       userActivities = await UserActivities.createFromServer();
       await userActivities.storeToAsyncStorage();
@@ -80,16 +82,21 @@ const getUserActivityData = async (): Promise<UserActivities> => {
     }
     return userActivities;
   } else {
+    console.log("creating from storage...");
     // delete old fitness records and upload those to database if they have data
     await userActivities.fillAndRemoveOldRecords();
-    await userActivities.uploadStoredOldRecords();
-    console.log("user runs: ", userActivities.runs);
+    console.log("filled and removed");
+    await userActivities.storeToAsyncStorage();
+    console.log("stored...");
+    await UserActivities.uploadStoredOldRecords();
+    // await Promise.all([userActivities.storeToAsyncStorage(), UserActivities.uploadStoredOldRecords()]);
+    console.log("returning activities...");
     return userActivities;
   }
 }
 
 /**
- * Backend route that takes in a list of scrambled byte arrays, unscrambles them, decodes them
+ * Takes in a list of scrambled byte arrays, unscrambles them, decodes them
  * into session statistics, and updates the user's fitness in the async storage
  */
 const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) => {
@@ -101,14 +108,9 @@ const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) =
   const unscrambledBytes = unscrambleSessionBytes(sessionBytes);
   const sessionJsons = createSessionJsons(unscrambledBytes, sessionMidnightDate);
   const {run, swim, jump} = sessionJsons;
-  console.log("session jsons: ", sessionJsons);
-
   // at this point find out where to insert it into the async storage UserActivity
   const userActivities: UserActivities = await UserActivities.createFromStorage();
   await userActivities.fillAndRemoveOldRecords();
-  userActivities.addSession("run", sessionMidnightDate, run);
-  userActivities.addSession("swim", sessionMidnightDate, swim);
-  userActivities.addSession("jump", sessionMidnightDate, jump);
 
   // update the other user data such as bests, nefforts, thresholds, etc...
   const userData = await getUserData();
@@ -149,7 +151,7 @@ const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) =
         sessionWalkHalfMins += 1;
       }
     });
-    const newAvgWalkHalfMins = (7 * oldAvgWalkHalfMins)/8 + sessionWalkHalfMins/8;
+    const newAvgWalkHalfMins = (7 * oldAvgWalkHalfMins)/8 + (sessionWalkHalfMins + sessionRunHalfMins)/8;
     console.log("new avg walk half mins ", newAvgWalkHalfMins);
     console.log("session walk half mins: ", sessionWalkHalfMins);
     userData.walkEfforts = [
@@ -169,7 +171,14 @@ const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) =
     bestEvent: userData.bests.bestEvent // don't do anything about the best event yet
   };
 
-  await storeUserData(userData);
+  // add to user activity data
+  delete run["walkCadences"];
+  await Promise.all([
+    userActivities.addSession("run", run.uploadDate, run),
+    userActivities.addSession("swim", swim.uploadDate, swim),
+    userActivities.addSession("jump", jump.uploadDate, jump),
+    storeUserData(userData),
+  ]);
 }
 
 export {

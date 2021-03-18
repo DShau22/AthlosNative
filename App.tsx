@@ -5,6 +5,7 @@ import 'react-native-gesture-handler';
 import { MenuProvider } from 'react-native-popup-menu';
 
 import * as React from 'react';
+import { Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 Ionicons.loadFont();
@@ -27,16 +28,16 @@ console.disableYellowBox = true;
 function App() {
   
   const [isLoading, setIsLoading] = React.useState(true);
-  const [token, setToken] = React.useState('');
+  const [token, setToken] = React.useState<string>('');
 
   React.useEffect(() => {
-    const getToken = async () => {
+    const setUpTokenState = async () => {
       // await AsyncStorage.clear();
       const userToken = await getToken();
       setToken(userToken);
       setIsLoading(false);
     }
-    getToken();
+    setUpTokenState();
   }, [token]);
   if (isLoading) {
     return ( <LoadingScreen />)

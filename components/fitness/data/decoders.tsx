@@ -97,7 +97,7 @@ interface ReadableSession {
   lapTime: number,
   calories: number,
 }
-const unscrambleSessionBytes = (byteArr: Buffer) => {
+const unscrambleSessionBytes = (byteArr: Buffer): Array<ReadableSession> => {
   var converted: Array<ReadableSession> = [];
   var idx = 0;
   var cEvent: number;
@@ -175,12 +175,12 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
     uploadedToServer: false,
   }
   const sessionJsons = {run, swim, jump};
-  var statReportIdx = 0;
-  var cEvent = null;
-  var statReport = null;
+  var statReportIdx: number = 0;
+  var cEvent: number = null;
+  var statReport: ReadableSession = null;
   while (statReportIdx < unscrambled.length) {
     statReport = unscrambled[statReportIdx];
-    cEvent = statReport[0];
+    cEvent = statReport.cEvent;
     if (stepSet.has(cEvent)) {
       var prevNumSteps = 0;
       var numSteps = 0;
@@ -189,9 +189,9 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
       while (stepSet.has(cEvent) && statReportIdx < unscrambled.length) {
         // update cadence array
         prevTime = time;
-        time = statReport[2] / 600;
+        time = statReport.lapTime / 600;
         prevNumSteps = numSteps;
-        numSteps = statReport[3];
+        numSteps = statReport.stepCount;
         const cadence = Math.round((numSteps - prevNumSteps) / (time - prevTime));
         sessionJsons.run.cadences.push(cadence);
         if (cEvent === "W".charCodeAt(0)) {
@@ -200,33 +200,33 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
         // move onto the next stat report record
         statReportIdx += 1;
         statReport = unscrambled[statReportIdx];
-        cEvent = statReport ? statReport[0] : null;
+        cEvent = statReport ? statReport.cEvent : null;
       }
       const lastStepStatReport = unscrambled[statReportIdx - 1];
-      sessionJsons.run.num += lastStepStatReport[3];
-      sessionJsons.run.calories += lastStepStatReport[5] / 10;
-      sessionJsons.run.time += lastStepStatReport[2] / 600;
+      sessionJsons.run.num += lastStepStatReport.stepCount;
+      sessionJsons.run.calories += lastStepStatReport.calories / 10;
+      sessionJsons.run.time += lastStepStatReport.ndata / 600;
     } else if (swimSet.has(cEvent)) {
       // console.log("swim: ", statReport);
       while (swimSet.has(cEvent) && statReportIdx < unscrambled.length) {
         sessionJsons.swim.lapTimes.push({
-          lapTime: statReport[4] / 10, // laptime in seconds
-          finished: statReport[3] !== 0 // 0 means they turned. Anything else means finished
+          lapTime: statReport.lapTime / 10, // laptime in seconds
+          finished: statReport.stepCount !== 0 // 0 means they turned. Anything else means finished
         });
         sessionJsons.swim.strokes.push(String.fromCharCode(cEvent));
         // move onto the next stat report record
         statReportIdx += 1;
         statReport = unscrambled[statReportIdx];
-        cEvent = statReport ? statReport[0] : null;
+        cEvent = statReport ? statReport.cEvent : null;
       }
       const lastSwimStatReport = unscrambled[statReportIdx - 1];
       sessionJsons.swim.num = sessionJsons.swim.strokes.length;
-      sessionJsons.swim.calories += lastSwimStatReport[5] / 10;
+      sessionJsons.swim.calories += lastSwimStatReport.calories / 10;
       // console.log("last swim stat report: ", lastSwimStatReport);
-      sessionJsons.swim.time += lastSwimStatReport[2] / 600;
+      sessionJsons.swim.time += lastSwimStatReport.ndata / 600;
     } else if (jumpSet.has(cEvent)) {
       while (jumpSet.has(cEvent) && statReportIdx < unscrambled.length) {
-        const heightInInches = calcHeight(statReport[4]);
+        const heightInInches = calcHeight(statReport.lapTime);
         if (heightInInches < 64) {
           sessionJsons.jump.num++;
           sessionJsons.jump.heights.push(heightInInches); // contains hangtime
@@ -234,11 +234,11 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
         // move onto the next stat report record
         statReportIdx += 1;
         statReport = unscrambled[statReportIdx];
-        cEvent = statReport ? statReport[0] : null;
+        cEvent = statReport ? statReport.cEvent : null;
       }
       const lastJumpStatReport = unscrambled[statReportIdx - 1];
-      sessionJsons.jump.shotsMade += cEvent === basketball_mode ? lastJumpStatReport[5] : 0;
-      sessionJsons.jump.time += lastJumpStatReport[2] / 3000;
+      sessionJsons.jump.shotsMade += cEvent === basketball_mode ? lastJumpStatReport.calories : 0;
+      sessionJsons.jump.time += lastJumpStatReport.ndata / 3000;
     } else {
       console.log(`not a valid cEvent in the unscrambled array: ${cEvent}`);
       statReportIdx += 1;

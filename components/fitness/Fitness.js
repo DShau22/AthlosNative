@@ -36,9 +36,9 @@ const Fitness = (props) => {
     setIsLoading(true);
     if (relationshipStatus === PROFILE_CONSTANTS.IS_SELF) {
       try {
-        // console.log("updating local user fitness in FITNESS component");
-        await GlobalBleHandler.uploadToServer();
+        console.log("updating local user fitness in FITNESS component");
         await updateLocalUserFitness();
+        console.log("updated local user fitness!");
       } catch(e) {
         console.log("error getting fitness in fitness component: ", e);
         Alert.alert(
@@ -47,7 +47,7 @@ const Fitness = (props) => {
           [{text: 'Okay'}]
         );
       }
-      setIsLoading(_id.length === 0);
+      setIsLoading(false);
       return;
     }
     console.log('getting fitness with user id: ', _id)

@@ -18,7 +18,7 @@ const {
 
 const RootStack = createStackNavigator();
 
-const RootStackScreen = ({navigation}) => (
+const RootStackScreen = () => (
   <RootStack.Navigator headerMode='none'>
     <RootStack.Screen name={BACKGROUND} component={Background}/>
     <RootStack.Screen name={SIGNIN} component={SignIn}/>

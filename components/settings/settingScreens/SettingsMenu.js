@@ -15,6 +15,7 @@ import { Platform } from 'react-native';
 import { logOut } from '../../utils/storage';
 import GlobalBleHandler from '../../bluetooth/GlobalBleHandler';
 import { showSnackBar } from '../../utils/notifications';
+import { UserActivities } from '../../fitness/data/UserActivities';
 
 const {
   COMMUNITY_SETTINGS,
@@ -113,7 +114,8 @@ const SettingsMenu = (props) => {
                     text: 'Okay',
                     onPress: async () => {
                       try {
-                        await GlobalBleHandler.uploadToServer();
+                        // upload anything to server that's stored
+                        await UserActivities.uploadStoredOldRecords();
                         await logOut();
                         setToken("");
                       } catch(e) {

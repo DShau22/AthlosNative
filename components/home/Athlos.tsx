@@ -196,6 +196,7 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
   });
   // setting up the Athlos app
   React.useEffect(() => {
+    console.log("setting up app")
     const setUpApp = async () => {
       GlobalBleHandler.addSetConnectedFunction(setAthlosConnected);
       await requestLocationServices();
@@ -348,6 +349,11 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
    */
   const updateLocalUserFitness = async () => {
     const userActivityData: UserActivities = await getUserActivityData();
+    // console.log("setting state in update local fitness: ", newState);
+    var userData = await getUserData();
+    if (!userData) {
+      userData = state;
+    }
     const newState = {
       ...userData,
       // NOTE THAT FITNESS ISN'T UPDATED. THIS SHOULD CHANGE
@@ -363,13 +369,8 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
         activityData: Object.values(userActivityData.swims),
         action: FITNESS_CONTANTS.SWIM,
       },
-    }
-    // console.log("setting state in update local fitness: ", newState);
+    };
     setState(newState);
-    var userData = await getUserData();
-    if (!userData) {
-      userData = state;
-    }
     // // console.log("updating local user fitness: ", userData);
     // // console.log("state in local user fitness: ", state);
     // const halfYearAgo = getLastMonday().minus({day: NUM_WEEKS_IN_PAST * 7}).set({

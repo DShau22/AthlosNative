@@ -72,10 +72,12 @@ const DeviceConfig = (props) => {
       const initialConfig = await getSaInitConfig();
       console.log("config got: ", initialConfig);
       firstUpdate.current = false;
-      if (!initialConfig) {
+      if (initialConfig) {
         setDeviceConfig(initialConfig);
       } else {
-        setDeviceConfig(getDefaultConfig());
+        const defaultConfig = getDefaultConfig();
+        setDeviceConfig(defaultConfig);
+        await storeSaInitConfig(defaultConfig);
       }
     } catch(e) {
       console.log(e);
@@ -89,7 +91,7 @@ const DeviceConfig = (props) => {
   // run this on every other render
   const storeConfig = async () => {
     try {
-      await storeSaInitConfig(JSON.stringify(deviceConfig));
+      await storeSaInitConfig(deviceConfig);
       console.log("new config stored: ", deviceConfig);
     } catch(e) {
       console.log(e)

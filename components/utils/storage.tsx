@@ -22,6 +22,9 @@ const logOut = async () => {
     FITNESS_UPDATE_KEY,
     FIRST_TIME_LOGIN_KEY,
     AUTO_SYNC_KEY,
+    CONFIG_KEY,
+    FITNESS_DATA_KEY,
+    OLD_FITNESS_RECORDS_KEY,
   ]);
 }
 
@@ -93,10 +96,9 @@ const storeUserData = async (value) => {
 }
 
 // gets an item that's stored as a string. If it doesn't exist, return empty string
-const getToken = async () => {
+const getToken = async (): Promise<string> => {
   try {
-    const value = await AsyncStorage.getItem(TOKEN_KEY)
-    return value ? value : ''
+    return await AsyncStorage.getItem(TOKEN_KEY);
   } catch(e) {
     // error reading value
     console.log("something went wrong with async getItem")
@@ -214,10 +216,14 @@ const getOldFitnessRecords = async (): Promise<OldRecords> => {
 
 const storeOldFitnessRecords = async (newRecords: OldRecords) => {
   var oldFitnessRecords = await getOldFitnessRecords();
-  oldFitnessRecords.oldRuns.push(...newRecords.oldRuns);
-  oldFitnessRecords.oldSwims.push(...newRecords.oldSwims);
-  oldFitnessRecords.oldJumps.push(...newRecords.oldJumps);
-  await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(oldFitnessRecords));
+  if (oldFitnessRecords) {
+    oldFitnessRecords.oldRuns.push(...newRecords.oldRuns);
+    oldFitnessRecords.oldSwims.push(...newRecords.oldSwims);
+    oldFitnessRecords.oldJumps.push(...newRecords.oldJumps);
+    await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(oldFitnessRecords));
+  } else {
+    await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(newRecords));
+  }
 }
 
 const setOldFitnessRecords = async (newRecords: OldRecords) => {

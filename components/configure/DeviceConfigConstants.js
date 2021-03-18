@@ -1,5 +1,4 @@
 import COLOR_THEMES from '../ColorThemes';
-const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES;
 const DEVICE_CONFIG_CONSTANTS = {
   POOL_LENGTH_CHOICES: {
     NCAA: '25 yd',

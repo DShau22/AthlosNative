@@ -16,6 +16,7 @@ const RX = 'e49a28f2-f69a-11e8-8eb2-f2801f1b9fd1';
 import axios from 'axios';
 import { BleManager } from 'react-native-ble-plx';
 import { updateActivityData } from '../fitness/data/localStorage';
+const { DateTime } = require("luxon");
 
 const calcChecksum = (bytes, start, end) => {
   let res = 0;
@@ -103,7 +104,7 @@ class BLEHandler {
   saDataCompleter: any;
   resCompleter: any;
   currItem: any;
-  isTransmitting: boolean;
+  isSendingData: boolean;
   isConnected: boolean;
   readBuffers: any[];
   totalNumSaDataBytes: number;
@@ -131,7 +132,7 @@ class BLEHandler {
     this.saDataCompleter = null // completer for when device is connected and sadata is read
     this.resCompleter = null; // completer for the next expected response
     this.currItem = null; // current item that we are trying to send
-    this.isTransmitting = false; // flag for if the phone is currently sending sainit
+    this.isSendingData = false; // flag for if the phone is currently sending sainit
     this.isConnected = false; // public exposure to connected that isn't async
 
     this.readBuffers = []; // list of Buffers/byte arrays to be concatenated once all of sadata is received
@@ -179,24 +180,24 @@ class BLEHandler {
     this.resCompleter = null;
     this.registerCompleter = null;
     this.currItem = null;
-    this.isTransmitting = false;
+    this.isSendingData = false;
     this.readBuffers = [];
     this.totalNumSaDataBytes = 0;
     this.numSaDataBytesRead = 0;
     this.isReading = false;
   }
 
-  reinit(deviceID) {
+  reinit(deviceID?: string) {
     this.manager = new BleManager();
     this.userDeviceID = deviceID ? deviceID : '';
   }
 
-  setID(userDeviceID) {
+  setID(userDeviceID: string) {
     console.log("setting new device id to: ", userDeviceID);
     this.userDeviceID = userDeviceID;
   }
 
-  hasID() {
+  hasID(): boolean {
     return this.userDeviceID && this.userDeviceID.length > 0;
   }
 
@@ -567,11 +568,11 @@ class BLEHandler {
         // send package to tell the earbuds to rewrite sadata. Shouldnt need to await
         this.saDataCompleter.complete(this.totalNumSaDataBytes);
         console.log("resetting read state");
-        this._resetReadState();
       } catch(e) {
-        console.log("Error storing fitness bytes! No way to handle this error yet other than not storing anything");
+        console.log("Error storing fitness bytes (updateActivityData)");
         this.saDataCompleter.error(e);
       }
+      this._resetReadState();
     } else {
       await this._sendResponse(readValueInRawBytes);
       return;
@@ -601,42 +602,42 @@ class BLEHandler {
    * queue should only have 1 element (the sadata we just read from the earbuds).
    * CONSIDER TAKING OUT PROMISE.ALL HERE SINCE IT CAN CAUSE MONGO WRITE CONFLICTS
    */
-  async uploadToServer() {
-    const sessionByteList = await getFitnessBytes(); // list of utf8 encoded sadata bytes in async storage
-    if (sessionByteList === null) {
-      console.log("session byte list is null");
-      return;
-    }
-    const userToken = await getToken();
-    const config = {
-      headers: { 'Content-Type': 'application/json' },
-    }
-    // console.log("session byte list: ", sessionByteList, sessionByteList.length);
-    const uploadPromises = [];
-    sessionByteList.forEach(({date, sessionBytes}, _) => {
-      uploadPromises.push(axios.post(ENDPOINTS.upload, {
-        date,
-        sessionBytes,
-        userToken,
-      }, config));
-    });
-    const promiseResults = await Promise.all(uploadPromises);
-    var atLeastOneSuccess = false;
-    const recordIndexesToRemove = [];
-    for (let i = 0; i < promiseResults.length; i++) {
-      const resJson = promiseResults[i].data;
-      console.log(`${i} axios response: ${resJson}`);
-      atLeastOneSuccess = atLeastOneSuccess || resJson.success;
-      if (resJson.success) {
-        recordIndexesToRemove.push(i);
-        // successfully updated this session byte record, so we can remove it now.
-      } else {
-        console.log("failed: ", resJson.message);
-      }
-    }
-    await removeFitnessRecords(recordIndexesToRemove);
-    await setNeedsFitnessUpdate(atLeastOneSuccess && promiseResults.length > 0);
-  }
+  // async uploadToServer() {
+  //   const sessionByteList = await getFitnessBytes(); // list of utf8 encoded sadata bytes in async storage
+  //   if (sessionByteList === null) {
+  //     console.log("session byte list is null");
+  //     return;
+  //   }
+  //   const userToken = await getToken();
+  //   const config = {
+  //     headers: { 'Content-Type': 'application/json' },
+  //   }
+  //   // console.log("session byte list: ", sessionByteList, sessionByteList.length);
+  //   const uploadPromises = [];
+  //   sessionByteList.forEach(({date, sessionBytes}, _) => {
+  //     uploadPromises.push(axios.post(ENDPOINTS.upload, {
+  //       date,
+  //       sessionBytes,
+  //       userToken,
+  //     }, config));
+  //   });
+  //   const promiseResults = await Promise.all(uploadPromises);
+  //   var atLeastOneSuccess = false;
+  //   const recordIndexesToRemove = [];
+  //   for (let i = 0; i < promiseResults.length; i++) {
+  //     const resJson = promiseResults[i].data;
+  //     console.log(`${i} axios response: ${resJson}`);
+  //     atLeastOneSuccess = atLeastOneSuccess || resJson.success;
+  //     if (resJson.success) {
+  //       recordIndexesToRemove.push(i);
+  //       // successfully updated this session byte record, so we can remove it now.
+  //     } else {
+  //       console.log("failed: ", resJson.message);
+  //     }
+  //   }
+  //   await removeFitnessRecords(recordIndexesToRemove);
+  //   await setNeedsFitnessUpdate(atLeastOneSuccess && promiseResults.length > 0);
+  // }
 
   /**
    * Call this when the earbuds are transmitting data to the phone, and we are sending the
@@ -705,7 +706,6 @@ class BLEHandler {
     if (!this.device || !(await this.device.isConnected())) {
       throw new Error("device is not yet connected");
     }
-    this.isTransmitting = true;
     // return a promise that resolves once the monitor receives a response package and validates it
     this.resCompleter = new Completer(); // is there an issue if the old this.resCompleter hasnt resolved yet?
     // set the timeout here after rescompleter is initialized for the closure
@@ -737,10 +737,11 @@ class BLEHandler {
     }
     console.log("****** SENDING BYTE ARRAY ******");
     console.log("byte array: ", bytes, bytes.length);
-    if (this.isTransmitting) {
+    if (this.isSendingData) {
       console.log("Already sending data. Please wait");
       return;
     }
+    this.isSendingData = true;
     let currId = 0;
     const numPackagesNeeded = Math.ceil(bytes.length  / BLEHandler.MAX_PKG_LEN);
     for (let i = 0; i < bytes.length; i+= BLEHandler.MAX_PKG_LEN) {
@@ -773,7 +774,7 @@ class BLEHandler {
    */
   _resetAfterSendBytes() {
     this.athlosResponses = [];
-    this.isTransmitting = false;
+    this.isSendingData = false;
     this.currItem = null;
     this.resCompleter = null;
   }
@@ -786,7 +787,7 @@ class BLEHandler {
     this.totalNumSaDataBytes = 0;
     this.numSaDataBytesRead = 0;
     this.isReading = false;
-    this.isTransmitting = false;
+    this.isSendingData = false;
     this.currItem = null;
   }
 }
