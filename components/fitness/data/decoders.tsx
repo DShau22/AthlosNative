@@ -130,7 +130,7 @@ const unscrambleSessionBytes = (byteArr: Buffer): Array<ReadableSession> => {
   return converted
 }
 
-const calcHeight = (hangtime) => {
+const calcHeight = (hangtime: number) => {
   // to nearest hundreths digit
   const heightInHundreths = hangtime * hangtime * 2;
   const heightInInches = heightInHundreths / 100;

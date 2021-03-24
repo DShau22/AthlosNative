@@ -43,7 +43,7 @@ const Fitness = (props) => {
         console.log("error getting fitness in fitness component: ", e);
         Alert.alert(
           "Oh no :(",
-          "Something went wrong with the request to the server. Please refresh and try again.",
+          "Something went wrong with getting your fitness. Please refresh and try again.",
           [{text: 'Okay'}]
         );
       }

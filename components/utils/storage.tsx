@@ -11,7 +11,7 @@ const CONFIG_KEY = 'Config Key'; // key that stores saInit in human readable jso
 const FITNESS_DATA_KEY = "Fitness data key"; // key that stores the user's fitness data to display
 const OLD_FITNESS_RECORDS_KEY = "Old fitness records key";
 import AsyncStorage from '@react-native-community/async-storage';
-import { OldRecords, SerializedActivities } from '../fitness/data/UserActivities';
+import { OldRecords, RunSchema, SerializedActivities, SwimSchema, JumpSchema } from '../fitness/data/UserActivities';
 
 const logOut = async () => {
   await AsyncStorage.multiRemove([
@@ -215,13 +215,17 @@ const getOldFitnessRecords = async (): Promise<OldRecords> => {
 }
 
 const storeOldFitnessRecords = async (newRecords: OldRecords) => {
+  console.log("storing new records: ", newRecords);
   var oldFitnessRecords = await getOldFitnessRecords();
+  console.log("og old fitness records: ", oldFitnessRecords);
   if (oldFitnessRecords) {
     oldFitnessRecords.oldRuns.push(...newRecords.oldRuns);
     oldFitnessRecords.oldSwims.push(...newRecords.oldSwims);
     oldFitnessRecords.oldJumps.push(...newRecords.oldJumps);
+    console.log("tacked on old fitness records: ", oldFitnessRecords);
     await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(oldFitnessRecords));
   } else {
+    console.log("just storing new records: ", newRecords);
     await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(newRecords));
   }
 }

@@ -349,7 +349,6 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
    */
   const updateLocalUserFitness = async () => {
     const userActivityData: UserActivities = await getUserActivityData();
-    // console.log("setting state in update local fitness: ", newState);
     var userData = await getUserData();
     if (!userData) {
       userData = state;

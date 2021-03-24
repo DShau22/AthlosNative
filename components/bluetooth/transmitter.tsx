@@ -563,13 +563,13 @@ class BLEHandler {
       try {
         if (this.totalNumSaDataBytes > 8) {
           await updateActivityData(DateTime.local(), concatentatedSadata);
-          await this._sendResetSaDataPkg();
+          // await this._sendResetSaDataPkg();
         }
         // send package to tell the earbuds to rewrite sadata. Shouldnt need to await
         this.saDataCompleter.complete(this.totalNumSaDataBytes);
         console.log("resetting read state");
       } catch(e) {
-        console.log("Error storing fitness bytes (updateActivityData)");
+        console.log("Error 102: error storing fitness bytes (updateActivityData)");
         this.saDataCompleter.error(e);
       }
       this._resetReadState();

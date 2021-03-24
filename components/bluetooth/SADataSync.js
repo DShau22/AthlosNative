@@ -24,6 +24,7 @@ import GlobalBleHandler from './GlobalBleHandler';
 import Axios from 'axios';
 import ENDPOINTS from '../endpoints';
 import { Alert } from 'react-native';
+import { UserActivities } from '../fitness/data/UserActivities';
 Icon.loadFont();
 
 const { SYNC_PAGE, SYNC_HELP_PAGE } = BLUETOOTH_CONSTANTS;
@@ -215,9 +216,9 @@ export default function SADataSync(props) {
     console.log("begin syncing....");
     while (tryCount > 0 && !success) {
       try {
-        var numBytesRead = await GlobalBleHandler.readActivityData();
+        var numBytesRead = await GlobalBleHandler.readActivityData(); // should take care of uploading to server in background
         if (numBytesRead <= 8) {
-          showSnackBar("Your activity records are already synced. Uploading any activities that failed previously...");
+          showSnackBar("Your activity records are already synced.");
           // await uploadToServer();
           setTransmitting(false);
           return;
@@ -239,9 +240,8 @@ export default function SADataSync(props) {
       setTransmitting(false);
       return;
     } else {
-      showSnackBar('Successfully synced with your Athlos earbuds. Your activity records are almost ready :]');
+      showSnackBar('Successfully synced with your Athlos earbuds :]');
     }
-    showSnackBar("Updating Sainit with new info...", "long");
     // await uploadToServer();
     await updateLocalUserInfo();
     await updateSaInit();

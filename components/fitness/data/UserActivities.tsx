@@ -2,7 +2,6 @@
  * A class with factory constructors that represent a user's fitness.
  * Can be easily worked with to display different statistics
  */
-import FITNESS_CONSTANTS from '../FitnessConstants';
 import {
   storeOldFitnessRecords,
   getOldFitnessRecords,
@@ -16,11 +15,9 @@ import {
 } from '../../utils/dates';
 import ENDPOINTS from '../../endpoints';
 import Axios from 'axios';
-import { run } from 'jest';
 const { DateTime } = require('luxon');
 
 type ACTIVITY_ENUMS = "run" | "swim" | "jump";
-type DAY_INDICES = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 interface RunSchema {
   _id?: string,
@@ -61,20 +58,10 @@ interface JumpSchema {
   uploadedToServer: boolean,
 }
 
-interface RunActivitiesInterface {
-  [weekMondayDate: string]: Array<RunSchema>;
-};
-interface SwimActivitiesInterface {
-  [weekMondayDate: string]: Array<SwimSchema>;
-};
-interface JumpActivitiesInterface {
-  [weekMondayDate: string]: Array<JumpSchema>;
-};
-
 interface SerializedActivities {
-  run: RunActivitiesInterface,
-  swim: SwimActivitiesInterface,
-  jump: JumpActivitiesInterface
+  run: Array<Array<RunSchema>>,
+  swim: Array<Array<SwimSchema>>,
+  jump: Array<Array<JumpSchema>>
 }
 
 interface OldRecords {
@@ -128,15 +115,15 @@ const blank_jump = (date: typeof DateTime): JumpSchema => (
 )
 
 const blank_week = (activity: ACTIVITY_ENUMS, mondayDate: typeof DateTime) => {
-  if (mondayDate.day !== 1) {
-    throw Error(`Expected a monday but got: ${mondayDate.day}`);
+  if (mondayDate.weekday !== 1) {
+    throw Error(`Expected a monday but got: ${mondayDate.weekday}`);
   }
   var result = Array(7);
   for (let day = 0; day < 7; day ++) {
     result[day] =
-      activity === "run" ? blank_run(mondayDate.plus(day)) :
-      activity === "swim" ? blank_swim(mondayDate.plus(day)) :
-      activity === "jump" ? blank_jump(mondayDate.plus(day)) : null;
+      activity === "run" ? blank_run(mondayDate.plus({days: day})) :
+      activity === "swim" ? blank_swim(mondayDate.plus({days: day})) :
+      activity === "jump" ? blank_jump(mondayDate.plus({days: day})) : null;
   }
   return result;
 } 
@@ -144,9 +131,9 @@ const blank_week = (activity: ACTIVITY_ENUMS, mondayDate: typeof DateTime) => {
 // Object remplate for storing to async storage
 
 class UserActivities {
-  public runs: RunActivitiesInterface;
-  public swims: SwimActivitiesInterface;
-  public jumps: JumpActivitiesInterface;
+  public runs: Array<Array<RunSchema>>;
+  public swims: Array<Array<SwimSchema>>;
+  public jumps: Array<Array<JumpSchema>>;
   public static WEEKS_BACK = 26;
 
   static async createFromStorage(): Promise<UserActivities> {
@@ -158,15 +145,15 @@ class UserActivities {
     }
   }
 
-  static createBlankActivities(): UserActivities {
-    return new this();
-  }
+  // static createBlankActivities(): UserActivities {
+  //   return new this();
+  // }
 
   static async createFromServer(): Promise<UserActivities> {
     const newActivities: SerializedActivities = {
-      run: {},
-      swim: {},
-      jump: {},
+      run: [],
+      swim: [],
+      jump: [],
     };
     // grab fitness from server and store it
     var lastUpdated = getLastMonday();
@@ -174,7 +161,7 @@ class UserActivities {
     console.log("last updated create from server: ", lastUpdated);
     const userToken: string = await getToken();
     const activities: Array<ACTIVITY_ENUMS> = ["run", "swim", "jump"];
-    const activityData = {};
+    const activityData = {run: [], swim: [], jump: []};
     for (let i = 0; i < activities.length; i++) {
       const res = await Axios.post(ENDPOINTS.getUserFitness, {
         userToken,
@@ -188,47 +175,25 @@ class UserActivities {
       }
       activityData[activities[i]] = res.data.activityData;
     }
-    for (let i = 0; i < activities.length; i++) {
-      let activity = activities[i];
-      for (let j = 0; j < activityData[activity].length; j++) {
-        let week = activityData[activity][j];
-        let weekMondayDate = DateTime.fromISO(week[0].uploadDate);
-        newActivities[activity][weekMondayDate.toISODate()] = week;
-      }
-    }
+    newActivities.run = activityData.run;
+    newActivities.swim = activityData.swim;
+    newActivities.jump = activityData.jump;
     return new this(newActivities);
   }
 
-  constructor(activitiesObj?: SerializedActivities) {
-    if (activitiesObj) {
-      this.runs = activitiesObj.run;
-      this.swims = activitiesObj.swim;
-      this.jumps = activitiesObj.jump;
-    } else {
-      const blankActivities: SerializedActivities = {
-        run: {},
-        swim: {},
-        jump: {},
-      };
-      const today = DateTime.local();
-      var startMondayDate : typeof DateTime = getLastMonday(today.minus({days: UserActivities.WEEKS_BACK * 7}));
-      var startMondayString = startMondayDate.toISODate();
-      for (let j = 0; j <= UserActivities.WEEKS_BACK; j++) {
-        blankActivities.run[startMondayString] = blank_week("run", startMondayDate);
-        blankActivities.swim[startMondayString] = blank_week("swim", startMondayDate);
-        blankActivities.jump[startMondayString] = blank_week("jump", startMondayDate);
-        startMondayDate = startMondayDate.plus({days: 7});
-      }
-      this.runs = blankActivities.run;
-      this.swims = blankActivities.swim;
-      this.jumps = blankActivities.jump;
-    }
+  constructor(activitiesObj: SerializedActivities) {
+    this.runs = activitiesObj.run;
+    this.swims = activitiesObj.swim;
+    this.jumps = activitiesObj.jump;
   }
 
   static async uploadStoredOldRecords() {
     const oldFitnessRecords: OldRecords = await getOldFitnessRecords();
-    console.log("old records: ", oldFitnessRecords);
-    if (!oldFitnessRecords) { return; }
+    console.log("old records in upload stored old records: ", oldFitnessRecords);
+    const allEmpty = oldFitnessRecords && oldFitnessRecords.oldJumps.length === 0 &&
+                     oldFitnessRecords.oldRuns.length === 0 &&
+                     oldFitnessRecords.oldSwims.length === 0;
+    if (!oldFitnessRecords || allEmpty) { return; }
     const token = await getToken();
     const res = await Axios.post(ENDPOINTS.uploadFitnessRecords, {
       token,
@@ -256,14 +221,14 @@ class UserActivities {
     // fill in empty fitness records if needed
     userLastUpdated = userLastUpdated.plus({days: 7});
     while (userLastUpdated.startOf("day") <= today.startOf("day")) {
-      this.runs[userLastUpdated.toISODate()] = blank_week("run", userLastUpdated);
-      this.swims[userLastUpdated.toISODate()] = blank_week("swim", userLastUpdated);
-      this.jumps[userLastUpdated.toISODate()] = blank_week("jump", userLastUpdated);
+      this.runs.push(blank_week("run", userLastUpdated));
+      this.swims.push(blank_week("swim", userLastUpdated));
+      this.jumps.push(blank_week("jump", userLastUpdated));
       userLastUpdated = userLastUpdated.plus({days: 7});
     }
     // remove old records and store to async storage
     var oldestDate = this.getOldestDate();
-    var numToRemove = Object.keys(this.runs).length - UserActivities.WEEKS_BACK;
+    var numToRemove = this.runs.length - UserActivities.WEEKS_BACK;
     const oldRecords: OldRecords = {
       oldRuns: [],
       oldSwims: [],
@@ -272,48 +237,15 @@ class UserActivities {
     // INEFFICIENT. CONSIDER SORTING AND REMOVING OLDEST ___ DATES 
     console.log("num to remove: ", numToRemove);
     console.log("runs dates: ", Object.keys(this.runs));
-    while (numToRemove > 0) {
-      const oldestDateString = oldestDate.toISODate();
-      console.log("oldest date: ", oldestDateString);
-      console.log(this.runs[oldestDateString]);
-      for (let i = 0; i < this.runs[oldestDateString].length; i++) {
-        let runRecord: RunSchema = this.runs[oldestDateString][i];
-        let swimRecord: SwimSchema = this.swims[oldestDateString][i];
-        let jumpRecord: JumpSchema = this.jumps[oldestDateString][i];
-        if (runRecord.cadences.length > 0 && !runRecord.uploadedToServer) {
-          oldRecords.oldRuns.push(runRecord);
-        }
-        if (swimRecord.lapTimes.length > 0 && !swimRecord.uploadedToServer) {
-          oldRecords.oldSwims.push(swimRecord);
-        }
-        if (jumpRecord.heights.length > 0 && !jumpRecord.uploadedToServer) {
-          oldRecords.oldJumps.push(jumpRecord);
-        }
-      }
-      delete this.runs[oldestDateString];
-      delete this.swims[oldestDateString];
-      delete this.jumps[oldestDateString];
-      numToRemove -= 1;
-      oldestDate = this.getOldestDate();
+    for (let i = 0; i < numToRemove; i++) {
+      oldRecords.oldRuns.push(...this.runs[this.runs.length - 1 - i]);
+      oldRecords.oldSwims.push(...this.swims[this.swims.length - 1 - i]);
+      oldRecords.oldJumps.push(...this.jumps[this.jumps.length - 1 - i]);
     }
+    this.runs = this.runs.slice(numToRemove);
+    this.swims = this.swims.slice(numToRemove);
+    this.jumps = this.jumps.slice(numToRemove);
     await storeOldFitnessRecords(oldRecords);
-  }
-
-  async uploadDayRecord(activity: ACTIVITY_ENUMS, week: string | typeof DateTime, day: DAY_INDICES) {
-    const weekKey = typeof week === "string" ? week : week.toISODate(); 
-    const token = await getToken();
-    const res = await Axios.post(ENDPOINTS.uploadFitnessRecords, {
-      token,
-      runs: activity === "run" ? [this.runs[weekKey][day]] : [],
-      swims: activity === "swim" ? [this.swims[weekKey][day]] : [],
-      jumps: activity === "jump" ? [this.jumps[weekKey][day]] : []
-    });
-    if (!res.data.success) {
-      throw new Error(res.data.message);
-    }
-    this.runs[weekKey][day].uploadedToServer = true;
-    this.swims[weekKey][day].uploadedToServer = true;
-    this.jumps[weekKey][day].uploadedToServer = true;
   }
 
   async storeToAsyncStorage() {
@@ -325,79 +257,99 @@ class UserActivities {
     await setUserFitnessData(serialized);
   }
 
-  getWeekData(activity: ACTIVITY_ENUMS, week: string | typeof DateTime): Array<RunSchema | SwimSchema | JumpSchema> {
-    const weekKey = typeof week === "string" ? week : week.toISODate();
-    if (activity === "run") {
-      return this.runs[weekKey];
-    } else if (activity === "swim") {
-      return this.swims[weekKey];
-    } else {
-      return this.jumps[weekKey];
-    }
-  }
+  // getWeekData(activity: ACTIVITY_ENUMS, week: string | typeof DateTime): Array<RunSchema | SwimSchema | JumpSchema> {
+  //   const weekKey = typeof week === "string" ? week : week.toISODate();
+  //   if (activity === "run") {
+  //     return this.runs[weekKey];
+  //   } else if (activity === "swim") {
+  //     return this.swims[weekKey];
+  //   } else {
+  //     return this.jumps[weekKey];
+  //   }
+  // }
 
-  getDayData(activity: ACTIVITY_ENUMS, week: string | typeof DateTime, day: DAY_INDICES): RunSchema | SwimSchema | JumpSchema {
-    const weekKey = typeof week === "string" ? week : week.toISODate();
-    if (activity === "run") {
-      return this.runs[weekKey][day];
-    } else if (activity === "swim") {
-      return this.swims[weekKey][day];
-    } else {
-      return this.jumps[weekKey][day];
-    }
-  }
+  // getDayData(activity: ACTIVITY_ENUMS, week: string | typeof DateTime, day: DAY_INDICES): RunSchema | SwimSchema | JumpSchema {
+  //   const weekKey = typeof week === "string" ? week : week.toISODate();
+  //   if (activity === "run") {
+  //     return this.runs[weekKey][day];
+  //   } else if (activity === "swim") {
+  //     return this.swims[weekKey][day];
+  //   } else {
+  //     return this.jumps[weekKey][day];
+  //   }
+  // }
 
   getLastUpdated(): typeof DateTime {
-    var userLastUpdated : typeof DateTime = null; // should end up being monday of last updated week
-    Object.keys(this.runs).forEach((dateString: string, _) => {
-      var date = DateTime.fromISO(dateString);
-      if (!userLastUpdated) {
-        userLastUpdated = date;
-      } else {
-        userLastUpdated = DateTime.max(userLastUpdated, date);
-      }
-    });
-    return userLastUpdated;
+    const latestWeek = this.runs[0];
+    const lastUpdatedMonday = latestWeek[0].uploadDate;
+    return lastUpdatedMonday;
   }
 
   getOldestDate(): typeof DateTime {
-    var oldestUpdated : typeof DateTime = null; // should end up being monday of oldest week
-    Object.keys(this.runs).forEach((dateString: string, _) => {
-      var keyDate = DateTime.fromISO(dateString, {zone: 'utc'});
-      if (!oldestUpdated) {
-        oldestUpdated = keyDate;
-      } else {
-        oldestUpdated = DateTime.min(oldestUpdated, keyDate);
-      }
-    });
-    return oldestUpdated;
+    const oldestWeek = this.runs[this.runs.length - 1];
+    const oldestMonday = oldestWeek[0].uploadDate;
+    return oldestMonday;
   }
 
+  // it is assumed that fillAndRemoveOldRecords has been called by now cuz this is an instance method
   async addSession(activity: ACTIVITY_ENUMS, date: typeof DateTime, session: RunSchema | SwimSchema | JumpSchema) {
+    // check if upload date already exists
+    console.log("adding session: ", session, date);
     const dayIndex = date.weekday - 1;
     const weekMonday = getLastMonday(date);
     const dateISOString = weekMonday.toISODate();
-    var activities: RunActivitiesInterface | SwimActivitiesInterface | JumpActivitiesInterface;
     if (activity === "run") {
-      activities = this.runs;
+      let latestWeek = this.runs[0];
+      for (let day = 0; day < 7; day++) {
+        let sessionDate = DateTime.fromISO(latestWeek[day].uploadDate);
+        if (date === sessionDate) {
+          let runDaySession = latestWeek[day];
+          runDaySession.cadences.push(session.cadences);
+          runDaySession.num += session.num;
+          runDaySession.calories += session.calories;
+          runDaySession.time += session.time;
+        }
+      }
     } else if (activity === "swim") {
-      activities = this.swims;
+      let latestWeek = this.swims[0];
+      for (let day = 0; day < 7; day++) {
+        let sessionDate = DateTime.fromISO(latestWeek[day].uploadDate);
+        if (date === sessionDate) {
+          let swimDaySession = latestWeek[day];
+          swimDaySession.lapTimes.push(session.lapTimes);
+          swimDaySession.num += session.num;
+          swimDaySession.calories += session.calories;
+          swimDaySession.time += session.time;
+        }
+      }
     } else {
-      activities = this.jumps;
+      let latestWeek = this.jumps[0];
+      for (let day = 0; day < 7; day++) {
+        let sessionDate = DateTime.fromISO(latestWeek[day].uploadDate);
+        if (date === sessionDate) {
+          let jumpDaySession = latestWeek[day];
+          jumpDaySession.heights.push(session.heights);
+          jumpDaySession.num += session.num;
+          jumpDaySession.time += session.time;
+        }
+      }
     }
-    if (!activities[dateISOString]) {
-      activities[dateISOString] = blank_week(activity, date);
-    }
-    activities[dateISOString][dayIndex] = session;
-    await this.storeToAsyncStorage();
+    // store this single session in old records
+    const oldRecords: OldRecords = {
+      oldRuns: activity === "run" ? [session as RunSchema] : [],
+      oldSwims: activity === "swim" ? [session as SwimSchema] : [],
+      oldJumps: activity === "jump" ? [session as JumpSchema] : [],
+    };
+    console.log("old records in add session: ", oldRecords);
+    await Promise.all([
+      this.storeToAsyncStorage(),
+      storeOldFitnessRecords(oldRecords),
+    ]);
   }
 }
 
 export {
   OldRecords,
-  RunActivitiesInterface,
-  SwimActivitiesInterface,
-  JumpActivitiesInterface,
   SerializedActivities,
   UserActivities,
   RunSchema,

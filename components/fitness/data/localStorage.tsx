@@ -173,13 +173,48 @@ const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) =
 
   // add to user activity data
   delete run["walkCadences"];
+  // CANT PROMISE ALL THESE CUZ OF HOW STORE OLD RECORDS WORKS
+  await userActivities.addSession("run", run.uploadDate, run);
+  await userActivities.addSession("swim", swim.uploadDate, swim);
+  await userActivities.addSession("jump", jump.uploadDate, jump);
+  await storeUserData(userData);
+  // upload user and activity data that's stored to database
+  UserActivities.uploadStoredOldRecords().then(() => {
+    console.log("uploaded old records!");
+  }).catch((e) => console.log("Error 103: ", e));
+  // upload user bests, runefforts, swimefforts, walkefforts.
+  // updateFitnessRelatedUserFields(userData);
+}
+
+// RUN THIS EVERY DATA UPLOAD, AND EVERY TIME ATHLOS LOADS TOO
+const updateFitnessRelatedUserFields = async (userData) => {
   await Promise.all([
-    userActivities.addSession("run", run.uploadDate, run),
-    userActivities.addSession("swim", swim.uploadDate, swim),
-    userActivities.addSession("jump", jump.uploadDate, jump),
-    storeUserData(userData),
+    uploadUserBests(userData),
+    uploadUserRunEfforts(userData),
+    uploadUserSwimEfforts(userData),
+    uploadUserWalkEfforts(userData),
   ]);
 }
+
+/**
+ * 
+ */
+const uploadUserBests = async (userData) => {
+  const token = await getToken();
+}
+
+const uploadUserRunEfforts = async (userData) => {
+  const token = await getToken();
+}
+
+const uploadUserSwimEfforts = async (userData) => {
+  const token = await getToken();
+}
+
+const uploadUserWalkEfforts = async (userData) => {
+  const token = await getToken();
+}
+
 
 export {
   getUserActivityData,
