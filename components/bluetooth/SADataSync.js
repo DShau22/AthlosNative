@@ -89,7 +89,7 @@ export default function SADataSync(props) {
       transferTimerRef.current = setTimeout(() => {
         GlobalBleHandler.stopTransmit();
         GlobalBleHandler.stopScan();
-        showSnackBar(`Having trouble ${isLinked ? 'syncing with' : 'linking'} your Athlos earbuds. Please try again.`);
+        showSnackBar(`Error 105: Having trouble ${isLinked ? 'syncing with' : 'linking'} your Athlos earbuds. Please try again.`);
         setTransmitting(false);
       }, 30000);
       arrowOpacity.stopAnimation();
@@ -192,7 +192,7 @@ export default function SADataSync(props) {
       GlobalBleHandler.setID("");
       await GlobalBleHandler.disconnect();
       GlobalBleHandler.stopScan();
-      showSnackBar(`Something went wrong with the linking process. Please try again later. ${e.toString()}`);
+      showSnackBar(`Error 106: Something went wrong with the linking process. Please try again later. ${e.toString()}`);
     }
     setTransmitting(false);
   }
@@ -207,7 +207,7 @@ export default function SADataSync(props) {
       return;
     }
     if (!GlobalBleHandler.isConnected) {
-      showSnackBar("Your device is not connected. Please make sure your earbuds are within range and are in Bluetooth mode");
+      showSnackBar("Error 107: Your device is not connected. Please make sure your earbuds are within range and are in Bluetooth mode");
       return;
     }
     setTransmitting(true);
@@ -231,19 +231,19 @@ export default function SADataSync(props) {
           setTransmitting(false);
           return;
         }
-        showSnackBar(`${e}. Trying again...`);
+        showSnackBar(`Error 108: ${e}. Trying again...`);
         tryCount -= 1;
       }
     }
     if (!success) {
-      showSnackBar(`Something went wrong with syncing. Please try again.`);
+      showSnackBar(`Error 109: Something went wrong with syncing. Please try again.`);
       setTransmitting(false);
       return;
     }
     // this could be an issue if updateSaInit fails FIX LATER
     await updateSaInit();
     await updateLocalUserInfo();
-    showSnackBar('Successfully synced with your Athlos earbuds :]');
+    showSnackBar('Error 110: Successfully synced with your Athlos earbuds :]');
     setTransmitting(false);
   }
 

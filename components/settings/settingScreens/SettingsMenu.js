@@ -120,7 +120,7 @@ const SettingsMenu = (props) => {
                         setToken("");
                       } catch(e) {
                         console.log(e);
-                        showSnackBar(`Something went wrong with the sign out process. Please try again later and make sure your interent connection is strong ${e}`);
+                        showSnackBar(`Error 111: Something went wrong with the sign out process. Please try again later and make sure your interent connection is strong ${e}`);
                       }
                     }
                   }
