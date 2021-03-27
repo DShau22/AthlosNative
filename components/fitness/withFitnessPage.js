@@ -2,7 +2,6 @@ import React from 'react'
 import { Divider, Button } from 'react-native-elements'
 import { View, StyleSheet, ScrollView } from 'react-native'
 const { DateTime } = require('luxon');
-import { parseDate } from "../utils/dates"
 import Carousel from './carousel/Carousel'
 import Calories from './Calories'
 import Duration from './Duration'
@@ -73,9 +72,9 @@ export default function withFitnessPage( WrappedComponent ) {
       var indexOf = 0;
       for (let i = 0; i < activityJson.activityData.length - 1; i++) {
         const week = activityJson.activityData[i];
-        const monday = parseDate(week[0].uploadDate);
-        const sunday = parseDate(week[week.length - 1].uploadDate);
-        const dayMonth = `${monday[1]} ${monday[2]} - ${sunday[1]} ${sunday[2]}, ${sunday[3]}`
+        const monday = DateTime.fromISO(week[0].uploadDate);
+        const sunday = DateTime.fromISO(week[week.length - 1].uploadDate);
+        const dayMonth = `${monday.monthShort} ${monday.day} - ${sunday.monthShort} ${sunday.day}, ${sunday.year}`
         if (newWeekText === dayMonth) {
           break;
         } else {

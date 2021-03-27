@@ -11,8 +11,7 @@ CustomIcons.loadFont();
 
 import FITNESS_CONSTANTS from '../../fitness/FitnessConstants';
 import ThemeText from '../../generic/ThemeText';
-import { parseDate } from "../../utils/dates";
-
+const { DateTime } = require('luxon');
 
 const { RUN_THEME, SWIM_THEME, JUMP_THEME } = COLOR_THEMES;
 const ImageSlide = (props) => {
@@ -57,8 +56,8 @@ const ImageSlide = (props) => {
   }
 
   const renderDate = () => {
-    const parsed = parseDate(uploadDate);
-    const dateDisplay = `${parsed[0]}, ${parsed[1]} ${parsed[2]}`;
+    const parsed = DateTime.fromISO(uploadDate);
+    const dateDisplay = `${parsed.weekdayShort}, ${parsed.month}/${parsed.day}`;
     return (
       <ThemeText style={{
         position: 'absolute',

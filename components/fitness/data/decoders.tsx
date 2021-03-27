@@ -137,6 +137,10 @@ const calcHeight = (hangtime: number) => {
   return heightInInches;
 }
 
+const isAnomaly = (statReport: ReadableSession): boolean => {
+  return statReport.calories > 50000;
+}
+
 /**
  * 
  * @param {Array[Array]} unscrambled: unscrambled list of lists. Output of unscrambleSessionBytes function
@@ -181,7 +185,7 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
   while (statReportIdx < unscrambled.length) {
     statReport = unscrambled[statReportIdx];
     cEvent = statReport.cEvent;
-    if (stepSet.has(cEvent)) {
+    if (stepSet.has(cEvent) && !isAnomaly(statReport)) {
       var prevNumSteps = 0;
       var numSteps = 0;
       var time = 0;

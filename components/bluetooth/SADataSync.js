@@ -14,7 +14,7 @@ import {
 } from '../utils/permissions';
 import SAinit from '../bluetooth/SAinitManager';
 import {
-  needsFitnessUpdate,
+  getUserData,
   setDeviceId,
   getSaInitConfig,
 } from '../utils/storage';
@@ -239,27 +239,23 @@ export default function SADataSync(props) {
       showSnackBar(`Something went wrong with syncing. Please try again.`);
       setTransmitting(false);
       return;
-    } else {
-      showSnackBar('Successfully synced with your Athlos earbuds :]');
     }
-    // await uploadToServer();
-    await updateLocalUserInfo();
+    // this could be an issue if updateSaInit fails FIX LATER
     await updateSaInit();
+    await updateLocalUserInfo();
+    showSnackBar('Successfully synced with your Athlos earbuds :]');
     setTransmitting(false);
-    showSnackBar("Successfully updated your activities!", "long");
   }
 
   const updateSaInit = async () => {
     // store the device config in local storage first
     const saInitConfig = await getSaInitConfig();
-    console.log("sainit is: ", saInitConfig);
     if (!saInitConfig) {
-      console.log("no sa init stored yet");
+      console.log("no sainit stored yet");
       return;
     }
-    console.log("before run efforts: ", userDataContext.runEfforts);
-    const { settings, cadenceThresholds, referenceTimes, runEfforts, swimEfforts, bests } = userDataContext;
-    console.log("after run efforts: ", runEfforts);
+    const userData = await getUserData(); // CANT USE CONTEXT CUZ SETSTATE IS ASYNC
+    const { settings, cadenceThresholds, referenceTimes, runEfforts, swimEfforts, bests } = userData;
     const sainitManager = new SAinit(
       saInitConfig,
       settings,
@@ -272,32 +268,6 @@ export default function SADataSync(props) {
     const saInitBytes = sainitManager.createSaInit(); // should return byte array
     await GlobalBleHandler.sendByteArray(saInitBytes);
   }
-
-  // const uploadToServer = async () => {
-  //   let uploadCount = 3;
-  //   let uploadSuccess = false;
-  //   while (uploadCount > 0 && !uploadSuccess) {
-  //     uploadCount -= 1;
-  //     try {
-  //       await GlobalBleHandler.uploadToServer();
-  //       uploadSuccess = true;
-  //     } catch(e) {
-  //       console.log("upload with sync failed. Trying again");
-  //     }
-  //   }
-  //   if (!uploadSuccess) {
-  //     showSnackBar('Your activity records could not be updated. Try syncing again and make sure your internet connection is strong');
-  //   } else {
-  //     try {
-  //       await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
-  //       await updateLocalUserInfo(); // no promise.all to avoid race conditions with updating the state
-  //       showSnackBar('Your activity records have been updated!');
-  //     } catch(e) {
-  //       console.log("update local user fitness or local info failed: ", e);
-  //       showSnackBar('Your activity records have been updated! Please refresh to view updates.');
-  //     }
-  //   }
-  // }
 
   const Stack = createStackNavigator();
   return (

@@ -11,7 +11,8 @@ import {
   setUserFitnessData,
 } from '../../utils/storage';
 import {
-  getLastMonday
+  getLastMonday,
+  sameDate
 } from '../../utils/dates';
 import ENDPOINTS from '../../endpoints';
 import Axios from 'axios';
@@ -189,7 +190,7 @@ class UserActivities {
 
   static async uploadStoredOldRecords() {
     const oldFitnessRecords: OldRecords = await getOldFitnessRecords();
-    console.log("old records in upload stored old records: ", oldFitnessRecords);
+    // console.log("old records in upload stored old records: ", oldFitnessRecords);
     const allEmpty = oldFitnessRecords && oldFitnessRecords.oldJumps.length === 0 &&
                      oldFitnessRecords.oldRuns.length === 0 &&
                      oldFitnessRecords.oldSwims.length === 0;
@@ -217,34 +218,35 @@ class UserActivities {
 
   async fillAndRemoveOldRecords() {
     const today = DateTime.local();
-    var userLastUpdated: typeof DateTime = this.getLastUpdated();
+    const lastMonday = getLastMonday(today);
+    var userLastUpdatedMonday: typeof DateTime = this.getLastUpdated();
     // fill in empty fitness records if needed
-    userLastUpdated = userLastUpdated.plus({days: 7});
-    while (userLastUpdated.startOf("day") <= today.startOf("day")) {
-      this.runs.push(blank_week("run", userLastUpdated));
-      this.swims.push(blank_week("swim", userLastUpdated));
-      this.jumps.push(blank_week("jump", userLastUpdated));
-      userLastUpdated = userLastUpdated.plus({days: 7});
+    userLastUpdatedMonday = userLastUpdatedMonday.plus({days: 7});
+    while (userLastUpdatedMonday.startOf("day") <= lastMonday.startOf("day")) {
+      console.log("pushing blank week for monday of: ", userLastUpdatedMonday);
+      this.runs.unshift(blank_week("run", userLastUpdatedMonday));
+      this.swims.unshift(blank_week("swim", userLastUpdatedMonday));
+      this.jumps.unshift(blank_week("jump", userLastUpdatedMonday));
+      userLastUpdatedMonday = userLastUpdatedMonday.plus({days: 7});
     }
     // remove old records and store to async storage
-    var oldestDate = this.getOldestDate();
     var numToRemove = this.runs.length - UserActivities.WEEKS_BACK;
     const oldRecords: OldRecords = {
       oldRuns: [],
       oldSwims: [],
       oldJumps: [],
     };
-    // INEFFICIENT. CONSIDER SORTING AND REMOVING OLDEST ___ DATES 
+    console.log(this.runs.length);
     console.log("num to remove: ", numToRemove);
-    console.log("runs dates: ", Object.keys(this.runs));
     for (let i = 0; i < numToRemove; i++) {
       oldRecords.oldRuns.push(...this.runs[this.runs.length - 1 - i]);
       oldRecords.oldSwims.push(...this.swims[this.swims.length - 1 - i]);
       oldRecords.oldJumps.push(...this.jumps[this.jumps.length - 1 - i]);
     }
-    this.runs = this.runs.slice(numToRemove);
-    this.swims = this.swims.slice(numToRemove);
-    this.jumps = this.jumps.slice(numToRemove);
+    this.runs = this.runs.slice(0, this.runs.length - numToRemove);
+    this.swims = this.swims.slice(0, this.swims.length - numToRemove);
+    this.jumps = this.jumps.slice(0, this.jumps.length - numToRemove);
+    console.log(this.runs.length);
     await storeOldFitnessRecords(oldRecords);
   }
 
@@ -257,32 +259,10 @@ class UserActivities {
     await setUserFitnessData(serialized);
   }
 
-  // getWeekData(activity: ACTIVITY_ENUMS, week: string | typeof DateTime): Array<RunSchema | SwimSchema | JumpSchema> {
-  //   const weekKey = typeof week === "string" ? week : week.toISODate();
-  //   if (activity === "run") {
-  //     return this.runs[weekKey];
-  //   } else if (activity === "swim") {
-  //     return this.swims[weekKey];
-  //   } else {
-  //     return this.jumps[weekKey];
-  //   }
-  // }
-
-  // getDayData(activity: ACTIVITY_ENUMS, week: string | typeof DateTime, day: DAY_INDICES): RunSchema | SwimSchema | JumpSchema {
-  //   const weekKey = typeof week === "string" ? week : week.toISODate();
-  //   if (activity === "run") {
-  //     return this.runs[weekKey][day];
-  //   } else if (activity === "swim") {
-  //     return this.swims[weekKey][day];
-  //   } else {
-  //     return this.jumps[weekKey][day];
-  //   }
-  // }
-
   getLastUpdated(): typeof DateTime {
     const latestWeek = this.runs[0];
     const lastUpdatedMonday = latestWeek[0].uploadDate;
-    return lastUpdatedMonday;
+    return DateTime.fromISO(lastUpdatedMonday);
   }
 
   getOldestDate(): typeof DateTime {
@@ -295,16 +275,13 @@ class UserActivities {
   async addSession(activity: ACTIVITY_ENUMS, date: typeof DateTime, session: RunSchema | SwimSchema | JumpSchema) {
     // check if upload date already exists
     console.log("adding session: ", session, date);
-    const dayIndex = date.weekday - 1;
-    const weekMonday = getLastMonday(date);
-    const dateISOString = weekMonday.toISODate();
     if (activity === "run") {
       let latestWeek = this.runs[0];
       for (let day = 0; day < 7; day++) {
         let sessionDate = DateTime.fromISO(latestWeek[day].uploadDate);
-        if (date === sessionDate) {
+        if (sameDate(date,sessionDate)) {
           let runDaySession = latestWeek[day];
-          runDaySession.cadences.push(session.cadences);
+          runDaySession.cadences.push(...session.cadences);
           runDaySession.num += session.num;
           runDaySession.calories += session.calories;
           runDaySession.time += session.time;
@@ -316,7 +293,7 @@ class UserActivities {
         let sessionDate = DateTime.fromISO(latestWeek[day].uploadDate);
         if (date === sessionDate) {
           let swimDaySession = latestWeek[day];
-          swimDaySession.lapTimes.push(session.lapTimes);
+          swimDaySession.lapTimes.push(...session.lapTimes);
           swimDaySession.num += session.num;
           swimDaySession.calories += session.calories;
           swimDaySession.time += session.time;
@@ -328,7 +305,7 @@ class UserActivities {
         let sessionDate = DateTime.fromISO(latestWeek[day].uploadDate);
         if (date === sessionDate) {
           let jumpDaySession = latestWeek[day];
-          jumpDaySession.heights.push(session.heights);
+          jumpDaySession.heights.push(...session.heights);
           jumpDaySession.num += session.num;
           jumpDaySession.time += session.time;
         }
@@ -340,7 +317,6 @@ class UserActivities {
       oldSwims: activity === "swim" ? [session as SwimSchema] : [],
       oldJumps: activity === "jump" ? [session as JumpSchema] : [],
     };
-    console.log("old records in add session: ", oldRecords);
     await Promise.all([
       this.storeToAsyncStorage(),
       storeOldFitnessRecords(oldRecords),

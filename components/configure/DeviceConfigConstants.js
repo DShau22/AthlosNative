@@ -261,7 +261,7 @@ const getDefaultModeObject = (mode) => {
   }
 };
 
-module.exports = {
+export {
   DEVICE_CONFIG_CONSTANTS,
   MUSCLE_GROUP_LIST,
   getDefaultConfig,

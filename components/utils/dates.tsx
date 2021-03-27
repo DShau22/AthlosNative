@@ -1,14 +1,5 @@
 const { DateTime } = require('luxon');
 
-function parseDate(uploadDate): Array<string> {
-  // parses the UTC date object
-  var timestampToDate = new Date(uploadDate)
-  var dateString = timestampToDate.toString()
-  // [Day, Month, month date, year, time, Standard, Standard (written out)]
-  var parsed = dateString.split(" ")
-  return parsed
-}
-
 /**
  * returns a date object representing last Monday from the day that is passed in
  * @param {DateTime} day 
@@ -61,7 +52,6 @@ function sameDate(date1: typeof DateTime , date2: typeof DateTime): typeof DateT
 }
 
 export {
-  parseDate,
   getLastMonday,
   getNextSunday,
   sameDate

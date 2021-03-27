@@ -11,6 +11,7 @@ const CONFIG_KEY = 'Config Key'; // key that stores saInit in human readable jso
 const FITNESS_DATA_KEY = "Fitness data key"; // key that stores the user's fitness data to display
 const OLD_FITNESS_RECORDS_KEY = "Old fitness records key";
 import AsyncStorage from '@react-native-community/async-storage';
+import { getDefaultConfig } from '../configure/DeviceConfigConstants';
 import { OldRecords, RunSchema, SerializedActivities, SwimSchema, JumpSchema } from '../fitness/data/UserActivities';
 
 const logOut = async () => {
@@ -96,13 +97,8 @@ const storeUserData = async (value) => {
 }
 
 // gets an item that's stored as a string. If it doesn't exist, return empty string
-const getToken = async (): Promise<string> => {
-  try {
-    return await AsyncStorage.getItem(TOKEN_KEY);
-  } catch(e) {
-    // error reading value
-    console.log("something went wrong with async getItem")
-  }
+const getToken = async (): Promise<string | null> => {
+  return await AsyncStorage.getItem(TOKEN_KEY);
 }
 
 const getUserData = async () => {
@@ -199,11 +195,18 @@ const storeSaInitConfig = async (deviceConfig) => {
 }
 
 const getSaInitConfig = async () => {
-  return JSON.parse(await AsyncStorage.getItem(CONFIG_KEY));
+  const config = await AsyncStorage.getItem(CONFIG_KEY);
+  if (!config) {
+    // return the default sainit config
+    return getDefaultConfig();
+  } else {
+    return JSON.parse(config);
+  }
 }
 
 const getUserFitnessData = async (): Promise<SerializedActivities> => {
-  return JSON.parse(await AsyncStorage.getItem(FITNESS_DATA_KEY));
+  const data = await AsyncStorage.getItem(FITNESS_DATA_KEY);
+  return data === null ? data : JSON.parse(data);
 }
 
 const setUserFitnessData = async (newData: SerializedActivities) => {
@@ -211,21 +214,18 @@ const setUserFitnessData = async (newData: SerializedActivities) => {
 }
 
 const getOldFitnessRecords = async (): Promise<OldRecords> => {
-  return JSON.parse(await AsyncStorage.getItem(OLD_FITNESS_RECORDS_KEY));
+  const oldRecords = await AsyncStorage.getItem(OLD_FITNESS_RECORDS_KEY)
+  return oldRecords === null ? oldRecords : JSON.parse(oldRecords);
 }
 
 const storeOldFitnessRecords = async (newRecords: OldRecords) => {
-  console.log("storing new records: ", newRecords);
   var oldFitnessRecords = await getOldFitnessRecords();
-  console.log("og old fitness records: ", oldFitnessRecords);
   if (oldFitnessRecords) {
     oldFitnessRecords.oldRuns.push(...newRecords.oldRuns);
     oldFitnessRecords.oldSwims.push(...newRecords.oldSwims);
     oldFitnessRecords.oldJumps.push(...newRecords.oldJumps);
-    console.log("tacked on old fitness records: ", oldFitnessRecords);
     await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(oldFitnessRecords));
   } else {
-    console.log("just storing new records: ", newRecords);
     await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(newRecords));
   }
 }

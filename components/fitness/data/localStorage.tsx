@@ -83,14 +83,9 @@ const getUserActivityData = async (): Promise<UserActivities> => {
     return userActivities;
   } else {
     console.log("creating from storage...");
-    // delete old fitness records and upload those to database if they have data
     await userActivities.fillAndRemoveOldRecords();
-    console.log("filled and removed");
     await userActivities.storeToAsyncStorage();
-    console.log("stored...");
     await UserActivities.uploadStoredOldRecords();
-    // await Promise.all([userActivities.storeToAsyncStorage(), UserActivities.uploadStoredOldRecords()]);
-    console.log("returning activities...");
     return userActivities;
   }
 }
@@ -109,7 +104,7 @@ const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) =
   const sessionJsons = createSessionJsons(unscrambledBytes, sessionMidnightDate);
   const {run, swim, jump} = sessionJsons;
   // at this point find out where to insert it into the async storage UserActivity
-  const userActivities: UserActivities = await UserActivities.createFromStorage();
+  const userActivities: UserActivities = await getUserActivityData();
   await userActivities.fillAndRemoveOldRecords();
 
   // update the other user data such as bests, nefforts, thresholds, etc...
@@ -177,13 +172,16 @@ const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) =
   await userActivities.addSession("run", run.uploadDate, run);
   await userActivities.addSession("swim", swim.uploadDate, swim);
   await userActivities.addSession("jump", jump.uploadDate, jump);
+  console.log("run efforts in updateActivityData: ", userData.runEfforts);
   await storeUserData(userData);
   // upload user and activity data that's stored to database
   UserActivities.uploadStoredOldRecords().then(() => {
     console.log("uploaded old records!");
   }).catch((e) => console.log("Error 103: ", e));
   // upload user bests, runefforts, swimefforts, walkefforts.
-  // updateFitnessRelatedUserFields(userData);
+  updateFitnessRelatedUserFields(userData).then(() => {
+    console.log("uploaded new user data!");
+  }).catch(e => console.log("Error 104: ", e));
 }
 
 // RUN THIS EVERY DATA UPLOAD, AND EVERY TIME ATHLOS LOADS TOO
@@ -201,18 +199,46 @@ const updateFitnessRelatedUserFields = async (userData) => {
  */
 const uploadUserBests = async (userData) => {
   const token = await getToken();
+  const res = await Axios.post(ENDPOINTS.updateUserBests, {
+    token,
+    bests: userData.bests
+  });
+  if (!res.data.success) {
+    throw new Error(res.data.message);
+  }
 }
 
 const uploadUserRunEfforts = async (userData) => {
   const token = await getToken();
+  const res = await Axios.post(ENDPOINTS.updateUserRunEfforts, {
+    token,
+    runEfforts: userData.runEfforts
+  });
+  if (!res.data.success) {
+    throw new Error(res.data.message);
+  }
 }
 
 const uploadUserSwimEfforts = async (userData) => {
   const token = await getToken();
+  const res = await Axios.post(ENDPOINTS.updateUserSwimEfforts, {
+    token,
+    swimEfforts: userData.swimEfforts
+  });
+  if (!res.data.success) {
+    throw new Error(res.data.message);
+  }
 }
 
 const uploadUserWalkEfforts = async (userData) => {
   const token = await getToken();
+  const res = await Axios.post(ENDPOINTS.updateUserWalkEfforts, {
+    token,
+    walkEfforts: userData.walkEfforts
+  });
+  if (!res.data.success) {
+    throw new Error(res.data.message);
+  }
 }
 
 

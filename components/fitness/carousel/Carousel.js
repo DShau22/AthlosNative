@@ -2,11 +2,11 @@ import { StyleSheet, View, Text, TouchableOpacity, Button, ScrollView } from "re
 import ImageSlide from "./ImageSlide"
 import Arrow from "./Arrow"
 import React from 'react'
-import { parseDate } from "../../utils/dates"
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
 const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;import { useTheme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/dist/Feather';
 import MenuPrompt from "../../configure/screens/MenuPrompt";
+const { DateTime } = require('luxon');
 
 const Carousel = (props) => {
   const { colors } = useTheme();
@@ -18,11 +18,11 @@ const Carousel = (props) => {
   const createMenuItems = () => {
     const { activityData } = activityJson;
     let weeks = [];
-    activityData.forEach((week, i) => {
+    activityData.forEach((week, _) => {
       if (week) {
-        let monday = parseDate(week[0].uploadDate);
-        let sunday = parseDate(week[week.length - 1].uploadDate);
-        let dayMonth = `${monday[1]} ${monday[2]} - ${sunday[1]} ${sunday[2]}, ${sunday[3]}`
+        let monday = DateTime.fromISO(week[0].uploadDate);
+        let sunday = DateTime.fromISO(week[week.length - 1].uploadDate);
+        let dayMonth = `${monday.monthShort} ${monday.day} - ${sunday.monthShort} ${sunday.day}, ${sunday.year}`
         weeks.push(dayMonth);
       }
     });
