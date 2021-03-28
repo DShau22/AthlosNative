@@ -6,16 +6,17 @@ import { Text, ListItem } from 'react-native-elements';
 import { useTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useFocusEffect } from '@react-navigation/native';
+import Spinner from 'react-native-loading-spinner-overlay';
 
 import { AppContext } from "../../../Context";
-import LoadingScreen from "../../generic/LoadingScreen";
 import SETTINGS_CONSTANTS from '../SettingsConstants';
 import ThemeText from '../../generic/ThemeText';
 import { Platform } from 'react-native';
-import { logOut } from '../../utils/storage';
+import { getUserData, logOut } from '../../utils/storage';
 import GlobalBleHandler from '../../bluetooth/GlobalBleHandler';
 import { showSnackBar } from '../../utils/notifications';
 import { UserActivities } from '../../fitness/data/UserActivities';
+import { updateFitnessRelatedUserFields } from '../../fitness/data/localStorage';
 
 const {
   COMMUNITY_SETTINGS,
@@ -30,6 +31,7 @@ const {
 
 const SettingsMenu = (props) => {
   const setToken = React.useContext(AppContext);
+  const [isLoading, setIsLoading] = React.useState(false);
   const { colors } = useTheme();
   const settingsList = [
     {
@@ -72,6 +74,11 @@ const SettingsMenu = (props) => {
   ]
   return (
     <SafeAreaView style={[styles.container, {flex: 1}]}>
+      <Spinner
+        visible={isLoading}
+        textContent='Signing out'
+        textStyle={{color: colors.textColor}}
+      />
       <SectionList
         sections={settingsList}
         renderSectionHeader={({section}) => {
@@ -115,12 +122,19 @@ const SettingsMenu = (props) => {
                     onPress: async () => {
                       try {
                         // upload anything to server that's stored
-                        await UserActivities.uploadStoredOldRecords();
+                        setIsLoading(true);
+                        const userData = await getUserData();
+                        console.log("before promise all");
+                        await UserActivities.uploadStoredOldRecords()
+                        await updateFitnessRelatedUserFields(userData);
                         await logOut();
+                        console.log("after logout");
                         setToken("");
                       } catch(e) {
                         console.log(e);
                         showSnackBar(`Error 111: Something went wrong with the sign out process. Please try again later and make sure your interent connection is strong ${e}`);
+                      } finally {
+                        setIsLoading(false)
                       }
                     }
                   }

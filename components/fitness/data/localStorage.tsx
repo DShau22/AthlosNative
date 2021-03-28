@@ -172,7 +172,6 @@ const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) =
   await userActivities.addSession("run", run.uploadDate, run);
   await userActivities.addSession("swim", swim.uploadDate, swim);
   await userActivities.addSession("jump", jump.uploadDate, jump);
-  console.log("run efforts in updateActivityData: ", userData.runEfforts);
   await storeUserData(userData);
   // upload user and activity data that's stored to database
   UserActivities.uploadStoredOldRecords().then(() => {
@@ -185,13 +184,13 @@ const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) =
 }
 
 // RUN THIS EVERY DATA UPLOAD, AND EVERY TIME ATHLOS LOADS TOO
-const updateFitnessRelatedUserFields = async (userData) => {
-  await Promise.all([
-    uploadUserBests(userData),
-    uploadUserRunEfforts(userData),
-    uploadUserSwimEfforts(userData),
-    uploadUserWalkEfforts(userData),
-  ]);
+const updateFitnessRelatedUserFields = async (userData: Object) => {
+  // can't promise.all cuz of mongo write race conditions...
+  await uploadUserBests(userData);
+  await uploadUserRunEfforts(userData);
+  await uploadUserSwimEfforts(userData);
+  await uploadUserWalkEfforts(userData);
+  console.log("updated user fitness related fields!");
 }
 
 /**
@@ -245,4 +244,5 @@ const uploadUserWalkEfforts = async (userData) => {
 export {
   getUserActivityData,
   updateActivityData,
+  updateFitnessRelatedUserFields
 }

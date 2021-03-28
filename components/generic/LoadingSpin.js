@@ -1,11 +1,13 @@
+import { useTheme } from '@react-navigation/native';
 import React from 'react'
 import { ActivityIndicator, StyleSheet, Text, View, TouchableWithoutFeedback } from "react-native";
 
 export default function LoadingSpin() {
+  const { colors } = useTheme();
+  console.log(colors)
   return (
-    <View styles={[styles.container, styles.horizontal]}>
-      <Text>Later add a logo here!</Text>
-      <ActivityIndicator size="large" color="#00ff00" />
+    <View style={[styles.container, {backgroundColor: colors.background}]}>
+      <ActivityIndicator size="large" color="#ffffff" />
     </View>
   )
 }
@@ -15,9 +17,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     zIndex: 0,
-    position: 'absolute', 
-    top: 0, left: 0, 
-    right: 0, bottom: 0,
-    backgroundColor: 'black',
+    width: '100%',
+    height: '100%',
   }
-})
+});

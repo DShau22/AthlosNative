@@ -154,7 +154,6 @@ class BLEHandler {
    * Issue if destroy while transmitting or reading?
    */
   async destroy() {
-    await this.disconnect();
     if (this.readSubscription) {
       this.readSubscription.remove();
     }
@@ -164,6 +163,11 @@ class BLEHandler {
     if (this.manager) {
       this.manager.destroy();
     }
+    // this results in an error
+    // if (this.disconnectSubscription) {
+    //   this.disconnectSubscription.remove();
+    // }
+    await this.disconnect();
     this.manager = null;
     this.athlosResponses = [], // for JJ's debug purposes
     this.sendTimer = null;
@@ -563,7 +567,7 @@ class BLEHandler {
       try {
         if (this.totalNumSaDataBytes > 8) {
           await updateActivityData(DateTime.local(), concatentatedSadata);
-          // await this._sendResetSaDataPkg();
+          await this._sendResetSaDataPkg();
         }
         // send package to tell the earbuds to rewrite sadata. Shouldnt need to await
         this.saDataCompleter.complete(this.totalNumSaDataBytes);
@@ -756,7 +760,7 @@ class BLEHandler {
       }
       pkg[packageSize - 2] = this.writePkgId;
       pkg[packageSize - 1] = calcChecksum(pkg, 0, pkg.length - 1);
-      // console.log("sending: ", pkg);
+      console.log("sending: ", pkg);
       await this._sendAndWaitResponse(pkg); // keep trying until timeout? check about promise timeouts...
     }
     this._resetAfterSendBytes();

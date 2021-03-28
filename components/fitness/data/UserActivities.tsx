@@ -168,7 +168,7 @@ class UserActivities {
         userToken,
         activity: activities[i],
         lastUpdated: lastUpdated.toISODate(),
-        userToday: DateTime.local().toISODate(), // use the zone rn because if last updated was b4 DST it'll be off for server
+        userToday: DateTime.local().toISO(), // use the zone rn because if last updated was b4 DST it'll be off for server
       });
       // CHANGE THIS ENDPOINT WHEN TIME PERMITS
       if (!res.data.success) {
@@ -279,7 +279,7 @@ class UserActivities {
       let latestWeek = this.runs[0];
       for (let day = 0; day < 7; day++) {
         let sessionDate = DateTime.fromISO(latestWeek[day].uploadDate);
-        if (sameDate(date,sessionDate)) {
+        if (sameDate(date, sessionDate)) {
           let runDaySession = latestWeek[day];
           runDaySession.cadences.push(...session.cadences);
           runDaySession.num += session.num;
@@ -291,7 +291,7 @@ class UserActivities {
       let latestWeek = this.swims[0];
       for (let day = 0; day < 7; day++) {
         let sessionDate = DateTime.fromISO(latestWeek[day].uploadDate);
-        if (date === sessionDate) {
+        if (sameDate(date, sessionDate)) {
           let swimDaySession = latestWeek[day];
           swimDaySession.lapTimes.push(...session.lapTimes);
           swimDaySession.num += session.num;
@@ -303,7 +303,7 @@ class UserActivities {
       let latestWeek = this.jumps[0];
       for (let day = 0; day < 7; day++) {
         let sessionDate = DateTime.fromISO(latestWeek[day].uploadDate);
-        if (date === sessionDate) {
+        if (sameDate(date, sessionDate)) {
           let jumpDaySession = latestWeek[day];
           jumpDaySession.heights.push(...session.heights);
           jumpDaySession.num += session.num;

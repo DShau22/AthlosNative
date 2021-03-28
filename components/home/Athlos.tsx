@@ -132,7 +132,6 @@ interface AthlosInterface {
 const Athlos: React.FC<AthlosInterface> = (props) => {
   const { colors } = useTheme();
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
-  const [isError, setIsError] = React.useState<boolean>(false); // controls when to set an error screen
   const [athlosConnected, setAthlosConnected] = React.useState<boolean>(false);
 
   const firstUpdate = React.useRef(true);
@@ -229,8 +228,6 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
           await updateLocalUserInfo();
         } catch(e) {
           console.error(e);
-          setIsError(true);
-          Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please refresh.", [{ text: "Okay" }]);
         } finally {
           setIsLoading(false);
         }
@@ -291,8 +288,10 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
     return () => {
       console.log("unmounting");
       LocationServicesDialogBox.stopListener();
-      GlobalBleHandler.destroy().then(() => {console.log("destroyed")});
-      GlobalBleHandler.reinit();
+      GlobalBleHandler.destroy().then(() => {
+        console.log("BLE manager destroyed. Reiniting...");
+        GlobalBleHandler.reinit();
+      });
     }
   }, []);
 
@@ -390,9 +389,6 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
   // const BottomTab = createBottomTabNavigator();
   const BottomTab = createMaterialBottomTabNavigator();
   // console.log("Athlos context: ", state);
-  if (isError) {
-    return (<View><Text>shit something went wrong with the server :(</Text></View>)
-  }
   return (
     <SafeAreaProvider>
       <UserDataContext.Provider value={state}>
@@ -406,7 +402,7 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
             updateLocalUserFitness,
           }}
         >
-        { isLoading ? <View style={styles.container}><LoadingSpin/></View> : 
+        { isLoading ? <LoadingSpin/> :
           <SafeAreaView style={{flex: 1}}>
             <WelcomeModal
               isVisible={showWelcomeModal}

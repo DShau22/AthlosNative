@@ -32,7 +32,6 @@ function App() {
 
   React.useEffect(() => {
     const setUpTokenState = async () => {
-      // await AsyncStorage.clear();
       const userToken = await getToken();
       setToken(userToken);
       setIsLoading(false);

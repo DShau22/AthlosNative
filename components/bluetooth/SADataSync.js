@@ -28,6 +28,14 @@ import { UserActivities } from '../fitness/data/UserActivities';
 Icon.loadFont();
 
 const { SYNC_PAGE, SYNC_HELP_PAGE } = BLUETOOTH_CONSTANTS;
+
+function delay(delayInMs) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(delayInMs);
+    }, delayInMs);
+  });
+}
 /**
  * User will use this component to either 'sync' their devices with the phone or 
  * register a new device. Syncing under the hood just tells the Global Ble handler to reset and rescan again to prompt
@@ -203,7 +211,7 @@ export default function SADataSync(props) {
       return;
     }
     console.log("******* swiped down to read **********");
-    if (transmitting) {
+    if (transmitting || GlobalBleHandler.isSendingData) {
       return;
     }
     if (!GlobalBleHandler.isConnected) {
@@ -240,11 +248,17 @@ export default function SADataSync(props) {
       setTransmitting(false);
       return;
     }
-    // this could be an issue if updateSaInit fails FIX LATER
-    await updateSaInit();
-    await updateLocalUserInfo();
-    showSnackBar('Error 110: Successfully synced with your Athlos earbuds :]');
+    showSnackBar('Successfully synced with your Athlos earbuds :]');
     setTransmitting(false);
+    // this could be an issue if updateSaInit fails FIX LATER
+    await delay(3000);
+    try {
+      await updateSaInit();
+      await updateLocalUserInfo();
+    } catch(e) {
+      console.log("Error updating sainit or local user info:", e);
+      showSnackBar('Activity records are synced, but your earbud configurations were not updated.');
+    }
   }
 
   const updateSaInit = async () => {
