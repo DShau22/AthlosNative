@@ -1,6 +1,5 @@
 import { useTheme } from '@react-navigation/native';
 import React from 'react';
-import { Platform } from 'react-native';
 import { View, StyleSheet } from 'react-native';
 import { ListItem } from 'react-native-elements';
 import ThemeText from '../../generic/ThemeText';
@@ -16,7 +15,19 @@ import PullUpMenu from './PullUpMenu';
  * anything with second/third is for if you want to have two/three side by side scrollviews
  */
 
-export default function MenuPrompt(props) {
+ interface MenuPromptProps {
+  promptTitle?: string,
+  promptSubtitle?: string,
+  childArrays: Array<any>,
+  onSave: Function,
+  onLongPress?: Function,
+  selectedItems: Array<any>,
+  noDividers?: boolean,
+  noChevron?: boolean,
+  pullUpTitle?: string,
+  fontSize?: number,
+ }
+const MenuPrompt: React.FC<MenuPromptProps> = (props) => {
   const { colors } = useTheme();
   const refRBSheet = React.useRef();
   const {
@@ -29,6 +40,7 @@ export default function MenuPrompt(props) {
     noChevron,
     onLongPress,
     pullUpTitle,
+    fontSize,
   } = props; 
   return (
     <>
@@ -57,7 +69,9 @@ export default function MenuPrompt(props) {
         pullUpTitle={pullUpTitle}
         childArrays={childArrays}
         selectedItems={selectedItems}
+        fontSize={fontSize}
       />
     </>
   )
 }
+export default MenuPrompt;

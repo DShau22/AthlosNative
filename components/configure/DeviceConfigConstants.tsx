@@ -1,4 +1,3 @@
-import COLOR_THEMES from '../ColorThemes';
 const DEVICE_CONFIG_CONSTANTS = {
   POOL_LENGTH_CHOICES: {
     NCAA: '25 yd',
@@ -17,9 +16,10 @@ const DEVICE_CONFIG_CONSTANTS = {
   RUN: 'Run',
   SWIM: 'Swim',
   JUMP: 'Vertical',
-  SWIMMING_EVENT: 'Swimming Event',
+  SWIMMING_EVENT: 'Swim Event',
   INTERVAL: 'Interval',
   TIMER: 'Timer',
+  SWIM_WORKOUT: 'Swim Workout',
 
   // type of repetition for timers
   REPEAT_LAST: 'Repeat last period',
@@ -58,7 +58,18 @@ const DEVICE_CONFIG_CONSTANTS = {
   BACKSTROKE: 'Backstroke',
   BREASTROKE: 'Breastroke',
   FREESTYLE: 'Freestyle',
-  IM: 'Individual Medley',
+  IM: 'IM',
+  FLUTTER_KICK: 'Flutter kick',
+  DOLPHIN_KICK: 'Dolphin kick',
+  ROCKET_KICK: 'Rocket kick',
+  BREASTSTROKE_KICK: 'Beaststroke kick',
+  PULLING: 'Pulling',
+  SPRINT: 'Sprint',
+  NO_BREATH: 'No breath',
+  SCULLING: 'Sculling',
+  WARMUP: 'Warm up',
+  WARMDOWN: 'Warm down',
+  ALL_OUT: "All out",
 
   YARDS: 'yd',
   METERS: 'm',
@@ -67,6 +78,17 @@ const DEVICE_CONFIG_CONSTANTS = {
   REST: 'Rest',
 }
 const {
+  FLUTTER_KICK,
+  DOLPHIN_KICK,
+  ROCKET_KICK,
+  BREASTSTROKE_KICK,
+  PULLING,
+  SPRINT,
+  ALL_OUT,
+  NO_BREATH,
+  SCULLING,
+  WARMUP,
+  WARMDOWN,
   POOL_LENGTH_CHOICES,
   MUSIC_ONLY,
   RUN,
@@ -75,6 +97,7 @@ const {
   SWIMMING_EVENT,
   TIMER,
   INTERVAL,
+  SWIM_WORKOUT,
   TRIGGER_STEPS,
   TRIGGER_MIN,
   TRIGGER_LAP,
@@ -147,13 +170,45 @@ const MUSCLE_GROUP_LIST = [
   WORK,
 ];
 
+const DISTANCES_LIST = [
+  25,
+  50,
+  75,
+  100,
+  // 150,
+  200,
+  300,
+  400,
+  500,
+];
+
+const STROKES_LIST = [
+  BUTTERFLY,
+  BACKSTROKE,
+  BREASTROKE,
+  FREESTYLE,
+  IM,
+  FLUTTER_KICK,
+  DOLPHIN_KICK,
+  BREASTSTROKE_KICK,
+  ROCKET_KICK,
+  PULLING,
+  SCULLING,
+  WARMUP,
+  WARMDOWN,
+  REST,
+  NO_BREATH,
+  SPRINT,
+];
+
 const getDefaultConfig = () => {
   return [
     getDefaultMusicOnlyMode(),
     getDefaultRunMode(),
     getDefaultJumpMode(),
     getDefaultSwimMode(),
-    getDefaultRaceMode(),
+    getDefaultSwimWorkoutMode(),
+    // getDefaultRaceMode(),
     getDefaultTimerMode(),
     getDefaultIntervalMode(),
   ];
@@ -226,20 +281,56 @@ const getDefaultIntervalMode = () => {
   return {
     mode: INTERVAL,
     intervals: [
-      {muscleGroup: 'Work', time: 30},
+      {muscleGroup: 'Arms', time: 30},
       {muscleGroup: 'Rest', time: 10},
-      {muscleGroup: 'Work', time: 30},
-      {muscleGroup: 'Rest', time: 10},
+      {muscleGroup: 'Legs', time: 50},
+      {muscleGroup: 'Rest', time: 15},
+      {muscleGroup: 'Abs', time: 60},
+      {muscleGroup: 'Rest', time: 20},
     ],
-    numRounds: 1 // if 0, then repeat the last split over and over again
+    numRounds: 2 // if 0, then repeat the last split over and over again
   };
 };
+
+export interface SwimWorkoutInterface {
+  mode: string,
+  sets: Array<SwimSet>,
+  numRounds: number
+};
+
+export interface SwimSet {
+  reps: number,
+  distance: number,
+  stroke: string,
+  timeInSeconds: number,
+}
+
+const getDefaultSwimWorkoutMode = (): SwimWorkoutInterface => {
+  return {
+    mode: SWIM_WORKOUT,
+    sets: [
+      {
+        reps: 4,
+        distance: 100,
+        stroke: IM,
+        timeInSeconds: 90,
+      },
+      {
+        reps: 8,
+        distance: 50,
+        stroke: FREESTYLE,
+        timeInSeconds: 45,
+      },
+    ],
+    numRounds: 2 // if 0, then repeat the last split over and over again
+  };
+}
 
 /**
  * Takes in an enum for mode. Returns the default object for that mode when we are adding new modes.
  * @param {String} mode 
  */
-const getDefaultModeObject = (mode) => {
+const getDefaultModeObject = (mode: string) => {
   switch(mode) {
     case MUSIC_ONLY:
       return getDefaultMusicOnlyMode();
@@ -255,6 +346,8 @@ const getDefaultModeObject = (mode) => {
       return getDefaultIntervalMode();
     case TIMER:
       return getDefaultTimerMode();
+    case SWIM_WORKOUT:
+      return getDefaultSwimWorkoutMode();
     default:
       console.log(`mode ${mode} is not valid`);
       return null;
@@ -264,6 +357,8 @@ const getDefaultModeObject = (mode) => {
 export {
   DEVICE_CONFIG_CONSTANTS,
   MUSCLE_GROUP_LIST,
+  STROKES_LIST,
+  DISTANCES_LIST,
   getDefaultConfig,
   getDefaultModeObject
 }

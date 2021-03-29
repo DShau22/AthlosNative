@@ -7,15 +7,30 @@ MaterialCommunityIcons.loadFont();
 import Entypo from 'react-native-vector-icons/Entypo';
 Entypo.loadFont();
 
-import { DEVICE_CONFIG_CONSTANTS, MUSCLE_GROUP_LIST } from '../DeviceConfigConstants';
+import {
+  DEVICE_CONFIG_CONSTANTS,
+  SwimWorkoutInterface,
+  SwimSet,
+  DISTANCES_LIST,
+  STROKES_LIST,
+} from '../DeviceConfigConstants';
 const {
-  INTERVAL,
+  SWIM_WORKOUT,
   MODE_CONFIG,
   WORK,
-  REST
+  REST,
+  BUTTERFLY,
+  BACKSTROKE,
+  BREASTROKE,
+  FREESTYLE,
+  IM,
 } = DEVICE_CONFIG_CONSTANTS;
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
 const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;
+import { COLOR_THEMES } from '../../ColorThemes';
+const {
+  SWIM_DONUT_GRADIENTS
+} = COLOR_THEMES;
 import { useTheme } from '@react-navigation/native';
 import ThemeText from '../../generic/ThemeText';
 import SaveButton from './SaveButton';
@@ -23,18 +38,15 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import MenuPrompt from './MenuPrompt';
 import ActionButton from 'react-native-action-button';
 
-const WORK_COLOR = '#9cffb6';
-const REST_COLOR = '#fc6868';
-
-export default function IntervalEditScreen(props) {
+export default function SwimWorkoutEditScreen(props) {
   const { colors } = useTheme();
   const { navigation, deviceConfig, setDeviceConfig } = props;
   const { editIdx } = props.route.params; // index of the object in deviceConfig array we are editing
-  const intervalSettings = deviceConfig[editIdx];
+  const workoutSettings: SwimWorkoutInterface = deviceConfig[editIdx];
 
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [intervals, setIntervals] = React.useState(intervalSettings.intervals);
-  const [numRounds, setNumRounds] = React.useState(intervalSettings.numRounds);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [sets, setSets] = React.useState<Array<SwimSet>>(workoutSettings.sets);
+  const [numRounds, setNumRounds] = React.useState(workoutSettings.numRounds);
   const firstUpdate = React.useRef(true);
 
   React.useEffect(() => {
@@ -61,8 +73,8 @@ export default function IntervalEditScreen(props) {
     // depending on the edit mode
     setDeviceConfig(prevConfig => {
       const newModeSettings = {
-        mode: INTERVAL,
-        intervals,
+        mode: SWIM_WORKOUT,
+        sets,
         numRounds,
       };
       prevConfig[editIdx] = newModeSettings;
@@ -72,40 +84,32 @@ export default function IntervalEditScreen(props) {
 
   const resetState = () => {
     setIsLoading(false);
-    setIntervals(intervalSettings.intervals);
-    setNumRounds(intervalSettings.numRounds);
+    setSets(workoutSettings.sets);
+    setNumRounds(workoutSettings.numRounds);
   }
 
-  const totalIntervalTime = () => {
-    var reduced = 0;
-    intervals.forEach(({time, _}, idx) => {
-      reduced += parseInt(time);
-    })
-    return isNaN(reduced) ? '' : `${reduced} seconds`;
-  }
-
-  const getRoundsArray = () => {
-    const res = [];
-    for (let i = 1; i <= 10; i++) {
-      res.push(i);
+  const getSecondsArray = (distance: number) => {
+    const result = [];
+    if (distance <= 200) {
+      for (let i = 1; i <= 11; i++) {
+        result.push(`${i * 5} s`);
+      } 
+    } else {
+      for (let i = 0; i <= 5; i++) {
+        result.push(`${i * 10} s`);
+      } 
     }
-    return res;
-  }
-
-  const getTotalWorkoutTime = () => {
-    const totalTimeInSeconds = parseInt(totalIntervalTime()) * numRounds;
-    const timeInMinutes = Math.floor(totalTimeInSeconds / 60);
-    const remainingSeconds = totalTimeInSeconds % 60;
-    return isNaN(timeInMinutes) || isNaN(remainingSeconds) ? '' : 
-      `${timeInMinutes} min ${remainingSeconds} s`;
+    return result;
   }
 
   const renderListItem = ({item, index, drag, isActive}) => {
-    const { time, muscleGroup } = item;
-    var mins = Math.floor(time / 60);
-    var secs = time % 60;
+    var swimSet: SwimSet = item;
+    const { timeInSeconds, reps, stroke, distance } = swimSet;
+    console.log(`selected reps for ${stroke}, ${distance}: ${reps}`);
+    var mins = Math.floor(timeInSeconds / 60);
+    var secs = timeInSeconds % 60;
     var minsText = mins === 0 ? '' : `${mins} ${mins === 1 ? 'min' : 'mins'} `;
-    var secsText = secs === 0 ? '' : `${secs} ${secs === 1 ? 'second' : 'seconds'}`;
+    var secsText = secs === 0 ? '' : `${secs} ${mins === 1 ? 'second' : 'seconds'}`;
     var promptSubtitle = `${minsText}${secsText}`;
     return (
       <View style={{
@@ -113,14 +117,14 @@ export default function IntervalEditScreen(props) {
         marginTop: 10,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: muscleGroup === REST ? REST_COLOR : WORK_COLOR,
+        borderColor: '#82eefd',
         width: '94%',
         alignSelf: 'center',
       }}>
         <TouchableOpacity
           style={styles.deleteInterval}
           onPress={() => {
-            setIntervals(prev => {
+            setSets(prev => {
               const filtered = prev.filter((_, idx) => {
                 return index !== idx;
               });
@@ -131,47 +135,73 @@ export default function IntervalEditScreen(props) {
           <Entypo
             name='cross'
             size={28}
-            color={colors.textColor}
+            color={colors.text}
           />
         </TouchableOpacity>
         <MenuPrompt
           noDividers
           noChevron
-          pullUpTitle="Activity & time"
-          promptTitle={`${index + 1}: ${muscleGroup}`}
+          fontSize={16}
+          promptTitle={`${reps}x${distance} ${stroke}`}
           promptSubtitle={promptSubtitle}
-          onSave={(muscleGroup, mins, secs) => {
-            const totalSeconds = parseInt(mins) * 60 + parseInt(secs);
-            setIntervals(prev => {
+          onSave={(newReps: number, newDistance: number, newStroke: string, newMin: string, newSec: string) => {
+            const totalSeconds = parseInt(newMin) * 60 + parseInt(newSec);
+            setSets(prev => {
               const copy = [...prev];
-              copy[index].time = totalSeconds;
-              copy[index].muscleGroup = muscleGroup;
+              copy[index].timeInSeconds = totalSeconds;
+              copy[index].distance = newDistance;
+              copy[index].reps = newReps;
+              copy[index].stroke = newStroke;
               return copy;
             });
           }}
           onLongPress={drag}
           childArrays={[
             {
-              title: 'Muscle group',
-              width: SCREEN_WIDTH / 2,
-              array: MUSCLE_GROUP_LIST
+              title: 'Reps',
+              width: SCREEN_WIDTH * 0.15,
+              array: Array.from({length: 8}, (_, i) => i + 1)
             },
             {
-              title: 'Minutes',
-              width: SCREEN_WIDTH / 4,
-              array: Array.from({length: 15}, (_, i) => `${i} min`)
+              title: 'Distance',
+              width: SCREEN_WIDTH * 0.15,
+              array: DISTANCES_LIST,
             },
             {
-              title: 'Seconds',
-              width: SCREEN_WIDTH / 4,
-              array: Array.from({length: 12}, (_, i) => `${i * 5} sec`)
-
+              title: 'Stroke',
+              width: SCREEN_WIDTH * 0.4,
+              array: STROKES_LIST,
+            },
+            {
+              title: 'Min',
+              width: SCREEN_WIDTH * 0.15,
+              array: Array.from({length: distance <= 200 ? 5 : 10}, (_, i) => `${i} m`)
+            },
+            {
+              title: 'Sec',
+              width: SCREEN_WIDTH * 0.15,
+              array: getSecondsArray(distance),
             },
           ]}
-          selectedItems={[muscleGroup, `${mins} min`, `${secs} sec`]}
+          selectedItems={[reps, distance, stroke, `${mins} m`, `${secs} s`]}
         />
       </View>
     )
+  }
+
+  const getTotalWorkoutTime = (): string => {
+    var totalTimeInSeconds = 0;
+    for (let i = 0; i < sets.length; i++) {
+      let set = sets[i];
+      totalTimeInSeconds += set.reps * set.timeInSeconds;
+    }
+    var hours = Math.floor(totalTimeInSeconds / (60 * 60));
+    var minutes = Math.floor((totalTimeInSeconds % 3600) / 60);
+    var seconds = totalTimeInSeconds % 60;
+    var hoursText = hours === 0 ? '' : `${hours} ${hours === 1 ? 'hr' : 'hrs'} `; 
+    var minsText = minutes === 0 ? '' : `${minutes} ${minutes === 1 ? 'min' : 'mins'} `;
+    var secsText = seconds === 0 ? '' : `${seconds} ${seconds === 1 ? 'sec' : 'secs'}`;
+    return `${hoursText}${minsText}${secsText}`;
   }
 
   return (
@@ -182,14 +212,15 @@ export default function IntervalEditScreen(props) {
             <Spinner
               visible={isLoading}
               textContent='Saving...'
-              textStyle={{color: colors.textColor}}
+              textStyle={{color: colors.text}}
             />
             <ThemeText style={{fontSize: 20, fontWeight: 'bold', alignSelf: 'flex-start', margin: 10}}>
-              Create an interval training timer:
+              Create your own swimming workout:
             </ThemeText>
             <ThemeText style={{margin: 10}}>
-              Customize an interval timer by setting intervals for working and resting.
-              Your device will prompt you when it's time to work or rest so you can focus on training.
+              Customize a swimming workout and upload it to your Athlos earbuds. Your coach will tell you
+              what to swim, when to leave, and will update you on your progress throughout the workout. 
+              Forget about needing a clock or having to memorize your workouts!
             </ThemeText>
             <ThemeText style={[styles.textHeader, {marginTop: 20, marginBottom: 20}]}>
               Number of rounds
@@ -200,25 +231,22 @@ export default function IntervalEditScreen(props) {
                 {
                   title: "Number of rounds",
                   width: SCREEN_WIDTH,
-                  array: getRoundsArray()
+                  array: Array.from({length: 8}, (_, i) => i + 1)
                 }
               ]}
               selectedItems={[numRounds]}
-              onSave={num => setNumRounds(num)}
+              onSave={(num: number) => setNumRounds(num)}
             />
-            <ThemeText style={[styles.textHeader,]}>
-              {`Total time per round: ${totalIntervalTime()}`}
-            </ThemeText>
             <ThemeText style={[styles.textHeader,]}>
               {`Total workout time: ${getTotalWorkoutTime()}`}
             </ThemeText>
           </>
         )}
-        data={intervals}
+        data={sets}
         renderItem={renderListItem}
-        keyExtractor={(item, index) => `draggable-item-${item.mode}-${index}`}
+        keyExtractor={(_, index) => `draggable-item-${index}`}
         onDragEnd={({ data }) => {
-          setIntervals(data);
+          setSets(data);
         }}
         ListFooterComponent={() => (
           <>
@@ -238,64 +266,23 @@ export default function IntervalEditScreen(props) {
         offsetY={15}
         buttonColor={'#ff03b7'}
         size={60}
-      >
-        <ActionButton.Item
-          size={52}
-          textContainerStyle={styles.actionButtonTextContainer}
-          textStyle={styles.actionButtonText}
-          buttonColor={WORK_COLOR}
-          title="Work"
-          onPress={() => {
-            if (intervals.length >= 6) {
-              Alert.alert('Whoops', 'Cannot have more than 6 intervals', [{text: 'Okay'}]);
-              return;
-            }
-            setIntervals(prev => {
-              var newTime = 600;
-              var prevMuscleGroup = WORK;
-              for (let i = prev.length - 1; i >= 0; i--) {
-                if (!(prev[i].muscleGroup === REST)) {
-                  newTime = prev[i].time;
-                  prevMuscleGroup = prev[i].muscleGroup;
-                  break;
-                }
-              }
-              const copy = [...prev];
-              copy.push({time: newTime, muscleGroup: prevMuscleGroup});
-              return copy;
+        onPress={() => {
+          if (sets.length >= 6) {
+            Alert.alert('Whoops', 'Cannot have more than 6 sets in a round', [{text: 'Okay'}]);
+            return;
+          }
+          setSets(prev => {
+            const copy = [...prev];
+            copy.push({
+              reps: 4,
+              distance: 100,
+              stroke: FREESTYLE,
+              timeInSeconds: 90,
             });
-          }}
-        >
-          <MaterialCommunityIcons name="plus" style={styles.actionButtonIcon} />
-        </ActionButton.Item>
-        <ActionButton.Item
-          size={52}
-          textContainerStyle={styles.actionButtonTextContainer}
-          textStyle={styles.actionButtonText}
-          buttonColor={REST_COLOR}
-          title="Rest"
-          onPress={() => {
-            if (intervals.length >= 6) {
-              Alert.alert('Whoops', 'Cannot have more than 6 intervals', [{text: 'Okay'}]);
-              return;
-            }
-            setIntervals(prev => {
-              var newTime = 100;
-              for (let i = prev.length - 1; i >= 0; i--) {
-                if (prev[i].muscleGroup === REST) {
-                  newTime = prev[i].time;
-                  break;
-                }
-              }
-              const copy = [...prev];
-              copy.push({time: newTime, muscleGroup: REST});
-              return copy;
-            });
-          }}
-        >
-          <MaterialCommunityIcons name="plus" style={styles.actionButtonIcon} />
-        </ActionButton.Item>
-      </ActionButton>
+            return copy;
+          });
+        }}
+      />      
     </>
   )
 }

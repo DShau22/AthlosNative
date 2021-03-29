@@ -6,8 +6,8 @@ Icon.loadFont();
 import { DEVICE_CONFIG_CONSTANTS } from './DeviceConfigConstants';
 import { COLOR_THEMES } from '../ColorThemes';
 import { useTheme } from '@react-navigation/native';
-const { RUN_THEME, SWIM_THEME, JUMP_THEME, SWIMMING_EVENT_THEME, INTERVAL_THEME, TIMER_THEME } = COLOR_THEMES;
-const { MUSIC_ONLY, RUN, SWIM, JUMP, SWIMMING_EVENT, INTERVAL, TIMER } = DEVICE_CONFIG_CONSTANTS;
+const { RUN_THEME, SWIM_THEME, JUMP_THEME, SWIMMING_EVENT_THEME, INTERVAL_THEME, TIMER_THEME, SWIM_WORKOUT_THEME } = COLOR_THEMES;
+const { MUSIC_ONLY, RUN, SWIM, JUMP, SWIMMING_EVENT, INTERVAL, TIMER, SWIM_WORKOUT } = DEVICE_CONFIG_CONSTANTS;
 
 export default function ModeItem(props) {
   const { colors } = useTheme();
@@ -28,6 +28,8 @@ export default function ModeItem(props) {
         return TIMER_THEME;
       case INTERVAL:
         return INTERVAL_THEME;
+      case SWIM_WORKOUT:
+        return SWIM_WORKOUT_THEME;
       default:
         return colors.header;
     }

@@ -22,7 +22,8 @@ const {
   INTERVAL,
   MUSIC_ONLY,
   TIMER,
-  MODE_CONFIG
+  MODE_CONFIG,
+  SWIM_WORKOUT,
 } = DEVICE_CONFIG_CONSTANTS;
 import GLOBAL_CONSTANTS from '../GlobalConstants';
 const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;
@@ -35,6 +36,7 @@ import TimerEditScreen from './screens/TimerEditScreen';
 import SwimmingEventEditScreen from './screens/SwimmingEventEditScreen';
 import MusicOnlyEditScreen from './screens/MusicOnlyScreen';
 import IntervalEditScreen from './screens/IntervalEditScreen';
+import SwimmingWorkoutEditScreen from './screens/SwimWorkoutEditScreen';
 
 import SAinit from '../bluetooth/SAinitManager';
 import ThemeText from '../generic/ThemeText';
@@ -209,18 +211,18 @@ const DeviceConfig = (props) => {
               ListFooterComponent={() => {
                 return (
                   <>
-                    <SAInitSender
+                    {/* <SAInitSender
                       containerStyle={{
                         alignSelf: 'center',
                         margin: 20
                       }}
                       setIsLoading={setIsLoading}
                       saveAndCreateSaInit={saveAndCreateSaInit}
-                    />
-                    {/* <Button 
+                    /> */}
+                    <Button 
                       title='test'
                       onPress={async () => console.log(await saveAndCreateSaInit())}
-                    /> */}
+                    />
                   </>
                 )
               }}
@@ -254,6 +256,7 @@ const DeviceConfig = (props) => {
                     MUSIC_ONLY,
                     RUN,
                     SWIM,
+                    SWIM_WORKOUT,
                     JUMP,
                     SWIMMING_EVENT,
                     INTERVAL,
@@ -334,6 +337,17 @@ const DeviceConfig = (props) => {
           />}
       </Stack.Screen>
       <Stack.Screen
+        name={SWIM_WORKOUT}
+        options={{ title: "Swimming Workout" }}
+      >
+        {props => 
+          <SwimmingWorkoutEditScreen
+            {...props}
+            setDeviceConfig={newConfig => setDeviceConfig(newConfig)}
+            deviceConfig={deviceConfig}
+          />}
+      </Stack.Screen>
+      <Stack.Screen
         name={MUSIC_ONLY}
         options={{ title: "Music Only" }}
       >
@@ -347,19 +361,4 @@ const DeviceConfig = (props) => {
     </Stack.Navigator>
   );
 }
-const styles = StyleSheet.create({
-  actionButtonIcon: {
-    fontSize: 20,
-    height: 22,
-    color: 'white',
-  },
-  actionButtonTextContainer: {
-    height: 25,
-  },
-  actionButtonText: {
-    fontSize: 14,
-    color: 'black',
-    alignSelf: 'center'
-  }
-})
 export default gestureHandlerRootHOC(DeviceConfig)

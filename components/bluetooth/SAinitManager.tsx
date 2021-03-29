@@ -4,7 +4,11 @@
 const Buffer = require('buffer/').Buffer;
 import {
   DEVICE_CONFIG_CONSTANTS,
-  MUSCLE_GROUP_LIST
+  MUSCLE_GROUP_LIST,
+  STROKES_LIST,
+  DISTANCES_LIST,
+  SwimWorkoutInterface,
+  SwimSet,
 } from '../configure/DeviceConfigConstants';
 const {
   POOL_LENGTH_CHOICES,
@@ -13,10 +17,10 @@ const {
   SWIM,
   JUMP,
   SWIMMING_EVENT,
+  SWIM_WORKOUT,
   INTERVAL,
   TIMER,
   MUSIC_ONLY,
-  CONFIG_KEY,
   MODE_CONFIG,
 
   REPEAT_LAST,
@@ -188,9 +192,12 @@ class SAinit {
           case TIMER:
             this._setTimerConfig(sainit, modeObject, idx);
             break;
+          case SWIM_WORKOUT:
+            this._setSwimWorkoutConfig(sainit, modeObject, idx);
+            break;
           default:
             // set it as unused
-            sainit[idx] = SAinit.SAinit.ZERO;
+            sainit[idx] = SAinit.ZERO;
             break;
         }
       }
@@ -416,41 +423,6 @@ class SAinit {
    * @param {Object} runObject 
    * @param {int} idx 
    */
-  _setIntervalConfig(sainit, intervalObject, idx) {
-    console.log("setting interval config: ", intervalObject);
-    const { intervals, numRounds } = intervalObject;
-    sainit[idx] = 36;
-    var offset8 = Buffer.alloc(1);
-    if (numRounds > 10)
-      throw new Error(`num rounds must be less than 11. Got:${numRounds}`);
-    if (intervals.length > 6)
-      throw new Error(`num rounds must be less than 7. Got:${intervals}`);
-    offset8[0] = intervals.length - 1; // bits 7:4 are number of intervals
-    offset8[0] = offset8[0] << 4;
-    // always stop at end of interval training, so no need to set bits 3:2
-    offset8[0] |= 0x02; // start by countdown by setting second lsb to 1
-    // intervals either cycle or end based on how many rounds there are
-    if (numRounds > 1) {
-      offset8[0] |= 0x08; // cycle by setting the 4th lsb to 1
-    }
-    sainit[idx + 8] = offset8[0] + SAinit.ZERO;
-    sainit[idx + 16] = numRounds * intervals.length + SAinit.ZERO; // total time periods
-    intervals.forEach(({time, muscleGroup}, i) => {
-      // upper 10 bits is time in seconds
-      sainit[idx + 32 + i*16] = (time & 0x03fc) >> 2; // bits 9:2 shifted right by two
-      sainit[idx + 32 + i*16+8] = (time & 0x03) << 6; // bits 1:0 shifted 6 since 6 LSBs are for file selection
-      sainit[idx + 32 + i*16+8] += MUSCLE_GROUP_LIST.indexOf(muscleGroup);
-    });
-    console.log("set interval config: ", sainit);
-  }
-
-  /**
-   * Given the index of the timer mode in the sainit array, set the rest of the timer config
-   * given the timer mode object according to the sainit docs
-   * @param {Buffer} sainit 
-   * @param {Object} runObject 
-   * @param {int} idx 
-   */
   _setTimerConfig(sainit, timerObject, idx) {
     console.log("setting timer config: ", timerObject);
     const { splits, repetition, numRepetitions } = timerObject;
@@ -476,6 +448,93 @@ class SAinit {
       sainit[idx + 32 + i*16+8] = timeInTenths & 0xff;
     });
     console.log("set timer config: ", sainit);
+  }
+
+  /**
+   * Given the index of the timer mode in the sainit array, set the rest of the timer config
+   * given the timer mode object according to the sainit docs
+   * @param {Buffer} sainit 
+   * @param {Object} runObject 
+   * @param {int} idx 
+   */
+  _setIntervalConfig(sainit: Buffer, intervalObject, idx) {
+    console.log("setting interval config: ", intervalObject);
+    const { intervals, numRounds } = intervalObject;
+    sainit[idx] = 36;
+    var offset8 = Buffer.alloc(1);
+    if (numRounds > 10)
+      throw new Error(`num rounds must be less than 11. Got:${numRounds}`);
+    if (intervals.length > 6)
+      throw new Error(`num rounds must be less than 7. Got:${intervals}`);
+    offset8[0] = intervals.length - 1; // bits 7:4 are number of intervals - 1
+    offset8[0] = offset8[0] << 4;
+    // always stop at end of interval training, so no need to set bits 3:2
+    offset8[0] |= 0x02; // start by countdown by setting second lsb to 1
+    // intervals either cycle or end based on how many rounds there are
+    if (numRounds > 1) {
+      offset8[0] |= 0x08; // cycle by setting the 4th lsb to 1
+    }
+    sainit[idx + 8] = offset8[0] + SAinit.ZERO;
+    sainit[idx + 16] = numRounds * intervals.length + SAinit.ZERO; // total time periods
+    intervals.forEach(({time, muscleGroup}, i) => {
+      // upper 10 bits is time in seconds
+      sainit[idx + 32 + i*16] = (time & 0x03fc) >> 2; // bits 9:2 shifted right by two
+      sainit[idx + 32 + i*16+8] = (time & 0x03) << 6; // bits 1:0 shifted 6 since 6 LSBs are for file selection
+      sainit[idx + 32 + i*16+8] += MUSCLE_GROUP_LIST.indexOf(muscleGroup);
+    });
+    console.log("set interval config: ", sainit);
+  }
+
+  _setSwimWorkoutConfig(sainit: Buffer, workoutObject: SwimWorkoutInterface, idx: number) {
+    console.log("setting swim workout config: ", workoutObject);
+    const { sets, numRounds } = workoutObject;
+    sainit[idx] = 37;
+    var offset8 = Buffer.alloc(1);
+    if (sets.length > 6)
+      throw new Error(`num sets must be less or equal to 6. Got:${splits}`);
+    offset8[0] = sets.length - 1; // bits 7:4 are number of sets - 1
+    offset8[0] = offset8[0] << 4;
+    // always stop at end of interval training, so no need to set bits 3:2
+    offset8[0] |= 0x02; // start by countdown by setting second lsb to 1
+    // intervals either cycle or end based on how many rounds there are
+    if (numRounds > 1) {
+      offset8[0] |= 0x08; // cycle by setting the 4th lsb to 1
+    }
+    sainit[idx + 8] = offset8[0] + SAinit.ZERO;
+    let numDistancesPerRound = 0;
+    for (let i = 0; i < sets.length; i++) {
+      numDistancesPerRound += sets[i].reps;
+    }
+    sainit[idx + 16] = numRounds * numDistancesPerRound + SAinit.ZERO; // total number of sets
+    sets.forEach(({reps, distance, stroke, timeInSeconds}, i) => {
+      let twoByteParameters = Buffer.alloc(2);
+      // 15:13 is # repeats
+      twoByteParameters += (reps << 13);
+      // 12:10 is distance
+      let distanceBitRep = DISTANCES_LIST.indexOf(parseInt(distance));
+      twoByteParameters += distanceBitRep ? (distanceBitRep << 10) : (3 << 10);
+      // 9:6 is stroke
+      let strokeBitRep = STROKES_LIST.indexOf(stroke);
+      twoByteParameters += strokeBitRep ? (strokeBitRep << 6) : (3 << 6);
+      if (distance >= 200) {
+        // lower 6 bits is time in 10 seconds
+        let timeIn5Seconds = parseInt(Math.ceil(timeInSeconds / 5));
+        if (timeIn5Seconds > 63) {
+          throw new Error(`time in 5 seconds must be less than 63. Got ${timeIn5Seconds}`);
+        }
+        twoByteParameters += timeIn5Seconds;
+      } else {
+        // lower 6 bits is time in 5 seconds
+        let timeIn10Seconds = parseInt(Math.ceil(timeInSeconds / 10));
+        if (timeIn10Seconds > 63) {
+          throw new Error(`time in 5 seconds must be less than 63. Got ${timeIn10Seconds}`);
+        }
+        twoByteParameters += timeIn10Seconds;
+      }
+      sainit[idx + 32 + i*16] = twoByteParameters[0];
+      sainit[idx + 32 + i*16+8] = twoByteParameters[1];
+    });
+    console.log("set swim workout config: ", sainit);
   }
 }
 export default SAinit;
