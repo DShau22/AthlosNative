@@ -211,18 +211,18 @@ const DeviceConfig = (props) => {
               ListFooterComponent={() => {
                 return (
                   <>
-                    {/* <SAInitSender
+                    <SAInitSender
                       containerStyle={{
                         alignSelf: 'center',
                         margin: 20
                       }}
                       setIsLoading={setIsLoading}
                       saveAndCreateSaInit={saveAndCreateSaInit}
-                    /> */}
-                    <Button 
+                    />
+                    {/* <Button 
                       title='test'
                       onPress={async () => console.log(await saveAndCreateSaInit())}
-                    />
+                    /> */}
                   </>
                 )
               }}

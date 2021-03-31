@@ -491,7 +491,7 @@ class SAinit {
     sainit[idx] = 37;
     var offset8 = Buffer.alloc(1);
     if (sets.length > 6)
-      throw new Error(`num sets must be less or equal to 6. Got:${splits}`);
+      throw new Error(`num sets must be less or equal to 6. Got:${sets}`);
     offset8[0] = sets.length - 1; // bits 7:4 are number of sets - 1
     offset8[0] = offset8[0] << 4;
     // always stop at end of interval training, so no need to set bits 3:2
@@ -501,38 +501,45 @@ class SAinit {
       offset8[0] |= 0x08; // cycle by setting the 4th lsb to 1
     }
     sainit[idx + 8] = offset8[0] + SAinit.ZERO;
-    let numDistancesPerRound = 0;
+    var numDistancesPerRound = 0;
     for (let i = 0; i < sets.length; i++) {
       numDistancesPerRound += sets[i].reps;
     }
-    sainit[idx + 16] = numRounds * numDistancesPerRound + SAinit.ZERO; // total number of sets
+    sainit[idx + 16] = (numRounds * numDistancesPerRound) + SAinit.ZERO; // total number of sets
     sets.forEach(({reps, distance, stroke, timeInSeconds}, i) => {
-      let twoByteParameters = Buffer.alloc(2);
-      // 15:13 is # repeats
-      twoByteParameters += (reps << 13);
+      let twoByteParameters = 0; // ints in javascript are 32 bits
+      // 15:13 + 1 is # repeats
+      console.log("reps: ", reps);
+      twoByteParameters |= ((parseInt(reps) - 1) << 13);
+      console.log("15:13", twoByteParameters.toString(2));
       // 12:10 is distance
       let distanceBitRep = DISTANCES_LIST.indexOf(parseInt(distance));
-      twoByteParameters += distanceBitRep ? (distanceBitRep << 10) : (3 << 10);
+      twoByteParameters |= distanceBitRep >= 0 ? (distanceBitRep << 10) : (3 << 10);
+      console.log("12:10", twoByteParameters.toString(2));
       // 9:6 is stroke
       let strokeBitRep = STROKES_LIST.indexOf(stroke);
-      twoByteParameters += strokeBitRep ? (strokeBitRep << 6) : (3 << 6);
-      if (distance >= 200) {
+      twoByteParameters |= strokeBitRep >= 0 ? (strokeBitRep << 6) : (3 << 6);
+      console.log("9:6", twoByteParameters.toString(2));
+      if (distance <= 200) {
         // lower 6 bits is time in 10 seconds
         let timeIn5Seconds = parseInt(Math.ceil(timeInSeconds / 5));
         if (timeIn5Seconds > 63) {
           throw new Error(`time in 5 seconds must be less than 63. Got ${timeIn5Seconds}`);
         }
-        twoByteParameters += timeIn5Seconds;
+        twoByteParameters |= timeIn5Seconds;
       } else {
         // lower 6 bits is time in 5 seconds
         let timeIn10Seconds = parseInt(Math.ceil(timeInSeconds / 10));
         if (timeIn10Seconds > 63) {
           throw new Error(`time in 5 seconds must be less than 63. Got ${timeIn10Seconds}`);
         }
-        twoByteParameters += timeIn10Seconds;
+        twoByteParameters |= timeIn10Seconds;
       }
-      sainit[idx + 32 + i*16] = twoByteParameters[0];
-      sainit[idx + 32 + i*16+8] = twoByteParameters[1];
+      console.log("5:0", twoByteParameters.toString(2));
+      console.log("top 8 anded: ", ((twoByteParameters & 0x0000ff00) >> 8).toString(2));
+      console.log("top 8 anded: ", (twoByteParameters & 0x000000ff).toString(2));
+      sainit[idx + 32 + i*16] = (twoByteParameters & 0x0000ff00) >> 8; // bits [15:8]
+      sainit[idx + 32 + i*16+8] = twoByteParameters & 0x000000ff; // bits [7:0]
     });
     console.log("set swim workout config: ", sainit);
   }

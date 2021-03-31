@@ -17,6 +17,7 @@ import {
   getUserData,
   setDeviceId,
   getSaInitConfig,
+  setShouldAutoSync,
 } from '../utils/storage';
 import { showSnackBar } from '../utils/notifications';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -184,25 +185,35 @@ export default function SADataSync(props) {
     try {
       const newDeviceID = await GlobalBleHandler.scanAndRegister();
       console.log("registered: ", newDeviceID);
-      GlobalBleHandler.setID(newDeviceID); // THIS HAS TO HAPPEN BEFORE SCAN AND CONNECT
-      await GlobalBleHandler.scanAndConnect();
-      console.log("connected: ", newDeviceID);
       await setDeviceId(newDeviceID);
+      GlobalBleHandler.setID(newDeviceID); // THIS HAS TO HAPPEN BEFORE SCAN AND CONNECT
       setIsLinked(true);
+      await setShouldAutoSync(true);
       Alert.alert(
         "All Set!",
         "Successfully linked your new Athlos earbuds with this device :). Hit the gear icon on your profile if you" +
         " want to re-link with different earbuds.",
         [{text: "Okay"}]
       );
+      showSnackBar("connecting to your Athlos device...");
+      GlobalBleHandler.scanAndConnect()
+        .then(() => {
+          console.log("connected after linking: ", newDeviceID);
+          showSnackBar("Successfully connected to your Athlos device!");
+        })
+        .catch(e => {
+          console.log("failed to connect after linking");
+          showSnackBar("Failed to connect to your Athlos device. Trying again...");
+        });
     } catch(e) {
       console.log(e);
       GlobalBleHandler.setID("");
       await GlobalBleHandler.disconnect();
       GlobalBleHandler.stopScan();
       showSnackBar(`Error 106: Something went wrong with the linking process. Please try again later. ${e.toString()}`);
+    } finally {
+      setTransmitting(false);
     }
-    setTransmitting(false);
   }
 
   const readActivityData = async () => {
@@ -211,7 +222,8 @@ export default function SADataSync(props) {
       return;
     }
     console.log("******* swiped down to read **********");
-    if (transmitting || GlobalBleHandler.isSendingData) {
+    if (transmitting || GlobalBleHandler.isSendingData || GlobalBleHandler.isReading) {
+      showSnackBar("Your earbuds are hard at work transfering info. Please wait a bit.");
       return;
     }
     if (!GlobalBleHandler.isConnected) {
@@ -251,13 +263,12 @@ export default function SADataSync(props) {
     showSnackBar('Successfully synced with your Athlos earbuds :]');
     setTransmitting(false);
     // this could be an issue if updateSaInit fails FIX LATER
-    await delay(3000);
     try {
       await updateSaInit();
       await updateLocalUserInfo();
     } catch(e) {
       console.log("Error updating sainit or local user info:", e);
-      showSnackBar('Activity records are synced, but your earbud configurations were not updated.');
+      showSnackBar('Error 113: Your earbud configurations failed to update.', e);
     }
   }
 

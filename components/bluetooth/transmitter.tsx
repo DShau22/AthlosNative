@@ -4,18 +4,19 @@ import {
   removeFitnessBytes,
   setNeedsFitnessUpdate,
   removeFitnessRecords,
-  getToken
+  getToken,
+  getShouldAutoSync
 } from '../utils/storage';
 import BLUETOOTH_CONSTANTS from './BluetoothConstants';
 const {STOP_SCAN_ERR, DISCONNECT_ERR} = BLUETOOTH_CONSTANTS;
-import ENDPOINTS from '../endpoints';
 const Buffer = require('buffer/').Buffer;
 const SERVICE_UUID = 'e49a25f0-f69a-11e8-8eb2-f2801f1b9fd1';
 const TX = 'e49a25f1-f69a-11e8-8eb2-f2801f1b9fd1';
 const RX = 'e49a28f2-f69a-11e8-8eb2-f2801f1b9fd1';
-import axios from 'axios';
 import { BleManager } from 'react-native-ble-plx';
 import { updateActivityData } from '../fitness/data/localStorage';
+import { BluetoothStatus } from 'react-native-bluetooth-status';
+import { showSnackBar } from '../utils/notifications';
 const { DateTime } = require("luxon");
 
 const calcChecksum = (bytes, start, end) => {
@@ -210,6 +211,11 @@ class BLEHandler {
    * the user is registering their device for the first time.
    */
   async scanAndRegister() {
+    const isBtEnabled = await BluetoothStatus.state();
+    if (!isBtEnabled) {
+      showSnackBar("Bluetooth is not enabled. Please turn on Bluetooth to search for earbuds.");
+      return;
+    }
     this.stopScan();
     await this.disconnect();
     this.registerCompleter = new Completer();
@@ -313,6 +319,12 @@ class BLEHandler {
    * with a resolve value of the session bytes Buffer
    */
   async scanAndConnect() {
+    const isBtEnabled = await BluetoothStatus.state();
+    if (!isBtEnabled) {
+      showSnackBar("Bluetooth is not enabled. Please turn on Bluetooth to search for earbuds.");
+      return;
+    }
+    showSnackBar("Searching for your Athlos device...", "long");
     if (!this.userDeviceID || this.userDeviceID.length === 0) {
       throw new Error("Athlos device has not been linked yet");
     }
@@ -386,10 +398,8 @@ class BLEHandler {
             }
             this._scanAndConnect(); // try scanning and connecting again on disconnect
           });
-          this.setConnected(true);
-          this.isConnected = true;
           await this.setUpNotifyListener();
-          this.connectCompleter.complete("successfully connected to Athlos device");
+          this.connectCompleter.complete(true);
         } catch(e) {
           console.log("error connecting device and discovering services: ", e);
           this._scanAndConnect();
@@ -456,9 +466,16 @@ class BLEHandler {
         readChar.isNotifying = false;
       }
     });
+    this.setConnected(true);
+    this.isConnected = true;
   }
 
   async readActivityData() {
+    const isBtEnabled = await BluetoothStatus.state();
+    if (!isBtEnabled) {
+      showSnackBar("Bluetooth is not enabled. Please turn on Bluetooth to sync.");
+      return;
+    }
     if (!this.device || !(await this.device.isConnected())) {
       console.log("device is not connected: ", this.device);
       return;
@@ -473,6 +490,7 @@ class BLEHandler {
     readSaDataPkg[3] = 'D'.charCodeAt(0);
     readSaDataPkg[4] = this.writePkgId;
     readSaDataPkg[5] = calcChecksum(readSaDataPkg, 0, readSaDataPkg.length - 1);
+    console.log("send read activity data pkg...");
     await this._sendAndWaitResponse(readSaDataPkg);
     return this.saDataCompleter.result;
   }
@@ -570,13 +588,14 @@ class BLEHandler {
           await this._sendResetSaDataPkg();
         }
         // send package to tell the earbuds to rewrite sadata. Shouldnt need to await
-        this.saDataCompleter.complete(this.totalNumSaDataBytes);
         console.log("resetting read state");
+        this._resetReadState();
+        this.saDataCompleter.complete(this.totalNumSaDataBytes);
       } catch(e) {
         console.log("Error 102: error storing fitness bytes (updateActivityData)");
+        this._resetReadState();
         this.saDataCompleter.error(e);
       }
-      this._resetReadState();
     } else {
       await this._sendResponse(readValueInRawBytes);
       return;
@@ -600,48 +619,6 @@ class BLEHandler {
     resetPkg[resetPkg.length - 1] = calcChecksum(resetPkg, 0, resetPkg.length - 1); // checksum
     await this._sendAndWaitResponse(resetPkg);
   }
-
-  /**
-   * Sends the queue of utf8 encoded past sadatas stored in async storage. As long as server requests don't fail, this
-   * queue should only have 1 element (the sadata we just read from the earbuds).
-   * CONSIDER TAKING OUT PROMISE.ALL HERE SINCE IT CAN CAUSE MONGO WRITE CONFLICTS
-   */
-  // async uploadToServer() {
-  //   const sessionByteList = await getFitnessBytes(); // list of utf8 encoded sadata bytes in async storage
-  //   if (sessionByteList === null) {
-  //     console.log("session byte list is null");
-  //     return;
-  //   }
-  //   const userToken = await getToken();
-  //   const config = {
-  //     headers: { 'Content-Type': 'application/json' },
-  //   }
-  //   // console.log("session byte list: ", sessionByteList, sessionByteList.length);
-  //   const uploadPromises = [];
-  //   sessionByteList.forEach(({date, sessionBytes}, _) => {
-  //     uploadPromises.push(axios.post(ENDPOINTS.upload, {
-  //       date,
-  //       sessionBytes,
-  //       userToken,
-  //     }, config));
-  //   });
-  //   const promiseResults = await Promise.all(uploadPromises);
-  //   var atLeastOneSuccess = false;
-  //   const recordIndexesToRemove = [];
-  //   for (let i = 0; i < promiseResults.length; i++) {
-  //     const resJson = promiseResults[i].data;
-  //     console.log(`${i} axios response: ${resJson}`);
-  //     atLeastOneSuccess = atLeastOneSuccess || resJson.success;
-  //     if (resJson.success) {
-  //       recordIndexesToRemove.push(i);
-  //       // successfully updated this session byte record, so we can remove it now.
-  //     } else {
-  //       console.log("failed: ", resJson.message);
-  //     }
-  //   }
-  //   await removeFitnessRecords(recordIndexesToRemove);
-  //   await setNeedsFitnessUpdate(atLeastOneSuccess && promiseResults.length > 0);
-  // }
 
   /**
    * Call this when the earbuds are transmitting data to the phone, and we are sending the
@@ -736,6 +713,11 @@ class BLEHandler {
    */
   // have settings/getters for all the sainit indices that correspond to different settings
   async sendByteArray(bytes) { // bytes should be a Buffer type already but no checksum or metadata yet
+    const isBtEnabled = await BluetoothStatus.state();
+    if (!isBtEnabled) {
+      showSnackBar("Bluetooth is not enabled. Please turn on Bluetooth to sync.");
+      return;
+    }
     if (!this.device || !(await this.device.isConnected())) {
       throw new Error("device is not yet connected");
     }

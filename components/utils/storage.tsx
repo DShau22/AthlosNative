@@ -31,7 +31,6 @@ const logOut = async () => {
 
 const getShouldAutoSync = async () => {
   const res = await AsyncStorage.getItem(AUTO_SYNC_KEY);
-  console.log("should auto sync: ", res);
   return res;
 }
 

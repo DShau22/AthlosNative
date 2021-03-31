@@ -3,6 +3,7 @@ import { Text, View, StyleSheet, Alert, DeviceEventEmitter, } from 'react-native
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import LocationServicesDialogBox from "react-native-android-location-services-dialog-box";
+
 const { DateTime } = require('luxon');
 import {
   getToken,
@@ -10,18 +11,11 @@ import {
   setShouldAutoSync,
   storeUserData,
   getUserData,
-  needsFitnessUpdate,
-  setNeedsFitnessUpdate,
   getFirstTimeLogin,
   setFirstTimeLogin,
   getDeviceId,
 } from '../utils/storage';
 import ENDPOINTS from "../endpoints";
-import {
-  getLastMonday,
-  getNextSunday,
-  sameDate,
-} from "../utils/dates";
 import {
   requestLocationPermission,
   requestLocationServices
@@ -31,7 +25,6 @@ import {
 } from '../fitness/data/UserActivities';
 import {
   getUserActivityData,
-  updateActivityData,
 } from '../fitness/data/localStorage';
 
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -42,13 +35,8 @@ import Feather from 'react-native-vector-icons/Feather';
 Feather.loadFont();
 
 import { showSnackBar } from '../utils/notifications';
-import BLUETOOTH_CONSTANTS from '../bluetooth/BluetoothConstants';
-const {STOP_SCAN_ERR} = BLUETOOTH_CONSTANTS;
 import LoadingSpin from '../generic/LoadingSpin';
-import Fitness from "../fitness/Fitness";
 import { UserDataContext, AppFunctionsContext } from "../../Context";
-import Home from "./Home";
-import Settings from "../settings/Settings";
 import Community from "../community/Community";
 import Profile from '../profile/Profile';
 import DeviceConfig from '../configure/DeviceConfig';
@@ -67,9 +55,6 @@ const {
   SYNC,
 } = GLOBAL_CONSTANTS;
 import FITNESS_CONTANTS from '../fitness/FitnessConstants';
-const {
-  NUM_WEEKS_IN_PAST
-} = FITNESS_CONTANTS;
 import ThemeText from '../generic/ThemeText';
 import { useTheme } from '@react-navigation/native';
 import Axios from 'axios';
@@ -244,33 +229,14 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
       GlobalBleHandler.setID(deviceID);
       // keep trying connect to athlos device
       if (deviceID.length > 0) {
-        showSnackBar("Searching for your Athlos device...", "long");
         GlobalBleHandler.scanAndConnect()
-          .then(() => {
-            console.log("found athlos device");
-            setAthlosConnected(true);
+          .then((connected) => {
+            setAthlosConnected(connected ? true : false);
           })
           .catch((e) => {
             console.log("error connecting to device: ", e);
           });
       }
-      // if ((await getShouldAutoSync())) {
-      //   try {
-      //     showSnackBar("Auto-syncing...", 'length_long', "Okay");
-      //     await GlobalBleHandler.scanAndConnect();
-      //     await GlobalBleHandler.setUpNotifyListener();
-      //     console.log("successfully read and saved sadata bytes");
-      //     await GlobalBleHandler.uploadToServer();
-      //     showSnackBar("Successfully auto-synced with your Athlos earbuds. Your activity records should be ready in a minute :]");
-      //   } catch(e) {
-      //     console.log("error scanning and connecting: ", e);
-      //     if (e === STOP_SCAN_ERR) {
-      //       showSnackBar("Stopped auto-syncing", 'length_long');
-      //     } else {
-      //       showSnackBar("Failed to auto-sync with your Athlos earbuds. ", e);
-      //     }
-      //   }
-      // }
       try {
         await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
         await updateLocalUserInfo(); // no promise.all to avoid race conditions with updating the state
@@ -295,20 +261,39 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
     }
   }, []);
 
+  // responds based on whether or not earbuds are connected
   React.useEffect(() => {
     if (firstUpdate.current) {
       firstUpdate.current = false;
       return;
     }
     if (athlosConnected) {
-      showSnackBar("Athlos device connected!", "long");
+      console.log("athlos is connected in use effect")
+      showSnackBar("Athlos device connected. Auto syncing...", "long");
+      getShouldAutoSync()
+        .then((shouldAutoSync) => {
+          if (shouldAutoSync) {
+            return GlobalBleHandler.readActivityData();
+          }
+        })
+        .then((bytesRead) => {
+          console.log("read activity data promise resolved. BytesRead: ", bytesRead);
+          if (bytesRead <= 8) {
+            showSnackBar("Activities already updated.");
+          } else if (bytesRead !== undefined) {
+            showSnackBar("Activities successfully synced!");
+          }
+        })
+        .catch(e => {
+          console.log("error autosyncing: ", e);
+          showSnackBar("Something went wrong with autosyncing. Please go to the sync page and manually sync.");
+        });
     } else {
       showSnackBar("Athlos device disconnected. Trying to reconnect...", "long");
     }
   }, [athlosConnected]);
 
   React.useEffect(() => {
-    // console.log("use effect with state: ", state);
     if (state._id.length > 0) {
       storeUserData(state);
     }
