@@ -76,8 +76,13 @@ const DEVICE_CONFIG_CONSTANTS = {
 
   WORK: 'Work',
   REST: 'Rest',
+
+  RANDOM_MUSIC_SEQUENCE: 'Random',
+  ORDER_BY_DATE: 'Order by date',
 }
 const {
+  RANDOM_MUSIC_SEQUENCE,
+  ORDER_BY_DATE,
   FLUTTER_KICK,
   DOLPHIN_KICK,
   ROCKET_KICK,
@@ -217,6 +222,7 @@ const getDefaultConfig = () => {
 const getDefaultMusicOnlyMode = () => {
   return {
     mode: MUSIC_ONLY,
+    musicPlaySequence: RANDOM_MUSIC_SEQUENCE,
   };
 };
 

@@ -21,7 +21,8 @@ const {
   INTERVAL,
   TIMER,
   MUSIC_ONLY,
-  MODE_CONFIG,
+  RANDOM_MUSIC_SEQUENCE,
+  ORDER_BY_DATE,
 
   REPEAT_LAST,
   CYCLES,
@@ -173,8 +174,10 @@ class SAinit {
         sainit[idx] = SAinit.ZERO;
       } else {
         switch(modeObject.mode) {
+          case MUSIC_ONLY:
+            this._setMusicConfig(sainit, modeObject, idx);
+            break;
           case RUN:
-            sainit[idx] = SAinit.R;
             this._setRunConfig(sainit, modeObject, idx);
             break;
           case SWIM:
@@ -212,6 +215,13 @@ class SAinit {
     console.log("in utf8: ", sainit.toString('utf8'));
     return sainit;
   }
+
+  _setMusicConfig(sainit, musicObject, idx) {
+    console.log("setting music config: ", musicObject);
+    const { musicPlaySequence } = musicObject;
+    sainit[8] = musicPlaySequence === ORDER_BY_DATE ? SAinit.ZERO : SAinit.THREE;
+  }
+
   /**
    * Given the index of the run mode in the sainit array, set the rest of the running config
    * given the run mode object according to the sainit docs

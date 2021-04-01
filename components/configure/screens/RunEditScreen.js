@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/AntDesign';
 Icon.loadFont();
 
 import { DEVICE_CONFIG_CONSTANTS } from '../DeviceConfigConstants';
-const { TRIGGER_MIN, TRIGGER_STEPS, RUN, RUN_SUBTITLE, MODE_CONFIG } = DEVICE_CONFIG_CONSTANTS;
+const { TRIGGER_MIN, TRIGGER_STEPS, RUN, MODE_CONFIG } = DEVICE_CONFIG_CONSTANTS;
 import ThemeText from '../../generic/ThemeText';
 import SaveButton from './SaveButton';
 import MenuPrompt from './MenuPrompt';
