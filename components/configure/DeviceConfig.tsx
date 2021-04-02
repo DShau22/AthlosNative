@@ -189,7 +189,16 @@ const DeviceConfig = (props) => {
                     Customize what stats your device will report to you in workouts and when to report them.
                     Add or remove activity tracking modes that your device can use when powered on.
                   </ThemeText>
-                  <Divider style={{ alignSelf: 'center', width: '95%', marginTop: 10, backgroundColor: colors.textColor }}/>
+                  <SAInitSender
+                    containerStyle={{
+                      width: '90%',
+                      alignSelf: 'center',
+                      margin: 3
+                    }}
+                    setIsLoading={setIsLoading}
+                    saveAndCreateSaInit={saveAndCreateSaInit}
+                  />
+                  <Divider style={{ alignSelf: 'center', width: '95%', marginTop: 10, backgroundColor: colors.text }}/>
                 </>
               )}
               data={deviceConfig}
@@ -211,14 +220,14 @@ const DeviceConfig = (props) => {
               ListFooterComponent={() => {
                 return (
                   <>
-                    <SAInitSender
+                    {/* <SAInitSender
                       containerStyle={{
                         alignSelf: 'center',
                         margin: 20
                       }}
                       setIsLoading={setIsLoading}
                       saveAndCreateSaInit={saveAndCreateSaInit}
-                    />
+                    /> */}
                     {/* <Button 
                       title='test'
                       onPress={async () => console.log(await saveAndCreateSaInit())}

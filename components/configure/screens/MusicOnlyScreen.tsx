@@ -3,6 +3,7 @@ import { View, Alert, ScrollView } from 'react-native';
 import { ListItem } from 'react-native-elements';
 import { useTheme, useFocusEffect } from '@react-navigation/native';
 import Spinner from 'react-native-loading-spinner-overlay';
+import SaveButton from './SaveButton';
 
 import { DEVICE_CONFIG_CONSTANTS } from '../DeviceConfigConstants';
 const { MUSIC_ONLY, MODE_CONFIG, RANDOM_MUSIC_SEQUENCE, ORDER_BY_DATE } = DEVICE_CONFIG_CONSTANTS;
@@ -13,7 +14,7 @@ const MusicOnlyScreen: React.FC<any> = (props) => {
   const { navigation, deviceConfig, setDeviceConfig } = props;
   const { editIdx } = props.route.params; // index of the object in deviceConfig array we are editing
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const [musicPlaySequence, setMusicPlaySequence] = React.useState<string>();
+  const [musicPlaySequence, setMusicPlaySequence] = React.useState<string>(deviceConfig[editIdx].musicPlaySequence);
   const firstUpdate = React.useRef(true);
 
   React.useEffect(() => {
@@ -22,7 +23,7 @@ const MusicOnlyScreen: React.FC<any> = (props) => {
       return;
     }
     setIsLoading(false);
-    Alert.alert('Done!', 'Successfully saved your running settings', [{text: 'Okay'}]);
+    Alert.alert('Done!', 'Saved your music settings', [{text: 'Okay'}]);
     navigation.navigate(MODE_CONFIG);
   }, [deviceConfig]);
 
@@ -57,7 +58,7 @@ const MusicOnlyScreen: React.FC<any> = (props) => {
   return (
     <ScrollView style={{
       flex: 1,
-      padding: 20,
+      paddingLeft: 6,
       flexDirection: 'column',
       width: '100%',
       height: '100%',
@@ -128,6 +129,13 @@ const MusicOnlyScreen: React.FC<any> = (props) => {
           onPress={() => setMusicPlaySequence(ORDER_BY_DATE)}
         />
       </ListItem>
+      <SaveButton
+        containerStyle={{
+          alignSelf: 'center',
+          margin: 20
+        }}
+        onPress={saveEdits}
+      />
     </ScrollView>
   )
 }

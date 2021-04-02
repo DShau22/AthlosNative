@@ -170,39 +170,35 @@ class SAinit {
     // set the first 8 bytes
     const sainit = Buffer.alloc(SAinit.SA_INIT_SIZE);
     this.deviceConfig.forEach((modeObject, idx) => {
-      if (idx === 0) {
-        sainit[idx] = SAinit.ZERO;
-      } else {
-        switch(modeObject.mode) {
-          case MUSIC_ONLY:
-            this._setMusicConfig(sainit, modeObject, idx);
-            break;
-          case RUN:
-            this._setRunConfig(sainit, modeObject, idx);
-            break;
-          case SWIM:
-            this._setSwimConfig(sainit, modeObject, idx);
-            break;
-          case JUMP:
-            this._setJumpConfig(sainit, modeObject, idx);
-            break;
-          case SWIMMING_EVENT:
-            this._setSwimmingEventConfig(sainit, modeObject, idx);
-            break;
-          case INTERVAL:
-            this._setIntervalConfig(sainit, modeObject, idx);
-            break;
-          case TIMER:
-            this._setTimerConfig(sainit, modeObject, idx);
-            break;
-          case SWIM_WORKOUT:
-            this._setSwimWorkoutConfig(sainit, modeObject, idx);
-            break;
-          default:
-            // set it as unused
-            sainit[idx] = SAinit.ZERO;
-            break;
-        }
+      switch(modeObject.mode) {
+        case MUSIC_ONLY:
+          this._setMusicConfig(sainit, modeObject, idx);
+          break;
+        case RUN:
+          this._setRunConfig(sainit, modeObject, idx);
+          break;
+        case SWIM:
+          this._setSwimConfig(sainit, modeObject, idx);
+          break;
+        case JUMP:
+          this._setJumpConfig(sainit, modeObject, idx);
+          break;
+        case SWIMMING_EVENT:
+          this._setSwimmingEventConfig(sainit, modeObject, idx);
+          break;
+        case INTERVAL:
+          this._setIntervalConfig(sainit, modeObject, idx);
+          break;
+        case TIMER:
+          this._setTimerConfig(sainit, modeObject, idx);
+          break;
+        case SWIM_WORKOUT:
+          this._setSwimWorkoutConfig(sainit, modeObject, idx);
+          break;
+        default:
+          // set it as unused
+          sainit[idx] = SAinit.ZERO;
+          break;
       }
     });
     for (let i = this.deviceConfig.length; i < 8; i++) {

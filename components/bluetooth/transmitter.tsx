@@ -589,8 +589,9 @@ class BLEHandler {
         }
         // send package to tell the earbuds to rewrite sadata. Shouldnt need to await
         console.log("resetting read state");
-        this._resetReadState();
-        this.saDataCompleter.complete(this.totalNumSaDataBytes);
+        let bytesRead = this.totalNumSaDataBytes
+        this._resetReadState(); // totalNumSaDataBytes get reset here
+        this.saDataCompleter.complete(bytesRead);
       } catch(e) {
         console.log("Error 102: error storing fitness bytes (updateActivityData)");
         this._resetReadState();
