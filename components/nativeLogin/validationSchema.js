@@ -22,14 +22,14 @@ const signUpValidationSchema = Yup.object({
   signUpPassword: Yup.string()
     .required('Cannot be empty')
     .matches(
-      /^(?=.*[A-Za-z])(?=.*\d)[!@#$%^&*-=.A-Za-z\d]{8,}$/,
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[!@#$%^&*-=.A-Za-z\d]{8,}$/,
       "Must contain 8 characters, one uppercase, one lowercase, one number. Only !@#$%^&*-=. special characters allowed."
     )
     .max(200, 'Must be less than 200 characters long'),
   signUpPasswordConf: Yup.string()
     .required('Cannot be empty')
     .matches(
-      /^(?=.*[A-Za-z])(?=.*\d)[!@#$%^&*-=.A-Za-z\d]{8,}/,
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[!@#$%^&*-=.A-Za-z\d]{8,}$/,
       "Must contain 8 characters, one uppercase, one lowercase, one number. Only !@#$%^&*-=. special characters allowed."
     )
     .oneOf([Yup.ref('signUpPassword'), null], 'Passwords must match'),
