@@ -4,8 +4,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { DEVICE_CONFIG_CONSTANTS, } from '../DeviceConfigConstants';
 const {
   POOL_LENGTH_CHOICES,
-  SWIMMING_EVENT,
-  SWIMMING_EVENT_SUBTITLE,
+  SWIMMING_RACE,
+  SWIMMING_RACE_SUBTITLE,
   BUTTERFLY,
   BACKSTROKE,
   BREASTROKE,
@@ -117,9 +117,8 @@ const DISTANCES = {
     ]
   }
 };
-ANIMATION_DURATION = 150;
 
-export default function SwimmingEventEditScreen(props) {
+export default function SwimmingRaceEditScreen(props) {
   const { colors } = useTheme();
   const { navigation, deviceConfig, setDeviceConfig } = props;
   const { editIdx } = props.route.params; // index of the object in deviceConfig array we are editing
@@ -173,7 +172,7 @@ export default function SwimmingEventEditScreen(props) {
     // depending on the edit mode
     setDeviceConfig(prevConfig => {
       const newModeSettings = {
-        mode: SWIMMING_EVENT,
+        mode: SWIMMING_RACE,
         poolLength,
         stroke,
         distance,

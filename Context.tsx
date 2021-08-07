@@ -1,4 +1,10 @@
 import React from 'react'
+export type AppFunctionsContextType = {
+  setAppState: Function,
+  updateLocalUserInfo: Function,
+  updateLocalUserFitness: Function,
+  syncProgress: number,
+}
 const AppContext = React.createContext({});
 const UserDataContext = React.createContext({});
 const SettingsContext = React.createContext({});
@@ -9,5 +15,5 @@ export {
   UserDataContext,
   SettingsContext,
   AppFunctionsContext,
-  ProfileContext
+  ProfileContext,
 }

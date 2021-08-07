@@ -236,8 +236,8 @@ class UserActivities {
       oldSwims: [],
       oldJumps: [],
     };
-    console.log(this.runs.length);
-    console.log("num to remove: ", numToRemove);
+    // console.log(this.runs.length);
+    // console.log("num to remove: ", numToRemove);
     for (let i = 0; i < numToRemove; i++) {
       oldRecords.oldRuns.push(...this.runs[this.runs.length - 1 - i]);
       oldRecords.oldSwims.push(...this.swims[this.swims.length - 1 - i]);
@@ -246,7 +246,7 @@ class UserActivities {
     this.runs = this.runs.slice(0, this.runs.length - numToRemove);
     this.swims = this.swims.slice(0, this.swims.length - numToRemove);
     this.jumps = this.jumps.slice(0, this.jumps.length - numToRemove);
-    console.log(this.runs.length);
+    // console.log(this.runs.length);
     await storeOldFitnessRecords(oldRecords);
   }
 

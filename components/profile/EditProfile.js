@@ -440,7 +440,16 @@ export default function EditProfile(props) {
         if (updateJson.success) {
           // make fetch to backend to update app context. Maybe consider just setting state
           // instead of making an entire other fetch
-          await updateLocalUserInfo();
+          await setAppState({
+            firstName: updateFirstName,
+            lastName: updateLastName,
+            bio: updateBio,
+            location: updateLocation,
+            gender: updateGender,
+            weight,
+            height,
+            age: updateAge,
+          });
           Alert.alert(`All Done!`, "Successfully updated your profile!", [{ text: "Okay" }]);
           setIsLoading(false);
         } else {

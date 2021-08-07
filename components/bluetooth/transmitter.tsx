@@ -28,7 +28,7 @@ const calcChecksum = (bytes, start, end) => {
   return res;
 }
 
-const calcNumSaDataBytes = (readValueInRawBytes) => {
+const calcNumSaDataBytes = (readValueInRawBytes: Buffer) => {
   if (readValueInRawBytes.length < 10)
     throw new Error(`read value in raw bytes is too short to be valid: ${readValueInRawBytes}`);
   // start at idx 3 cuz first 3 bytes are metadata
@@ -90,7 +90,8 @@ class BLEHandler {
   static METADATA_SIZE = 5;
   athlosResponses: any[];
   sendTimer: any;
-  setConnected: (_: any) => void;
+  setConnected: Function;
+  setUISyncProgress: Function;
   readSubscription: any;
   scanSubscription: any;
   disconnectSubscription: any;
@@ -114,7 +115,8 @@ class BLEHandler {
   constructor(manager: BleManager) {
     this.athlosResponses = [], // for JJ's debug purposes
     this.sendTimer = null;
-    this.setConnected = (_) => {};
+    this.setConnected = () => {};
+    this.setUISyncProgress = () => {};
 
     this.readSubscription = null;
     this.scanSubscription = null;
@@ -146,8 +148,12 @@ class BLEHandler {
    * The BLE handler accepts a function that sets the state of a particular component
    * This is so that the Athlos component knows when the device disconnects
    */
-  addSetConnectedFunction(fn) {
+  addSetConnectedFunction(fn: Function = () => {}) {
     this.setConnected = fn;
+  }
+
+  addSetSyncProgressFunction(fn: Function = () => {}) {
+    this.setUISyncProgress = fn;
   }
 
   /**
@@ -235,8 +241,9 @@ class BLEHandler {
           }
           if (device.name === 'AthlosData') {
             // Stop scanning as it's not necessary if you are scanning for one device.
+            let discoveredId = device.id;
             this.stopScan();
-            this.registerCompleter.complete(device.id);
+            this.registerCompleter.complete(discoveredId);
           }
         });
       }
@@ -249,6 +256,7 @@ class BLEHandler {
    */
   stopScan() {
     if (this.manager) {
+      console.log("stopping scan...");
       this.manager.stopDeviceScan();
     }
     if (this.scanSubscription) {
@@ -555,8 +563,9 @@ class BLEHandler {
    * then save these bytes to local storage and send them to server. If server request fails, user can stll press the sync
    * button on the app or the app can periodically send stuff in local storage.
    * @param {Buffer} readValueInRawBytes 
+   * @param {Function} setStateHook a function that sets the state of the component using this transmitter. Usually for showing transmitting progress in UI.
    */
-  async _readIncomingBytesAndSendResponse(readValueInRawBytes) {
+  async _readIncomingBytesAndSendResponse(readValueInRawBytes: Buffer) {
     // handle accordingly if this is the first SADATA package
     if (this.readBuffers.length === 0) {
       // this is the first DATA package sent over
@@ -566,13 +575,16 @@ class BLEHandler {
         console.log(`invalid sadata: 11th byte (10th index) should be $ but got ${readValueInRawBytes[10]}`);
         throw new Error(`invalid sadata: 11th byte (10th index) should be $ but got ${readValueInRawBytes[10]}`);
       }
-      this.totalNumSaDataBytes = calcNumSaDataBytes(readValueInRawBytes);;
+      this.totalNumSaDataBytes = calcNumSaDataBytes(readValueInRawBytes);
+      this.setUISyncProgress(0);
       this.numSaDataBytesRead = 0;
     }
     console.log("total num bytes to read expected: ", this.totalNumSaDataBytes);
     console.log("total num bytes read so far: ", this.numSaDataBytesRead);
     this.readBuffers.push(readValueInRawBytes.slice(3, readValueInRawBytes.length - 2)); // first 3 bytes, last 2 bytes are metadata
     this.numSaDataBytesRead += readValueInRawBytes.length - BLEHandler.METADATA_SIZE;
+    this.setUISyncProgress(this.numSaDataBytesRead / this.totalNumSaDataBytes);
+
     var totalNumBytes = 0;
     this.readBuffers.forEach((buffer, _) => {
       totalNumBytes += buffer.length;
@@ -776,6 +788,7 @@ class BLEHandler {
     this.isReading = false;
     this.isSendingData = false;
     this.currItem = null;
+    this.setUISyncProgress(-1); // non negative means it's currently reading sadata
   }
 }
 

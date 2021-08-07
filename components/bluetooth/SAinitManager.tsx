@@ -16,7 +16,7 @@ const {
   RUN,
   SWIM,
   JUMP,
-  SWIMMING_EVENT,
+  SWIMMING_RACE,
   SWIM_WORKOUT,
   INTERVAL,
   TIMER,
@@ -183,8 +183,8 @@ class SAinit {
         case JUMP:
           this._setJumpConfig(sainit, modeObject, idx);
           break;
-        case SWIMMING_EVENT:
-          this._setSwimmingEventConfig(sainit, modeObject, idx);
+        case SWIMMING_RACE:
+          this._setSwimmingRaceConfig(sainit, modeObject, idx);
           break;
         case INTERVAL:
           this._setIntervalConfig(sainit, modeObject, idx);
@@ -213,6 +213,7 @@ class SAinit {
   }
 
   _setMusicConfig(sainit, musicObject, idx) {
+    sainit[idx] = SAinit.ZERO;
     console.log("setting music config: ", musicObject);
     const { musicPlaySequence } = musicObject;
     sainit[8] = musicPlaySequence === ORDER_BY_DATE ? SAinit.ZERO : SAinit.THREE;
@@ -372,7 +373,7 @@ class SAinit {
    * @param {Object} runObject 
    * @param {int} idx 
    */
-  _setSwimmingEventConfig(sainit, swimmingEventObject, idx) {
+  _setSwimmingRaceConfig(sainit, swimmingEventObject, idx) {
     console.log("setting race config: ", swimmingEventObject);
     // build the event lookup table only if we have a swimming event config
     if (!this.eventLookupTable) {
@@ -419,7 +420,7 @@ class SAinit {
     // set the personal best time (RN DOES NOT INCLUDE)
     sainit[idx + 112] = 0;
     sainit[idx + 120] = 2;
-    console.log('set swimming event config: ', sainit);
+    console.log('set swimming race config: ', sainit);
   }
 
   /**

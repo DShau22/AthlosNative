@@ -9,7 +9,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from '@react-navigation/native';
 import axios from 'axios';
 
-import { UserDataContext, ProfileContext, AppFunctionsContext } from '../../Context';
+import { UserDataContext, ProfileContext, AppFunctionsContext, AppFunctionsContextType } from '../../Context';
 import PROFILE_CONSTANTS from "./ProfileConstants";
 import SETTINGS_CONSTANTS from '../settings/SettingsConstants';
 import ENDPOINTS from '../endpoints';
@@ -55,6 +55,9 @@ import SettingsMenu from '../settings/settingScreens/SettingsMenu';
 import Spinner from 'react-native-loading-spinner-overlay';
 import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
 import Settings from '../settings/Settings';
+import SyncProgressCircle from '../bluetooth/SyncProgressCircle';
+import SyncProgressCircleHeader from '../bluetooth/SyncProgressCircleHeader';
+
 const ProfileTemplate = (props) => {
   const userDataContext = React.useContext(UserDataContext)
   const {
@@ -140,7 +143,7 @@ const ProfileTemplate = (props) => {
 
   //********************** SETTINGS STUFF *************************
   const context = React.useContext(UserDataContext);
-  const { setAppState } = React.useContext(AppFunctionsContext); 
+  const { setAppState, syncProgress } = React.useContext(AppFunctionsContext) as AppFunctionsContextType; 
 
   const [unitDisplayChoice, setUnitDisplayChoice] = React.useState(settings.unitSystem);
   // NOT IN USE AT THE MOMENT FOR SETTINGS
@@ -303,7 +306,11 @@ const ProfileTemplate = (props) => {
       <Stack.Navigator initialRouteName={profileScreenName}>
         <Stack.Screen
           name={profileScreenName}
-          options={{ title: relationshipStatus === IS_SELF ? 'Your Profile' : `${profileContext.firstName}'s Profile` }}
+          // options={{ title: relationshipStatus === IS_SELF ? 'Your Profile' : `${profileContext.firstName}'s Profile` }}
+          options={{ headerTitle: _ => <SyncProgressCircleHeader
+            headerText={relationshipStatus === IS_SELF ? 'Your Profile' : `${profileContext.firstName}'s Profile`}
+            syncProgress={syncProgress}/>
+          }}
         >
           {(props) => (
             <ScrollView

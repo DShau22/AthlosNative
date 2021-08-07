@@ -1,7 +1,9 @@
+import * as Progress from 'react-native-progress';
 import { useTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import GLOBAL_CONSTANTS from '../GlobalConstants';
 import React from 'react';
-import { AppFunctionsContext, UserDataContext } from '../../Context';
+import { AppFunctionsContext, UserDataContext, AppFunctionsContextType } from '../../Context';
 import { View, StyleSheet, Image, Animated } from 'react-native';
 import GestureRecognizer from 'react-native-swipe-gestures';
 import ThemeText from '../generic/ThemeText';
@@ -12,7 +14,7 @@ import {
   requestLocationPermission,
   hasLocationPermission
 } from '../utils/permissions';
-import SAinit from '../bluetooth/SAinitManager';
+import SAinit from './SAinitManager';
 import {
   getUserData,
   setDeviceId,
@@ -30,26 +32,23 @@ Icon.loadFont();
 
 const { SYNC_PAGE, SYNC_HELP_PAGE } = BLUETOOTH_CONSTANTS;
 
-function delay(delayInMs) {
+function delay(delayInMs: number) {
   return new Promise(resolve => {
     setTimeout(() => {
       resolve(delayInMs);
     }, delayInMs);
   });
 }
-/**
- * User will use this component to either 'sync' their devices with the phone or 
- * register a new device. Syncing under the hood just tells the Global Ble handler to reset and rescan again to prompt
- * the earbuds to resend sadata. Registering a device is necessary otherwise someone else might try to connect their athlos
- * earbuds to their phone while this user is around, and this user will then "steal" their fitness data.
- */
-export default function SADataSync(props) {
+interface SADataSyncInterface {
+  athlosConnected: boolean,
+};
+const SADataSync: React.FC<SADataSyncInterface> = (props) => { 
   const { athlosConnected } = props;
   const { colors } = useTheme();
-  const appFunctionsContext = React.useContext(AppFunctionsContext);
+  const appFunctionsContext = React.useContext(AppFunctionsContext) as AppFunctionsContextType;
+  const { updateLocalUserInfo, updateLocalUserFitness, setAppState, syncProgress } = appFunctionsContext;
   const userDataContext = React.useContext(UserDataContext);
-  const { updateLocalUserInfo, updateLocalUserFitness, setAppState } = appFunctionsContext;
-  const [transmitting, setTransmitting] = React.useState(false);
+  const [transmitting, setTransmitting] = React.useState(false); // boolean flag for if the user is transmitting data/linking
   const [isLinked, setIsLinked] = React.useState(GlobalBleHandler.hasID());
 
   const transferTimerRef = React.useRef();
@@ -202,13 +201,12 @@ export default function SADataSync(props) {
           showSnackBar("Successfully connected to your Athlos device!");
         })
         .catch(e => {
-          console.log("failed to connect after linking");
+          console.log("failed to connect after linking", e);
           showSnackBar("Failed to connect to your Athlos device. Trying again...");
         });
     } catch(e) {
       console.log(e);
       GlobalBleHandler.setID("");
-      await GlobalBleHandler.disconnect();
       GlobalBleHandler.stopScan();
       showSnackBar(`Error 106: Something went wrong with the linking process. Please try again later. ${e.toString()}`);
     } finally {
@@ -358,9 +356,10 @@ export default function SADataSync(props) {
                     }]}
                   />
                 </View>
-                {transmitting ? 
+                {transmitting || syncProgress >= 0 ? 
                   <View style={styles.transmittingTextContainer}>
-                    <ThemeText style={styles.transmittingText}>{GlobalBleHandler.hasID() > 0 ? 'Syncing...' : 'Linking...'}</ThemeText>
+                    {GlobalBleHandler.hasID() ? <Progress.Bar style={styles.progressBar} progress={syncProgress} width={GLOBAL_CONSTANTS.SCREEN_WIDTH/2}/> : null }
+                    <ThemeText style={styles.transmittingText}>{GlobalBleHandler.hasID() ? 'Syncing...' : 'Linking...'}</ThemeText>
                     <ThemeText style={styles.transmittingSubtitle}>
                       Feel free to navigate to other pages in the meantime
                     </ThemeText>
@@ -387,7 +386,7 @@ export default function SADataSync(props) {
         options={{ title: "Syncing your device" }}
       >
         {props => (
-          <ThemeText>aowiejfiow</ThemeText>
+          <ThemeText>This page is still in progress...</ThemeText>
         )}
       </Stack.Screen>
     </Stack.Navigator>
@@ -399,6 +398,10 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  progressBar: {
+    marginTop: 20,
+    marginBottom: 10,
   },
   imageAndArrowContainer: {
     flex: 4,
@@ -459,3 +462,4 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
 });
+export default SADataSync;

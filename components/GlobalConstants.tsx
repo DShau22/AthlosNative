@@ -22,8 +22,5 @@ const GLOBAL_CONSTANTS = {
   PROFILE: 'Profile',
   DEVICE_CONFIG: 'Device Config',
   SYNC: 'Sync',
-
-  ENGLISH: 'english',
-  METRIC: 'metric',
 }
 export default GLOBAL_CONSTANTS;

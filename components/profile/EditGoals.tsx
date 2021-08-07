@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet, Alert, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { Platform, View, StyleSheet, Alert, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/stack';
 import { Button } from 'react-native-elements'
 import GLOBAL_CONSTANTS from '../GlobalConstants'
@@ -33,11 +33,11 @@ import { useTheme } from '@react-navigation/native'
 
 const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 
-export default function EditProfile(props) {
+export default function EditProfile() {
   const headerHeight = useHeaderHeight();
   const context = React.useContext(UserDataContext);
   const { colors } = useTheme();
-  const { updateLocalUserInfo, updateLocalUserFitness } = React.useContext(AppFunctionsContext);
+  const { updateLocalUserFitness, setAppState } = React.useContext(AppFunctionsContext);
   const { unitSystem } = context.settings
   const { goals } = context;
   const [isLoading, setIsLoading] = React.useState(false);
@@ -178,23 +178,24 @@ export default function EditProfile(props) {
 
       // convert vertical to pure inches
       const vertical = unitSystem === METRIC ? cmToInches(updateGoalVertical) : updateGoalVertical;
-      
+      const newGoals = {
+        goalSteps: parseFloat(updateGoalSteps),
+        goalLaps: parseFloat(updateGoalLaps),
+        goalVertical: parseFloat(vertical),
+        goalCaloriesBurned: parseFloat(updateGoalCaloriesBurned),
+        goalWorkoutTime: parseFloat(updateGoalWorkoutTime)
+      }
       try {
         var updateRes = await axios.post(ENDPOINTS.updateWeeklyGoals, {
           userID: context._id,
-          goalSteps: parseFloat(updateGoalSteps),
-          goalLaps: parseFloat(updateGoalLaps),
-          goalVertical: parseFloat(vertical),
-          goalCaloriesBurned: parseFloat(updateGoalCaloriesBurned),
-          goalWorkoutTime: parseFloat(updateGoalWorkoutTime)
-        }, { cancelToken: source.token });
+          ...newGoals
+        }, { cancelToken: source.token, timeout: 8000 });
         var updateJson = updateRes.data;
         console.log("update json: ", updateJson);
         if (updateJson.success) {
-          // make fetch to backend to update app context. Maybe consider just setting state
-          // instead of making an entire other fetch
           await setNeedsFitnessUpdate(true);
-          await Promise.all([updateLocalUserInfo(), updateLocalUserFitness()]);
+          await setAppState({goals: newGoals});
+          await updateLocalUserFitness();
           Alert.alert(`All Done!`, "Successfully updated your profile!", [{ text: "Okay" }]);
           setIsLoading(false);
         } else {
@@ -294,7 +295,7 @@ const styles = StyleSheet.create({
     height: 50,
   },
   spinnerTextStyle: {
-    color: "black"
+    color: "white"
   },
   englishHeightContainer: {
     flexDirection: 'column',

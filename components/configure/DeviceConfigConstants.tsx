@@ -16,7 +16,7 @@ const DEVICE_CONFIG_CONSTANTS = {
   RUN: 'Run',
   SWIM: 'Swim',
   JUMP: 'Vertical',
-  SWIMMING_EVENT: 'Swim Event',
+  SWIMMING_RACE: 'Swim Race',
   INTERVAL: 'Interval',
   TIMER: 'Timer',
   SWIM_WORKOUT: 'Swim Workout',
@@ -30,7 +30,7 @@ const DEVICE_CONFIG_CONSTANTS = {
   EDIT_RUN: 'Edit Run',
   EDIT_SWIM: 'Edit Swim',
   EDIT_JUMP: 'Edit Jump',
-  EDIT_SWIMMING_EVENT: 'Edit Swimming Event',
+  EDIT_SWIMMING_RACE: 'Edit Swimming Race',
   EDIT_TIMED_RUN: 'Edit Timed Run',
 
   // triggers
@@ -99,7 +99,7 @@ const {
   RUN,
   SWIM,
   JUMP,
-  SWIMMING_EVENT,
+  SWIMMING_RACE,
   TIMER,
   INTERVAL,
   SWIM_WORKOUT,
@@ -264,7 +264,7 @@ const getDefaultJumpMode = () => {
 
 const getDefaultRaceMode = () => {
   return {
-    mode: SWIMMING_EVENT,
+    mode: SWIMMING_RACE,
     stroke: FREESTYLE,
     distance: 200,
     poolLength: POOL_LENGTH_CHOICES.NCAA,
@@ -346,7 +346,7 @@ const getDefaultModeObject = (mode: string) => {
       return getDefaultSwimMode();
     case JUMP:
       return getDefaultJumpMode();
-    case SWIMMING_EVENT:
+    case SWIMMING_RACE:
       return getDefaultRaceMode();
     case INTERVAL:
       return getDefaultIntervalMode();

@@ -131,6 +131,7 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
   // const [following, setFollowing] = React.useState([]);
   // const [followingPending, setFollowingPending] = React.useState([]);
   const [showWelcomeModal, setShowWelcomeModal] = React.useState<boolean>(false);
+  const [syncProgress, setSyncProgress] = React.useState<number>(-1);
   const [state, setState] = React.useState<UserDataInterface>({
     _id: '',
     friends: [],
@@ -180,9 +181,9 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
   });
   // setting up the Athlos app
   React.useEffect(() => {
-    console.log("setting up app")
     const setUpApp = async () => {
       GlobalBleHandler.addSetConnectedFunction(setAthlosConnected);
+      GlobalBleHandler.addSetSyncProgressFunction(setSyncProgress);
       await requestLocationServices();
       DeviceEventEmitter.addListener('locationProviderStatusChange', function(status) { // only trigger when "providerListener" is enabled
         if (!status.enabled) {
@@ -329,9 +330,9 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
 
   // updates the state and therefore the context if the user info is suspected
   // to change. For example if the user changes their settings we want the new
-  // settings to be applied automatically. For now only used for settings.
+  // settings to be applied automatically. 
   // DOES NOT UPDATE THE LOCAL USER FITNESS
-  const updateLocalUserInfo = async () => {
+  const updateLocalUserInfo = async (field?: string, value?: any) => {
     // get the user's information here from either local storage or database
     // make request to server to user information and set state
     var userToken = await getToken();
@@ -363,7 +364,6 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
             ...state.swimJson,
           },
         }
-        // console.log("setting state in update localuser info: ", newState);
         setState(newState);
       }
     } else {
@@ -379,12 +379,16 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
       <UserDataContext.Provider value={state}>
         <AppFunctionsContext.Provider
           value={{
-            setAppState: async (newState) => {
-              setState(newState);
-              storeUserData(newState);
+            setAppState: async (newState: Object) => {
+              setState({
+                ...state,
+                ...newState
+              });
+              await storeUserData(newState);
             },
             updateLocalUserInfo,
             updateLocalUserFitness,
+            syncProgress,
           }}
         >
         { isLoading ? <LoadingSpin/> :

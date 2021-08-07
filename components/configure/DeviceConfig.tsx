@@ -12,13 +12,13 @@ import {
   getDefaultConfig,
   getDefaultModeObject,
 } from './DeviceConfigConstants';
-import { UserDataContext } from '../../Context';
+import { UserDataContext, AppFunctionsContext, AppFunctionsContextType } from '../../Context';
 import ModeItem from './ModeItem';
 const {
   RUN,
   SWIM,
   JUMP,
-  SWIMMING_EVENT,
+  SWIMMING_RACE,
   INTERVAL,
   MUSIC_ONLY,
   TIMER,
@@ -33,7 +33,7 @@ import RunEditScreen from './screens/RunEditScreen';
 import SwimEditScreen from './screens/SwimEditScreen';
 import VerticalEditScreen from './screens/VerticalEditScreen';
 import TimerEditScreen from './screens/TimerEditScreen';
-import SwimmingEventEditScreen from './screens/SwimmingEventEditScreen';
+import SwimmingRaceEditScreen from './screens/SwimmingRaceEditScreen';
 import MusicOnlyEditScreen from './screens/MusicOnlyScreen';
 import IntervalEditScreen from './screens/IntervalEditScreen';
 import SwimmingWorkoutEditScreen from './screens/SwimWorkoutEditScreen';
@@ -45,6 +45,8 @@ import { useTheme } from '@react-navigation/native';
 import Spinner from 'react-native-loading-spinner-overlay';
 import SAInitSender from '../bluetooth/SAInitSender';
 import PullUpMenu from './screens/PullUpMenu';
+import SyncProgressCircle from '../bluetooth/SyncProgressCircle';
+import SyncProgressCircleHeader from '../bluetooth/SyncProgressCircleHeader';
 
 const FAB_SIZE = 60;
 const DeviceConfig = (props) => {
@@ -52,6 +54,8 @@ const DeviceConfig = (props) => {
 
   const userDataContext = React.useContext(UserDataContext);
   const { settings, cadenceThresholds, referenceTimes, runEfforts, swimEfforts, bests } = userDataContext;
+  const appFunctionsContext = React.useContext(AppFunctionsContext) as AppFunctionsContextType;
+  const { syncProgress } = appFunctionsContext;
   const [isLoading, setIsLoading] = React.useState(false);
   const [deviceConfig, setDeviceConfig] = React.useState(getDefaultConfig());
   // keeps track of whether or not this is the first render of this component
@@ -170,7 +174,7 @@ const DeviceConfig = (props) => {
     <Stack.Navigator>
       <Stack.Screen
         name={MODE_CONFIG}
-        options={{ title: "Your Device Settings" }}
+        options={{ headerTitle: _ => <SyncProgressCircleHeader headerText="Configure your device" syncProgress={syncProgress}/> }}
       >
         {props => 
           <View style={{ flex: 1 }}>
@@ -220,6 +224,7 @@ const DeviceConfig = (props) => {
               ListFooterComponent={() => {
                 return (
                   <>
+                    <View style={{height: 20}}></View>
                     {/* <SAInitSender
                       containerStyle={{
                         alignSelf: 'center',
@@ -267,7 +272,7 @@ const DeviceConfig = (props) => {
                     SWIM,
                     SWIM_WORKOUT,
                     JUMP,
-                    SWIMMING_EVENT,
+                    SWIMMING_RACE,
                     INTERVAL,
                     TIMER,
                   ]
@@ -313,11 +318,11 @@ const DeviceConfig = (props) => {
           />}
       </Stack.Screen>
       <Stack.Screen
-        name={SWIMMING_EVENT}
-        options={{ title: "Swimming Event Tracker" }}
+        name={SWIMMING_RACE}
+        options={{ title: "Swimming Race Tracker" }}
       >
         {props => 
-          <SwimmingEventEditScreen
+          <SwimmingRaceEditScreen
             {...props}
             setDeviceConfig={newConfig => setDeviceConfig(newConfig)}
             deviceConfig={deviceConfig}
