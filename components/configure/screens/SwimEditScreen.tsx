@@ -13,8 +13,9 @@ import { Text, ListItem } from 'react-native-elements';
 import ThemeText from '../../generic/ThemeText';
 import SaveButton from './SaveButton';
 import PoolLengthList from '../popups/PoolLengthList';
-import { DEVICE_CONFIG_CONSTANTS } from '../DeviceConfigConstants';
+import { DEVICE_CONFIG_CONSTANTS, SwimInterface } from '../DeviceConfigConstants';
 import { Rect } from 'react-native-svg';
+import DisableEncouragements from '../DisableEncouragements';
 const { 
   POOL_LENGTH_CHOICES,
   TRIGGER_LAP, 
@@ -79,7 +80,7 @@ export default function SwimEditScreen(props) {
   const { colors } = useTheme();
   const { navigation, deviceConfig, setDeviceConfig } = props;
   const { editIdx } = props.route.params; // index of the object in deviceConfig array we are editing
-  const swimSettings = deviceConfig[editIdx];
+  const swimSettings: SwimInterface = deviceConfig[editIdx];
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [lapNumber, setLapNumber] = React.useState(swimSettings.numUntilTrigger);
@@ -95,6 +96,7 @@ export default function SwimEditScreen(props) {
   // const [speedChecked, setSpeedChecked] = React.useState(false)
   const [strokeChecked, setStrokeChecked] = React.useState(metrics.includes(STROKE));
   const [poolLength, setPoolLength] = React.useState(swimSettings.poolLength);
+  const [disableEncouragements, setDisableEncouragements] = React.useState<boolean>(swimSettings.disableEncouragements);
   const firstUpdate = React.useRef(true);
 
   React.useEffect(() => {
@@ -137,7 +139,7 @@ export default function SwimEditScreen(props) {
       // SWIMMING_SPEED,
       STROKE,
     ];
-    var metrics = [];
+    var metrics: Array<string> = [];
     metricBooleanArray.forEach((isChecked, idx) => {
       if (isChecked) metrics.push(metricArray[idx])
     });
@@ -149,6 +151,7 @@ export default function SwimEditScreen(props) {
         poolLength: poolLength,
         trigger: reportTrigger,
         numUntilTrigger: lapNumber,
+        disableEncouragements,
         metrics,
       };
       prevConfig[editIdx] = newModeSettings;
@@ -261,6 +264,10 @@ export default function SwimEditScreen(props) {
           />
         </View>
       </View>
+      <DisableEncouragements
+        disableEncouragements={disableEncouragements}
+        setDisableEncouragements={setDisableEncouragements}
+      />
       <SaveButton
         containerStyle={{
           margin: 20,

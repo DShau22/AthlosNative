@@ -11,6 +11,7 @@ import {
   DEVICE_CONFIG_CONSTANTS,
   getDefaultConfig,
   getDefaultModeObject,
+  Mode
 } from './DeviceConfigConstants';
 import { UserDataContext, AppFunctionsContext, AppFunctionsContextType } from '../../Context';
 import ModeItem from './ModeItem';
@@ -56,8 +57,8 @@ const DeviceConfig = (props) => {
   const { settings, cadenceThresholds, referenceTimes, runEfforts, swimEfforts, bests } = userDataContext;
   const appFunctionsContext = React.useContext(AppFunctionsContext) as AppFunctionsContextType;
   const { syncProgress } = appFunctionsContext;
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [deviceConfig, setDeviceConfig] = React.useState(getDefaultConfig());
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [deviceConfig, setDeviceConfig] = React.useState<Array<Mode>>(getDefaultConfig());
   // keeps track of whether or not this is the first render of this component
   const firstUpdate = React.useRef(true);
   const addRBSheetRef = React.useRef();

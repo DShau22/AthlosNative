@@ -1,11 +1,10 @@
 import React from 'react';
-import { View, StyleSheet, Alert, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Alert, ScrollView, Text, TouchableOpacity, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { DEVICE_CONFIG_CONSTANTS, } from '../DeviceConfigConstants';
 const {
   POOL_LENGTH_CHOICES,
   SWIMMING_RACE,
-  SWIMMING_RACE_SUBTITLE,
   BUTTERFLY,
   BACKSTROKE,
   BREASTROKE,
@@ -124,12 +123,12 @@ export default function SwimmingRaceEditScreen(props) {
   const { editIdx } = props.route.params; // index of the object in deviceConfig array we are editing
   const eventSettings = deviceConfig[editIdx];
   
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [stroke, setStroke] = React.useState(eventSettings.stroke);
-  const [distance, setDistance] = React.useState(eventSettings.distance);
-  const [splits, setSplits] = React.useState(eventSettings.splits.slice(0, 4));
-  const [poolLength, setPoolLength] = React.useState(eventSettings.poolLength);
-  const [errorMsgs, setErrorMsgs] = React.useState(splits.map((_, idx) => '')); // array of error messages for each split input
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [stroke, setStroke] = React.useState<string>(eventSettings.stroke);
+  const [distance, setDistance] = React.useState<number>(eventSettings.distance);
+  const [splits, setSplits] = React.useState<Array<number>>(eventSettings.splits.slice(0, 4));
+  const [poolLength, setPoolLength] = React.useState<string>(eventSettings.poolLength);
+  const [errorMsgs, setErrorMsgs] = React.useState<Array<string>(splits.map((_, idx) => '')); // array of error messages for each split input
   const firstUpdate = React.useRef(true);
 
   React.useEffect(() => {
@@ -261,7 +260,7 @@ export default function SwimmingRaceEditScreen(props) {
       />
       <ThemeText style={styles.textHeader}>Pick a distance</ThemeText>
       <MenuPrompt
-        promptTitle={distance}
+        promptTitle={distance.toString()}
         childArrays={[
           {
             title: 'Distance',

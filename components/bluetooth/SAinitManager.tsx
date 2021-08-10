@@ -7,9 +7,21 @@ import {
   MUSCLE_GROUP_LIST,
   STROKES_LIST,
   DISTANCES_LIST,
+
   SwimWorkoutInterface,
   SwimSet,
+  RunInterface,
+  SwimInterface,
+  VerticalInterface,
+  RaceInterface,
+  TimerInterface,
+  IntervalInterface,
+  MusicInterface,
+  Mode,
+  Interval,
+
 } from '../configure/DeviceConfigConstants';
+import { RefTimesType, SettingsType } from '../generic/UserTypes';
 const {
   POOL_LENGTH_CHOICES,
   BASKETBALL,
@@ -81,14 +93,22 @@ class SAinit {
     [THIRD_YD]: '3'.charCodeAt(0),
     [HOME]: '5'.charCodeAt(0),
   }
+  deviceConfig: Array<Mode>;
+  settings: SettingsType;
+  runEfforts: Array<number>;
+  swimEfforts: Array<number>;
+  refTimes: RefTimesType;
+  cadenceThresholds: Array<number>;
+  bestJump: number;
+  eventLookupTable: Object | null;
   constructor(
-    initialDeviceConfig,
-    userSettings,
-    userRunEfforts,
-    userSwimEfforts,
-    userReferenceTimes,
-    cadenceThresholds,
-    bestJump) {
+    initialDeviceConfig: Array<Mode>,
+    userSettings: SettingsType,
+    userRunEfforts: Array<number>,
+    userSwimEfforts: Array<number>,
+    userReferenceTimes: RefTimesType,
+    cadenceThresholds: Array<number>,
+    bestJump: number) {
     this.deviceConfig = initialDeviceConfig; // an array of mode config objects
     this.settings = userSettings; // must be READ ONLY
     this.runEfforts = userRunEfforts;
@@ -172,28 +192,28 @@ class SAinit {
     this.deviceConfig.forEach((modeObject, idx) => {
       switch(modeObject.mode) {
         case MUSIC_ONLY:
-          this._setMusicConfig(sainit, modeObject, idx);
+          this._setMusicConfig(sainit, modeObject as MusicInterface, idx);
           break;
         case RUN:
-          this._setRunConfig(sainit, modeObject, idx);
+          this._setRunConfig(sainit, modeObject as RunInterface, idx);
           break;
         case SWIM:
-          this._setSwimConfig(sainit, modeObject, idx);
+          this._setSwimConfig(sainit, modeObject as SwimInterface, idx);
           break;
         case JUMP:
-          this._setJumpConfig(sainit, modeObject, idx);
+          this._setJumpConfig(sainit, modeObject as VerticalInterface, idx);
           break;
         case SWIMMING_RACE:
-          this._setSwimmingRaceConfig(sainit, modeObject, idx);
+          this._setSwimmingRaceConfig(sainit, modeObject as RaceInterface, idx);
           break;
         case INTERVAL:
-          this._setIntervalConfig(sainit, modeObject, idx);
+          this._setIntervalConfig(sainit, modeObject as IntervalInterface, idx);
           break;
         case TIMER:
-          this._setTimerConfig(sainit, modeObject, idx);
+          this._setTimerConfig(sainit, modeObject as TimerInterface, idx);
           break;
         case SWIM_WORKOUT:
-          this._setSwimWorkoutConfig(sainit, modeObject, idx);
+          this._setSwimWorkoutConfig(sainit, modeObject as SwimWorkoutInterface, idx);
           break;
         default:
           // set it as unused
@@ -212,7 +232,7 @@ class SAinit {
     return sainit;
   }
 
-  _setMusicConfig(sainit, musicObject, idx) {
+  _setMusicConfig(sainit: Buffer, musicObject: MusicInterface, idx: number) {
     sainit[idx] = SAinit.ZERO;
     console.log("setting music config: ", musicObject);
     const { musicPlaySequence } = musicObject;
@@ -226,23 +246,27 @@ class SAinit {
    * @param {Object} runObject 
    * @param {int} idx 
    */
-  _setRunConfig(sainit, runObject, idx) {
+  _setRunConfig(sainit: Buffer, runObject: RunInterface, idx: number) {
     console.log("setting run config: ", runObject);
-    const { trigger, numUntilTrigger, reportCalories, walking } = runObject;
+    const { trigger, numUntilTrigger, reportCalories, walking, disableEncouragements } = runObject;
     sainit[idx] = walking ? SAinit.W : SAinit.R;
     if (trigger === TRIGGER_STEPS) {
       if (reportCalories) {
-        sainit[idx + 8] = SAinit.ONE;
+        sainit[idx + 8] = 1;
       } else {
-        sainit[idx + 8] = SAinit.THREE;
+        sainit[idx + 8] = 3;
       }
     } else {
       if (reportCalories) {
-        sainit[idx + 8] = SAinit.ZERO;
+        sainit[idx + 8] = 0;
       } else {
-        sainit[idx + 8] = SAinit.TWO;
+        sainit[idx + 8] = 2;
       }
     }
+    if (disableEncouragements) {
+      sainit[idx + 8] |= 0x20 // set bit 7 to 1 if encouragements are disabled
+    }
+    sainit[idx + 8] += SAinit.ZERO;
     sainit[idx + 16] = numUntilTrigger + SAinit.ZERO;
     // set cadence thresholds
     console.log(`cadence thresholds: ${this.cadenceThresholds}`); // 30 65 80
@@ -269,7 +293,7 @@ class SAinit {
    * @param {Object} runObject 
    * @param {int} idx 
    */
-  _setSwimConfig(sainit, swimObject, idx) {
+  _setSwimConfig(sainit: Buffer, swimObject: SwimInterface, idx: number) {
     console.log("setting swim config: ", swimObject);
     // use the 8 bits to create a bitmap for which reporting options to include
     // rn just uses 4
@@ -290,9 +314,15 @@ class SAinit {
     if (!metrics.has(DEVICE_CONFIG_CONSTANTS.STROKE)) {
       bitmap[0] = bitmap[0] | 0x01;
     }
-    sainit[idx + 8] = bitmap[0] + SAinit.ZERO;
+    const { poolLength, disableEncouragements, resetLapCountAfterFinish } = swimObject;
+    if (disableEncouragements) {
+      sainit[idx + 8] |= 0x20;
+    }
+    if (resetLapCountAfterFinish) {
+      sainit[idx + 8] |= 0x10;
+    }
+    sainit[idx + 8] += bitmap[0] + SAinit.ZERO;
     // set swimming pool length
-    const { poolLength } = swimObject;
     console.log("pool length: ", poolLength);
     console.log(SAinit.POOL_LENGTH_MAP[poolLength]);
     sainit[idx + 16] = SAinit.POOL_LENGTH_MAP[poolLength];
@@ -326,7 +356,7 @@ class SAinit {
    * @param {Object} runObject 
    * @param {int} idx 
    */
-  _setJumpConfig(sainit, jumpObject, idx) {
+  _setJumpConfig(sainit: Buffer, jumpObject: VerticalInterface, idx: number) {
     console.log("setting jump config: ", jumpObject);
     if (jumpObject.metric === HANGTIME) {
       sainit[idx] = SAinit.FOUR;
@@ -339,6 +369,9 @@ class SAinit {
     const numberOfTenths = parseInt(Math.ceil(this.bestJump / 0.1));
     console.log(`Current best jump: ${this.bestJump}`);
     console.log(`Current best jump in tenths: ${numberOfTenths}`);
+    if (jumpObject.disableEncouragements) {
+      sainit[idx + 8] |= 0x20 // set bit 7 to 1 if encouragements are disabled
+    }
     if (this.bestJump === 0) {
       // User hasn't jumped yet so no encouragement
       for (let i = 32; i <= 104; i += 8) {
@@ -373,7 +406,7 @@ class SAinit {
    * @param {Object} runObject 
    * @param {int} idx 
    */
-  _setSwimmingRaceConfig(sainit, swimmingEventObject, idx) {
+  _setSwimmingRaceConfig(sainit: Buffer, swimmingEventObject: RaceInterface, idx: number) {
     console.log("setting race config: ", swimmingEventObject);
     // build the event lookup table only if we have a swimming event config
     if (!this.eventLookupTable) {
@@ -399,6 +432,7 @@ class SAinit {
     }
     sainit[idx + 8] = offset8[0] + SAinit.ZERO;
     sainit[idx + 16] = SAinit.POOL_LENGTH_MAP[poolLength]; // set swimming pool length
+    sainit[idx + 16] += SAinit.ZERO;
     if (poolLength === OLYMPIC || poolLength === THIRD_M || poolLength === BRITISH) { // number of laps
       sainit[idx + 24] = parseInt(Math.floor(distance/50)) + SAinit.ZERO; 
     } else {
@@ -430,7 +464,7 @@ class SAinit {
    * @param {Object} runObject 
    * @param {int} idx 
    */
-  _setTimerConfig(sainit, timerObject, idx) {
+  _setTimerConfig(sainit: Buffer, timerObject: TimerInterface, idx: number) {
     console.log("setting timer config: ", timerObject);
     const { splits, repetition, numRepetitions } = timerObject;
     sainit[idx] = 35;
@@ -464,7 +498,7 @@ class SAinit {
    * @param {Object} runObject 
    * @param {int} idx 
    */
-  _setIntervalConfig(sainit: Buffer, intervalObject, idx) {
+  _setIntervalConfig(sainit: Buffer, intervalObject: IntervalInterface, idx: number) {
     console.log("setting interval config: ", intervalObject);
     const { intervals, numRounds } = intervalObject;
     sainit[idx] = 36;

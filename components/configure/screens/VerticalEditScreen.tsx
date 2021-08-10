@@ -7,12 +7,14 @@ import Icon from 'react-native-vector-icons/AntDesign';
 Icon.loadFont();
 
 import { DEVICE_CONFIG_CONSTANTS, } from '../DeviceConfigConstants';
-const { HANGTIME, VERTICAL_HEIGHT, JUMP, JUMP_SUBTITLE, MODE_CONFIG } = DEVICE_CONFIG_CONSTANTS;
+const { HANGTIME, VERTICAL_HEIGHT, JUMP, MODE_CONFIG } = DEVICE_CONFIG_CONSTANTS;
 import SwitchSelector from "react-native-switch-selector";
 import Spinner from 'react-native-loading-spinner-overlay';
 
 import ThemeText from '../../generic/ThemeText';
 import SaveButton from './SaveButton';
+import DisableEncouragements from '../DisableEncouragements';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const VERTICAL_REPORT_LIST = [
   {
@@ -31,8 +33,9 @@ export default function VerticalEditScreen(props) {
   const { editIdx } = props.route.params; // index of the object in deviceConfig array we are editing
 
   // report either vertical height or hangtime
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [reportMetric, setReportMetric] = React.useState(deviceConfig[editIdx].metric);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [reportMetric, setReportMetric] = React.useState<string>(deviceConfig[editIdx].metric);
+  const [disableEncouragements, setDisableEncouragements] = React.useState<boolean>(deviceConfig[editIdx].disableEncouragements);
   const firstUpdate = React.useRef(true);
 
   React.useEffect(() => {
@@ -60,8 +63,8 @@ export default function VerticalEditScreen(props) {
     setDeviceConfig(prevConfig => {
       const newModeSettings = {
         mode: JUMP,
-        subtitle: JUMP_SUBTITLE,
-        metric: reportMetric
+        metric: reportMetric,
+        disableEncouragements,
       };
       prevConfig[editIdx] = newModeSettings
       return [...prevConfig]
@@ -105,7 +108,7 @@ export default function VerticalEditScreen(props) {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Spinner
         visible={isLoading}
         textContent='Saving...'
@@ -121,21 +124,26 @@ export default function VerticalEditScreen(props) {
       <View style={{width: '100%'}}>
         {renderReportMetric()}
       </View>
+      <DisableEncouragements
+        disableEncouragements={disableEncouragements}
+        setDisableEncouragements={setDisableEncouragements}
+      />
       <SaveButton
         containerStyle={{
-          position: 'absolute',
-          bottom: 20
+          alignSelf: 'center',
+          margin: 20
         }}
         onPress={saveEdits}
       />
-    </View>
+    </ScrollView>
   )
 }
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
-    height: '100%',
+    flexDirection: 'column',
+    // alignItems: 'center',
     width: '100%',
+    height: '100%',
   },
   description: {
     margin: 10

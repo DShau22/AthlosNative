@@ -106,13 +106,11 @@ const {
   TRIGGER_STEPS,
   TRIGGER_MIN,
   TRIGGER_LAP,
-  TRIGGER_ON_REST,
   STEP_COUNT,
   CALORIES,
   CADENCE,
   SWIMMING_SPEED,
   LAPTIME,
-  TOTAL_LAPS_SWUM,
   LAP_COUNT,
   VERTICAL_HEIGHT,
   HANGTIME,
@@ -206,7 +204,7 @@ const STROKES_LIST = [
   SPRINT,
 ];
 
-const getDefaultConfig = () => {
+const getDefaultConfig = (): Array<Mode> => {
   return [
     getDefaultMusicOnlyMode(),
     getDefaultRunMode(),
@@ -219,18 +217,20 @@ const getDefaultConfig = () => {
   ];
 };
 
-const getDefaultMusicOnlyMode = () => {
+const getDefaultMusicOnlyMode = (): MusicInterface => {
   return {
     mode: MUSIC_ONLY,
+    disableEncouragements: false,
     musicPlaySequence: RANDOM_MUSIC_SEQUENCE,
   };
 };
 
-const getDefaultRunMode = () => {
+const getDefaultRunMode = (): RunInterface => {
   return {
     // The device mode. Using make sure to make the keyExtractor take the mode
     mode: RUN,
     walking: false,
+    disableEncouragements: false,
     // background color of the list item
     // what metrics are reported. 
     metrics: [ STEP_COUNT, CALORIES, CADENCE ],
@@ -242,48 +242,53 @@ const getDefaultRunMode = () => {
   };
 };
 
-const getDefaultSwimMode = () => {
+const getDefaultSwimMode = (): SwimInterface => {
   return {
     mode: SWIM,
     trigger: TRIGGER_LAP,
     poolLength: POOL_LENGTH_CHOICES.NCAA,
+    disableEncouragements: false,
     // number of laps until the report is given. Number doesn't matter if 
     // trigger is set to TRIGGER_ON_FINISH
     numUntilTrigger: 1,
     metrics: [ LAP_COUNT, LAPTIME ],
+    resetLapCountAfterFinish: false,
   }
 };
 
-const getDefaultJumpMode = () => {
+const getDefaultJumpMode = (): VerticalInterface => {
   return {
     mode: JUMP,
     // this should always only be a one element array
-    metric: VERTICAL_HEIGHT 
+    metric: VERTICAL_HEIGHT,
+    disableEncouragements: false,
   };
 };
 
-const getDefaultRaceMode = () => {
+const getDefaultRaceMode = (): RaceInterface => {
   return {
     mode: SWIMMING_RACE,
     stroke: FREESTYLE,
     distance: 200,
     poolLength: POOL_LENGTH_CHOICES.NCAA,
+    disableEncouragements: false,
     // splits are for every 50. Can have up to 8.
     // any splits after 8 are just repeated (8 and after is what it'll show)
-    splits: ['40', '45', '45', '45']
+    splits: [40, 45, 45, 45]
   };
 };
 
-const getDefaultTimerMode = () => {
+const getDefaultTimerMode = (): TimerInterface => {
   return {
     mode: TIMER,
     splits: [600, 600, 600, 600], // splits in tenths
     repetition: ENDS,
     numRepetitions: 4,
+    disableEncouragements: false,
   }
 }
 
-const getDefaultIntervalMode = () => {
+const getDefaultIntervalMode = (): IntervalInterface => {
   return {
     mode: INTERVAL,
     intervals: [
@@ -294,14 +299,23 @@ const getDefaultIntervalMode = () => {
       {muscleGroup: 'Abs', time: 60},
       {muscleGroup: 'Rest', time: 20},
     ],
+    disableEncouragements: false,
     numRounds: 2 // if 0, then repeat the last split over and over again
   };
 };
 
-export interface SwimWorkoutInterface {
+export interface Mode {
   mode: string,
+  disableEncouragements: boolean,
+}
+
+export interface MusicInterface extends Mode {
+  musicPlaySequence: string,
+}
+
+export interface SwimWorkoutInterface extends Mode {
   sets: Array<SwimSet>,
-  numRounds: number
+  numRounds: number,
 };
 
 export interface SwimSet {
@@ -310,6 +324,61 @@ export interface SwimSet {
   stroke: string,
   timeInSeconds: number,
 }
+
+export interface SwimInterface extends Mode {
+  trigger: string,
+  poolLength: string,
+  // number of laps until the report is given. Number doesn't matter if 
+  // trigger is set to TRIGGER_ON_FINISH
+  numUntilTrigger: number,
+  metrics: Array<string>,
+  resetLapCountAfterFinish: boolean,
+};
+
+export interface RunInterface extends Mode {
+    // The device mode. Using make sure to make the keyExtractor take the mode
+    walking: boolean,
+    // background color of the list item
+    // what metrics are reported. 
+    metrics: Array<string>,
+    // whether it's reported based on time interval or number of steps
+    trigger: string,
+    // how frequently these metrics are reported
+    numUntilTrigger: number,
+    reportCalories: boolean,
+};
+
+export interface VerticalInterface extends Mode {
+  // this should always only be a one element array
+  metric: string,
+};
+
+export interface RaceInterface extends Mode {
+  stroke: string,
+  distance: number,
+  poolLength: string,
+  // splits are for every 50. Can have up to 8.
+  splits: Array<number>
+};
+// any splits after 8 are just repeated (8 and after is what it'll show)
+
+export interface IntervalInterface extends Mode {
+  intervals: Array<Interval>,
+  numRounds: number // if 0, then repeat the last split over and over again
+};
+
+export interface Interval {
+  muscleGroup: string,
+  time: number,
+}
+
+export interface TimerInterface {
+  mode: string,
+  splits: Array<number>, // splits in tenths
+  repetition: string,
+  numRepetitions: number,
+  disableEncouragements: boolean,
+};
 
 const getDefaultSwimWorkoutMode = (): SwimWorkoutInterface => {
   return {
@@ -328,6 +397,7 @@ const getDefaultSwimWorkoutMode = (): SwimWorkoutInterface => {
         timeInSeconds: 45,
       },
     ],
+    disableEncouragements: false,
     numRounds: 2 // if 0, then repeat the last split over and over again
   };
 }

@@ -6,13 +6,14 @@ import { ListItem } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/AntDesign';
 Icon.loadFont();
 
-import { DEVICE_CONFIG_CONSTANTS } from '../DeviceConfigConstants';
+import { DEVICE_CONFIG_CONSTANTS, RunInterface } from '../DeviceConfigConstants';
 const { TRIGGER_MIN, TRIGGER_STEPS, RUN, MODE_CONFIG } = DEVICE_CONFIG_CONSTANTS;
 import ThemeText from '../../generic/ThemeText';
 import SaveButton from './SaveButton';
 import MenuPrompt from './MenuPrompt';
 import {capitalize} from '../../utils/strings';
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
+import DisableEncouragements from '../DisableEncouragements';
 const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;
 
 const RUN_TRIGGER_LIST = [
@@ -37,7 +38,8 @@ export default function RunEditScreen(props) {
   const [walkingEnabled, setWalkingEnabled] = React.useState(walking);
   const [runNumber, setRunNumber] = React.useState(numUntilTrigger);
   const [runTrigger, setRunTrigger] = React.useState(trigger);
-  const [reportCalories, setReportCalories] = React.useState(deviceConfig[editIdx].reportCalories);
+  const [reportCalories, setReportCalories] = React.useState<RunInterface>(deviceConfig[editIdx].reportCalories);
+  const [disableEncouragements, setDisableEncouragements] = React.useState<boolean>(deviceConfig[editIdx].disableEncouragements);
   const firstUpdate = React.useRef(true);
 
   React.useEffect(() => {
@@ -70,6 +72,7 @@ export default function RunEditScreen(props) {
         trigger: runTrigger,
         numUntilTrigger: runNumber,
         reportCalories,
+        disableEncouragements,
       };
       prevConfig[editIdx] = newModeSettings
       return [...prevConfig]
@@ -207,6 +210,10 @@ export default function RunEditScreen(props) {
           onPress={() => setWalkingEnabled(prev => !prev)}
         />
       </ListItem>
+      <DisableEncouragements
+        disableEncouragements={disableEncouragements}
+        setDisableEncouragements={setDisableEncouragements}
+      />
       <ThemeText style={{fontSize: 14, alignSelf: 'flex-start', margin: 10}}>
         {`Your Athlos earbuds will report feedback every`+
          ` ${runTrigger === TRIGGER_MIN ? runNumber : runNumber * 100} ${renderUnits()}`}
