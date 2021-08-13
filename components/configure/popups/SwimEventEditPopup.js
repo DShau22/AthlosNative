@@ -22,7 +22,7 @@ import GenericModal from './GenericModal';
 import SplitInputs from './SplitInputs';
 import ThemeText from '../../generic/ThemeText';
 import { UserDataContext } from '../../../Context';
-import PoolLengthList from './PoolLengthList';
+import PoolLengthList from '../subcomponents/PoolLengthList';
 const ANIMATION_DURATION = 150;
 
 const {

@@ -22,7 +22,7 @@ Icon.loadFont()
 import GenericModal from './GenericModal';
 import { useTheme } from '@react-navigation/native';
 import ThemeText from '../../generic/ThemeText';
-import PoolLengthList from './PoolLengthList';
+import PoolLengthList from '../subcomponents/PoolLengthList';
 const {
   NCAA,
   OLYMPIC,

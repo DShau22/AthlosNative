@@ -6,6 +6,7 @@ import Jump from "./jump/Jump"
 import Swim from "./swim/Swim"
 import { UserDataContext, ProfileContext, AppFunctionsContext } from "../../Context"
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import LoadingScreen from '../generic/LoadingScreen';
 import { View, StyleSheet, Alert, ScrollView, RefreshControl } from "react-native";
 import { useFocusEffect, useTheme } from '@react-navigation/native';
@@ -15,6 +16,10 @@ import ENDPOINTS from '../endpoints'
 import axios from 'axios';
 import FITNESS_CONSTANTS from './FitnessConstants'
 import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
+import {Calendar, CalendarList, Agenda} from 'react-native-calendars';
+import Interval from './interval/Interval';
+import { StackRouter } from 'react-navigation';
+import ThemeText from '../generic/ThemeText';
 
 const Fitness = (props) => {
   const userDataContext = React.useContext(UserDataContext);
@@ -136,71 +141,111 @@ const Fitness = (props) => {
   }
 
   const TopTab = createMaterialTopTabNavigator();
+  const Stack = createStackNavigator();
   return (
-    <ScrollView
-      style={{height: '100%', backgroundColor: colors.header}}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={getFitness}
-        />
-      }
-    >
-      { isLoading ? <LoadingScreen text='preparing your activities'/> :
-        <TopTab.Navigator
-          tabBarOptions={{
-            activeTintColor: colors.textColor,
-            inactiveTintColor: '#9DA0A3',
-            labelStyle: { fontSize: 12 },
-            indicatorStyle: {
-              backgroundColor: colors.textColor,
-              height: 2,
-            },
-            style: { backgroundColor: colors.header, paddingTop: 8, paddingBottom: 8 },
-          }}
-        >
-          <TopTab.Screen
-            name={'Runs'}
-            // component={Run}
-            // initialParams={{
-            //   id: FITNESS_CONSTANTS.RUN,
-            //   activityJson: runJson,
-            //   settings: settings,
-            // }}
+      isLoading ? <LoadingScreen text='preparing your activities'/> :
+        <Stack.Navigator headerMode='none'>
+          <Stack.Screen
+            name={'detailed-view'}
+          >
+            {props =>
+              <ScrollView
+                style={{height: '100%', width: '100%', backgroundColor: colors.header}}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={getFitness}
+                  />
+                }
+              >
+                <TopTab.Navigator
+                  tabBarOptions={{
+                    activeTintColor: colors.textColor,
+                    inactiveTintColor: '#9DA0A3',
+                    labelStyle: { fontSize: 12 },
+                    indicatorStyle: {
+                      backgroundColor: colors.textColor,
+                      height: 2,
+                    },
+                    style: { backgroundColor: colors.header, paddingTop: 8, paddingBottom: 8 },
+                  }}
+                >
+                  <TopTab.Screen
+                    name={'Runs'}
+                    // component={Run}
+                    // initialParams={{
+                    //   id: FITNESS_CONSTANTS.RUN,
+                    //   activityJson: runJson,
+                    //   settings: settings,
+                    // }}
+                  >
+                    {props => (
+                      <Run activityJson={runJson} settings={settings} />
+                    )}
+                  </TopTab.Screen>
+                  <TopTab.Screen
+                    name={'Swims'}
+                    // component={Swim}
+                    // initialParams={{
+                    //   id: FITNESS_CONSTANTS.SWIM,
+                    //   activityJson: swimJson,
+                    //   settings: settings,
+                    // }}
+                  >
+                    {props => (
+                      <Swim activityJson={swimJson} settings={settings} />
+                    )}
+                  </TopTab.Screen>
+                  <TopTab.Screen
+                    name={'Jumps'}
+                    // component={Jump}
+                    // initialParams={{
+                    //   id: FITNESS_CONSTANTS.JUMP,
+                    //   activityJson: jumpJson,
+                    //   settings: settings,
+                    // }}
+                  >
+                    {props => (
+                      <Jump activityJson={jumpJson} settings={settings} />
+                    )}
+                  </TopTab.Screen>
+                  <TopTab.Screen
+                    name={'HIIT'}
+                    // component={Jump}
+                    // initialParams={{
+                    //   id: FITNESS_CONSTANTS.JUMP,
+                    //   activityJson: jumpJson,
+                    //   settings: settings,
+                    // }}
+                  >
+                    {props => (
+                      <Interval activityJson={jumpJson} settings={settings} />
+                    )}
+                  </TopTab.Screen>
+                </TopTab.Navigator>
+              </ScrollView>
+            }
+          </Stack.Screen>
+          <Stack.Screen
+            name={'workout-calendar'}
+            options={{ title: 'calendar' }}
           >
             {props => (
-              <Run activityJson={runJson} settings={settings} />
+              <ScrollView
+                style={{height: '100%', width: '100%', backgroundColor: colors.header}}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={getFitness}
+                  />
+                }
+              >
+                <Calendar/>
+              </ScrollView>
             )}
-          </TopTab.Screen>
-          <TopTab.Screen
-            name={'Swims'}
-            // component={Swim}
-            // initialParams={{
-            //   id: FITNESS_CONSTANTS.SWIM,
-            //   activityJson: swimJson,
-            //   settings: settings,
-            // }}
-          >
-            {props => (
-              <Swim activityJson={swimJson} settings={settings} />
-            )}
-          </TopTab.Screen>
-          <TopTab.Screen
-            name={'Jumps'}
-            // component={Jump}
-            // initialParams={{
-            //   id: FITNESS_CONSTANTS.JUMP,
-            //   activityJson: jumpJson,
-            //   settings: settings,
-            // }}
-          >
-            {props => (
-              <Jump activityJson={jumpJson} settings={settings} />
-            )}
-          </TopTab.Screen>
-        </TopTab.Navigator>
-      }
-    </ScrollView>
+          </Stack.Screen>
+        </Stack.Navigator>
+      
   )
 }
 

@@ -12,7 +12,7 @@ import { Text, ListItem } from 'react-native-elements';
 
 import ThemeText from '../../generic/ThemeText';
 import SaveButton from './SaveButton';
-import PoolLengthList from '../popups/PoolLengthList';
+import PoolLengthList from '../subcomponents/PoolLengthList';
 import { DEVICE_CONFIG_CONSTANTS, SwimInterface } from '../DeviceConfigConstants';
 import { Rect } from 'react-native-svg';
 import DisableEncouragements from '../DisableEncouragements';
@@ -97,6 +97,7 @@ export default function SwimEditScreen(props) {
   const [strokeChecked, setStrokeChecked] = React.useState(metrics.includes(STROKE));
   const [poolLength, setPoolLength] = React.useState(swimSettings.poolLength);
   const [disableEncouragements, setDisableEncouragements] = React.useState<boolean>(swimSettings.disableEncouragements);
+  const [resetLapCountAfterFinish, setResetLapCountAfterFinish] = React.useState<boolean>(swimSettings.resetLapCountAfterFinish);
   const firstUpdate = React.useRef(true);
 
   React.useEffect(() => {
@@ -152,6 +153,7 @@ export default function SwimEditScreen(props) {
         trigger: reportTrigger,
         numUntilTrigger: lapNumber,
         disableEncouragements,
+        resetLapCountAfterFinish,
         metrics,
       };
       prevConfig[editIdx] = newModeSettings;
@@ -264,6 +266,60 @@ export default function SwimEditScreen(props) {
           />
         </View>
       </View>
+      {/* Lap count stuff */}
+      <ThemeText style={{fontSize: 22, alignSelf: 'flex-start', margin: 10, marginTop: 20}}>
+        Lap Count Settings:
+      </ThemeText>
+      <ListItem
+        containerStyle={{backgroundColor: colors.background}}
+        key={`reset-lap-count`}
+        topDivider
+        bottomDivider
+        onPress={() => setResetLapCountAfterFinish(true)}
+      >
+        <ListItem.Content>
+          <ListItem.Title>
+            <ThemeText>{'Total lap count'}</ThemeText>
+          </ListItem.Title>
+          <ListItem.Subtitle>
+            <ThemeText>
+              {"Report the total number of laps you've swum since switching to this mode"}
+            </ThemeText>
+          </ListItem.Subtitle>
+        </ListItem.Content>
+        <ListItem.CheckBox
+          onPress={() => setResetLapCountAfterFinish(true)}
+          checked={resetLapCountAfterFinish}
+          checkedColor={colors.textColor}
+          checkedIcon='dot-circle-o'
+          uncheckedIcon='circle-o'
+        />
+      </ListItem>
+      <ListItem
+        containerStyle={{backgroundColor: colors.background}}
+        key={'dont-reset-lap-count'}
+        topDivider
+        bottomDivider
+        onPress={() => setResetLapCountAfterFinish(false)}
+      >
+        <ListItem.Content>
+          <ListItem.Title>
+            <ThemeText>{"Lap count per swim"}</ThemeText>
+          </ListItem.Title>
+          <ListItem.Subtitle>
+            <ThemeText>
+              {"Report the lap count of a continuous swim. Resets every time you finish at the wall"}
+            </ThemeText>
+          </ListItem.Subtitle>
+        </ListItem.Content>
+        <ListItem.CheckBox
+          onPress={() => setResetLapCountAfterFinish(false)}
+          checked={!resetLapCountAfterFinish}
+          checkedColor={colors.textColor}
+          checkedIcon='dot-circle-o'
+          uncheckedIcon='circle-o'
+        />
+      </ListItem>
       <DisableEncouragements
         disableEncouragements={disableEncouragements}
         setDisableEncouragements={setDisableEncouragements}

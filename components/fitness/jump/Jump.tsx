@@ -6,12 +6,13 @@ import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import { COLOR_THEMES } from '../../ColorThemes'
 import { UserDataContext } from '../../../Context'
 import WeeklyBarChart from "../charts/WeeklyBarChart"
-import withFitnessPage from "../withFitnessPage"
+import withFitnessPage, { FitnessPageProps } from "../withFitnessPage"
 import { rawHeightConvert } from "../../utils/unitConverter" 
 import StatCard from '../StatCard';
 import ThemeText from '../../generic/ThemeText'
 import LineProgression from '../charts/LineProgression'
-const Jump = (props) => {
+
+const Jump = (props: FitnessPageProps) => {
   const {
     weekIndex,
     dayIndex,

@@ -1,6 +1,7 @@
 /**
  * Utilities for managin the local storage of user fitness
  * and syncing with the server and database.
+ * This is also where we go from bytes to actual data
  */
 import {
   RunActivitiesInterface,

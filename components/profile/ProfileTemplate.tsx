@@ -334,7 +334,7 @@ const ProfileTemplate = (props) => {
                 <View style={styles.viewFitness}>
                   {canViewFitness() ?
                     <Button
-                      title='View Past Activities'
+                      title='Workout Log'
                       containerStyle={{width: '90%', alignSelf: 'center', marginTop: 10, marginBottom: 10}}
                       buttonStyle={{
                         backgroundColor: colors.button
@@ -365,12 +365,11 @@ const ProfileTemplate = (props) => {
         >
           {props => ( <EditGoals navigation={props.navigation} /> )}
         </Stack.Screen>
-        {/*============================== settings stuff =======================================*/}
         <Stack.Screen
           name={GLOBAL_CONSTANTS.SETTINGS}
           options={{ title: 'App Settings' }}
         >
-          {screenProps => (
+          {props => (
             <Settings />
             // <SettingsMenu
             //   {...props}
@@ -379,93 +378,6 @@ const ProfileTemplate = (props) => {
             // />
           )}
         </Stack.Screen>
-        {/* <Stack.Screen name={SETTINGS_CONSTANTS.UNIT_SYSTEM_SETTINGS}>
-          {props => (
-            <GeneralSetting
-              initialChoice={unitDisplayChoice}
-              settingsList={UNIT_SYSTEM_SETTINGS_LIST}
-              updateSettings={setUnitDisplayChoice}
-              saveSettings={saveSettings}
-            />
-          )}
-        </Stack.Screen>
-        <Stack.Screen name={SETTINGS_CONSTANTS.DEVICE_SETTINGS} options={{title: "Athlos device settings"}}>
-          {props => (
-            <>
-              <ListItem 
-                containerStyle={{backgroundColor: colors.backgroundColor}}
-                topDivider
-                bottomDivider
-                onPress={forgetEarbuds}
-              >
-                <ListItem.Content>
-                  <ListItem.Title>
-                    <ThemeText>Forget Earbuds</ThemeText>
-                  </ListItem.Title>
-                  <ListItem.Subtitle>
-                    <ThemeText>
-                      Unlinks your current Athlos earbuds from this device.
-                      You'll have to relink another pair on the sync tab.
-                    </ThemeText>
-                  </ListItem.Subtitle>
-                </ListItem.Content>
-                <ListItem.Chevron />
-              </ListItem>
-              <ListItem 
-                containerStyle={{backgroundColor: colors.backgroundColor}}
-                topDivider
-                bottomDivider
-                onPress={() => {
-                  // setIsLoading(true);
-                  setShouldAutoSync(!autoSync).then(() => {
-                    const oldAutoSync = autoSync;
-                    setAutoSync(!autoSync);
-                    console.log("old auto sync: ", oldAutoSync)
-                    if (oldAutoSync) {
-                      GlobalBleHandler.stopScan();
-                    } // previously true means it's now false
-                    showSnackBar(`Auto sync ${oldAutoSync ? 'disabled' : 'enabled'}. Restart the app for the effects to be enabled`);
-                    // setIsLoading(false);
-                  })
-                }}
-              >
-                <ListItem.Content>
-                  <ListItem.Title>
-                    <ThemeText>Enable Auto-sync</ThemeText>
-                  </ListItem.Title>
-                  <ListItem.Subtitle>
-                    <ThemeText>
-                      Auto-sync causes your mobile device to automatically sync with your 
-                      Athlos earbuds when they are scanning for devices. We'll notify you 
-                      once auto-sync succeeds, and you can still manually sync with the sync 
-                      tab if auto-sync is taking too long or fails.
-                    </ThemeText>
-                  </ListItem.Subtitle>
-                </ListItem.Content>
-                <ListItem.CheckBox
-                  checked={autoSync}
-                  checkedColor={colors.textColor}
-                  checkedIcon='dot-circle-o'
-                  uncheckedIcon='circle-o'
-                  onPress={() => {
-                    // setIsLoading(true);
-                    setShouldAutoSync(!autoSync).then(() => {
-                      const oldAutoSync = autoSync;
-                      setAutoSync(!autoSync);
-                      console.log("old auto sync: ", oldAutoSync)
-                      if (oldAutoSync) {
-                        GlobalBleHandler.stopScan();
-                      } // previously true means it's now false
-                      showSnackBar(`Auto sync ${oldAutoSync ? 'disabled' : 'enabled'}. Restart the app for the effects to be enabled`);
-                      // setIsLoading(false);
-                    })
-                  }}
-                />
-              </ListItem>
-            </>
-          )}
-        </Stack.Screen> */}
-        {/*============================== settings stuff =======================================*/}
         <Stack.Screen
           name={GLOBAL_CONSTANTS.FITNESS}
           options={{ title: relationshipStatus === IS_SELF ? 'Your Activities' : `${profileContext.firstName}'s Activities` }}

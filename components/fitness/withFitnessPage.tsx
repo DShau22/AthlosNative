@@ -1,19 +1,28 @@
-import React from 'react'
-import { Divider, Button } from 'react-native-elements'
-import { View, StyleSheet, ScrollView } from 'react-native'
+import React from 'react';
+import { Divider, Button } from 'react-native-elements';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Calendar } from 'react-native-calendars';
 const { DateTime } = require('luxon');
-import Carousel from './carousel/Carousel'
-import Calories from './Calories'
-import Duration from './Duration'
+import Carousel from './carousel/Carousel';
+import Calories from './Calories';
+import Duration from './Duration';
 
-import FITNESS_CONTANTS from '../fitness/FitnessConstants'
-export default function withFitnessPage( WrappedComponent ) {  
-  const WithFitnessPage = (props) => {
+import FITNESS_CONTANTS from './FitnessConstants';
+import { SettingsType } from '../generic/UserTypes';
+import { ActivityJson } from './FitnessTypes';
+
+interface fitnessPageHOCProps {
+  settings: SettingsType,
+  activityJson: ActivityJson,
+}
+
+export default function withFitnessPage( WrappedComponent: any ) {  
+  const WithFitnessPage = (props: fitnessPageHOCProps) => {
     const [weekIndex, setWeekIndex] = React.useState(0);
     const [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday - 1); // 1 is monday 7 is sunday for .weekday
     const [weeklyGraphLabels, setWeeklyGraphLabels] = React.useState([]);
     const [weeklyGraphData, setWeeklyGraphData] = React.useState([]);
-    const { activityJson } = props;
+    const { activityJson, settings } = props;
     const [isLoading, setIsLoading] = React.useState(activityJson.activityData.length === 0);
     React.useEffect(() => {
       if (activityJson.activityData.length > 0) {
@@ -175,6 +184,18 @@ export default function withFitnessPage( WrappedComponent ) {
     )
   }
   return WithFitnessPage
+}
+
+export interface FitnessPageProps extends fitnessPageHOCProps {
+  weeklyGraphData: Array<number>,
+  weeklyGraphLabels: Array<string>,
+  weekIndex: number,
+  dayIndex: number,
+  currentDay: any,
+  calcAvgNum: Function,
+  calcAvgCals: Function,
+  roundToNDecimals: Function,
+  isNullOrUndefined: Function,
 }
 
 const styles = StyleSheet.create({

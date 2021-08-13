@@ -137,7 +137,7 @@ class UserActivities {
   public jumps: Array<Array<JumpSchema>>;
   public static WEEKS_BACK = 26;
 
-  static async createFromStorage(): Promise<UserActivities> {
+  static async createFromStorage(): Promise<UserActivities | null> {
     const userActivityData: SerializedActivities = await getUserFitnessData();
     if (userActivityData) {
       return new this(userActivityData);
@@ -160,7 +160,7 @@ class UserActivities {
     var lastUpdated = getLastMonday();
     lastUpdated = lastUpdated.minus({days: (UserActivities.WEEKS_BACK + 1) * 7});
     console.log("last updated create from server: ", lastUpdated);
-    const userToken: string = await getToken();
+    const userToken: string | null = await getToken();
     const activities: Array<ACTIVITY_ENUMS> = ["run", "swim", "jump"];
     const activityData = {run: [], swim: [], jump: []};
     for (let i = 0; i < activities.length; i++) {
