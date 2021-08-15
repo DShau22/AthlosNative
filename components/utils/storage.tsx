@@ -218,11 +218,13 @@ const getOldFitnessRecords = async (): Promise<OldRecords> => {
 }
 
 const storeOldFitnessRecords = async (newRecords: OldRecords) => {
+  console.log("storing old fitness records: ", newRecords)
   var oldFitnessRecords = await getOldFitnessRecords();
   if (oldFitnessRecords) {
     oldFitnessRecords.oldRuns.push(...newRecords.oldRuns);
     oldFitnessRecords.oldSwims.push(...newRecords.oldSwims);
     oldFitnessRecords.oldJumps.push(...newRecords.oldJumps);
+    oldFitnessRecords.oldIntervals.push(...newRecords.oldIntervals);
     await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(oldFitnessRecords));
   } else {
     await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(newRecords));

@@ -380,7 +380,10 @@ const ProfileTemplate = (props) => {
         </Stack.Screen>
         <Stack.Screen
           name={GLOBAL_CONSTANTS.FITNESS}
-          options={{ title: relationshipStatus === IS_SELF ? 'Your Activities' : `${profileContext.firstName}'s Activities` }}
+          options={{ headerTitle: _ => <SyncProgressCircleHeader
+            headerText={relationshipStatus === IS_SELF ? 'Your Activities' : `${profileContext.firstName}'s Activities`}
+            syncProgress={syncProgress}/>
+          }}
         >
           {props => (
             <Fitness

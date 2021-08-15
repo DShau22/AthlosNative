@@ -2,6 +2,7 @@ const FITNESS_CONSTANTS = {
   RUN: 'Run',
   SWIM: 'Swim',
   JUMP: 'Jump',
+  HIIT: 'HIIT',
   NUM_WEEKS_IN_PAST: 26 // NUMBER OF WEEKS BACK THAT A USER CAN LOOK AT
 }
 export default FITNESS_CONSTANTS

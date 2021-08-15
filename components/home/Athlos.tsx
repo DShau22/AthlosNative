@@ -62,54 +62,9 @@ import {
   RunSchema,
   SwimSchema,
   JumpSchema,
+  IntervalSchema
 } from '../fitness/data/UserActivities';
-interface UserDataInterface {
-  _id: string,
-  friends: Array<any>,
-  friendRequests: Array<any>,
-  friendsPending: Array<any>,
-
-  rivals: Array<any>,
-  rivalsPending: Array<any>,
-  rivalRequests: Array<any>,
-
-  followers: Array<any>,
-  followerRequests: Array<any>,
-
-  following: Array<any>,
-  followingPending: Array<any>,
-
-  firstName: string,
-  lastName: string,
-  username: string,
-  gender: string,
-  bio: string,
-  height: string,
-  weight: string,
-  age: string,
-  profilePicture: string,
-  settings: Object,
-  numFriendsDisplay: number,
-  goals: {
-    goalSteps: number,
-    goalLaps: number,
-    goalVertical: number,
-    goalCaloriesBurned: number,
-    goalWorkoutTime: number,
-  },
-  jumpJson: {
-    activityData: Array<JumpSchema>,
-    action: string,
-  },
-  runJson: {
-    activityData: Array<RunSchema>,
-    action: string,
-  },
-  swimJson: {
-    activityData: Array<SwimSchema>,
-    action: string,
-  },
-}
+import { UserDataInterface } from '../generic/UserTypes';
 
 interface AthlosInterface {
   token: string,
@@ -178,6 +133,10 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
       activityData: [],
       action: FITNESS_CONTANTS.SWIM,
     },
+    intervalJson: {
+      activityData: [],
+      action: FITNESS_CONTANTS.HIIT,
+    }
   });
   // setting up the Athlos app
   React.useEffect(() => {
@@ -324,6 +283,10 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
         activityData: Object.values(userActivityData.swims),
         action: FITNESS_CONTANTS.SWIM,
       },
+      intervalJson: {
+        activityData: Object.values(userActivityData.intervals),
+        action: FITNESS_CONTANTS.HIIT,
+      }
     };
     setState(newState);
   }
@@ -363,6 +326,9 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
           swimJson: {
             ...state.swimJson,
           },
+          intervalJson: {
+            ...state.intervalJson,
+          }
         }
         setState(newState);
       }
@@ -373,7 +339,6 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
 
   // const BottomTab = createBottomTabNavigator();
   const BottomTab = createMaterialBottomTabNavigator();
-  // console.log("Athlos context: ", state);
   return (
     <SafeAreaProvider>
       <UserDataContext.Provider value={state}>

@@ -2,9 +2,6 @@ import Axios from "axios";
 import ENDPOINTS from "../../endpoints";
 import { getToken } from "../../utils/storage";
 import { 
-  RunActivitiesInterface,
-  SwimActivitiesInterface,
-  JumpActivitiesInterface,
   UserActivities,
   RunSchema,
   SwimSchema,
@@ -29,6 +26,7 @@ import {
   calcReferenceTimes,
 } from "./decoders";
 import { Use } from "react-native-svg";
+import { UserDataInterface } from "../../generic/UserTypes";
 /**
  * Utilities for managing the local storage of user fitness
  * and syncing with the server and database.
@@ -67,10 +65,10 @@ const RUN_CADENCE = DEFAULT_CADENCES[2] * 2;
  * last updated date and todays date.
  */
 // user fitness should be a dictionary of dates ISO strings which map to arrays of length 7
-const getUserActivityData = async (): Promise<UserActivities> => {
+const getUserActivityData = async (): Promise<UserActivities | null> => {
   const today = DateTime.local();
   console.log("today: ", today);
-  var userActivities: UserActivities = await UserActivities.createFromStorage();
+  var userActivities: UserActivities | null = await UserActivities.createFromStorage();
   if (!userActivities) {
     // grab fitness from server and store it
     console.log("creating from server...");
@@ -102,7 +100,7 @@ const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) =
   console.log("session date midnight: ", sessionMidnightDate);
   const unscrambledBytes = unscrambleSessionBytes(sessionBytes);
   const sessionJsons = createSessionJsons(unscrambledBytes, sessionMidnightDate);
-  const {run, swim, jump} = sessionJsons;
+  const {run, swim, jump, interval} = sessionJsons;
   // at this point find out where to insert it into the async storage UserActivity
   const userActivities: UserActivities = await getUserActivityData();
   await userActivities.fillAndRemoveOldRecords();
@@ -141,7 +139,7 @@ const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) =
     ];
     const oldAvgWalkHalfMins = userData.walkEfforts[0] / 0.1;
     var sessionWalkHalfMins = 0;
-    run.walkCadences.forEach((walkCadence, _) => {
+    run.walkCadences?.forEach((walkCadence, _) => {
       if (walkCadence >= WALK_CADENCE) {
         sessionWalkHalfMins += 1;
       }
@@ -172,6 +170,7 @@ const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) =
   await userActivities.addSession("run", run.uploadDate, run);
   await userActivities.addSession("swim", swim.uploadDate, swim);
   await userActivities.addSession("jump", jump.uploadDate, jump);
+  await userActivities.addSession("interval", interval.uploadDate, interval);
   await storeUserData(userData);
   // upload user and activity data that's stored to database
   UserActivities.uploadStoredOldRecords().then(() => {
@@ -184,7 +183,7 @@ const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) =
 }
 
 // RUN THIS EVERY DATA UPLOAD, AND EVERY TIME ATHLOS LOADS TOO
-const updateFitnessRelatedUserFields = async (userData: Object) => {
+const updateFitnessRelatedUserFields = async (userData: UserDataInterface) => {
   // can't promise.all cuz of mongo write race conditions...
   await uploadUserBests(userData);
   await uploadUserRunEfforts(userData);
@@ -196,7 +195,7 @@ const updateFitnessRelatedUserFields = async (userData: Object) => {
 /**
  * 
  */
-const uploadUserBests = async (userData) => {
+const uploadUserBests = async (userData: UserDataInterface) => {
   const token = await getToken();
   const res = await Axios.post(ENDPOINTS.updateUserBests, {
     token,
@@ -207,7 +206,7 @@ const uploadUserBests = async (userData) => {
   }
 }
 
-const uploadUserRunEfforts = async (userData) => {
+const uploadUserRunEfforts = async (userData: UserDataInterface) => {
   const token = await getToken();
   const res = await Axios.post(ENDPOINTS.updateUserRunEfforts, {
     token,
@@ -218,7 +217,7 @@ const uploadUserRunEfforts = async (userData) => {
   }
 }
 
-const uploadUserSwimEfforts = async (userData) => {
+const uploadUserSwimEfforts = async (userData: UserDataInterface) => {
   const token = await getToken();
   const res = await Axios.post(ENDPOINTS.updateUserSwimEfforts, {
     token,
@@ -229,7 +228,7 @@ const uploadUserSwimEfforts = async (userData) => {
   }
 }
 
-const uploadUserWalkEfforts = async (userData) => {
+const uploadUserWalkEfforts = async (userData: UserDataInterface) => {
   const token = await getToken();
   const res = await Axios.post(ENDPOINTS.updateUserWalkEfforts, {
     token,
@@ -239,7 +238,6 @@ const uploadUserWalkEfforts = async (userData) => {
     throw new Error(res.data.message);
   }
 }
-
 
 export {
   getUserActivityData,

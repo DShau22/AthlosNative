@@ -1,10 +1,10 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
-
+const { DateTime } = require('luxon');
 import React from 'react'
 import Run from "./run/Run"
 import Jump from "./jump/Jump"
 import Swim from "./swim/Swim"
-import { UserDataContext, ProfileContext, AppFunctionsContext } from "../../Context"
+import { UserDataContext, ProfileContext, AppFunctionsContext, AppFunctionsContextType } from "../../Context"
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoadingScreen from '../generic/LoadingScreen';
@@ -20,20 +20,23 @@ import {Calendar, CalendarList, Agenda} from 'react-native-calendars';
 import Interval from './interval/Interval';
 import { StackRouter } from 'react-navigation';
 import ThemeText from '../generic/ThemeText';
+import Background from '../nativeLogin/Background';
+import Arrow from './carousel/Arrow';
 
 const Fitness = (props) => {
   const userDataContext = React.useContext(UserDataContext);
-  const { runJson, swimJson, jumpJson } = userDataContext;
+  const { runJson, swimJson, jumpJson, intervalJson } = userDataContext;
   // console.log("Fitness context: ", userDataContext.runJson.activityData.length);
-  const appFunctionsContext = React.useContext(AppFunctionsContext);
+  const appFunctionsContext = React.useContext(AppFunctionsContext) as AppFunctionsContextType;
   const profileContext = React.useContext(ProfileContext);
   const { colors } = useTheme()
   const [isLoading, setIsLoading] = React.useState(true);  
-
   const [refreshing, setRefreshing] = React.useState(false);
-  
-  const { settings, relationshipStatus } = profileContext
-  const { setAppState, updateLocalUserFitness } = appFunctionsContext
+
+  const [weekIndex, setWeekIndex] = React.useState(0);
+  const [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday - 1); // 1 is monday 7 is sunday for .weekday
+  const { settings, relationshipStatus } = profileContext;
+  const { setAppState, updateLocalUserFitness } = appFunctionsContext;
   const { _id } = props;
   // if this is another user, must get the fitness from the server. Otherwise can just use
   // local async storage (the defaults used in the state)
@@ -140,6 +143,17 @@ const Fitness = (props) => {
     }
   }
 
+  const nextSlide = () => {
+    const nextIndex = (dayIndex + 1) % 7;
+    setDayIndex(nextIndex);
+  }
+
+  const previousSlide = () => {
+    // 0 represents the most recent upload date
+    const nextIndex = (dayIndex - 1 + 7) % 7;
+    setDayIndex(nextIndex);
+  }
+
   const TopTab = createMaterialTopTabNavigator();
   const Stack = createStackNavigator();
   return (
@@ -149,15 +163,6 @@ const Fitness = (props) => {
             name={'detailed-view'}
           >
             {props =>
-              <ScrollView
-                style={{height: '100%', width: '100%', backgroundColor: colors.header}}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={getFitness}
-                  />
-                }
-              >
                 <TopTab.Navigator
                   tabBarOptions={{
                     activeTintColor: colors.textColor,
@@ -180,7 +185,24 @@ const Fitness = (props) => {
                     // }}
                   >
                     {props => (
-                      <Run activityJson={runJson} settings={settings} />
+                      <ScrollView
+                        style={{height: '100%', width: '100%', backgroundColor: colors.background}}
+                        refreshControl={
+                          <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={getFitness}
+                          />
+                        }
+                      >
+                        <Run
+                          dayIndex={dayIndex}
+                          setDayIndex={setDayIndex}
+                          setWeekIndex={setWeekIndex}
+                          weekIndex={weekIndex}
+                          activityJson={runJson}
+                          settings={settings}
+                        />
+                      </ScrollView>
                     )}
                   </TopTab.Screen>
                   <TopTab.Screen
@@ -193,7 +215,26 @@ const Fitness = (props) => {
                     // }}
                   >
                     {props => (
-                      <Swim activityJson={swimJson} settings={settings} />
+                      <View style={{height: '100%', width: '100%', }}>
+                        <ScrollView
+                          style={{backgroundColor: colors.background}}
+                          refreshControl={
+                            <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={getFitness}
+                            />
+                          }
+                          >
+                          <Swim
+                            dayIndex={dayIndex}
+                            setDayIndex={setDayIndex}
+                            setWeekIndex={setWeekIndex}
+                            weekIndex={weekIndex}
+                            activityJson={swimJson}
+                            settings={settings}
+                            />
+                        </ScrollView>
+                      </View>
                     )}
                   </TopTab.Screen>
                   <TopTab.Screen
@@ -206,7 +247,24 @@ const Fitness = (props) => {
                     // }}
                   >
                     {props => (
-                      <Jump activityJson={jumpJson} settings={settings} />
+                      <ScrollView
+                        style={{height: '100%', width: '100%', backgroundColor: colors.background}}
+                        refreshControl={
+                          <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={getFitness}
+                          />
+                        }
+                      >
+                        <Jump
+                          dayIndex={dayIndex}
+                          setDayIndex={setDayIndex}
+                          setWeekIndex={setWeekIndex}
+                          weekIndex={weekIndex}
+                          activityJson={jumpJson}
+                          settings={settings}
+                        />
+                      </ScrollView>
                     )}
                   </TopTab.Screen>
                   <TopTab.Screen
@@ -219,11 +277,44 @@ const Fitness = (props) => {
                     // }}
                   >
                     {props => (
-                      <Interval activityJson={jumpJson} settings={settings} />
+                      <View style={{height: '100%', width: '100%'}}>
+                        <ScrollView
+                          style={{height: '100%', width: '100%', backgroundColor: colors.background}}
+                          contentContainerStyle={{flexGrow: 1}}
+                          refreshControl={
+                            <RefreshControl
+                              refreshing={refreshing}
+                              onRefresh={getFitness}
+                            />
+                          }
+                        >
+                          <Interval
+                            dayIndex={dayIndex}
+                            setDayIndex={setDayIndex}
+                            setWeekIndex={setWeekIndex}
+                            weekIndex={weekIndex}
+                            activityJson={intervalJson}
+                            settings={settings}
+                          />
+                        </ScrollView>
+                        <Arrow
+                          style={{position: 'absolute', bottom: 10, left: 30}}
+                          textStyle={{color: colors.textColor}}
+                          direction='left'
+                          clickFunction={previousSlide}
+                          glyph="&#8249;"
+                        />
+                        <Arrow
+                          style={{position: 'absolute', bottom: 10, right: 30}}
+                          textStyle={{color: colors.textColor}}
+                          direction='right'
+                          clickFunction={nextSlide}
+                          glyph="&#8250;"
+                        />
+                      </View>
                     )}
                   </TopTab.Screen>
                 </TopTab.Navigator>
-              </ScrollView>
             }
           </Stack.Screen>
           <Stack.Screen
@@ -232,7 +323,7 @@ const Fitness = (props) => {
           >
             {props => (
               <ScrollView
-                style={{height: '100%', width: '100%', backgroundColor: colors.header}}
+                style={{height: '100%', width: '100%', backgroundColor: colors.background}}
                 refreshControl={
                   <RefreshControl
                     refreshing={refreshing}

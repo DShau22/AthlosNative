@@ -41,15 +41,15 @@ const Run = (props) => {
     if (!currentDay) return [];
     currentDay.cadences.forEach((cadence, _) => {
       // if cadence is somehow undefined or NaN or null then skip
-      if (!(!cadence || isNaN(cadence))) {
+      if (cadence === undefined || isNaN(cadence)) {
+        console.log("this cadence entry is corrupted somehow...", cadence);
+      } else {
         if (cadence > walkCadenceMax) {
           runCount += 1;
         } else if (cadence <= walkCadenceMax && cadence > restCadenceMin) {
           walkCount += 1;
         }
         count += 1;
-      } else {
-        console.log("this cadence entry is corrupted somehow...");
       }
     });
     if (count === 0) return [];
