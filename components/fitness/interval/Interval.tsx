@@ -123,6 +123,35 @@ const Interval: React.FC<IntervalProps> = (props) => {
     return res;
   }
 
+  const renderWorkouts = () => {
+    const workoutComponents = currentDay.workouts.map((workout, idx) => (
+      <View style={{
+        flex: 1,
+        padding: 10,
+        marginBottom: 40,
+      }}>
+        <ThemeText h4>Workout name</ThemeText>
+        <TextInput
+          mode='outlined'
+          value={workout.workoutName} // should be workoutName
+          outlineColor={colors.backgroundOffset}
+          selectionColor={colors.backgroundOffset}
+          underlineColor={colors.backgroundOffset}
+          style={{ backgroundColor: colors.backgroundOffset }}
+          theme={{ colors: { primary: colors.textColor, text: colors.textColor }}}
+          disabled // TODO: ALLOW USERS TO EDIT THE NAMES OF THEIR WORKOUTS PER DAY
+        />
+        {/* Progress Bar */}
+        <ThemeText>insert progress bar here</ThemeText>
+        <ThemeText h4>{`Rounds completed: ${Math.floor(workout.intervalsCompleted.length / workout.intervalsPerRoundPlanned)}/${workout.totalRoundsPlanned}`}</ThemeText>
+        <ThemeText h4>Intervals</ThemeText>
+        {renderIntervals(workout)}
+      </View>
+    ));
+    workoutComponents.reverse();
+    return workoutComponents;
+  }
+
   const Stack = createStackNavigator();
   const dateObject = DateTime.fromISO(currentDay.uploadDate);
   return (
@@ -133,30 +162,7 @@ const Interval: React.FC<IntervalProps> = (props) => {
             {`No HIIT workouts for ${dateObject.weekdayShort}, ${dateObject.month}/${dateObject.day}`}
           </ThemeText>
         </View>
-      : currentDay.workouts.map((workout, idx) => (
-        <View style={{
-          flex: 1,
-          padding: 10,
-          marginBottom: 40,
-        }}>
-          <ThemeText h4>Workout name</ThemeText>
-          <TextInput
-            mode='outlined'
-            value={workout.workoutName} // should be workoutName
-            outlineColor={colors.backgroundOffset}
-            selectionColor={colors.backgroundOffset}
-            underlineColor={colors.backgroundOffset}
-            style={{ backgroundColor: colors.backgroundOffset }}
-            theme={{ colors: { primary: colors.textColor, text: colors.textColor }}}
-            disabled // TODO: ALLOW USERS TO EDIT THE NAMES OF THEIR WORKOUTS PER DAY
-          />
-          {/* Progress Bar */}
-          <ThemeText>insert progress bar here</ThemeText>
-          <ThemeText h4>{`Rounds completed: ${Math.floor(workout.intervalsCompleted.length / workout.intervalsPerRoundPlanned)}/${workout.totalRoundsPlanned}`}</ThemeText>
-          <ThemeText h4>Intervals</ThemeText>
-          {renderIntervals(workout)}
-        </View>
-      ))}
+      : renderWorkouts()}
     </View>
   )
 }

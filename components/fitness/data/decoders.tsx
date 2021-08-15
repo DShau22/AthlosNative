@@ -279,15 +279,15 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
       while (intervalSet.has(cEvent) && statReportIdx < unscrambled.length) {
         var exerciseIdx = statReport.stepCount & 0x3f;
         var lengthInSeconds = (statReport.stepCount >> 6) & 0x3ff;
-        var numRoundsPlanned = ((statReport.calories & 0xff - '0'.charCodeAt(0)) >> 4) + 1; // bits 7-4 of the lowest byte
-        var totalNumIntervalsPlanned = ((statReport.calories & 0x00ff00) >> 8) - '0'.charCodeAt(0); // middle byte
+        var intervalsPerRound = (((statReport.calories & 0xff) - '0'.charCodeAt(0)) >> 4) + 1; // bits 7-4 of the lowest byte
+        var totalNumIntervalsPlanned = ((statReport.calories & 0xff00) >> 8) - '0'.charCodeAt(0); // middle byte
         var currentInterval: IntervalType = {
           lengthInSeconds,
           exercise: MUSCLE_GROUP_LIST[exerciseIdx],
         }
         workoutObject.intervalsCompleted.push(currentInterval);
-        workoutObject.totalRoundsPlanned = numRoundsPlanned;
-        workoutObject.intervalsPerRoundPlanned = Math.floor(totalNumIntervalsPlanned / numRoundsPlanned);
+        workoutObject.totalRoundsPlanned = Math.ceil(totalNumIntervalsPlanned / intervalsPerRound);
+        workoutObject.intervalsPerRoundPlanned = intervalsPerRound;
         workoutObject.workoutTime += lengthInSeconds;
         // move onto the next stat report record
         statReportIdx += 1;
