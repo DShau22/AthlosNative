@@ -28,6 +28,15 @@ type strokeCount = {
   firstOccurenceIdx: number,
 }
 
+export const round33PoolLength = (distance: number) => {
+  // if it's a multiple of 99, round up to the nearest hundred
+  if (distance % 99 == 0) {
+    return Math.ceil(distance / 100) * 100;
+  } else {
+    return distance;
+  }
+}
+
 const compareFirstOccurences = (strokeCount1: strokeCount, strokeCount2: strokeCount) => {
   if (strokeCount1.firstOccurenceIdx < strokeCount2.firstOccurenceIdx) {
     return -1
@@ -103,7 +112,7 @@ export const calcSwimGroups = (lapTimes: Array<Lap>, strokes: Array<SwimStrokesE
     if (finished) {
       // determine what stroke this primarily was
       currentSwim.class = classifyRepeatGroup(currentSwim);
-      currentSwim.distance = currentSwim.strokes.length * numericalPoolLength;
+      currentSwim.distance = round33PoolLength(currentSwim.strokes.length * numericalPoolLength);
       swims.push({...currentSwim});
       // reset current grouping
       currentSwim = {

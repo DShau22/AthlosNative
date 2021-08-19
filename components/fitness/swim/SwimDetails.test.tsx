@@ -1,6 +1,6 @@
 import { Lap } from "../data/UserActivities";
 import { PoolLengthsEnum, SwimStrokesEnum } from "../FitnessTypes";
-import { calcSwimWorkout, calcSwimGroups, SwimRepeatGroup, SwimType } from "./utils";
+import { calcSwimWorkout, calcSwimGroups, SwimRepeatGroup, SwimType, round33PoolLength } from "./utils";
 
 const sumLapTimes = (a: Array<Lap>) => {
   return a.reduce((acc, next) => acc + next.lapTime, 0);
@@ -15,7 +15,7 @@ const createRepeat = (strokes: Array<SwimStrokesEnum>, times: Array<Lap>, repeat
   };
   for (let i = 0; i < repeats; i++) {
     result.swims.push({
-      distance: strokes.length * poolLength,
+      distance: round33PoolLength(strokes.length * poolLength),
       strokes: strokes,
       class: swimClass,
       time: time,
@@ -46,31 +46,6 @@ const IM_200_TIMES = [
   { lapTime: 19, finished: true},
 ];
 
-const IM_200_REPEAT_3: SwimRepeatGroup = {
-  swims: [
-    {
-      distance: 200,
-      strokes: IM_200_STROKES,
-      class: ["IM"],
-      time: IM_200_TIMES.reduce((acc, next) => acc + next.lapTime, 0)
-    },
-    {
-      distance: 200,
-      strokes: IM_200_STROKES,
-      class: ["IM"],
-      time: IM_200_TIMES.reduce((acc, next) => acc + next.lapTime, 0)
-    },
-    {
-      distance: 200,
-      strokes: IM_200_STROKES,
-      class: ["IM"],
-      time: IM_200_TIMES.reduce((acc, next) => acc + next.lapTime, 0)
-    }  
-  ],
-  averageTime: IM_200_TIMES.reduce((acc, next) => acc + next.lapTime, 0),
-  numSwims: 3,
-}
-
 // test IM creation
 const MOCK_LAPTIMES_IMS = [
   ...IM_200_TIMES,
@@ -85,14 +60,11 @@ const MOCK_STROKES_IMS = [
 ];
 
 const EXPECTED_IMS: Array<SwimRepeatGroup> = [
-  IM_200_REPEAT_3
+  createRepeat(IM_200_STROKES, IM_200_TIMES, 3, 25, ["IM"])
 ];
 
 const EXPECTED_OLYMPIC_IM: Array<SwimRepeatGroup> = [
-  {
-    ...IM_200_REPEAT_3,
-    swims: IM_200_REPEAT_3.swims.map((swim) => ({...swim, distance: swim.distance * 2}))
-  }
+  createRepeat(IM_200_STROKES, IM_200_TIMES, 3, 50, ["IM"])
 ];
 
 // test empty case
@@ -289,6 +261,7 @@ describe('Swim Workouts are constructed correctly', () => {
   it("handles unknowns correctly", () => {
     let swims = calcSwimGroups(MOCK_UNKNOWNS_TIMES, MOCK_UNKNOWNS_STROKES, PoolLengthsEnum.THIRD_M);
     let actual = calcSwimWorkout(swims);
+    console.log(swims[0]);
     expect(actual).toStrictEqual(EXPECTED_UNKNOWN);
   });
 });
