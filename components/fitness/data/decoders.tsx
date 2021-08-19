@@ -4,6 +4,8 @@
  * This is also where we go from bytes to actual data
  */
 import { MUSCLE_GROUP_LIST } from '../../configure/DeviceConfigConstants';
+import FITNESS_CONSTANTS from '../FitnessConstants';
+import { PoolLengthsEnum } from '../FitnessTypes';
 import {
   RunSchema,
   SwimSchema,
@@ -24,12 +26,13 @@ const eventTable = [
 const M_ascii = 'M'.charCodeAt(0); // switched modes
 const basketball_mode = '5'.charCodeAt(0);
 const semicolon_ascii = ";".charCodeAt(0);
-
-const FLY = 'U';
-const BACK = 'Y';
-const BREAST = 'O';
-const FREE = 'F';
-const HEAD_UP = 'J';
+const {
+  FLY,
+  BACK,
+  BREAST,
+  FREE,
+  HEAD_UP,
+} = FITNESS_CONSTANTS;
 
 const INTERVAL = 36;
 
@@ -42,6 +45,18 @@ const swimSet = new Set([
   HEAD_UP.charCodeAt(0),
 ]);
 
+// uses stepCount to determine the pool length this person was swimming in. ORDER MATTERS
+const numToPoolLength = {
+  '0': PoolLengthsEnum.NCAA,
+  '1': PoolLengthsEnum.OLYMPIC,
+  '2': PoolLengthsEnum.BRITISH,
+  '3': PoolLengthsEnum.THIRD_YD,
+  '4': PoolLengthsEnum.TWENTY_YARD,
+  '5': PoolLengthsEnum.HOME,
+  '6': PoolLengthsEnum.SHORT,
+  '7': PoolLengthsEnum.THIRD_M,
+}
+  
 const intervalSet = new Set([
   INTERVAL,
 ]);
@@ -78,16 +93,24 @@ function merge_three_bytes(first8: number, second8: number, third8: number): num
 }
 
 /**
- * jump[0]: '3' (report height), '4' (report hangtime), '5' (bball)
- * jump[1]: hangtime in .02s
- * jump[2]: ndata .02s, jump[3]: bs, jump[4]: # jumps, jump[5]: 10*(# baskets made)
- * swim[0]: stroke, swim[1]: lap count, swim[2]: ndata in .1s, swim[3]: 55 or junk, 55 mean ended swim
- * swim[4]: laptime, swim[5]: cals
- * run[0]: "R" for run, 'W' for walk, and more for other modes
- * run[1]: time since start if you wanna report using pace
- * run[2]: ndata .1s
- * run[3]: step count
- * run[4]: time in minutes, run[5]: cals
+ * jump cevent: '3' (report height), '4' (report hangtime), '5' (bball)
+ * jump lapCount: # jumps
+ * jump ndata: ndata .02s,
+ * jump stepCount: bs,
+ * jump lapTime: hangtime in .02s
+ * jump calories: 10*(# baskets made)
+ * swim cEvent: stroke,
+ * swim lapCount: lap count,
+ * swim ndata: ndata in .1s,
+ * swim stepCount: 0 or junk, 0 means they did a turn
+ * swim lapTime: laptime,
+ * swim calories: cals
+ * run cevent: "R" for run, 'W' for walk, and more for other modes
+ * run lapCount: ?
+ * run ndata: time in .1s
+ * run stepCount: step count
+ * run lapTime: time in minutes,
+ * run cals: cals
  * interval[0]: 36
  * interval lapCount: num intervals completed since start
  * interval stepCount: upper 10 bits is interval time, lower 6 bits is event
@@ -145,8 +168,12 @@ const calcHeight = (hangtime: number) => {
   return heightInInches;
 }
 
-const isAnomaly = (statReport: ReadableSession): boolean => {
-  return statReport.calories > 50000;
+const isAnomaly = (statReport: ReadableSession, isInterval = false): boolean => {
+  const isAnomaly = isInterval ? statReport.lapCount > 5000 : statReport.calories > 50000;
+  if (isAnomaly) {
+    console.log("ANOMALY DETECTED: ", statReport);
+  }
+  return isAnomaly;
 }
 
 type sessionJsonsType = {
@@ -176,6 +203,7 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
     userID: "",
     uploadDate: sessionDate,
     num: 0,
+    poolLength: PoolLengthsEnum.NCAA,
     lapTimes: [],
     strokes: [],
     calories: 0,
@@ -250,6 +278,7 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
       }
       const lastSwimStatReport = unscrambled[statReportIdx - 1];
       sessionJsons.swim.num = sessionJsons.swim.strokes.length;
+      sessionJsons.swim.poolLength = numToPoolLength[parseInt(String.fromCharCode(lastSwimStatReport.stepCount))];
       sessionJsons.swim.calories += lastSwimStatReport.calories / 10;
       // console.log("last swim stat report: ", lastSwimStatReport);
       sessionJsons.swim.time += lastSwimStatReport.ndata / 600;
@@ -268,7 +297,7 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
       const lastJumpStatReport = unscrambled[statReportIdx - 1];
       sessionJsons.jump.shotsMade += cEvent === basketball_mode ? lastJumpStatReport.calories : 0;
       sessionJsons.jump.time += lastJumpStatReport.ndata / 3000;
-    } else if (intervalSet.has(cEvent) && !isAnomaly(statReport)) {
+    } else if (intervalSet.has(cEvent) && !isAnomaly(statReport, true)) {
       const workoutObject: IntervalWorkoutSchema = {
         intervalsCompleted: [],
         totalRoundsPlanned: 0,
@@ -277,6 +306,7 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
         workoutTime: 0,
       }
       while (intervalSet.has(cEvent) && statReportIdx < unscrambled.length) {
+        console.log("interval set: ", statReportIdx, statReport);
         var exerciseIdx = statReport.stepCount & 0x3f;
         var lengthInSeconds = (statReport.stepCount >> 6) & 0x3ff;
         var intervalsPerRound = (((statReport.calories & 0xff) - '0'.charCodeAt(0)) >> 4) + 1; // bits 7-4 of the lowest byte
@@ -305,6 +335,7 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
       statReportIdx += 1;
     }
   }
+  console.log("interval session: ", sessionJsons.interval.workouts[sessionJsons.interval.workouts.length - 1]?.intervalsCompleted);
   return sessionJsons;
 }
 

@@ -1,13 +1,5 @@
 import { IntervalSchema, JumpSchema, RunSchema, SwimSchema } from '../fitness/data/UserActivities';
 import GLOBAL_CONSTANTS from '../GlobalConstants';
-const {
-  ONLY_ME,
-  FOLLOWERS,
-  EVERYONE,
-
-  ENGLISH,
-  METRIC,
-} = GLOBAL_CONSTANTS;
 
 export type RefTimesType = {
   fly: Array<number>,
@@ -26,14 +18,14 @@ export type SettingsType = {
 }
 
 export enum UNIT_SYSTEM_ENUM {
-  ENGLISH,
-  METRIC,
+  ENGLISH = GLOBAL_CONSTANTS.ENGLISH,
+  METRIC = GLOBAL_CONSTANTS.METRIC,
 }
 
 export enum CommunityPrivacyEnum {
-  ONLY_ME,
-  FOLLOWERS,
-  EVERYONE
+  ONLY_ME = GLOBAL_CONSTANTS.ONLY_ME,
+  FOLLOWERS = GLOBAL_CONSTANTS.FOLLOWERS,
+  EVERYONE = GLOBAL_CONSTANTS.EVERYONE,
 }
 
 export interface UserDataInterface {

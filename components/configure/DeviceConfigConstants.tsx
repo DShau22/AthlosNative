@@ -3,9 +3,11 @@ const DEVICE_CONFIG_CONSTANTS = {
     NCAA: '25 yd',
     BRITISH: '25 m',
     OLYMPIC: '50 m',
-    THIRD_YD: '33.3 yd',
-    THIRD_M: '33.3 m',
-    HOME: '15 yd' 
+    THIRD_YD: '33 yd',
+    THIRD_M: '33 m',
+    HOME: '15 yd',
+    TWENTY_YARD: '20 yd',
+    SHORT: 'Short Length',
   },
   // an array of objects representing the mode configs
 

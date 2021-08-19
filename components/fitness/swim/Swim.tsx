@@ -1,22 +1,29 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 import React, { Component } from 'react'
-import { View, StyleSheet, Text, ScrollView } from 'react-native'
-import { Divider } from 'react-native-elements'
+import { View, StyleSheet, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
+import { colors, Divider } from 'react-native-elements'
 
 import Details from "../Details"
 import StatCard from '../StatCard'
 import ThemeText from '../../generic/ThemeText'
 import { UserDataContext } from '../../../Context'
 import WeeklyBarChart from "../charts/WeeklyBarChart"
-import withFitnessPage from "../withFitnessPage"
+import withFitnessPage, { FitnessPageProps } from "../withFitnessPage"
 import DistributionDonut from '../charts/DistributionDonut'
 import LineProgression from '../charts/LineProgression'
 import { COLOR_THEMES } from '../../ColorThemes'
-const metersToYards = 1.0 / 1.09361
-const yardsToMeters = 1.0 / 0.9144
+import { useTheme } from '@react-navigation/native';
+import FITNESS_CONSTANTS from '../FitnessConstants';
+import { SwimStrokesEnum } from '../FitnessTypes';
 
-const Swim = (props) => {
+interface SwimProps extends FitnessPageProps {
+  navigation: any,
+}
+
+const Swim = (props: SwimProps) => {
   const {
+    navigation,
+
     weekIndex,
     dayIndex,
     currentDay,
@@ -30,6 +37,7 @@ const Swim = (props) => {
     roundToNDecimals,
     isNullOrUndefined
   } = props;
+  const { colors } = useTheme();
 
   // this is daily
   const makeDonutData = () => {
@@ -37,24 +45,28 @@ const Swim = (props) => {
     if (isNullOrUndefined(activityData) || activityData.length === 0) {
       return [];
     }
-    var flyCount    = 0, 
-        backCount   = 0,
-        breastCount = 0,
-        freeCount   = 0;
+    var flyCount     = 0, 
+        backCount    = 0,
+        breastCount  = 0,
+        freeCount    = 0,
+        unknownCount = 0;
     currentDay.strokes.forEach((stroke, _) => {
-      let lowerCaseStroke = stroke.toLowerCase()
-      if (lowerCaseStroke === "u") {
+      let lowerCaseStroke = stroke.toUpperCase();
+      if (lowerCaseStroke === SwimStrokesEnum.FLY) {
         flyCount += 1
-      } else if (lowerCaseStroke === "y") {
+      } else if (lowerCaseStroke ===  SwimStrokesEnum.BACK) {
         backCount += 1
-      } else if (lowerCaseStroke === "o") {
+      } else if (lowerCaseStroke ===  SwimStrokesEnum.BREAST) {
         breastCount += 1
-      } else if (lowerCaseStroke === "f") {
+      } else if (lowerCaseStroke ===  SwimStrokesEnum.FREE) {
         freeCount += 1
+      } else {
+        // this is head up
+        unknownCount += 1;
       }
     });
-    if (flyCount + backCount + breastCount + freeCount === 0) return [];
-    return [flyCount, backCount, breastCount, freeCount];
+    if (flyCount + backCount + breastCount + freeCount + unknownCount === 0) return [];
+    return [flyCount, backCount, breastCount, freeCount, unknownCount];
   }
 
   const makeTimeLabels = () => {
@@ -73,10 +85,25 @@ const Swim = (props) => {
   }
   
   const { unitSystem } = settings;
-
-  // 50m, 25yd, or 25m
   return (
     <View style={styles.container}>
+      <View style={{alignItems: 'center'}}>
+        <TouchableOpacity
+          style={{
+            alignItems: "center",
+            width: '90%',
+            borderRadius: 10,
+            backgroundColor: colors.backgroundOffset,
+            padding: 10,
+          }}
+          onPress={() => {navigation.navigate(FITNESS_CONSTANTS.SWIM_DETAILS)}}
+        >
+          <ThemeText>Workout Details</ThemeText>
+        </TouchableOpacity>
+      </View>
+      <View style={{alignItems: 'center'}}>
+        <Divider style={{width: '95%', marginBottom: 10, marginTop: 10}}/>
+      </View>
       <View style={{alignItems: 'center'}}>
         <ThemeText h4>Lap Times</ThemeText>
       </View>
@@ -102,7 +129,7 @@ const Swim = (props) => {
           activity='swim'
           style={{height: 250}}
           data={makeDonutData()}
-          indexToLabel={['Fly', 'Back', 'Breast', 'Free']}
+          indexToLabel={['Fly', 'Back', 'Breast', 'Free', 'Unknown']}
           labelUnit=' laps'
           gradients={COLOR_THEMES.SWIM_DONUT_GRADIENTS}
         />
@@ -155,7 +182,7 @@ const styles = StyleSheet.create({
     width: '100%',
     // backgroundColor: 'red',
     // alignItems: 'center',
-    marginTop: 25
+    marginTop: 10,
   },
   calsAndTimeContainer: {
     marginTop: 10,

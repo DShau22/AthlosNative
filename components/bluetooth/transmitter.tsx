@@ -579,18 +579,23 @@ class BLEHandler {
       this.setUISyncProgress(0);
       this.numSaDataBytesRead = 0;
     }
+    this.numSaDataBytesRead += readValueInRawBytes.length - BLEHandler.METADATA_SIZE;
+    if (this.numSaDataBytesRead > this.totalNumSaDataBytes) {
+      // we were sent more bytes of SADATA than we should have received which happens when total numbe bytes % 64 != 0
+      // this should only happen at the very last package
+      let extraBytesReceived = this.numSaDataBytesRead - this.totalNumSaDataBytes;
+      this.readBuffers.push(readValueInRawBytes.slice(3, readValueInRawBytes.length - extraBytesReceived - 2));
+    } else {
+      this.readBuffers.push(readValueInRawBytes.slice(3, readValueInRawBytes.length - 2)); // first 3 bytes, last 2 bytes are metadata
+    }
     console.log("total num bytes to read expected: ", this.totalNumSaDataBytes);
     console.log("total num bytes read so far: ", this.numSaDataBytesRead);
-    this.readBuffers.push(readValueInRawBytes.slice(3, readValueInRawBytes.length - 2)); // first 3 bytes, last 2 bytes are metadata
-    this.numSaDataBytesRead += readValueInRawBytes.length - BLEHandler.METADATA_SIZE;
     this.setUISyncProgress(this.numSaDataBytesRead / this.totalNumSaDataBytes);
 
     var totalNumBytes = 0;
     this.readBuffers.forEach((buffer, _) => {
       totalNumBytes += buffer.length;
     });
-    if (totalNumBytes != this.numSaDataBytesRead)
-      console.log(`num bytes in read buffers ${totalNumBytes} not same as total num bytes read (${this.numSaDataBytesRead})`);
     if (this._isFinishTransmit(readValueInRawBytes)) {
       console.log("done reading...");
       const concatentatedSadata = Buffer.concat(this.readBuffers, totalNumBytes);

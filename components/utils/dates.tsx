@@ -51,8 +51,14 @@ function sameDate(date1: typeof DateTime , date2: typeof DateTime): typeof DateT
         date1.year === date2.year;
 }
 
+function formatDateToDisplay(isoDateString: string) {
+  const dateObject = DateTime.fromISO(isoDateString);
+  return `${dateObject.weekdayShort}, ${dateObject.month}/${dateObject.day}`
+}
+
 export {
   getLastMonday,
   getNextSunday,
-  sameDate
+  sameDate,
+  formatDateToDisplay
 }

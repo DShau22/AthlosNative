@@ -9,6 +9,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import { createStackNavigator } from '@react-navigation/stack';
 import LoadingScreen from '../generic/LoadingScreen';
 import { View, StyleSheet, Alert, ScrollView, RefreshControl } from "react-native";
+
 import { useFocusEffect, useTheme } from '@react-navigation/native';
 
 import PROFILE_CONSTANTS from '../profile/ProfileConstants'
@@ -22,16 +23,18 @@ import { StackRouter } from 'react-navigation';
 import ThemeText from '../generic/ThemeText';
 import Background from '../nativeLogin/Background';
 import Arrow from './carousel/Arrow';
+import SwimDetails from './swim/SwimDetails';
+import { UserDataInterface } from '../generic/UserTypes';
 
 const Fitness = (props) => {
   const userDataContext = React.useContext(UserDataContext);
-  const { runJson, swimJson, jumpJson, intervalJson } = userDataContext;
+  const { runJson, swimJson, jumpJson, intervalJson } = userDataContext as UserDataInterface;
   // console.log("Fitness context: ", userDataContext.runJson.activityData.length);
   const appFunctionsContext = React.useContext(AppFunctionsContext) as AppFunctionsContextType;
   const profileContext = React.useContext(ProfileContext);
   const { colors } = useTheme()
   const [isLoading, setIsLoading] = React.useState(true);  
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = React.useState<boolean>(false);
 
   const [weekIndex, setWeekIndex] = React.useState(0);
   const [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday - 1); // 1 is monday 7 is sunday for .weekday
@@ -156,131 +159,77 @@ const Fitness = (props) => {
 
   const TopTab = createMaterialTopTabNavigator();
   const Stack = createStackNavigator();
+  // need because scrollview doesn't work with navigation stacks as children and swim page needs additional screen for workout details
+  // can't put navigation stacks inside Swim component cuz that would force you to put scrollview AND nav stack in withFitnessPage
+  const SwimStack = createStackNavigator();
   return (
-      isLoading ? <LoadingScreen text='preparing your activities'/> :
-        <Stack.Navigator headerMode='none'>
-          <Stack.Screen
-            name={'detailed-view'}
-          >
-            {props =>
-                <TopTab.Navigator
-                  tabBarOptions={{
-                    activeTintColor: colors.textColor,
-                    inactiveTintColor: '#9DA0A3',
-                    labelStyle: { fontSize: 12 },
-                    indicatorStyle: {
-                      backgroundColor: colors.textColor,
-                      height: 2,
-                    },
-                    style: { backgroundColor: colors.header, paddingTop: 8, paddingBottom: 8 },
-                  }}
-                >
-                  <TopTab.Screen
-                    name={'Runs'}
-                    // component={Run}
-                    // initialParams={{
-                    //   id: FITNESS_CONSTANTS.RUN,
-                    //   activityJson: runJson,
-                    //   settings: settings,
-                    // }}
+    isLoading ? <LoadingScreen text='preparing your workout log'/> :
+      <Stack.Navigator headerMode='none'>
+        <Stack.Screen
+          name={'detailed-view'}
+        >
+          {props =>
+            <TopTab.Navigator
+              tabBarOptions={{
+                activeTintColor: colors.textColor,
+                inactiveTintColor: '#9DA0A3',
+                labelStyle: { fontSize: 12 },
+                indicatorStyle: {
+                  backgroundColor: colors.textColor,
+                  height: 2,
+                },
+                style: { backgroundColor: colors.header, paddingTop: 8, paddingBottom: 8 },
+              }}
+            >
+              <TopTab.Screen
+                name={'Runs'}
+                // component={Run}
+                // initialParams={{
+                //   id: FITNESS_CONSTANTS.RUN,
+                //   activityJson: runJson,
+                //   settings: settings,
+                // }}
+              >
+                {props => (
+                  <ScrollView
+                    style={{height: '100%', width: '100%', backgroundColor: colors.background}}
+                    refreshControl={
+                      <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={getFitness}
+                      />
+                    }
                   >
-                    {props => (
-                      <ScrollView
-                        style={{height: '100%', width: '100%', backgroundColor: colors.background}}
-                        refreshControl={
-                          <RefreshControl
-                            refreshing={refreshing}
-                            onRefresh={getFitness}
-                          />
-                        }
-                      >
-                        <Run
-                          dayIndex={dayIndex}
-                          setDayIndex={setDayIndex}
-                          setWeekIndex={setWeekIndex}
-                          weekIndex={weekIndex}
-                          activityJson={runJson}
-                          settings={settings}
-                        />
-                      </ScrollView>
-                    )}
-                  </TopTab.Screen>
-                  <TopTab.Screen
-                    name={'Swims'}
-                    // component={Swim}
-                    // initialParams={{
-                    //   id: FITNESS_CONSTANTS.SWIM,
-                    //   activityJson: swimJson,
-                    //   settings: settings,
-                    // }}
+                    <Run
+                      dayIndex={dayIndex}
+                      setDayIndex={setDayIndex}
+                      setWeekIndex={setWeekIndex}
+                      weekIndex={weekIndex}
+                      activityJson={runJson}
+                      settings={settings}
+                    />
+                  </ScrollView>
+                )}
+              </TopTab.Screen>
+              <TopTab.Screen
+                name={'Swims'}
+                // component={Swim}
+                // initialParams={{
+                //   id: FITNESS_CONSTANTS.SWIM,
+                //   activityJson: swimJson,
+                //   settings: settings,
+                // }}
+              >
+                {props => (
+                  <SwimStack.Navigator
+                    headerMode='none'
                   >
-                    {props => (
-                      <View style={{height: '100%', width: '100%', }}>
-                        <ScrollView
-                          style={{backgroundColor: colors.background}}
-                          refreshControl={
-                            <RefreshControl
-                            refreshing={refreshing}
-                            onRefresh={getFitness}
-                            />
-                          }
-                          >
-                          <Swim
-                            dayIndex={dayIndex}
-                            setDayIndex={setDayIndex}
-                            setWeekIndex={setWeekIndex}
-                            weekIndex={weekIndex}
-                            activityJson={swimJson}
-                            settings={settings}
-                            />
-                        </ScrollView>
-                      </View>
-                    )}
-                  </TopTab.Screen>
-                  <TopTab.Screen
-                    name={'Jumps'}
-                    // component={Jump}
-                    // initialParams={{
-                    //   id: FITNESS_CONSTANTS.JUMP,
-                    //   activityJson: jumpJson,
-                    //   settings: settings,
-                    // }}
-                  >
-                    {props => (
-                      <ScrollView
-                        style={{height: '100%', width: '100%', backgroundColor: colors.background}}
-                        refreshControl={
-                          <RefreshControl
-                            refreshing={refreshing}
-                            onRefresh={getFitness}
-                          />
-                        }
-                      >
-                        <Jump
-                          dayIndex={dayIndex}
-                          setDayIndex={setDayIndex}
-                          setWeekIndex={setWeekIndex}
-                          weekIndex={weekIndex}
-                          activityJson={jumpJson}
-                          settings={settings}
-                        />
-                      </ScrollView>
-                    )}
-                  </TopTab.Screen>
-                  <TopTab.Screen
-                    name={'HIIT'}
-                    // component={Jump}
-                    // initialParams={{
-                    //   id: FITNESS_CONSTANTS.JUMP,
-                    //   activityJson: jumpJson,
-                    //   settings: settings,
-                    // }}
-                  >
-                    {props => (
-                      <View style={{height: '100%', width: '100%'}}>
+                    <SwimStack.Screen
+                      name={FITNESS_CONSTANTS.SWIM}
+                    >
+                      {props => (
                         <ScrollView
                           style={{height: '100%', width: '100%', backgroundColor: colors.background}}
-                          contentContainerStyle={{flexGrow: 1}}
                           refreshControl={
                             <RefreshControl
                               refreshing={refreshing}
@@ -288,55 +237,134 @@ const Fitness = (props) => {
                             />
                           }
                         >
-                          <Interval
+                          <Swim
                             dayIndex={dayIndex}
                             setDayIndex={setDayIndex}
                             setWeekIndex={setWeekIndex}
                             weekIndex={weekIndex}
-                            activityJson={intervalJson}
+                            activityJson={swimJson}
                             settings={settings}
+                            navigation={props.navigation}
                           />
                         </ScrollView>
-                        <Arrow
-                          style={{position: 'absolute', bottom: 10, left: 30}}
-                          textStyle={{color: colors.textColor}}
-                          direction='left'
-                          clickFunction={previousSlide}
-                          glyph="&#8249;"
-                        />
-                        <Arrow
-                          style={{position: 'absolute', bottom: 10, right: 30}}
-                          textStyle={{color: colors.textColor}}
-                          direction='right'
-                          clickFunction={nextSlide}
-                          glyph="&#8250;"
-                        />
-                      </View>
-                    )}
-                  </TopTab.Screen>
-                </TopTab.Navigator>
-            }
-          </Stack.Screen>
-          <Stack.Screen
-            name={'workout-calendar'}
-            options={{ title: 'calendar' }}
-          >
-            {props => (
-              <ScrollView
-                style={{height: '100%', width: '100%', backgroundColor: colors.background}}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={getFitness}
-                  />
-                }
+                      )}
+                    </SwimStack.Screen>
+                    <SwimStack.Screen
+                      name={FITNESS_CONSTANTS.SWIM_DETAILS}
+                    >
+                      {props => (
+                        <ScrollView
+                          style={{height: '100%', width: '100%', backgroundColor: colors.background}}
+                          refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={getFitness} />
+                          }
+                        >
+                          <SwimDetails workout={swimJson.activityData[weekIndex][dayIndex]}/>
+                        </ScrollView>
+                      )}
+                    </SwimStack.Screen>
+                  </SwimStack.Navigator>
+                )}
+              </TopTab.Screen>
+              <TopTab.Screen
+                name={'Jumps'}
+                // component={Jump}
+                // initialParams={{
+                //   id: FITNESS_CONSTANTS.JUMP,
+                //   activityJson: jumpJson,
+                //   settings: settings,
+                // }}
               >
-                <Calendar/>
-              </ScrollView>
-            )}
-          </Stack.Screen>
-        </Stack.Navigator>
-      
+                {props => (
+                  <ScrollView
+                    style={{height: '100%', width: '100%', backgroundColor: colors.background}}
+                    refreshControl={
+                      <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={getFitness}
+                      />
+                    }
+                  >
+                    <Jump
+                      dayIndex={dayIndex}
+                      setDayIndex={setDayIndex}
+                      setWeekIndex={setWeekIndex}
+                      weekIndex={weekIndex}
+                      activityJson={jumpJson}
+                      settings={settings}
+                    />
+                  </ScrollView>
+                )}
+              </TopTab.Screen>
+              <TopTab.Screen
+                name={'HIIT'}
+                // component={Jump}
+                // initialParams={{
+                //   id: FITNESS_CONSTANTS.JUMP,
+                //   activityJson: jumpJson,
+                //   settings: settings,
+                // }}
+              >
+                {props => (
+                  <View style={{height: '100%', width: '100%'}}>
+                    <ScrollView
+                      style={{height: '100%', width: '100%', backgroundColor: colors.background}}
+                      contentContainerStyle={{flexGrow: 1}}
+                      refreshControl={
+                        <RefreshControl
+                          refreshing={refreshing}
+                          onRefresh={getFitness}
+                        />
+                      }
+                    >
+                      <Interval
+                        dayIndex={dayIndex}
+                        setDayIndex={setDayIndex}
+                        setWeekIndex={setWeekIndex}
+                        weekIndex={weekIndex}
+                        activityJson={intervalJson}
+                        settings={settings}
+                      />
+                    </ScrollView>
+                    <Arrow
+                      style={{position: 'absolute', bottom: 10, left: 30}}
+                      textStyle={{color: colors.textColor}}
+                      direction='left'
+                      clickFunction={previousSlide}
+                      glyph="&#8249;"
+                    />
+                    <Arrow
+                      style={{position: 'absolute', bottom: 10, right: 30}}
+                      textStyle={{color: colors.textColor}}
+                      direction='right'
+                      clickFunction={nextSlide}
+                      glyph="&#8250;"
+                    />
+                  </View>
+                )}
+              </TopTab.Screen>
+            </TopTab.Navigator>
+          }
+        </Stack.Screen>
+        <Stack.Screen
+          name={'workout-calendar'}
+          options={{ title: 'calendar' }}
+        >
+          {props => (
+            <ScrollView
+              style={{height: '100%', width: '100%', backgroundColor: colors.background}}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={getFitness}
+                />
+              }
+            >
+              <Calendar/>
+            </ScrollView>
+          )}
+        </Stack.Screen>
+      </Stack.Navigator>
   )
 }
 

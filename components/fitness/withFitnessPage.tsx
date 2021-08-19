@@ -10,8 +10,13 @@ import Duration from './Duration';
 import FITNESS_CONTANTS from './FitnessConstants';
 import { SettingsType } from '../generic/UserTypes';
 import { ActivityJson } from './FitnessTypes';
+import { JumpSchema, RunSchema, SwimSchema } from './data/UserActivities';
 
 interface fitnessPageHOCProps {
+  refreshing?: boolean,
+  onRefresh?: Function,
+  navigation?: any,
+
   settings: SettingsType,
   activityJson: ActivityJson,
   dayIndex: number,
@@ -174,8 +179,6 @@ export default function withFitnessPage( WrappedComponent: any ) {
         <WrappedComponent
           weeklyGraphData={weeklyGraphData}
           weeklyGraphLabels={weeklyGraphLabels}
-          weekIndex={weekIndex}
-          dayIndex={dayIndex}
           currentDay={sessionDay}
           calcAvgNum={calcAvgNum}
           calcAvgCals={calcAvgCals}

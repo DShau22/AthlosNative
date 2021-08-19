@@ -16,6 +16,7 @@ import {
 } from '../../utils/dates';
 import ENDPOINTS from '../../endpoints';
 import Axios from 'axios';
+import { PoolLengthsEnum } from '../FitnessTypes';
 const { DateTime } = require('luxon');
 
 type ACTIVITY_ENUMS = "run" | "swim" | "jump" | "interval";
@@ -35,12 +36,13 @@ export interface RunSchema extends ActivitySchema {
   calories: number,
 }
 
-interface Lap {
+export type Lap = {
   finished: boolean,
   lapTime: number,
 }
 export interface SwimSchema extends ActivitySchema {
   num: number,
+  poolLength: PoolLengthsEnum,
   lapTimes: Array<Lap>,
   strokes: Array<string>,
   calories: number,
@@ -147,7 +149,7 @@ const blank_week = (activity: ACTIVITY_ENUMS, mondayDate: typeof DateTime) => {
     result[day] =
       activity === "run" ? blank_run(blank_date) :
       activity === "swim" ? blank_swim(blank_date) :
-      activity === "jump" ? blank_jump(blank_date) : null;
+      activity === "jump" ? blank_jump(blank_date) :
       activity === "interval" ? blank_interval(blank_date) : null;
   }
   return result;

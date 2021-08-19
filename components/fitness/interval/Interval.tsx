@@ -12,6 +12,7 @@ import { IntervalWorkoutSchema, IntervalType, IntervalSchema } from '../data/Use
 import { MUSCLE_GROUP_LIST } from '../../configure/DeviceConfigConstants';
 import Arrow from '../carousel/Arrow';
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
+import { formatDateToDisplay } from '../../utils/dates';
 const { DateTime } = require("luxon");
 
 type IntervalProps = {
@@ -64,7 +65,7 @@ const Interval: React.FC<IntervalProps> = (props) => {
   //   ]
   // }
   var currentDay: IntervalSchema = activityJson.activityData[weekIndex][dayIndex];
-  const [currentWorkout, setCurrentWorkout] = React.useState<IntervalWorkoutSchema>(currentDay.workouts[0]);
+  const [currentWorkout, setCurrentWorkout] = React.useState<IntervalWorkoutSchema>(currentDay?.workouts[0]);
   const { colors } = useTheme();
 
   const renderIntervals = (workout: IntervalWorkoutSchema) => {
@@ -73,7 +74,6 @@ const Interval: React.FC<IntervalProps> = (props) => {
       intervalsPerRoundPlanned,
       totalRoundsPlanned,
     } = workout;
-    console.log("per round planned: ", intervalsPerRoundPlanned);
     const totalIntervalsCompleted = intervalsCompleted.length;
     const res = [];
     for (let i = 0; i < intervalsPerRoundPlanned; i++) {
@@ -152,14 +152,12 @@ const Interval: React.FC<IntervalProps> = (props) => {
     return workoutComponents;
   }
 
-  const Stack = createStackNavigator();
-  const dateObject = DateTime.fromISO(currentDay.uploadDate);
   return (
     <View style={{height: '100%', width: '100%', backgroundColor: colors.background}}>
       {currentDay.workouts.length === 0 ? 
         <View>
           <ThemeText style={{fontSize: 16, color: colors.backgroundOffset, margin: 10, alignSelf: 'center'}}>
-            {`No HIIT workouts for ${dateObject.weekdayShort}, ${dateObject.month}/${dateObject.day}`}
+            {`No HIIT workouts for ${formatDateToDisplay(currentDay.uploadDate)}`}
           </ThemeText>
         </View>
       : renderWorkouts()}
