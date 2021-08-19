@@ -30,8 +30,10 @@ type strokeCount = {
 
 export const round33PoolLength = (distance: number) => {
   // if it's a multiple of 99, round up to the nearest hundred
-  if (distance % 99 == 0) {
-    return Math.ceil(distance / 100) * 100;
+  if (distance % 33 == 0) {
+    let num33s = distance / 33;
+    let num100s = Math.floor(num33s / 3);
+    return 100 * num100s + 33 * (num33s % 3);
   } else {
     return distance;
   }

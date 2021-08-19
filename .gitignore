@@ -24,6 +24,7 @@ DerivedData
 # Android/IntelliJ
 #
 android/java_pid5471.hprof
+android/java_pid*
 build/
 .idea
 .gradle
