@@ -16,7 +16,7 @@ import {
 } from '../../utils/dates';
 import ENDPOINTS from '../../endpoints';
 import Axios from 'axios';
-import { PoolLengthsEnum } from '../FitnessTypes';
+import { PoolLengthsEnum, SwimStrokesEnum } from '../FitnessTypes';
 const { DateTime } = require('luxon');
 
 type ACTIVITY_ENUMS = "run" | "swim" | "jump" | "interval";
@@ -44,7 +44,7 @@ export interface SwimSchema extends ActivitySchema {
   num: number,
   poolLength: PoolLengthsEnum,
   lapTimes: Array<Lap>,
-  strokes: Array<string>,
+  strokes: Array<SwimStrokesEnum>,
   calories: number,
 }
 

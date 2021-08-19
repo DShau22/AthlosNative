@@ -1,3 +1,4 @@
+import { COLOR_THEMES } from "../../ColorThemes";
 import { Lap } from "../data/UserActivities";
 import FITNESS_CONSTANTS from "../FitnessConstants";
 import { PoolLengthsEnum, SwimStrokesEnum } from "../FitnessTypes";
@@ -17,7 +18,7 @@ export type SwimRepeatGroup = {
 export type SwimType = {
   distance: number,
   strokes: Array<SwimStrokesEnum>,
-  class: Array<SwimStrokesEnum | string> | string | SwimStrokesEnum,
+  class: Array<string>,
   time: number
 }
 
@@ -26,6 +27,10 @@ type strokeCount = {
   count: number,
   stroke: string,
   firstOccurenceIdx: number,
+}
+
+export const displayClass = (swimClass: Array<string>): string => {
+  return swimClass.join(", ");
 }
 
 export const round33PoolLength = (distance: number) => {
@@ -99,7 +104,7 @@ export const calcSwimGroups = (lapTimes: Array<Lap>, strokes: Array<SwimStrokesE
   let currentSwim: SwimType = {
     distance: 0,
     strokes: [],
-    class: "",
+    class: ["Unknown"],
     time: 0,
   };
   let numericalPoolLength = poolLength ? parseInt((poolLength as unknown as string).split(" ")[0]) : 25;
@@ -119,7 +124,7 @@ export const calcSwimGroups = (lapTimes: Array<Lap>, strokes: Array<SwimStrokesE
       // reset current grouping
       currentSwim = {
         strokes: [],
-        class: "",
+        class: ["Unknown"],
         distance: 0,
         time: 0,
       };
@@ -157,4 +162,11 @@ export const calcSwimWorkout = (swims: Array<SwimType>): Array<SwimRepeatGroup> 
   }
   swimWorkout.push({...prevGrouping});
   return swimWorkout;
+}
+
+export const STROKE_TO_COLOR = {
+  Fly: COLOR_THEMES.SWIM_DONUT_GRADIENTS[0].startColor,
+  Back: COLOR_THEMES.SWIM_DONUT_GRADIENTS[1].startColor,
+  Breast: COLOR_THEMES.SWIM_DONUT_GRADIENTS[2].startColor,
+  Free: COLOR_THEMES.SWIM_DONUT_GRADIENTS[3].startColor,
 }

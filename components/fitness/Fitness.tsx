@@ -253,14 +253,12 @@ const Fitness = (props) => {
                       name={FITNESS_CONSTANTS.SWIM_DETAILS}
                     >
                       {props => (
-                        <ScrollView
-                          style={{height: '100%', width: '100%', backgroundColor: colors.background}}
-                          refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={getFitness} />
-                          }
-                        >
-                          <SwimDetails workout={swimJson.activityData[weekIndex][dayIndex]}/>
-                        </ScrollView>
+                        <SwimDetails 
+                          navigation={props.navigation}
+                          workout={swimJson.activityData[weekIndex][dayIndex]}
+                          refreshing={refreshing}
+                          onRefresh={getFitness} 
+                        />
                       )}
                     </SwimStack.Screen>
                   </SwimStack.Navigator>
