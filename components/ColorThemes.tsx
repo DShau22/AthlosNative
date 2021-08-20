@@ -58,6 +58,11 @@ const COLOR_THEMES = {
       startColor: 'rgb(58, 65, 81)',
       endColor: 'rgb(89, 94, 91)',
     },
+    {
+      key: 'other',
+      startColor: '#0356fc',
+      endColor: '#B3F2FF',
+    },
   ], // gradients for each of the four strokes
 };
 

@@ -3,9 +3,9 @@
  * and syncing with the server and database.
  * This is also where we go from bytes to actual data
  */
-import { MUSCLE_GROUP_LIST } from '../../configure/DeviceConfigConstants';
+import { DEVICE_CONFIG_CONSTANTS, DISTANCES_LIST, MUSCLE_GROUP_LIST, STROKES_LIST } from '../../configure/DeviceConfigConstants';
 import FITNESS_CONSTANTS from '../FitnessConstants';
-import { PoolLengthsEnum } from '../FitnessTypes';
+import { PoolLengthsEnum, SwimStrokesEnum } from '../FitnessTypes';
 import {
   RunSchema,
   SwimSchema,
@@ -13,7 +13,8 @@ import {
   SwimReferenceTimes,
   IntervalSchema,
   IntervalType,
-  IntervalWorkoutSchema
+  IntervalWorkoutSchema,
+  SwimWorkoutSchema
 } from './UserActivities';
 
 
@@ -35,6 +36,7 @@ const {
 } = FITNESS_CONSTANTS;
 
 const INTERVAL = 36;
+const SWIM_WORKOUT = 37;
 
 //fly back breast free or any of the races
 const swimSet = new Set([
@@ -44,6 +46,8 @@ const swimSet = new Set([
   FREE.charCodeAt(0),
   HEAD_UP.charCodeAt(0),
 ]);
+
+const swimWorkoutSet = new Set([SWIM_WORKOUT,]);
 
 // uses stepCount to determine the pool length this person was swimming in. ORDER MATTERS
 const numToPoolLength = {
@@ -57,13 +61,7 @@ const numToPoolLength = {
   '7': PoolLengthsEnum.THIRD_M,
 }
   
-const intervalSet = new Set([
-  INTERVAL,
-]);
-// Array(35).forEach((_, idx) => {
-//   swimSet.add(idx);
-//   markerSet.add(idx);
-// });
+const intervalSet = new Set([INTERVAL,]);
 const jumpSet = new Set(['3'.charCodeAt(0), '4'.charCodeAt(0), basketball_mode]);
 const stepSet = new Set(['R'.charCodeAt(0), 'W'.charCodeAt(0)]);
 
@@ -73,6 +71,7 @@ const markerSet = new Set([
   ...stepSet,
   ...intervalSet,
   ...swimSet,
+  ...swimWorkoutSet,
   M_ascii, // switched modes
 ]);
 
@@ -306,7 +305,6 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
         workoutTime: 0,
       }
       while (intervalSet.has(cEvent) && statReportIdx < unscrambled.length) {
-        console.log("interval set: ", statReportIdx, statReport);
         var exerciseIdx = statReport.stepCount & 0x3f;
         var lengthInSeconds = (statReport.stepCount >> 6) & 0x3ff;
         var intervalsPerRound = (((statReport.calories & 0xff) - '0'.charCodeAt(0)) >> 4) + 1; // bits 7-4 of the lowest byte
@@ -330,15 +328,47 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
       }
       sessionJsons.interval.workouts.push(workoutObject);
       sessionJsons.interval.time += workoutObject.workoutTime;
+    } else if (swimWorkoutSet.has(cEvent) && statReportIdx < unscrambled.length) {
+      var currentSwimWorkout: SwimWorkoutSchema = {
+        sets: [], 
+        totalNumSwimsIntended: ((statReport.calories & 0x00ff00) >> 8) - '0'.charCodeAt(0),
+        totalNumRoundsIntended: (((statReport.calories & 0xff) - '0'.charCodeAt(0)) >> 4) + 1,
+      }
+      if (!sessionJsons.swim.workouts) { sessionJsons.swim.workouts = []; }
+      while (swimWorkoutSet.has(cEvent) && statReportIdx < unscrambled.length) {
+        addSwimToWorkout(currentSwimWorkout, statReport.stepCount);
+        // move onto the next stat report record
+        statReportIdx += 1;
+        statReport = unscrambled[statReportIdx];
+        cEvent = statReport ? statReport.cEvent : null;
+        if (swimWorkoutSet.has(cEvent) && statReport.lapCount === 1) {
+          break;
+        }
+      }
+      sessionJsons.swim.num += currentSwimWorkout.sets.length;
+      sessionJsons.swim.time += currentSwimWorkout.sets.reduce((acc, set) => acc + set.timeIntervalInSeconds, 0);
+      sessionJsons.swim.workouts?.push(currentSwimWorkout);
     } else {
       console.log(`not a valid cEvent in the unscrambled array: ${cEvent}`);
       statReportIdx += 1;
     }
   }
-  console.log("interval session: ", sessionJsons.interval.workouts[sessionJsons.interval.workouts.length - 1]?.intervalsCompleted);
+  console.log("swim session: ", );
   return sessionJsons;
 }
 
+// breaks the swim down into 25s and adds it to the swim workout
+const addSwimToWorkout = (workout: SwimWorkoutSchema, stepCount: number) => {
+  var reps = ((stepCount & 0xe000) >> 13) + 1; //0b1110 0000 ... bits 15:13
+  var distance = DISTANCES_LIST[(stepCount & 0x1c00) >> 10]; //0b0001 1100 0000 ...  bits 12:10
+  var event = (stepCount & 0x3c0) >> 6; //0b 0000 0011 1100 0000  bits 9:6
+  if (distance > 200) { // bits 5:0
+    var timeIntervalInSeconds = (stepCount & 0x3f) * 10;
+  } else {
+    var timeIntervalInSeconds = (stepCount & 0x3f) * 5;
+  }
+  workout.sets.push({reps, distance, event: STROKES_LIST[event] ? STROKES_LIST[event] : "Unknown", timeIntervalInSeconds});
+}
 
 const calcReferenceTimes = (oldRefTimes: SwimReferenceTimes, swimJson: SwimSchema): SwimReferenceTimes => {
   const { lapTimes, strokes } = swimJson;
@@ -348,16 +378,16 @@ const calcReferenceTimes = (oldRefTimes: SwimReferenceTimes, swimJson: SwimSchem
   var freeAvg = oldRefTimes.free[0] / 1.1;
   for (let i = 0; i < lapTimes.length; i++) {
     switch(strokes[i]) {
-      case FLY:
+      case SwimStrokesEnum.FLY:
         flyAvg = (7*flyAvg)/8 + lapTimes[i].lapTime/8;
         break;
-      case BACK:
+      case SwimStrokesEnum.BACK:
         backAvg = (7*backAvg)/8 + lapTimes[i].lapTime/8;
         break;
-      case BREAST:
+      case SwimStrokesEnum.BREAST:
         breastAvg = (7*breastAvg)/8 + lapTimes[i].lapTime/8;
         break;
-      case FREE:
+      case SwimStrokesEnum.FREE:
         freeAvg = (7*freeAvg)/8 + lapTimes[i].lapTime/8;
         break;
       default:

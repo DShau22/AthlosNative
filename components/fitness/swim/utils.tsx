@@ -1,5 +1,5 @@
 import { COLOR_THEMES } from "../../ColorThemes";
-import { Lap } from "../data/UserActivities";
+import { Lap, SwimSetSchema, SwimWorkoutSchema } from "../data/UserActivities";
 import FITNESS_CONSTANTS from "../FitnessConstants";
 import { PoolLengthsEnum, SwimStrokesEnum } from "../FitnessTypes";
 
@@ -9,10 +9,13 @@ export type StrokeTimeType = {
   finished: boolean,
 }
 
-export type SwimRepeatGroup = {
-  swims: Array<SwimType>,
+export type SwimSet = {
+  swims?: Array<SwimType>,
+  numIntendedSwims?: number,
+  numSwims: number, // should be equal to swims.length
+  distance: number | string,
+  class: Array<string>,
   averageTime: number, // in seconds
-  numSwims: number,
 }
 
 export type SwimType = {
@@ -133,15 +136,18 @@ export const calcSwimGroups = (lapTimes: Array<Lap>, strokes: Array<SwimStrokesE
   return swims;
 }
 
-export const calcSwimWorkout = (swims: Array<SwimType>): Array<SwimRepeatGroup> => {
+// given the data from a lap swimming mode output, re render it in a format so that it can be displayed
+export const calcLapSwimWorkout = (swims: Array<SwimType>): Array<SwimSet> => {
   if (swims.length === 0) {
     return [];
   }
-  let swimWorkout: Array<SwimRepeatGroup> = [];
-  let prevGrouping: SwimRepeatGroup = {
+  let swimWorkout: Array<SwimSet> = [];
+  let prevGrouping: SwimSet = {
     swims: [swims[0]],
     averageTime: swims[0].time,
     numSwims: 1,
+    class: swims[0].class,
+    distance: swims[0].distance,
   };
   // iterate through all the swims. Group things of same class and reset once you hit a different class
   for (let i = 1; i < swims.length; i++) {
@@ -157,11 +163,79 @@ export const calcSwimWorkout = (swims: Array<SwimType>): Array<SwimRepeatGroup> 
       prevGrouping.swims = [];
       prevGrouping.averageTime = swim.time;
       prevGrouping.numSwims = 1;
+      prevGrouping.distance = swim.distance;
+      prevGrouping.class = swim.class;
     }
-    prevGrouping.swims.push(swim);
+    prevGrouping.swims?.push(swim);
   }
   swimWorkout.push({...prevGrouping});
   return swimWorkout;
+}
+
+// given the data from a swimming workout mode output, re render it in a format so that it can be displayed
+export type SwimmingWorkout = {
+  numRoundsIntended: number,
+  numRoundsDone: number,
+  numSwimsIntended: number,
+  numSwimsDone: number,
+  sets: Array<SwimSet>,
+}
+
+export const calcSwimWorkouts = (workouts: Array<SwimWorkoutSchema> | undefined): Array<SwimmingWorkout> => {
+  if (!workouts) {
+    return [];
+  }
+  let swimWorkouts: Array<SwimmingWorkout> = [];
+  for (let i = 0; i < workouts.length; i++) {
+    let workout: SwimWorkoutSchema = workouts[i];
+    if (workout.sets.length === 0) {
+      continue;
+    }
+    let swimsPerRound = workout.totalNumSwimsIntended / workout.totalNumRoundsIntended;
+    let currSwimWorkout: SwimmingWorkout = {
+      numRoundsIntended: workout.totalNumRoundsIntended,
+      numRoundsDone: Math.floor(workout.sets.length / swimsPerRound),
+      numSwimsIntended: workout.totalNumSwimsIntended,
+      numSwimsDone: workout.sets.length,
+      sets: []
+    };
+    let prevSetGrouping: SwimSet = {
+      numSwims: 1,
+      numIntendedSwims: workout.sets[0].reps,
+      distance: workout.sets[0].distance ? workout.sets[0].distance : "unknown distance",
+      class: [workout.sets[0].event],
+      averageTime: workout.sets[0].timeIntervalInSeconds,
+    };
+    for (let j = 1; j < Math.min(workout.sets.length, swimsPerRound); j++) {
+      // each set is something like 4 x 100s freestyle. There will be many duplicates of the same set,
+      // and each duplicate represents a compeleted swim within that set. So, if there are 3 duplicates of
+      // 4 x 100s freestyle, it means the user completed 3 out of the 4 100s of freestyle. What a slacker.
+      const currSwimSet = workout.sets[j];
+      if (!swimSetsEqual(currSwimSet, prevSetGrouping)) {
+        // reset the grouping
+        currSwimWorkout.sets.push({...prevSetGrouping});
+        prevSetGrouping.numSwims = 1;
+        prevSetGrouping.numIntendedSwims = currSwimSet.reps;
+        prevSetGrouping.distance = currSwimSet.distance;
+        prevSetGrouping.class = [currSwimSet.event];
+        prevSetGrouping.averageTime = currSwimSet.timeIntervalInSeconds;
+      } else {
+        prevSetGrouping.numSwims += 1;
+      }
+    }
+    currSwimWorkout.sets.push({...prevSetGrouping});
+    swimWorkouts.push(currSwimWorkout);
+  }
+  return swimWorkouts;
+}
+
+const swimSetsEqual = (currSwimSet: SwimSetSchema, prevGrouping: SwimSet) => {
+  const {distance, event, timeIntervalInSeconds, reps} = currSwimSet;
+  let equalDistances = prevGrouping.distance === distance;
+  let equalClasses =  arrayEquals([event], prevGrouping.class);
+  let equalTimes = timeIntervalInSeconds === prevGrouping.averageTime;
+  let equalReps = reps === prevGrouping.numIntendedSwims;
+  return equalDistances && equalClasses && equalTimes && equalReps;
 }
 
 export const STROKE_TO_COLOR = {

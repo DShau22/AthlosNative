@@ -5,6 +5,7 @@ import { Defs, LinearGradient, Stop } from 'react-native-svg';
 import { Text as SvgText } from 'react-native-svg';
 import ThemeText from '../../generic/ThemeText';
 import { useTheme } from '@react-navigation/native';
+import { COLOR_THEMES } from '../../ColorThemes';
 
 const DistributionDonut = (props) => {
   // data should be just a simple array of values

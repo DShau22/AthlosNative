@@ -311,7 +311,7 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
             // onSwipeUp={async (gestureState) => await stopScan()}
           >
             <View style={styles.container}>
-              {transmitting ? 
+              {transmitting || syncProgress >= 0 ?
                 <View style={styles.topText}>
                   <ThemeText style={styles.swipeText}>This may take some time</ThemeText>
                 </View>

@@ -15,6 +15,8 @@ import { COLOR_THEMES } from '../../ColorThemes'
 import { useTheme } from '@react-navigation/native';
 import FITNESS_CONSTANTS from '../FitnessConstants';
 import { SwimStrokesEnum } from '../FitnessTypes';
+import { SwimSchema } from '../data/UserActivities';
+import { DEVICE_CONFIG_CONSTANTS } from '../../configure/DeviceConfigConstants';
 
 interface SwimProps extends FitnessPageProps {
   navigation: any,
@@ -26,7 +28,6 @@ const Swim = (props: SwimProps) => {
 
     weekIndex,
     dayIndex,
-    currentDay,
     weeklyGraphData,
     weeklyGraphLabels,
     calcAvgNum,
@@ -37,6 +38,7 @@ const Swim = (props: SwimProps) => {
     roundToNDecimals,
     isNullOrUndefined
   } = props;
+  var currentDay = props.currentDay as SwimSchema;
   const { colors } = useTheme();
 
   // this is daily
@@ -49,39 +51,60 @@ const Swim = (props: SwimProps) => {
         backCount    = 0,
         breastCount  = 0,
         freeCount    = 0,
+        otherCount   = 0,
         unknownCount = 0;
     currentDay.strokes.forEach((stroke, _) => {
-      let lowerCaseStroke = stroke.toUpperCase();
-      if (lowerCaseStroke === SwimStrokesEnum.FLY) {
+      if (stroke === SwimStrokesEnum.FLY) {
         flyCount += 1
-      } else if (lowerCaseStroke ===  SwimStrokesEnum.BACK) {
+      } else if (stroke ===  SwimStrokesEnum.BACK) {
         backCount += 1
-      } else if (lowerCaseStroke ===  SwimStrokesEnum.BREAST) {
+      } else if (stroke ===  SwimStrokesEnum.BREAST) {
         breastCount += 1
-      } else if (lowerCaseStroke ===  SwimStrokesEnum.FREE) {
+      } else if (stroke ===  SwimStrokesEnum.FREE) {
         freeCount += 1
-      } else {
+      } else if (stroke === SwimStrokesEnum.HEAD_UP) {
         // this is head up
         unknownCount += 1;
+      } else {
+        // some other event?
+        otherCount += 1;
       }
     });
-    if (flyCount + backCount + breastCount + freeCount + unknownCount === 0) return [];
-    return [flyCount, backCount, breastCount, freeCount, unknownCount];
+    // FIGURE THE POOL LENGTH OUT SOMEHOW
+    currentDay.workouts?.forEach((workout) => {
+      workout.sets.forEach((set) => {
+        if (set.event === DEVICE_CONFIG_CONSTANTS.BUTTERFLY) {
+          flyCount += Math.ceil(set.distance / 25);
+        } else if (set.event === DEVICE_CONFIG_CONSTANTS.BACKSTROKE) {
+          backCount += Math.ceil(set.distance / 25);
+        } else if (set.event ===  DEVICE_CONFIG_CONSTANTS.BREASTROKE) {
+          breastCount += Math.ceil(set.distance / 25);
+        } else if (set.event ===  DEVICE_CONFIG_CONSTANTS.FREESTYLE) {
+          freeCount += Math.ceil(set.distance / 25);
+        } else if (set.event === DEVICE_CONFIG_CONSTANTS.IM) {
+          freeCount += Math.ceil(set.distance / 100);
+          breastCount += Math.ceil(set.distance / 100);
+          backCount += Math.ceil(set.distance / 100);
+          flyCount += Math.ceil(set.distance / 100);
+        } else {
+          // some other event like kicking
+          otherCount += 1;
+        }
+      })
+    });
+    if (flyCount + backCount + breastCount + freeCount + unknownCount + otherCount === 0) return [];
+    return [flyCount, backCount, breastCount, freeCount, unknownCount, otherCount];
   }
 
-  const makeTimeLabels = () => {
-    var inc;
-    if (currentDay.lapTimes.length < 20) {
-      inc = 1;
-    } else {
-      inc = Math.ceil(currentDay.lapTimes.length / 20);
-    }
-    let res = [];
-    for (let i = 0; i < currentDay.lapTimes.length; i+=inc) {
-      // res.push(i === 0 ? 1 : i);
-      res.push(i);
-    }
-    return res;
+  const makeTimeData = () => {
+    if (!currentDay) return [];
+    let swimTimes = currentDay.lapTimes.map(({lapTime}, _) => lapTime);
+    currentDay.workouts?.forEach((workout) => {
+      workout.sets.forEach(set => {
+        swimTimes.push(set.timeIntervalInSeconds);
+      });
+    });
+    return swimTimes
   }
   
   const { unitSystem } = settings;
@@ -117,8 +140,8 @@ const Swim = (props: SwimProps) => {
           yAxisInterval='10'
           xAxisInterval='10'
           yAxisUnits='s'
-          data={currentDay ? currentDay.lapTimes.map(({lapTime}, _) => lapTime) : []}
-          labels={currentDay ? makeTimeLabels().map((_, idx) => '') : []}
+          data={makeTimeData()}
+          labels={[]}
         />
       </ScrollView>
       <View style={{alignItems: 'center'}}>
@@ -129,7 +152,7 @@ const Swim = (props: SwimProps) => {
           activity='swim'
           style={{height: 250}}
           data={makeDonutData()}
-          indexToLabel={['Fly', 'Back', 'Breast', 'Free', 'Unknown']}
+          indexToLabel={['Fly', 'Back', 'Breast', 'Free', 'Unknown', 'Other']}
           labelUnit=' laps'
           gradients={COLOR_THEMES.SWIM_DONUT_GRADIENTS}
         />

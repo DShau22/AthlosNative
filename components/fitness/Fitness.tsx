@@ -255,7 +255,7 @@ const Fitness = (props) => {
                       {props => (
                         <SwimDetails 
                           navigation={props.navigation}
-                          workout={swimJson.activityData[weekIndex][dayIndex]}
+                          swim={swimJson.activityData[weekIndex][dayIndex]}
                           refreshing={refreshing}
                           onRefresh={getFitness} 
                         />

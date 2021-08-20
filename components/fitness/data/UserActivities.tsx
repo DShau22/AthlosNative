@@ -46,6 +46,20 @@ export interface SwimSchema extends ActivitySchema {
   lapTimes: Array<Lap>,
   strokes: Array<SwimStrokesEnum>,
   calories: number,
+  workouts?: Array<SwimWorkoutSchema>,
+}
+
+export interface SwimWorkoutSchema {
+  sets: Array<SwimSetSchema>
+  totalNumSwimsIntended: number,
+  totalNumRoundsIntended: number,
+}
+
+export interface SwimSetSchema {
+  reps: number,
+  distance: number,
+  event: string,
+  timeIntervalInSeconds: number,
 }
 
 export interface JumpSchema extends ActivitySchema {
@@ -113,6 +127,7 @@ const blank_swim = (date: typeof DateTime): SwimSchema => (
     strokes: [],
     calories: 0,
     time: 0,
+    poolLength: PoolLengthsEnum.NCAA,
     uploadedToServer: false,
   }
 )
@@ -336,6 +351,11 @@ class UserActivities {
           swimDaySession.num += session.num;
           swimDaySession.calories += session.calories;
           swimDaySession.time += session.time;
+          if (session.workouts) {
+            swimDaySession.workouts?.push(...session.workouts);
+          } else {
+            swimDaySession.workouts = session.workouts;
+          }
         }
       }
     } else if (activity === 'interval') {
