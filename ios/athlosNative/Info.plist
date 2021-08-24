@@ -41,6 +41,8 @@
 	<string/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string/>
+  <key>NSBluetoothPeripheralUsageDescription</key>
+  <string/>
 	<key>UIAppFonts</key>
 	<array/>
 	<key>UILaunchStoryboardName</key>

@@ -5,7 +5,9 @@ import {
   setNeedsFitnessUpdate,
   removeFitnessRecords,
   getToken,
-  getShouldAutoSync
+  getShouldAutoSync,
+  getSaInitConfig,
+  getUserData
 } from '../utils/storage';
 import BLUETOOTH_CONSTANTS from './BluetoothConstants';
 const {STOP_SCAN_ERR, DISCONNECT_ERR} = BLUETOOTH_CONSTANTS;
@@ -17,6 +19,7 @@ import { BleManager } from 'react-native-ble-plx';
 import { updateActivityData } from '../fitness/data/localStorage';
 import { BluetoothStatus } from 'react-native-bluetooth-status';
 import { showSnackBar } from '../utils/notifications';
+import SAinit from './SAinitManager';
 const { DateTime } = require("luxon");
 
 const calcChecksum = (bytes, start, end) => {
@@ -602,7 +605,12 @@ class BLEHandler {
       try {
         if (this.totalNumSaDataBytes > 8) {
           await updateActivityData(DateTime.local(), concatentatedSadata);
+          // update sainit here so that user bests, nefforts, etc are updated
           await this._sendResetSaDataPkg();
+          // this.resCompleter should have been completed by now since the read package sent to the earbuds shouldve been completed
+          // update sa init is after the reset data package so that the audio played will be "activities updated"
+          // this should ideally happen before in case updateSaInit fails but oh well
+          await this._updateSaInit();
         }
         // send package to tell the earbuds to rewrite sadata. Shouldnt need to await
         console.log("resetting read state");
@@ -618,6 +626,30 @@ class BLEHandler {
       await this._sendResponse(readValueInRawBytes);
       return;
     }
+  }
+
+  async _updateSaInit() {
+    const saInitConfig = await getSaInitConfig();
+    if (!saInitConfig) {
+      console.log("no sainit stored yet");
+      return;
+    }
+    const userData = await getUserData(); // CANT USE CONTEXT CUZ SETSTATE IS ASYNC
+    const { settings, cadenceThresholds, referenceTimes, runEfforts, swimEfforts, bests } = userData;
+    console.log(
+      bests.highestJump,
+    );
+    const sainitManager = new SAinit(
+      saInitConfig,
+      settings,
+      runEfforts,
+      swimEfforts,
+      referenceTimes,
+      cadenceThresholds,
+      bests.highestJump,
+    );
+    const saInitBytes = sainitManager.createSaInit(); // should return byte array
+    await this.sendByteArray(saInitBytes);
   }
 
   async _sendResetSaDataPkg() {
@@ -731,6 +763,7 @@ class BLEHandler {
    */
   // have settings/getters for all the sainit indices that correspond to different settings
   async sendByteArray(bytes) { // bytes should be a Buffer type already but no checksum or metadata yet
+    console.log("sending byte array...");
     const isBtEnabled = await BluetoothStatus.state();
     if (!isBtEnabled) {
       showSnackBar("Bluetooth is not enabled. Please turn on Bluetooth to sync.");

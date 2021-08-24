@@ -30,7 +30,6 @@ import { useTheme } from 'react-native-paper';
 import { AppContext } from "../../Context";
 import ENDPOINTS from '../endpoints';
 import LOGIN_CONSTANTS from './LoginConstants';
-import Textbox from './Textbox';
 const { SIGNUP, FORGOT_PASSWORD } = LOGIN_CONSTANTS;
 const signInURL = ENDPOINTS.signIn;
 
@@ -38,48 +37,27 @@ const SignIn = ({ navigation }) => {
   const [data, setData] = React.useState({
     username: '',
     password: '',
-    check_textInputChange: false,
     secureTextEntry: true,
-    isValidUser: true,
-    isValidPassword: true,
     isSignInLoading: false,
   });
+
+  const source = Axios.CancelToken.source();
 
   const { colors } = useTheme();
   const setToken = React.useContext(AppContext);
 
-  const textInputChange = (val) => {
-    if ( val.trim().length >= 4 ) {
-      setData({
-        ...data,
-        username: val,
-        check_textInputChange: true,
-        isValidUser: true
-      });
-    } else {
-      setData({
-        ...data,
-        username: val,
-        check_textInputChange: false,
-        isValidUser: false
-      });
-    }
+  const textInputChange = (val: string) => {
+    setData({
+      ...data,
+      username: val,
+    });
   }
 
-  const handlePasswordChange = (val) => {
-    if( val.trim().length >= 8 ) {
-      setData({
-        ...data,
-        password: val,
-        isValidPassword: true
-      });
-    } else {
-      setData({
-        ...data,
-        password: val,
-        isValidPassword: false
-      });
-    }
+  const handlePasswordChange = (val: string) => {
+    setData({
+      ...data,
+      password: val,
+    });
   }
 
   const updateSecureTextEntry = () => {
@@ -89,21 +67,7 @@ const SignIn = ({ navigation }) => {
     });
   }
 
-  const handleValidUser = (val) => {
-    if( val.trim().length >= 4 ) {
-      setData({
-        ...data,
-        isValidUser: true
-      });
-    } else {
-      setData({
-        ...data,
-        isValidUser: false
-      });
-    }
-  }
-
-  const loginHandle = (email, password) => {
+  const loginHandle = (email: string, password: string) => {
     console.log("signing in...");
     setData({
       ...data,
@@ -117,18 +81,16 @@ const SignIn = ({ navigation }) => {
       console.log(url);
       
       try {
-        var res = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email,
-            password
-          }),
-        })
+        const timeout = setTimeout(() => {
+          source.cancel("Connection to the server timed out. Please try again and make sure your internet connection is strong");
+        }, 13000);
+        var res = await Axios.post(url, {
+          email,
+          password
+        }, {cancelToken: source.token});
+        clearTimeout(timeout);
 
-        var json = await res.json();
+        var json = await res.data;
         if (json.success) {
           console.log("login succeeded");
           await storeToken(json.token);
@@ -145,7 +107,7 @@ const SignIn = ({ navigation }) => {
         }
       } catch(e) {
         console.log(e);
-        Alert.alert('Oops!', 'Something went wrong with the connection to the server. Please try again later', [
+        Alert.alert('Oops!', `Something went wrong with the connection to the server: \n\n${e.message}`, [
           { text: 'Okay' }
         ]);
         setData({
@@ -191,26 +153,8 @@ const SignIn = ({ navigation }) => {
             }]}
             autoCapitalize="none"
             onChangeText={(val) => textInputChange(val)}
-            onEndEditing={(e)=>handleValidUser(e.nativeEvent.text)}
           />
-          {data.check_textInputChange ? 
-            <Animatable.View
-              animation="bounceIn"
-            >
-              <Feather 
-                name="check-circle"
-                color="green"
-                size={20}
-              />
-            </Animatable.View>
-          : null}
         </View>
-        
-        { data.isValidUser ? null : 
-          <Animatable.View animation="fadeInLeft" duration={500}>
-            <Text style={styles.errorMsg}>Username must be 4 characters long.</Text>
-          </Animatable.View>
-        }
         <Text style={[styles.text_footer, {
           color: colors.text,
           marginTop: 35
@@ -249,11 +193,6 @@ const SignIn = ({ navigation }) => {
             }
           </TouchableOpacity>
         </View>
-        { data.isValidPassword ? null : 
-          <Animatable.View animation="fadeInLeft" duration={500}>
-            <Text style={styles.errorMsg}>Password must be 8 characters long.</Text>
-          </Animatable.View>
-        }
 
         <TouchableOpacity
           onPress={() => navigation.navigate(FORGOT_PASSWORD)}

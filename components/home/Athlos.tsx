@@ -24,6 +24,9 @@ import {
   UserActivities
 } from '../fitness/data/UserActivities';
 import {
+  DEFAULT_RUN_EFFORTS,
+  DEFAULT_SWIM_EFFORTS,
+  DEFAULT_WALK_EFFORTS,
   getUserActivityData,
 } from '../fitness/data/localStorage';
 
@@ -65,6 +68,7 @@ import {
   IntervalSchema
 } from '../fitness/data/UserActivities';
 import { UserDataInterface } from '../generic/UserTypes';
+import { updateSaInit } from '../bluetooth/utils';
 
 interface AthlosInterface {
   token: string,
@@ -136,7 +140,23 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
     intervalJson: {
       activityData: [],
       action: FITNESS_CONTANTS.HIIT,
-    }
+    },
+    bests: {
+      highestJump: 10,
+      mostSteps: 0,
+      mostLaps: 0,
+      mostCalories: 0,
+      bestEvent: {}
+    },
+    referenceTimes: {
+      fly: [22, 20],
+      back: [30, 26],
+      breast: [32, 28],
+      free: [25, 22]
+    },
+    runEfforts: DEFAULT_RUN_EFFORTS,
+    walkEfforts: DEFAULT_WALK_EFFORTS,
+    swimEfforts: DEFAULT_SWIM_EFFORTS,
   });
   // setting up the Athlos app
   React.useEffect(() => {
@@ -213,7 +233,7 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
       })
     return () => {
       console.log("unmounting");
-      LocationServicesDialogBox.stopListener();
+      LocationServicesDialogBox?.stopListener();
       GlobalBleHandler.destroy().then(() => {
         console.log("BLE manager destroyed. Reiniting...");
         GlobalBleHandler.reinit();
@@ -240,8 +260,11 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
           console.log("read activity data promise resolved. BytesRead: ", bytesRead);
           if (bytesRead <= 8) {
             showSnackBar("Activities already updated.");
+            // do this in case the previous sync failed and the data pointer was reset anyway
+            // return updateSaInit(GlobalBleHandler);
           } else if (bytesRead !== undefined) {
-            showSnackBar("Activities successfully synced!");
+            // return updateSaInit(GlobalBleHandler);
+            showSnackBar("Activities updated!");
           }
         })
         .catch(e => {
@@ -333,7 +356,13 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
         setState(newState);
       }
     } else {
-      setState(userData);
+      if (field) {
+        const newState = {
+          ...state,
+        }
+        newState[field] = userData[field];
+        setState(newState);
+      }
     }
   }
 

@@ -28,6 +28,7 @@ import Axios from 'axios';
 import ENDPOINTS from '../endpoints';
 import { Alert } from 'react-native';
 import { UserActivities } from '../fitness/data/UserActivities';
+import { updateSaInit } from './utils';
 Icon.loadFont();
 
 const { SYNC_PAGE, SYNC_HELP_PAGE } = BLUETOOTH_CONSTANTS;
@@ -236,7 +237,9 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
       try {
         var numBytesRead = await GlobalBleHandler.readActivityData(); // should take care of uploading to server in background
         if (numBytesRead <= 8) {
-          showSnackBar("Your activity records are already synced.");
+          // do this in case the previous sync failed and the data pointer was reset anyway
+          // await updateSaInit(GlobalBleHandler);
+          showSnackBar("Activities already updated.");
           // await uploadToServer();
           setTransmitting(false);
           return;
@@ -262,34 +265,12 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
     setTransmitting(false);
     // this could be an issue if updateSaInit fails FIX LATER
     try {
-      await updateSaInit();
       await updateLocalUserInfo();
+      // await updateSaInit(GlobalBleHandler);
     } catch(e) {
       console.log("Error updating sainit or local user info:", e);
       showSnackBar('Error 113: Your earbud configurations failed to update.', e);
     }
-  }
-
-  const updateSaInit = async () => {
-    // store the device config in local storage first
-    const saInitConfig = await getSaInitConfig();
-    if (!saInitConfig) {
-      console.log("no sainit stored yet");
-      return;
-    }
-    const userData = await getUserData(); // CANT USE CONTEXT CUZ SETSTATE IS ASYNC
-    const { settings, cadenceThresholds, referenceTimes, runEfforts, swimEfforts, bests } = userData;
-    const sainitManager = new SAinit(
-      saInitConfig,
-      settings,
-      runEfforts,
-      swimEfforts,
-      referenceTimes,
-      cadenceThresholds,
-      bests.highestJump,
-    );
-    const saInitBytes = sainitManager.createSaInit(); // should return byte array
-    await GlobalBleHandler.sendByteArray(saInitBytes);
   }
 
   const Stack = createStackNavigator();

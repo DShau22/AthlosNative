@@ -48,10 +48,10 @@ const DEFAULT_REF_TIMES = {
 
 const DEFAULT_CADENCES = [30, 46, 73];
 
-const DEFAULT_RUN_EFFORTS = [1, 2.5, 5, 7]; // efforts inc/dec after 30 second intervals
-const DEFAULT_WALK_EFFORTS = [1, 2.5, 5, 7]; // efforts inc/dec after 30 second intervals
+export const DEFAULT_RUN_EFFORTS = [1, 2.5, 5, 7]; // efforts inc/dec after 30 second intervals
+export const DEFAULT_WALK_EFFORTS = [1, 2.5, 5, 7]; // efforts inc/dec after 30 second intervals
 
-const DEFAULT_SWIM_EFFORTS = [4, 8, 12, 16]; // efforts increment after turns
+export const DEFAULT_SWIM_EFFORTS = [4, 8, 12, 16]; // efforts increment after turns
 
 const { DateTime } = require('luxon');
 
