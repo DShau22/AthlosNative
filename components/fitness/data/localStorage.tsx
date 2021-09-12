@@ -96,10 +96,10 @@ const updateActivityData = async (date: typeof DateTime, sessionBytes: Buffer) =
   console.log("date that user sent: ", date);
   var sessionMidnightDate = date.set({
     hour: 0, minute: 0, second: 0, millisecond: 0
-  }).toUTC();
+  });
   console.log("session date midnight: ", sessionMidnightDate);
   const unscrambledBytes = unscrambleSessionBytes(sessionBytes);
-  const sessionJsons = createSessionJsons(unscrambledBytes, sessionMidnightDate);
+  const sessionJsons = createSessionJsons(unscrambledBytes, date);
   const {run, swim, jump, interval} = sessionJsons;
   // at this point find out where to insert it into the async storage UserActivity
   const userActivities: UserActivities = await getUserActivityData();

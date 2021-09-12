@@ -4,13 +4,12 @@ import Arrow from "./Arrow"
 import React from 'react'
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
 const { SCREEN_HEIGHT, SCREEN_WIDTH } = GLOBAL_CONSTANTS;import { useTheme } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/dist/Feather';
 import MenuPrompt from "../../configure/screens/MenuPrompt";
 const { DateTime } = require('luxon');
 
 const Carousel = (props) => {
   const { colors } = useTheme();
-
+  const [showCalendar, setShowCalendar] = React.useState<boolean>(false);
   const { activityJson, previousSlide, nextSlide, weekIndex, dayIndex, pullUpMenuSelect } = props;
 
   // get each week in the activityData
@@ -28,11 +27,11 @@ const Carousel = (props) => {
     });
     return weeks;
   }
-  const menuItems = createMenuItems();
+  const menuItems = React.useMemo(() => createMenuItems(), [activityJson]);
   const promptTitle = menuItems[weekIndex];
   return (
     <View style={styles.carousel}>
-      <MenuPrompt
+      {/* <MenuPrompt
         promptTitle={promptTitle}
         childArrays={[
           {
@@ -44,7 +43,7 @@ const Carousel = (props) => {
         selectedItems={[menuItems[weekIndex]]}
         onSave={weekDate => pullUpMenuSelect(weekDate)}
         pullUpTitle="Week"
-      />
+      /> */}
       <View style={styles.slideShow}>
         <Arrow
           direction="left"

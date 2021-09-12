@@ -17,7 +17,7 @@ import ENDPOINTS from '../endpoints'
 import axios from 'axios';
 import FITNESS_CONSTANTS from './FitnessConstants'
 import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
-import {Calendar, CalendarList, Agenda} from 'react-native-calendars';
+import {Calendar} from 'react-native-calendars';
 import Interval from './interval/Interval';
 import { StackRouter } from 'react-navigation';
 import ThemeText from '../generic/ThemeText';
@@ -54,7 +54,7 @@ const Fitness = (props) => {
         console.log("error getting fitness in fitness component: ", e);
         Alert.alert(
           "Oh no :(",
-          "Something went wrong with getting your fitness. Please refresh and try again.",
+          `Something went wrong with getting your fitness. Please refresh and try again. \n${e}.`,
           [{text: 'Okay'}]
         );
       }

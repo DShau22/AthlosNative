@@ -58,20 +58,6 @@ const Run = (props) => {
     return [runPercent, walkPercent, 100 - (runPercent + walkPercent)];
   }
 
-  // weekly basis
-  const calcAvgCadence = () => {
-    var { activityData } = runJson;
-    var avg = 0;
-    var count = 0;
-    activityData[weekIndex].forEach((session, _) => {
-      session.cadences.forEach((cadence, _) => {
-        avg += cadence;
-        count += 1;
-      })
-    })
-    return (count === 0) ? 0 : Math.floor(avg / count);
-  }
-
   // returns an array of time labels for a given cadences array
   // and the total time the user spent on running mode. Only displays
   // the label for every 5 minutes

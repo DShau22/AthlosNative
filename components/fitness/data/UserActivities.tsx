@@ -109,7 +109,7 @@ export interface SwimReferenceTimes {
 const blank_run = (date: typeof DateTime): RunSchema => (
   {
     userID: '',
-    uploadDate: date.toISODate(),
+    uploadDate: date.toISO(),
     num: 0,
     cadences: [],
     calories: 0,
@@ -121,7 +121,7 @@ const blank_run = (date: typeof DateTime): RunSchema => (
 const blank_swim = (date: typeof DateTime): SwimSchema => (
   {
     userID: '',
-    uploadDate: date.toISODate(),
+    uploadDate: date.toISO(),
     num: 0,
     lapTimes: [],
     strokes: [],
@@ -135,7 +135,7 @@ const blank_swim = (date: typeof DateTime): SwimSchema => (
 const blank_jump = (date: typeof DateTime): JumpSchema => (
   {
     userID: '',
-    uploadDate: date.toISODate(),
+    uploadDate: date.toISO(),
     num: 0,
     heights: [],
     shotsMade: 0,
@@ -148,12 +148,14 @@ const blank_interval = (date: typeof DateTime): IntervalSchema => (
   {
     workouts: [],
     userID: '',
-    uploadDate: date.toISODate(),
+    uploadDate: date.toISO(),
     time: 0,
     uploadedToServer: false,
   }
 )
 
+// mondayDate is the date of the most recent monday in the UserActivities structure
+// if mondayDate was PST, but user is now in China, how do we handle the new blank week?
 const blank_week = (activity: ACTIVITY_ENUMS, mondayDate: typeof DateTime) => {
   if (mondayDate.weekday !== 1) {
     throw Error(`Expected a monday but got: ${mondayDate.weekday}`);
@@ -171,7 +173,7 @@ const blank_week = (activity: ACTIVITY_ENUMS, mondayDate: typeof DateTime) => {
 } 
 
 // Object remplate for storing to async storage
-
+// all the dates and stuff should be local for this interface.
 class UserActivities {
   public runs: Array<Array<RunSchema>>;
   public swims: Array<Array<SwimSchema>>;
@@ -268,7 +270,7 @@ class UserActivities {
     const lastMonday = getLastMonday(today);
     var userLastUpdatedMonday: typeof DateTime = this.getLastUpdated();
     // fill in empty fitness records if needed
-    userLastUpdatedMonday = userLastUpdatedMonday.plus({days: 7});
+    userLastUpdatedMonday = userLastUpdatedMonday.plus({days: 7}); 
     while (userLastUpdatedMonday.startOf("day") <= lastMonday.startOf("day")) {
       console.log("pushing blank week for monday of: ", userLastUpdatedMonday);
       this.runs.unshift(blank_week("run", userLastUpdatedMonday));
@@ -314,6 +316,10 @@ class UserActivities {
   getLastUpdated(): typeof DateTime {
     const latestWeek = this.runs[0];
     const lastUpdatedMonday = latestWeek[0].uploadDate;
+    console.log("aoiwefjoawe", this.runs[2][1].uploadDate);
+    console.log("aoiwefjoawe", DateTime.fromISO(this.runs[2][1].uploadDate));
+    console.log("aoiwefjoawe", this.runs[2][2].uploadDate);
+    console.log("aoiwefjoawe", DateTime.fromISO(this.runs[2][2].uploadDate));
     return DateTime.fromISO(lastUpdatedMonday);
   }
 

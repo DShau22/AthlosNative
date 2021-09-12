@@ -88,22 +88,22 @@ const ProfileTemplate = (props) => {
     // ORDER MATTERS
     // for now, can unfollow someone, and then remove them as follower
     // but not the other direction. Add that in later 
-    for (i = 0; i < following.length; i++) {
+    for (let i = 0; i < following.length; i++) {
       if (following[i]._id === _id) {
         return IS_FOLLOWING;
       }
     }
-    for (i = 0; i < followers.length; i++) {
+    for (let i = 0; i < followers.length; i++) {
       if (followers[i]._id === _id) {
         return IS_FOLLOWER;
       }
     }
-    for (i = 0; i < followerRequests.length; i++) {
+    for (let i = 0; i < followerRequests.length; i++) {
       if (followerRequests[i]._id === _id) {
         return IS_FOLLOWER_PENDING;
       }
     }
-    for (i = 0; i < followingPending.length; i++) {
+    for (let i = 0; i < followingPending.length; i++) {
       if (followingPending[i]._id === _id) {
         return IS_FOLLOWING_PENDING;
       }
@@ -381,7 +381,7 @@ const ProfileTemplate = (props) => {
         <Stack.Screen
           name={GLOBAL_CONSTANTS.FITNESS}
           options={{ headerTitle: _ => <SyncProgressCircleHeader
-            headerText={relationshipStatus === IS_SELF ? 'Your Activities' : `${profileContext.firstName}'s Activities`}
+            headerText={relationshipStatus === IS_SELF ? 'Workout Log' : `${profileContext.firstName}'s Activities`}
             syncProgress={syncProgress}/>
           }}
         >

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text, View, StyleSheet, Alert, DeviceEventEmitter, } from 'react-native';
+import { Text, View, StyleSheet, Alert, DeviceEventEmitter, Platform, } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import LocationServicesDialogBox from "react-native-android-location-services-dialog-box";
@@ -163,19 +163,21 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
     const setUpApp = async () => {
       GlobalBleHandler.addSetConnectedFunction(setAthlosConnected);
       GlobalBleHandler.addSetSyncProgressFunction(setSyncProgress);
-      await requestLocationServices();
-      DeviceEventEmitter.addListener('locationProviderStatusChange', function(status) { // only trigger when "providerListener" is enabled
-        if (!status.enabled) {
-          // console.log(status);
-          Alert.alert(
-            "Whoops",
-            "You'll need to turn on your phone's location services for this app to be able to make Bluetooth connections " +
-            "with your Athlos earbuds. Android requires location services to be on for Bluetooth access.",
-            [{text: 'Okay'}]
-          );
-        }
-      });
-      await requestLocationPermission(); // request location permissions for Android users
+      if (Platform.OS === 'android') {
+        await requestLocationServices();
+        DeviceEventEmitter.addListener('locationProviderStatusChange', function(status) { // only trigger when "providerListener" is enabled
+          if (!status.enabled) {
+            // console.log(status);
+            Alert.alert(
+              "Whoops",
+              "You'll need to turn on your phone's location services for this app to be able to make Bluetooth connections " +
+              "with your Athlos earbuds. Android requires location services to be on for Bluetooth access.",
+              [{text: 'Okay'}]
+            );
+          }
+        });
+        await requestLocationPermission(); // request location permissions for Android users
+      }
       setIsLoading(true);
       // first check if info is in Async storage
       const token = await getToken();
@@ -386,7 +388,7 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
           }}
         >
         { isLoading ? <LoadingSpin/> :
-          <SafeAreaView style={{flex: 1}}>
+          <>
             <WelcomeModal
               isVisible={showWelcomeModal}
               setVisible={setShowWelcomeModal}
@@ -435,7 +437,7 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
                 }}
               />
             </BottomTab.Navigator>
-          </SafeAreaView>
+          </>
         }
         </AppFunctionsContext.Provider>
       </UserDataContext.Provider>

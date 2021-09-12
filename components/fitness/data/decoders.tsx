@@ -184,7 +184,7 @@ type sessionJsonsType = {
 /**
  * @param {Array[Array]} unscrambled: unscrambled list of lists. Output of unscrambleSessionBytes function
  * @param {String} userID: user's id in the mongo users collection
- * @param {Date} sessionDate: the date that this session byte array was stored on the user's phone
+ * @param {Date} sessionDate: the LOCAL date that this session byte array was stored on the user's phone
  */
 const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: typeof DateTime): sessionJsonsType => {
   console.log("unscrambled: ", unscrambled);
@@ -225,11 +225,6 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
     time: 0,
     uploadedToServer: false,
   }
-  // intervalsCompleted: [],
-  // totalRounds: 0,
-  // intervalsPerRound: 0,
-  // workoutName: "My HIIT Workout",
-  // time: 0,
   const sessionJsons: sessionJsonsType = {run, swim, jump, interval};
   var statReportIdx: number = 0;
   var cEvent: number | null = null;

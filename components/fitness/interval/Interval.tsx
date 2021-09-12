@@ -9,7 +9,6 @@ import ThemeText from '../../generic/ThemeText';
 import { ActivityJson } from '../FitnessTypes';
 import { SettingsType } from '../../generic/UserTypes';
 import { IntervalWorkoutSchema, IntervalType, IntervalSchema } from '../data/UserActivities';
-import { MUSCLE_GROUP_LIST } from '../../configure/DeviceConfigConstants';
 import Arrow from '../carousel/Arrow';
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
 import { formatDateToDisplay } from '../../utils/dates';
@@ -25,8 +24,13 @@ type IntervalProps = {
 }
 
 const Interval: React.FC<IntervalProps> = (props) => {
-  const LIST_VIEW = "list view";
-  const WORKOUT_VIEW = "workout view";
+  const EMPTY_DAY: IntervalSchema = {
+    userID: "",
+    uploadDate: "",
+    time: 0,
+    uploadedToServer: false,
+    workouts: [],
+  };
   const {
     weekIndex,
     dayIndex,
@@ -35,37 +39,7 @@ const Interval: React.FC<IntervalProps> = (props) => {
     settings,
     activityJson
   } = props;
-  // placeholder
-  // var currentDay = {
-  //   workouts: [
-  //     {
-  //       intervalsCompleted: [
-  //         {
-  //           lengthInSeconds: 30,
-  //           exercise: MUSCLE_GROUP_LIST[2]
-  //         },
-  //         {
-  //           lengthInSeconds: 30,
-  //           exercise: MUSCLE_GROUP_LIST[3]
-  //         },
-  //         {
-  //           lengthInSeconds: 30,
-  //           exercise: MUSCLE_GROUP_LIST[2]
-  //         },
-  //         {
-  //           lengthInSeconds: 30,
-  //           exercise: MUSCLE_GROUP_LIST[3]
-  //         },
-  //       ],
-  //       totalRoundsPlanned: 2,
-  //       intervalsPerRoundPlanned: 2,
-  //       workoutName: "My HIIT Workout",
-  //       workoutTime: 60,
-  //     }
-  //   ]
-  // }
-  var currentDay: IntervalSchema = activityJson.activityData[weekIndex][dayIndex];
-  const [currentWorkout, setCurrentWorkout] = React.useState<IntervalWorkoutSchema>(currentDay?.workouts[0]);
+  var currentDay: IntervalSchema = activityJson.activityData.length > 0 ? activityJson.activityData[weekIndex][dayIndex] : EMPTY_DAY;
   const { colors } = useTheme();
 
   const renderIntervals = (workout: IntervalWorkoutSchema) => {
@@ -142,7 +116,6 @@ const Interval: React.FC<IntervalProps> = (props) => {
           disabled // TODO: ALLOW USERS TO EDIT THE NAMES OF THEIR WORKOUTS PER DAY
         />
         {/* Progress Bar */}
-        <ThemeText>insert progress bar here</ThemeText>
         <ThemeText h4>{`Rounds completed: ${Math.floor(workout.intervalsCompleted.length / workout.intervalsPerRoundPlanned)}/${workout.totalRoundsPlanned}`}</ThemeText>
         <ThemeText h4>Intervals</ThemeText>
         {renderIntervals(workout)}

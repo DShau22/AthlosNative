@@ -1,9 +1,9 @@
 import React from 'react';
 import { Divider, Button } from 'react-native-elements';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 const { DateTime } = require('luxon');
-import Carousel from './carousel/Carousel';
+import Carousel from './carousel/Carousel.tsx';
 import Calories from './Calories';
 import Duration from './Duration';
 
@@ -11,6 +11,9 @@ import FITNESS_CONTANTS from './FitnessConstants';
 import { SettingsType } from '../generic/UserTypes';
 import { ActivityJson } from './FitnessTypes';
 import { JumpSchema, RunSchema, SwimSchema } from './data/UserActivities';
+import { useTheme } from '@react-navigation/native';
+import ThemeText from '../generic/ThemeText';
+import GLOBAL_CONSTANTS from '../GlobalConstants';
 
 interface fitnessPageHOCProps {
   refreshing?: boolean,
@@ -31,8 +34,10 @@ export default function withFitnessPage( WrappedComponent: any ) {
     // const [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday - 1); // 1 is monday 7 is sunday for .weekday
     const [weeklyGraphLabels, setWeeklyGraphLabels] = React.useState([]);
     const [weeklyGraphData, setWeeklyGraphData] = React.useState([]);
+    const [showCalendar, setShowCalendar] = React.useState<boolean>(false);
     const { activityJson, settings, dayIndex, weekIndex, setDayIndex, setWeekIndex } = props;
     const [isLoading, setIsLoading] = React.useState(activityJson.activityData.length === 0);
+    const { colors } = useTheme();
     React.useEffect(() => {
       if (activityJson.activityData.length > 0) {
         makeWeeklyGraphLabels();
@@ -145,9 +150,58 @@ export default function withFitnessPage( WrappedComponent: any ) {
       setDayIndex(nextIndex);
     }
 
-    var sessionDay;
+    var sessionDay: any;
     if (activityJson.activityData.length > 0 && activityJson.activityData[weekIndex].length >= dayIndex) {
       sessionDay = activityJson.activityData[weekIndex][dayIndex];
+    }
+    // for calendar
+    const getCurrDate = (): string => {
+      if (sessionDay) {
+        let dateString = DateTime.fromISO(sessionDay.uploadDate)
+        let monthString = dateString.month < 10 ? `0${dateString.month}` : `${dateString.month}`;
+        let dayString = dateString.day < 10 ? `0${dateString.day}` : `${dateString.day}`;
+        return `${dateString.year}-${monthString}-${dayString}`;
+      } else {
+        return Date();
+      }
+    }
+    // for calendar
+    const getMarkedDates = () => {
+      let currDay: string = getCurrDate();
+      let res: Object = {};
+      res[currDay] = {selected: true};
+      return res;
+    }
+    // for calendar
+    const getMaxSelectableDate = () => {
+      const today = DateTime.local();
+      let monthString = today.month < 10 ? `0${today.month}` : `${today.month}`;
+      let dayString = today.day < 10 ? `0${today.day}` : `${today.day}`;
+      return `${today.year}-${monthString}-${dayString}`;
+    }
+    const onChangeCalendarDay = (day: number, month: number, year: number) => {
+      if (!sessionDay) {
+        return;
+      }
+      const today = DateTime.local();
+      const currDay = DateTime.fromISO(sessionDay.uploadDate, {zone: today.zone}).set({
+        hour: 0, minute: 0, second: 0, millisecond: 0
+      });
+      const selectedDay = DateTime.fromObject({day, month, year}, {zone: today.zone});
+      let diffInDays = currDay.diff(selectedDay, ['days']).toObject().days;
+      let absDiffInDays = Math.abs(diffInDays);
+      let dayOffset = absDiffInDays % 7;
+      if (diffInDays < 0) {
+        // we must be forwards in time
+        let weekOffset = Math.floor(absDiffInDays / 7) + Math.floor((dayIndex + dayOffset) / 7);
+        setWeekIndex(weekIndex - weekOffset);
+        setDayIndex((dayIndex + dayOffset) % 7);
+      } else if (diffInDays > 0) {
+        // we must go backwards in time
+        let weekOffset = Math.floor(absDiffInDays / 7) + ((dayIndex - dayOffset) < 0 ? 1 : 0);
+        setWeekIndex(weekIndex + weekOffset);
+        setDayIndex((dayIndex - dayOffset + 7) % 7);
+      }
     }
     // console.log("session Day: ", sessionDay);
     if (isLoading) {
@@ -157,36 +211,77 @@ export default function withFitnessPage( WrappedComponent: any ) {
       <View
         style={styles.container}
       >
-        <Carousel
-          activityJson={activityJson}
-          previousSlide={previousSlide}
-          nextSlide={nextSlide}
-          weekIndex={weekIndex}
-          dayIndex={dayIndex}
-          pullUpMenuSelect={pullUpMenuSelect}
-        />
-        <View style={styles.calsAndTimeContainer}>
-          <Calories 
-            cals={sessionDay ? Math.ceil(sessionDay.calories) : 0}
-            activity={activityJson.action}
+        <TouchableOpacity
+          style={{
+            alignItems: "center",
+            width: '90%',
+            borderRadius: 10,
+            backgroundColor: colors.backgroundOffset,
+            padding: 10,
+            marginTop: 20,
+          }}
+          onPress={() => setShowCalendar(!showCalendar)}
+        >
+          <ThemeText>{`${showCalendar ? 'Escape' : 'Show'} Calendar View`}</ThemeText>
+        </TouchableOpacity>
+        {showCalendar ?
+          <Calendar
+            markedDates={getMarkedDates()}
+            maxDate={getMaxSelectableDate()}
+            current={getCurrDate()}
+            style={{
+              marginTop: 20,
+              width: GLOBAL_CONSTANTS.SCREEN_WIDTH - 20,
+              // backgroundColor: 'red'
+            }}
+            onDayPress={(day) => onChangeCalendarDay(day.day, day.month, day.year)}
+            theme={{
+              backgroundColor: colors.background,
+              calendarBackground: colors.backgroundOffset,
+              dayTextColor: '#ffffff',
+              todayTextColor: '#ffffff',
+              textDisabledColor: '#8c8d8f',
+              // dotColor: '#00adf5',
+              selectedDotColor: '#ffffff',
+              arrowColor: '#ffffff',
+              monthTextColor: '#ffffff',
+              // indicatorColor: 'blue',
+            }}
           />
-          <Duration 
-            duration={sessionDay ? Math.ceil(sessionDay.time) : 0}
-            activity={activityJson.action}
-          />
-        </View>
-        <Divider style={{width: '95%'}}/>
-        <WrappedComponent
-          weeklyGraphData={weeklyGraphData}
-          weeklyGraphLabels={weeklyGraphLabels}
-          currentDay={sessionDay}
-          calcAvgNum={calcAvgNum}
-          calcAvgCals={calcAvgCals}
-          roundToNDecimals={roundToNDecimals}
-          isNullOrUndefined={isNullOrUndefined}
-          // {...props.route.params}
-          {...props}
-        />
+        :
+          <>
+            <Carousel
+              activityJson={activityJson}
+              previousSlide={previousSlide}
+              nextSlide={nextSlide}
+              weekIndex={weekIndex}
+              dayIndex={dayIndex}
+              pullUpMenuSelect={pullUpMenuSelect}
+            />
+            <View style={styles.calsAndTimeContainer}>
+              <Calories 
+                cals={sessionDay ? Math.ceil(sessionDay.calories) : 0}
+                activity={activityJson.action}
+              />
+              <Duration 
+                duration={sessionDay ? Math.ceil(sessionDay.time) : 0}
+                activity={activityJson.action}
+              />
+            </View>
+            <Divider style={{width: '95%'}}/>
+            <WrappedComponent
+              weeklyGraphData={weeklyGraphData}
+              weeklyGraphLabels={weeklyGraphLabels}
+              currentDay={sessionDay}
+              calcAvgNum={calcAvgNum}
+              calcAvgCals={calcAvgCals}
+              roundToNDecimals={roundToNDecimals}
+              isNullOrUndefined={isNullOrUndefined}
+              // {...props.route.params}
+              {...props}
+            />
+          </>
+        }
       </View>
     )
   }

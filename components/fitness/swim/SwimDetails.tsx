@@ -29,22 +29,17 @@ const SwimDetails: React.FC<LapSwimDetailsProps> = (props) => {
     console.log("swim stuff: ", workouts[0].sets);
   }
   const { refreshing, onRefresh, navigation } = props;
-  const renderHeader = () => {
-    return (
-      <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 25}}>
-        <TouchableOpacity
-          onPress={() => navigation?.navigate(FITNESS_CONSTANTS.SWIM)}
-          style={{marginLeft: 10}}
-        >
-          <ThemeText bold style={{fontSize: 32}}>&#8592;</ThemeText>
-        </TouchableOpacity>
-        <ThemeText h4 style={{marginTop: 10, marginLeft: 10}}>{`${formatDateToDisplay(uploadDate)} Swims`}</ThemeText>
-      </View>
-    )
-  }
   const { colors } = useTheme();
   const lapSwimWorkoutData: Array<SwimSet> = calcLapSwimWorkout(calcSwimGroups(lapTimes, strokes, PoolLengthsEnum.NCAA));
   const swimWorkoutData: Array<SwimmingWorkout> = calcSwimWorkouts(workouts);
+  const renderHeader = () => {
+    return (
+      <View style={{alignItems: 'center', marginBottom: 25}}>
+        <ThemeText h4 style={{marginTop: 10, marginLeft: 10 }}>{`${formatDateToDisplay(uploadDate)} Swims`}</ThemeText>
+        { lapTimes.length === 0 ? <ThemeText style={{margin: 10, fontSize: 20, color: 'grey'}}>No swims for today</ThemeText> : null}
+      </View>
+    )
+  }
 
   const createSectionListData = (lapSwimWorkoutData: Array<SwimSet> , swimWorkoutData: Array<SwimmingWorkout>) => {
     var sectionListData = lapSwimWorkoutData.length > 0 ? [{
@@ -67,6 +62,21 @@ const SwimDetails: React.FC<LapSwimDetailsProps> = (props) => {
     }
     return sectionListData;
   }
+
+  const BackButton = <TouchableOpacity
+    onPress={() => navigation?.navigate(FITNESS_CONSTANTS.SWIM)}
+    style={{
+      backgroundColor: colors.backgroundOffset,
+      width: '90%',
+      height: 50,
+      borderRadius: 10,
+      alignItems: 'center',
+      alignSelf: 'center',
+      justifyContent: 'center'
+    }}
+  >
+    <ThemeText style={{fontSize: 20}}>back</ThemeText>
+  </TouchableOpacity>;
   return (
     // <View style={{height: '100%', width: '100%', alignItems: 'center'}}>
     <SectionList
@@ -77,6 +87,7 @@ const SwimDetails: React.FC<LapSwimDetailsProps> = (props) => {
       keyExtractor={item => `${item.averageTime}`}
       style={{width: '100%'}}
       // contentContainerStyle={{alignItems: 'center'}}
+      ListFooterComponent={BackButton}
       renderSectionHeader={({ section: { title, subtitle, roundsCompletedDisplay } }) => {
         if (lapSwimWorkoutData.length > 0 || swimWorkoutData.length > 0) {
           return (
