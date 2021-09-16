@@ -1,4 +1,6 @@
 const FITNESS_CONSTANTS = {
+  CALENDAR_SCREEN: 'workout-calendar',
+  WORKOUTS_SCREEN: 'workouts',
   RUN: 'Run',
   SWIM: 'Swim',
   SWIM_DETAILS: 'Details',

@@ -21,13 +21,9 @@ const SwimDetails: React.FC<LapSwimDetailsProps> = (props) => {
   const { 
     lapTimes,
     strokes,
-    time,
     uploadDate,
     workouts,
   } = props.swim;
-  if (workouts) {
-    console.log("swim stuff: ", workouts[0].sets);
-  }
   const { refreshing, onRefresh, navigation } = props;
   const { colors } = useTheme();
   const lapSwimWorkoutData: Array<SwimSet> = calcLapSwimWorkout(calcSwimGroups(lapTimes, strokes, PoolLengthsEnum.NCAA));
@@ -36,7 +32,7 @@ const SwimDetails: React.FC<LapSwimDetailsProps> = (props) => {
     return (
       <View style={{alignItems: 'center', marginBottom: 25}}>
         <ThemeText h4 style={{marginTop: 10, marginLeft: 10 }}>{`${formatDateToDisplay(uploadDate)} Swims`}</ThemeText>
-        { lapTimes.length === 0 ? <ThemeText style={{margin: 10, fontSize: 20, color: 'grey'}}>No swims for today</ThemeText> : null}
+        { lapTimes.length === 0 && workouts?.length === 0 ? <ThemeText style={{margin: 10, fontSize: 20, color: 'grey'}}>No swims for today</ThemeText> : null}
       </View>
     )
   }
@@ -54,7 +50,7 @@ const SwimDetails: React.FC<LapSwimDetailsProps> = (props) => {
         sectionListData.push({
           title: `Swimming Interval Workout`,
           roundsCompletedDisplay: `Rounds completed: ${workout.numRoundsDone}/${workout.numRoundsIntended}`,
-          subtitle: "Your recorded progress on a swimming interval workout you created with the app.",
+          subtitle: "Below is your recorded progress on a swimming workout you created with the app.",
           ifNoData: "No Swimming workout recorded",
           data: workout.sets
         });
@@ -67,8 +63,9 @@ const SwimDetails: React.FC<LapSwimDetailsProps> = (props) => {
     onPress={() => navigation?.navigate(FITNESS_CONSTANTS.SWIM)}
     style={{
       backgroundColor: colors.backgroundOffset,
-      width: '90%',
+      width: '50%',
       height: 50,
+      margin: 20,
       borderRadius: 10,
       alignItems: 'center',
       alignSelf: 'center',
@@ -93,8 +90,8 @@ const SwimDetails: React.FC<LapSwimDetailsProps> = (props) => {
           return (
             <View>
               <ThemeText h4 style={{margin: 5}}>{title}</ThemeText>
-              {roundsCompletedDisplay?.length > 0 ? <ThemeText bold style={{fontSize: 18, margin: 5}}>{roundsCompletedDisplay}</ThemeText> : null}
               <ThemeText style={{fontSize: 16, margin: 5}}>{subtitle}</ThemeText>
+              {roundsCompletedDisplay?.length > 0 ? <ThemeText bold style={{fontSize: 18, margin: 5}}>{roundsCompletedDisplay}</ThemeText> : null}
             </View>
           );
         } else {
@@ -109,7 +106,7 @@ const SwimDetails: React.FC<LapSwimDetailsProps> = (props) => {
           <View style={{
             height: 65,
             margin: 10,
-            width: '90%',
+            width: '95%',
             backgroundColor: colors.backgroundOffset,
             justifyContent: "center",
             borderRadius: 8,

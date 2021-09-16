@@ -22,20 +22,26 @@ interface fitnessPageHOCProps {
 
   settings: SettingsType,
   activityJson: ActivityJson,
-  dayIndex: number,
-  setDayIndex: Function,
-  weekIndex: number,
-  setWeekIndex: Function,
+  dayIndex?: number,
+  setDayIndex?: Function,
+  weekIndex?: number,
+  setWeekIndex?: Function,
 }
 
 export default function withFitnessPage( WrappedComponent: any ) {  
   const WithFitnessPage = (props: fitnessPageHOCProps) => {
-    // const [weekIndex, setWeekIndex] = React.useState(0);
-    // const [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday - 1); // 1 is monday 7 is sunday for .weekday
     const [weeklyGraphLabels, setWeeklyGraphLabels] = React.useState([]);
     const [weeklyGraphData, setWeeklyGraphData] = React.useState([]);
     const [showCalendar, setShowCalendar] = React.useState<boolean>(false);
-    const { activityJson, settings, dayIndex, weekIndex, setDayIndex, setWeekIndex } = props;
+    const { activityJson, settings } = props;
+    let { dayIndex, weekIndex, setDayIndex, setWeekIndex } = props;
+    if (!weekIndex && !setWeekIndex) {
+      [weekIndex, setWeekIndex] = React.useState(0);
+    }
+    if (!dayIndex && !setDayIndex) {
+      [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday - 1); // 1 is monday 7 is sunday for .weekday
+    }
+    console.log("day and week index: ", dayIndex, weekIndex);
     const [isLoading, setIsLoading] = React.useState(activityJson.activityData.length === 0);
     const { colors } = useTheme();
     React.useEffect(() => {
@@ -234,7 +240,10 @@ export default function withFitnessPage( WrappedComponent: any ) {
               width: GLOBAL_CONSTANTS.SCREEN_WIDTH - 20,
               // backgroundColor: 'red'
             }}
-            onDayPress={(day) => onChangeCalendarDay(day.day, day.month, day.year)}
+            onDayPress={(day) => {
+              onChangeCalendarDay(day.day, day.month, day.year);
+              setShowCalendar(false);
+            }}
             theme={{
               backgroundColor: colors.background,
               calendarBackground: colors.backgroundOffset,
@@ -277,7 +286,8 @@ export default function withFitnessPage( WrappedComponent: any ) {
               calcAvgCals={calcAvgCals}
               roundToNDecimals={roundToNDecimals}
               isNullOrUndefined={isNullOrUndefined}
-              // {...props.route.params}
+              weekIndex={weekIndex}
+              dayIndex={dayIndex}
               {...props}
             />
           </>

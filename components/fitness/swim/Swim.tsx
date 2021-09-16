@@ -2,9 +2,6 @@ import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 import React, { Component } from 'react'
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
 import { colors, Divider } from 'react-native-elements'
-
-import Details from "../Details"
-import StatCard from '../StatCard'
 import ThemeText from '../../generic/ThemeText'
 import { UserDataContext } from '../../../Context'
 import WeeklyBarChart from "../charts/WeeklyBarChart"
@@ -96,15 +93,21 @@ const Swim = (props: SwimProps) => {
     return [flyCount, backCount, breastCount, freeCount, unknownCount, otherCount];
   }
 
-  const makeTimeData = () => {
+  const makeTimeData = (): Array<number> => {
     if (!currentDay) return [];
-    let swimTimes = currentDay.lapTimes.map(({lapTime}, _) => lapTime);
+    let swimTimes: Array<number> = currentDay.lapTimes.map(({lapTime}, _) => lapTime);
+    return swimTimes
+  }
+
+  const makeSwimWorkoutTimeData = (): Array<number> => {
+    if (!currentDay) return [];
+    let res: Array<number> = [];
     currentDay.workouts?.forEach((workout) => {
       workout.sets.forEach(set => {
-        swimTimes.push(set.timeIntervalInSeconds);
+        res.push(set.timeIntervalInSeconds);
       });
     });
-    return swimTimes
+    return res;
   }
   
   const { unitSystem } = settings;
@@ -121,7 +124,7 @@ const Swim = (props: SwimProps) => {
           }}
           onPress={() => {navigation.navigate(FITNESS_CONSTANTS.SWIM_DETAILS)}}
         >
-          <ThemeText>Workout Details</ThemeText>
+          <ThemeText>Swimming Workout Details</ThemeText>
         </TouchableOpacity>
       </View>
       <View style={{alignItems: 'center'}}>
@@ -129,6 +132,8 @@ const Swim = (props: SwimProps) => {
       </View>
       <View style={{alignItems: 'center'}}>
         <ThemeText h4>Lap Times</ThemeText>
+        <ThemeText style={{textAlign: 'center', margin: 10}}>See your laptimes tracked by Athlos lap swim mode below</ThemeText>
+        { currentDay.lapTimes.length === 0 ? <ThemeText style={{color: 'grey'}}>No auto-tracked laps swum today with lap swim mode</ThemeText>: null}
       </View>
       <ScrollView
         horizontal
@@ -141,6 +146,25 @@ const Swim = (props: SwimProps) => {
           xAxisInterval='10'
           yAxisUnits='s'
           data={makeTimeData()}
+          labels={[]}
+        />
+      </ScrollView>
+      <View style={{alignItems: 'center'}}>
+        <ThemeText h4>Interval Times</ThemeText>
+        <ThemeText style={{textAlign: 'center', margin: 10}}>See the interval times of the swimming workout you created below</ThemeText>
+        { !currentDay.workouts || currentDay.workouts.length === 0 ? <ThemeText style={{color: 'grey'}}>No swimming interval workouts for today</ThemeText>: null}
+      </View>
+      <ScrollView
+        horizontal
+        style={{marginTop: 20}}
+        contentContainerStyle={[styles.sideScrollContent, {marginLeft: activityJson.activityData.length === 0 ? -20 : 0}]}
+      >
+        <LineProgression
+          activityColor={COLOR_THEMES.SWIM_THEME}
+          yAxisInterval='10'
+          xAxisInterval='10'
+          yAxisUnits='s'
+          data={makeSwimWorkoutTimeData()}
           labels={[]}
         />
       </ScrollView>

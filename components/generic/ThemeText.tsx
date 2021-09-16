@@ -20,7 +20,7 @@ const ThemeText: React.FC<SyncProgressCircleProps> = (props) => {
       style={[
         {
           color: props.highlight ? colors.textHighlight : colors.textColor,
-          fontWeight: props.bold ? 'bold' : 'normal'
+          fontWeight: props.bold ? 'bold' : 'normal',
         },
         props.style
       ]} // color goes first so it can be overriden

@@ -204,6 +204,7 @@ const createSessionJsons = (unscrambled: Array<ReadableSession>, sessionDate: ty
     num: 0,
     poolLength: PoolLengthsEnum.NCAA,
     lapTimes: [],
+    workouts: [],
     strokes: [],
     calories: 0,
     time: 0,

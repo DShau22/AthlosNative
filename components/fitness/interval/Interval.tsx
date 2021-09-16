@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Image, StyleSheet, FlatList, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
 import { Text, Button, ListItem } from 'react-native-elements';
 import { useTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -15,12 +15,14 @@ import { formatDateToDisplay } from '../../utils/dates';
 const { DateTime } = require("luxon");
 
 type IntervalProps = {
+  refreshing: boolean,
+  onRefresh: () => void,
   activityJson: ActivityJson,
   settings: SettingsType,
-  dayIndex: number,
-  setDayIndex: Function,
-  weekIndex: number,
-  setWeekIndex: Function,
+  dayIndex?: number,
+  setDayIndex?: Function,
+  weekIndex?: number,
+  setWeekIndex?: Function,
 }
 
 const Interval: React.FC<IntervalProps> = (props) => {
@@ -32,15 +34,34 @@ const Interval: React.FC<IntervalProps> = (props) => {
     workouts: [],
   };
   const {
+    settings,
+    activityJson
+  } = props;
+  let {
     weekIndex,
     dayIndex,
     setWeekIndex,
     setDayIndex,
-    settings,
-    activityJson
   } = props;
+  if (!weekIndex && !setWeekIndex) {
+    [weekIndex, setWeekIndex] = React.useState(0);
+  }
+  if (!dayIndex && !setDayIndex) {
+    [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday - 1); // 1 is monday 7 is sunday for .weekday
+  }
   var currentDay: IntervalSchema = activityJson.activityData.length > 0 ? activityJson.activityData[weekIndex][dayIndex] : EMPTY_DAY;
   const { colors } = useTheme();
+
+  const nextDay = () => {
+    const nextIndex = (dayIndex + 1) % 7;
+    setDayIndex(nextIndex);
+  }
+
+  const previousDay = () => {
+    // 0 represents the most recent upload date
+    const nextIndex = (dayIndex - 1 + 7) % 7;
+    setDayIndex(nextIndex);
+  }
 
   const renderIntervals = (workout: IntervalWorkoutSchema) => {
     const {
@@ -126,15 +147,40 @@ const Interval: React.FC<IntervalProps> = (props) => {
   }
 
   return (
-    <View style={{height: '100%', width: '100%', backgroundColor: colors.background}}>
-      {currentDay.workouts.length === 0 ? 
-        <View>
-          <ThemeText style={{fontSize: 16, color: colors.backgroundOffset, margin: 10, alignSelf: 'center'}}>
-            {`No HIIT workouts for ${formatDateToDisplay(currentDay.uploadDate)}`}
-          </ThemeText>
-        </View>
-      : renderWorkouts()}
-    </View>
+    <>
+      <ScrollView
+        style={{height: '100%', width: '100%', backgroundColor: colors.background}}
+        contentContainerStyle={{flexGrow: 1}}
+        refreshControl={
+          <RefreshControl
+            refreshing={props.refreshing}
+            onRefresh={props.getFitness}
+          />
+        }
+      >
+        {currentDay.workouts.length === 0 ? 
+          <View>
+            <ThemeText style={{fontSize: 16, color: colors.backgroundOffset, margin: 10, alignSelf: 'center'}}>
+              {`No HIIT workouts for ${formatDateToDisplay(currentDay.uploadDate)}`}
+            </ThemeText>
+          </View>
+        : renderWorkouts()}
+      </ScrollView>
+      <Arrow
+        style={{position: 'absolute', bottom: 10, left: 30}}
+        textStyle={{color: colors.textColor}}
+        direction='left'
+        clickFunction={previousDay}
+        glyph="&#8249;"
+      />
+      <Arrow
+        style={{position: 'absolute', bottom: 10, right: 30}}
+        textStyle={{color: colors.textColor}}
+        direction='right'
+        clickFunction={nextDay}
+        glyph="&#8250;"
+      />
+    </>
   )
 }
 

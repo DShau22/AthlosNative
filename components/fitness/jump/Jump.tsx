@@ -57,12 +57,13 @@ const Jump = (props: FitnessPageProps) => {
 
   // daily basis
   const makeTimeLabels = (inc) => {
+    console.log('oaiwjdaoiwjd', weekIndex, dayIndex)
     const { activityData } = jumpJson;
     if (activityData.length === 0) {
       return [];
     }
-    res = [];
-    for (i = 0; i < activityData[weekIndex][dayIndex].heights.length; i+=inc) {
+    let res: Array<number> = [];
+    for (let i = 0; i < activityData[weekIndex][dayIndex].heights.length; i+=inc) {
       res.push(i === 0 ? 1 : i);
     }
     return res;

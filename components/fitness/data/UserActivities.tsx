@@ -124,6 +124,7 @@ const blank_swim = (date: typeof DateTime): SwimSchema => (
     uploadDate: date.toISO(),
     num: 0,
     lapTimes: [],
+    workouts: [],
     strokes: [],
     calories: 0,
     time: 0,
@@ -359,8 +360,6 @@ class UserActivities {
           swimDaySession.time += session.time;
           if (session.workouts) {
             swimDaySession.workouts?.push(...session.workouts);
-          } else {
-            swimDaySession.workouts = session.workouts;
           }
         }
       }
