@@ -31,6 +31,7 @@ For icons, if you ever get "cannot recognize font family" the do a Icon.loadFont
 Sometimes things get stale in cache after installing updating modules. Run 
   rm -rf node_modules/
   rm -rf package.lock.json
+  rm -rf $TMPDIR/react-*; rm -rf $TMPDIR/haste-*; rm -rf $TMPDIR/metro-*; watchman watch-del-all
   npm i
   react-native start --reset-cache
 to reset the cache

@@ -6,10 +6,21 @@ import { useTheme } from '@react-navigation/native';
 import { COLOR_THEMES } from '../../ColorThemes' 
 const screenWidth = Dimensions.get("window").width;
 
-const LineProgression = (props) => {
-  const { labels, data, activityColor, yAxisInterval, yAxisUnits } = props
+interface LineProgressionInterface {
+  labels: Array<any>,
+  data: Array<any>,
+  activityColor: string,
+  yAxisInterval: number,
+  yAxisUnits?: string,
+  xAxisInterval?: number,
+  xAxisUnits?: string,
+  fixedWidth?: boolean,
+}
+
+const LineProgression = (props: LineProgressionInterface) => {
+  const { labels, data, activityColor, yAxisInterval, yAxisUnits, fixedWidth } = props
   const { colors } = useTheme();
-  const chartWidth = Math.max(.9 * screenWidth, data.length / 20 * screenWidth)
+  const chartWidth = fixedWidth ? .95 * screenWidth : Math.max(.9 * screenWidth, data.length / 20 * screenWidth);
   const chartData = {
     labels,
     datasets: [
@@ -18,7 +29,7 @@ const LineProgression = (props) => {
       }
     ],
   };
-  chartConfig={
+  let chartConfig = {
     // backgroundColor: colors.background,
     backgroundGradientFrom: colors.background,
     // backgroundGradientFrom: 'white',

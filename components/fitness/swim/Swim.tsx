@@ -22,7 +22,7 @@ interface SwimProps extends FitnessPageProps {
 const Swim = (props: SwimProps) => {
   const {
     navigation,
-
+    makeProgressionData,
     weekIndex,
     dayIndex,
     weeklyGraphData,
@@ -37,6 +37,40 @@ const Swim = (props: SwimProps) => {
   } = props;
   var currentDay = props.currentDay as SwimSchema;
   const { colors } = useTheme();
+
+  const timeData = React.useMemo((): Array<number> => {
+    if (!currentDay) return [];
+    let laptimeTimeSeries: Array<number> = makeProgressionData(currentDay.lapTimes.map(({lapTime}, _) => lapTime));
+    return laptimeTimeSeries;
+  }, [makeProgressionData, currentDay]);
+
+  const fineTimeData = React.useMemo((): Array<number> => {
+    if (!currentDay) return [];
+    return currentDay.lapTimes.map(({lapTime}, _) => lapTime);
+  }, [currentDay]);
+
+  const swimWorkoutTimeData = React.useMemo((): Array<number> => {
+    if (!currentDay) return [];
+    let res: Array<number> = [];
+    currentDay.workouts?.forEach((workout) => {
+      workout.sets.forEach(set => {
+        res.push(set.timeIntervalInSeconds);
+      });
+    });
+    res = makeProgressionData(res);
+    return res
+  }, [currentDay]);
+
+  const fineSwimWorkoutTimeData = React.useMemo((): Array<number> => {
+    if (!currentDay) return [];
+    let res: Array<number> = [];
+    currentDay.workouts?.forEach((workout) => {
+      workout.sets.forEach(set => {
+        res.push(set.timeIntervalInSeconds);
+      });
+    });
+    return res
+  }, [currentDay]);
 
   // this is daily
   const makeDonutData = () => {
@@ -92,23 +126,6 @@ const Swim = (props: SwimProps) => {
     if (flyCount + backCount + breastCount + freeCount + unknownCount + otherCount === 0) return [];
     return [flyCount, backCount, breastCount, freeCount, unknownCount, otherCount];
   }
-
-  const makeTimeData = (): Array<number> => {
-    if (!currentDay) return [];
-    let swimTimes: Array<number> = currentDay.lapTimes.map(({lapTime}, _) => lapTime);
-    return swimTimes
-  }
-
-  const makeSwimWorkoutTimeData = (): Array<number> => {
-    if (!currentDay) return [];
-    let res: Array<number> = [];
-    currentDay.workouts?.forEach((workout) => {
-      workout.sets.forEach(set => {
-        res.push(set.timeIntervalInSeconds);
-      });
-    });
-    return res;
-  }
   
   const { unitSystem } = settings;
   return (
@@ -130,44 +147,70 @@ const Swim = (props: SwimProps) => {
       <View style={{alignItems: 'center'}}>
         <Divider style={{width: '95%', marginBottom: 10, marginTop: 10}}/>
       </View>
-      <View style={{alignItems: 'center'}}>
+      <View style={{alignItems: 'center', marginBottom: 25}}>
         <ThemeText h4>Lap Times</ThemeText>
         <ThemeText style={{textAlign: 'center', margin: 10}}>See your laptimes tracked by Athlos lap swim mode below</ThemeText>
-        { currentDay.lapTimes.length === 0 ? <ThemeText style={{color: 'grey'}}>No auto-tracked laps swum today with lap swim mode</ThemeText>: null}
+        { currentDay?.lapTimes.length >= FITNESS_CONSTANTS.MAX_PROGRESSION_DATA ? <ThemeText style={{textAlign: 'center', margin: 10}}>(tap chart for finer data)</ThemeText> : null }
+        { currentDay?.lapTimes.length === 0 ? <ThemeText style={{color: 'grey'}}>No auto-tracked laps swum today with lap swim mode</ThemeText>: null}
       </View>
-      <ScrollView
-        horizontal
-        style={{marginTop: 20}}
-        contentContainerStyle={[styles.sideScrollContent, {marginLeft: activityJson.activityData.length === 0 ? -20 : 0}]}
+      <TouchableOpacity
+        style={{
+          alignItems: "center",
+          width: '90%',
+          borderRadius: 10,
+          padding: 10,
+          marginLeft: timeData.length === 0 ? -15 : 0,
+        }}
+        disabled={fineTimeData.length === timeData.length}
+        onPress={() => {
+          navigation.navigate(FITNESS_CONSTANTS.SWIM_LAP_FINE_DATA_SCREEN, {
+            progressionData: fineTimeData,
+            progressionLabels: [],
+          });
+        }}
       >
         <LineProgression
+          fixedWidth
           activityColor={COLOR_THEMES.SWIM_THEME}
-          yAxisInterval='10'
-          xAxisInterval='10'
+          yAxisInterval={10}
+          xAxisInterval={10}
           yAxisUnits='s'
-          data={makeTimeData()}
+          data={timeData}
           labels={[]}
         />
-      </ScrollView>
+      </TouchableOpacity>
       <View style={{alignItems: 'center'}}>
         <ThemeText h4>Interval Times</ThemeText>
         <ThemeText style={{textAlign: 'center', margin: 10}}>See the interval times of the swimming workout you created below</ThemeText>
+        <ThemeText style={{textAlign: 'center', margin: 10}}>(tap chart for finer data)</ThemeText>
         { !currentDay.workouts || currentDay.workouts.length === 0 ? <ThemeText style={{color: 'grey'}}>No swimming interval workouts for today</ThemeText>: null}
       </View>
-      <ScrollView
-        horizontal
-        style={{marginTop: 20}}
-        contentContainerStyle={[styles.sideScrollContent, {marginLeft: activityJson.activityData.length === 0 ? -20 : 0}]}
+      <TouchableOpacity
+        style={{
+          alignItems: "center",
+          width: '90%',
+          borderRadius: 10,
+          padding: 10,
+          marginLeft: timeData.length === 0 ? -20 : 0,
+        }}
+        disabled={fineSwimWorkoutTimeData.length === swimWorkoutTimeData.length}
+        onPress={() => {
+          navigation.navigate(FITNESS_CONSTANTS.SWIM_LAP_FINE_DATA_SCREEN, {
+            progressionData: fineSwimWorkoutTimeData,
+            progressionLabels: [],
+          });
+        }}
       >
         <LineProgression
+          fixedWidth
           activityColor={COLOR_THEMES.SWIM_THEME}
-          yAxisInterval='10'
-          xAxisInterval='10'
+          yAxisInterval={10}
+          xAxisInterval={10}
           yAxisUnits='s'
-          data={makeSwimWorkoutTimeData()}
+          data={swimWorkoutTimeData}
           labels={[]}
         />
-      </ScrollView>
+      </TouchableOpacity>
       <View style={{alignItems: 'center'}}>
         <ThemeText h4>Stroke Distribution</ThemeText>
       </View>

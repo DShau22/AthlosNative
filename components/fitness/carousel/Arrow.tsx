@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   glyphStyle: {
-    fontSize: 50,
+    fontSize: 90,
   },
   right: {
     marginLeft: 8

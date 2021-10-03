@@ -25,6 +25,7 @@ import Background from '../nativeLogin/Background';
 import Arrow from './carousel/Arrow';
 import SwimDetails from './swim/SwimDetails';
 import { UserDataInterface } from '../generic/UserTypes';
+import FineDataDisplay from './charts/FineDataDisplay';
 
 const Fitness = (props) => {
   const userDataContext = React.useContext(UserDataContext);
@@ -147,13 +148,16 @@ const Fitness = (props) => {
   }
 
   const TopTab = createMaterialTopTabNavigator();
-  const Stack = createStackNavigator();
   // need because scrollview doesn't work with navigation stacks as children and swim page needs additional screen for workout details
   // can't put navigation stacks inside Swim component cuz that would force you to put scrollview AND nav stack in withFitnessPage
   const SwimStack = createStackNavigator();
+  const RunStack = createStackNavigator();
+  const JumpStack = createStackNavigator();
   return (
     isLoading ? <LoadingScreen text='preparing your workout log'/> :
     <TopTab.Navigator
+      lazy
+      swipeEnabled={false}
       tabBarOptions={{
         activeTintColor: colors.textColor,
         inactiveTintColor: '#9DA0A3',
@@ -209,31 +213,55 @@ const Fitness = (props) => {
                 />
               )}
             </SwimStack.Screen>
+            <SwimStack.Screen
+              name={FITNESS_CONSTANTS.SWIM_LAP_FINE_DATA_SCREEN}
+            >
+              {props => (
+                <FineDataDisplay 
+                  {...props}
+                  backNavScreen={FITNESS_CONSTANTS.SWIM}
+                />
+              )}
+            </SwimStack.Screen>
           </SwimStack.Navigator>
         )}
       </TopTab.Screen>
       <TopTab.Screen
         name={'Runs'}
+        swipeEnabled={false}
       >
         {props => (
-          <ScrollView
-            style={{height: '100%', width: '100%', backgroundColor: colors.background}}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={getFitness}
-              />
-            }
-          >
-            <Run
-              // dayIndex={dayIndex}
-              // setDayIndex={setDayIndex}
-              // setWeekIndex={setWeekIndex}
-              // weekIndex={weekIndex}
-              activityJson={runJson}
-              settings={settings}
-            />
-          </ScrollView>
+          <RunStack.Navigator headerMode='none'>
+            <RunStack.Screen name={FITNESS_CONSTANTS.RUN}>
+              {props => (
+                <ScrollView
+                  style={{height: '100%', width: '100%', backgroundColor: colors.background}}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={getFitness}
+                    />
+                  }
+                >
+                  <Run
+                    // dayIndex={dayIndex}
+                    // setDayIndex={setDayIndex}
+                    // setWeekIndex={setWeekIndex}
+                    // weekIndex={weekIndex}
+                    navigation={props.navigation}
+                    activityJson={runJson}
+                    settings={settings}
+                  />
+                </ScrollView>
+              )}
+            </RunStack.Screen>
+            <RunStack.Screen name={FITNESS_CONSTANTS.RUN_FINE_DATA_SCREEN}>
+              {props => <FineDataDisplay 
+                {...props}
+                backNavScreen={FITNESS_CONSTANTS.RUN}
+              />}
+            </RunStack.Screen>
+          </RunStack.Navigator>
         )}
       </TopTab.Screen>
       <TopTab.Screen
@@ -246,24 +274,36 @@ const Fitness = (props) => {
         // }}
       >
         {props => (
-          <ScrollView
-            style={{height: '100%', width: '100%', backgroundColor: colors.background}}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={getFitness}
-              />
-            }
-          >
-            <Jump
-              // dayIndex={dayIndex}
-              // setDayIndex={setDayIndex}
-              // setWeekIndex={setWeekIndex}
-              // weekIndex={weekIndex}
-              activityJson={jumpJson}
-              settings={settings}
-            />
-          </ScrollView>
+          <JumpStack.Navigator headerMode='none'>
+            <JumpStack.Screen name={FITNESS_CONSTANTS.JUMP}>
+              {props => (
+                <ScrollView
+                  style={{height: '100%', width: '100%', backgroundColor: colors.background}}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={getFitness}
+                    />
+                  }
+                >
+                  <Jump
+                    // dayIndex={dayIndex}
+                    // setDayIndex={setDayIndex}
+                    // setWeekIndex={setWeekIndex}
+                    // weekIndex={weekIndex}
+                    activityJson={jumpJson}
+                    settings={settings}
+                  />
+                </ScrollView>
+              )}
+            </JumpStack.Screen>
+            <JumpStack.Screen name={FITNESS_CONSTANTS.JUMP_FINE_DATA_SCREEN}>
+              {props => <FineDataDisplay 
+                {...props}
+                backNavScreen={FITNESS_CONSTANTS.JUMP}
+              />}
+            </JumpStack.Screen>
+          </JumpStack.Navigator>
         )}
       </TopTab.Screen>
       <TopTab.Screen

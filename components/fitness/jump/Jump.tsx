@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 import { Divider } from 'react-native-elements'
-import { View, StyleSheet, Text, ScrollView } from 'react-native'
+import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native'
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import { COLOR_THEMES } from '../../ColorThemes'
 import { UserDataContext } from '../../../Context'
@@ -11,9 +11,11 @@ import { rawHeightConvert } from "../../utils/unitConverter"
 import StatCard from '../StatCard';
 import ThemeText from '../../generic/ThemeText'
 import LineProgression from '../charts/LineProgression'
+import FITNESS_CONSTANTS from '../FitnessConstants';
 
 const Jump = (props: FitnessPageProps) => {
   const {
+    makeProgressionData,
     weekIndex,
     dayIndex,
     currentDay,
@@ -21,12 +23,18 @@ const Jump = (props: FitnessPageProps) => {
     weeklyGraphLabels,
     calcAvgNum,
     calcAvgCals,
+    navigation,
     
     activityJson,
     settings
   } = props;
   const { unitSystem } = settings;
   const jumpJson = activityJson;
+
+  const progressionData = React.useMemo(() => {
+    return currentDay ? makeProgressionData(currentDay.heights) : [];
+  }, [makeProgressionData, currentDay]);
+  console.log('awioefjaoijwef', progressionData);
 
   // weekly basis
   const calcAvgHeight = () => {
@@ -56,39 +64,48 @@ const Jump = (props: FitnessPageProps) => {
   }
 
   // daily basis
-  const makeTimeLabels = (inc) => {
-    console.log('oaiwjdaoiwjd', weekIndex, dayIndex)
-    const { activityData } = jumpJson;
-    if (activityData.length === 0) {
+  const makeTimeLabels = (inc: number) => {
+    if (!currentDay) {
       return [];
     }
     let res: Array<number> = [];
-    for (let i = 0; i < activityData[weekIndex][dayIndex].heights.length; i+=inc) {
+    for (let i = 0; i < currentDay.heights.length; i+=inc) {
       res.push(i === 0 ? 1 : i);
     }
     return res;
   }
 
-
   // this could be undefined if user has no recorded data
   return (
     <View style={styles.container}>
-      <View style={{alignItems: 'center'}}>
+      <View style={{alignItems: 'center', marginBottom: 25}}>
         <ThemeText h4>Verticals</ThemeText>
+        { currentDay?.heights.length > FITNESS_CONSTANTS.MAX_PROGRESSION_DATA ? <ThemeText style={{textAlign: 'center', margin: 10}}>(tap chart for finer data)</ThemeText> : null }
       </View>
-      <ScrollView
-        horizontal
-        style={{marginTop: 20}}
-        contentContainerStyle={[styles.sideScrollContent, {marginLeft: jumpJson.activityData.length === 0 ? -20 : 0}]}
+      <TouchableOpacity
+        style={{
+          alignItems: "center",
+          width: '90%',
+          borderRadius: 10,
+          padding: 10,
+          marginLeft: progressionData.length === 0 ? -15 : 0,
+        }}
+        disabled={currentDay.heights.length === progressionData.length}
+        onPress={() => {
+          navigation.navigate(FITNESS_CONSTANTS.RUN_FINE_DATA_SCREEN, {
+            progressionData: [0, ...currentDay.heights],
+            progressionLabels: currentDay ? makeTimeLabels(5) : []
+          });
+        }}
       >
         <LineProgression
           activityColor={COLOR_THEMES.JUMP_THEME}
-          yAxisInterval='4'
+          yAxisInterval={4}
           yAxisUnits={unitSystem === GLOBAL_CONSTANTS.METRIC ? ' cm' : ' in'}
-          data={currentDay ? currentDay.heights : []}
-          labels={currentDay ? makeTimeLabels(4) : []}
+          data={progressionData}
+          labels={[]}
         />
-      </ScrollView>
+      </TouchableOpacity>
       <View style={{alignItems: 'center'}}>
         <ThemeText h4>Weekly Bests</ThemeText>
       </View>
@@ -110,7 +127,6 @@ const styles = StyleSheet.create({
     // height: '100%',
     width: '100%',
     // backgroundColor: 'red',
-    alignItems: 'center',
     marginTop: 25
   },
   calsAndTimeContainer: {

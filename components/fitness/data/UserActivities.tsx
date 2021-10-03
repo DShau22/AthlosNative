@@ -317,10 +317,6 @@ class UserActivities {
   getLastUpdated(): typeof DateTime {
     const latestWeek = this.runs[0];
     const lastUpdatedMonday = latestWeek[0].uploadDate;
-    console.log("aoiwefjoawe", this.runs[2][1].uploadDate);
-    console.log("aoiwefjoawe", DateTime.fromISO(this.runs[2][1].uploadDate));
-    console.log("aoiwefjoawe", this.runs[2][2].uploadDate);
-    console.log("aoiwefjoawe", DateTime.fromISO(this.runs[2][2].uploadDate));
     return DateTime.fromISO(lastUpdatedMonday);
   }
 

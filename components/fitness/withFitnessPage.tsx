@@ -3,7 +3,7 @@ import { Divider, Button } from 'react-native-elements';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 const { DateTime } = require('luxon');
-import Carousel from './carousel/Carousel.tsx';
+import Carousel from './carousel/Carousel';
 import Calories from './Calories';
 import Duration from './Duration';
 
@@ -41,7 +41,6 @@ export default function withFitnessPage( WrappedComponent: any ) {
     if (!dayIndex && !setDayIndex) {
       [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday - 1); // 1 is monday 7 is sunday for .weekday
     }
-    console.log("day and week index: ", dayIndex, weekIndex);
     const [isLoading, setIsLoading] = React.useState(activityJson.activityData.length === 0);
     const { colors } = useTheme();
     React.useEffect(() => {
@@ -185,6 +184,7 @@ export default function withFitnessPage( WrappedComponent: any ) {
       let dayString = today.day < 10 ? `0${today.day}` : `${today.day}`;
       return `${today.year}-${monthString}-${dayString}`;
     }
+
     const onChangeCalendarDay = (day: number, month: number, year: number) => {
       if (!sessionDay) {
         return;
@@ -209,6 +209,32 @@ export default function withFitnessPage( WrappedComponent: any ) {
         setDayIndex((dayIndex - dayOffset + 7) % 7);
       }
     }
+
+    // have a max of 30 data points in the chart
+    const makeProgressionData = React.useCallback((timeseries: Array<number>): Array<number> => {
+      console.log("computing progression data", timeseries);
+      let res: Array<number> = [];
+      if (timeseries.length >= FITNESS_CONTANTS.MAX_PROGRESSION_DATA) {
+        // condense every n s.t the new time series is at most 30 points
+        let condenseFactor = Math.floor(timeseries.length / 30) + 1;
+        let runningSum = 0;
+        timeseries.forEach((data, idx) => {
+          runningSum += data;
+          if ((idx + 1) % condenseFactor === 0) {
+            res.push(runningSum / condenseFactor);
+            runningSum = 0;
+          }
+        });
+        // isn't completely evenly divisible by 30, then we missed some data that's in the runningSum
+        if (timeseries.length % condenseFactor !== 0) {
+          res.push(runningSum / (timeseries.length % condenseFactor));
+        }        
+      } else {
+        return timeseries;
+      }
+      return res;
+    }, []);
+
     // console.log("session Day: ", sessionDay);
     if (isLoading) {
       return <View></View>
@@ -279,6 +305,7 @@ export default function withFitnessPage( WrappedComponent: any ) {
             </View>
             <Divider style={{width: '95%'}}/>
             <WrappedComponent
+              makeProgressionData={makeProgressionData}
               weeklyGraphData={weeklyGraphData}
               weeklyGraphLabels={weeklyGraphLabels}
               currentDay={sessionDay}
@@ -304,10 +331,12 @@ export interface FitnessPageProps extends fitnessPageHOCProps {
   weekIndex: number,
   dayIndex: number,
   currentDay: any,
+  makeProgressionData: Function,
   calcAvgNum: Function,
   calcAvgCals: Function,
   roundToNDecimals: Function,
   isNullOrUndefined: Function,
+  navigation: any,
 }
 
 const styles = StyleSheet.create({
