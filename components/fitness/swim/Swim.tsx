@@ -230,37 +230,13 @@ const Swim = (props: SwimProps) => {
       <View style={{alignItems: 'center'}}>
         <ThemeText h4>Weekly Swims</ThemeText>
       </View>
-      <ScrollView horizontal contentContainerStyle={{alignItems: 'center', marginTop: 15}}>
-        <WeeklyBarChart
-          labels={weeklyGraphLabels}
-          data={weeklyGraphData}
-          activity="Swims"
-          yAxisMin={0}
-          yAxisMax={Math.max(...weeklyGraphData)}
-        />
-      </ScrollView>
-      {/* <View style={{alignItems: 'center'}}>
-        <StatCard
-          imageUri='https://reactnative.dev/img/tiny_logo.png'
-          label='Average laps per session'
-          stat={calcAvgNum()}
-        />
-        <StatCard
-          imageUri='https://reactnative.dev/img/tiny_logo.png'
-          label='Average Speed'
-          stat={`${calcAvgSpeed()} ${unitSystem === "metric" ? "m/s" : "yd/s"}`}
-        />
-        <StatCard
-          imageUri='https://reactnative.dev/img/tiny_logo.png'
-          label='Avg Time per Lap'
-          stat={`${calcAvgTimePerLap()} s`}
-        />
-        <StatCard
-          imageUri='https://reactnative.dev/img/tiny_logo.png'
-          label='Avg Cals burned per Session'
-          stat={calcAvgCals()}
-        />
-      </View> */}
+      <WeeklyBarChart
+        labels={weeklyGraphLabels}
+        data={weeklyGraphData}
+        activity="Swims"
+        yAxisMin={0}
+        yAxisMax={Math.max(...weeklyGraphData)}
+      />
     </View>
   )
 }

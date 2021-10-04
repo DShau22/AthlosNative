@@ -11,7 +11,7 @@ import {
   setUserFitnessData,
 } from '../../utils/storage';
 import {
-  getLastMonday,
+  getLastSunday,
   sameDate
 } from '../../utils/dates';
 import ENDPOINTS from '../../endpoints';
@@ -155,15 +155,15 @@ const blank_interval = (date: typeof DateTime): IntervalSchema => (
   }
 )
 
-// mondayDate is the date of the most recent monday in the UserActivities structure
-// if mondayDate was PST, but user is now in China, how do we handle the new blank week?
-const blank_week = (activity: ACTIVITY_ENUMS, mondayDate: typeof DateTime) => {
-  if (mondayDate.weekday !== 1) {
-    throw Error(`Expected a monday but got: ${mondayDate.weekday}`);
+// sundayDate is the date of the most recent sunday in the UserActivities structure
+// if sundayDate was PST, but user is now in China, how do we handle the new blank week?
+const blank_week = (activity: ACTIVITY_ENUMS, sundayDate: typeof DateTime) => {
+  if (sundayDate.weekday !== 7) {
+    throw Error(`Expected a sunday but got: ${sundayDate.weekday}`);
   }
   var result = Array(7);
   for (let day = 0; day < 7; day ++) {
-    const blank_date = mondayDate.plus({days: day})
+    const blank_date = sundayDate.plus({days: day})
     result[day] =
       activity === "run" ? blank_run(blank_date) :
       activity === "swim" ? blank_swim(blank_date) :
@@ -203,7 +203,7 @@ class UserActivities {
       interval: [],
     };
     // grab fitness from server and store it
-    var lastUpdated = getLastMonday();
+    var lastUpdated = getLastSunday();
     lastUpdated = lastUpdated.minus({days: (UserActivities.WEEKS_BACK + 1) * 7});
     console.log("last updated create from server: ", lastUpdated);
     const userToken: string | null = await getToken();
@@ -268,17 +268,17 @@ class UserActivities {
 
   async fillAndRemoveOldRecords() {
     const today = DateTime.local();
-    const lastMonday = getLastMonday(today);
-    var userLastUpdatedMonday: typeof DateTime = this.getLastUpdated();
+    const lastSunday = getLastSunday(today);
+    var userLastUpdatedSunday: typeof DateTime = this.getLastUpdated();
     // fill in empty fitness records if needed
-    userLastUpdatedMonday = userLastUpdatedMonday.plus({days: 7}); 
-    while (userLastUpdatedMonday.startOf("day") <= lastMonday.startOf("day")) {
-      console.log("pushing blank week for monday of: ", userLastUpdatedMonday);
-      this.runs.unshift(blank_week("run", userLastUpdatedMonday));
-      this.swims.unshift(blank_week("swim", userLastUpdatedMonday));
-      this.jumps.unshift(blank_week("jump", userLastUpdatedMonday));
-      this.intervals.unshift(blank_week("interval", userLastUpdatedMonday));
-      userLastUpdatedMonday = userLastUpdatedMonday.plus({days: 7});
+    userLastUpdatedSunday = userLastUpdatedSunday.plus({days: 7}); 
+    while (userLastUpdatedSunday.startOf("day") <= lastSunday.startOf("day")) {
+      console.log("pushing blank week for sunday of: ", userLastUpdatedSunday);
+      this.runs.unshift(blank_week("run", userLastUpdatedSunday));
+      this.swims.unshift(blank_week("swim", userLastUpdatedSunday));
+      this.jumps.unshift(blank_week("jump", userLastUpdatedSunday));
+      this.intervals.unshift(blank_week("interval", userLastUpdatedSunday));
+      userLastUpdatedSunday = userLastUpdatedSunday.plus({days: 7});
     }
     // remove old records and store to async storage
     var numToRemove = this.runs.length - UserActivities.WEEKS_BACK;
@@ -316,14 +316,14 @@ class UserActivities {
 
   getLastUpdated(): typeof DateTime {
     const latestWeek = this.runs[0];
-    const lastUpdatedMonday = latestWeek[0].uploadDate;
-    return DateTime.fromISO(lastUpdatedMonday);
+    const lastUpdatedSunday = latestWeek[0].uploadDate;
+    return DateTime.fromISO(lastUpdatedSunday);
   }
 
   getOldestDate(): typeof DateTime {
     const oldestWeek = this.runs[this.runs.length - 1];
-    const oldestMonday = oldestWeek[0].uploadDate;
-    return oldestMonday;
+    const oldestSunday = oldestWeek[0].uploadDate;
+    return oldestSunday;
   }
 
   // it is assumed that fillAndRemoveOldRecords has been called by now cuz this is an instance method

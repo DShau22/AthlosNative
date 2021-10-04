@@ -6783,10 +6783,10 @@ react-native-calendars@^1.1264.0:
   optionalDependencies:
     moment "^2.24.0"
 
-react-native-chart-kit@^5.6.1:
-  version "5.6.1"
-  resolved "https://registry.yarnpkg.com/react-native-chart-kit/-/react-native-chart-kit-5.6.1.tgz#383c27dd70b02e22ba364207face16fbb7addd51"
-  integrity sha512-yqNdISbpR6MJ+d96X/vYbQP7ggjwcJmjVp82mwYepPmYKJMcjGop5hUrVrt7TUIh0yUrDgfcSN9ZGoDRWQdftQ==
+react-native-chart-kit@^6.11.0:
+  version "6.11.0"
+  resolved "https://registry.yarnpkg.com/react-native-chart-kit/-/react-native-chart-kit-6.11.0.tgz#513e0944cd8f946e1827facc17fe766ae487d91b"
+  integrity sha512-mRSfW+mcyVSi0UZKFucru5h5TPB6UcWrMi/DphICRpPJWlvIVAv/6VYGFA57NFDLoRVufFjbsRRrms+TOq61jw==
   dependencies:
     lodash "^4.17.13"
     paths-js "^0.4.10"

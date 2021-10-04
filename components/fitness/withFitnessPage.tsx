@@ -30,8 +30,8 @@ interface fitnessPageHOCProps {
 
 export default function withFitnessPage( WrappedComponent: any ) {  
   const WithFitnessPage = (props: fitnessPageHOCProps) => {
-    const [weeklyGraphLabels, setWeeklyGraphLabels] = React.useState([]);
-    const [weeklyGraphData, setWeeklyGraphData] = React.useState([]);
+    const [weeklyGraphLabels, setWeeklyGraphLabels] = React.useState<Array<string>>([]);
+    const [weeklyGraphData, setWeeklyGraphData] = React.useState<Array<number>>([]);
     const [showCalendar, setShowCalendar] = React.useState<boolean>(false);
     const { activityJson, settings } = props;
     let { dayIndex, weekIndex, setDayIndex, setWeekIndex } = props;
@@ -39,7 +39,7 @@ export default function withFitnessPage( WrappedComponent: any ) {
       [weekIndex, setWeekIndex] = React.useState(0);
     }
     if (!dayIndex && !setDayIndex) {
-      [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday - 1); // 1 is monday 7 is sunday for .weekday
+      [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday % 7); // 1 is monday 7 is sunday for .weekday
     }
     const [isLoading, setIsLoading] = React.useState(activityJson.activityData.length === 0);
     const { colors } = useTheme();
@@ -63,12 +63,12 @@ export default function withFitnessPage( WrappedComponent: any ) {
 
     // gets the labels for the graph that displays num field over past upload dates
     const makeWeeklyGraphLabels = () => {
-      const weeklyGraphLabels = [];
+      const weeklyGraphLabels: Array<string> = [];
       const week = activityJson.activityData[weekIndex];
       week.forEach((session, idx) => {
         const { uploadDate } = session;
         const dateObject = DateTime.fromISO(uploadDate);
-        weeklyGraphLabels.push(`${dateObject.weekdayShort}, ${dateObject.month}/${dateObject.day}`);
+        weeklyGraphLabels.push(`${dateObject.weekdayShort}`);
       });
       setWeeklyGraphLabels(weeklyGraphLabels);
     }

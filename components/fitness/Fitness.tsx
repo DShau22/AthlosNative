@@ -16,13 +16,7 @@ import PROFILE_CONSTANTS from '../profile/ProfileConstants'
 import ENDPOINTS from '../endpoints'
 import axios from 'axios';
 import FITNESS_CONSTANTS from './FitnessConstants'
-import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
-import {Calendar} from 'react-native-calendars';
 import Interval from './interval/Interval';
-import { StackRouter } from 'react-navigation';
-import ThemeText from '../generic/ThemeText';
-import Background from '../nativeLogin/Background';
-import Arrow from './carousel/Arrow';
 import SwimDetails from './swim/SwimDetails';
 import { UserDataInterface } from '../generic/UserTypes';
 import FineDataDisplay from './charts/FineDataDisplay';

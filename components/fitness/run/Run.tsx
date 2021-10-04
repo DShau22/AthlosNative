@@ -135,13 +135,11 @@ const Run = (props: RunProps) => {
     <View style={{alignItems: 'center'}}>
       <ThemeText h4>Weekly Runs</ThemeText>
     </View>
-    <ScrollView horizontal contentContainerStyle={{alignItems: 'center', marginTop: 15}}>
-      <WeeklyBarChart
-        labels={weeklyGraphLabels}
-        data={weeklyGraphData}
-        activity="Runs"
-      />
-    </ScrollView>
+    <WeeklyBarChart
+      labels={weeklyGraphLabels}
+      data={weeklyGraphData}
+      activity="Runs"
+    />
   </View>
 
   // const fineDataScreen = () =>

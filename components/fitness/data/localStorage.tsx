@@ -12,20 +12,10 @@ import {
   storeUserData
 } from '../../utils/storage';
 import {
-  getLastMonday,
-  getNextSunday,
-  sameDate,
-} from '../../utils/dates';
-import {
-  getUserFitnessData,
-  setUserFitnessData,
-} from '../../utils/storage';
-import {
   unscrambleSessionBytes,
   createSessionJsons,
   calcReferenceTimes,
 } from "./decoders";
-import { Use } from "react-native-svg";
 import { UserDataInterface } from "../../generic/UserTypes";
 /**
  * Utilities for managing the local storage of user fitness

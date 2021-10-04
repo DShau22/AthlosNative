@@ -1,16 +1,23 @@
 import React, { Component } from 'react'
-import { Dimensions, View, Text, StyleSheet } from "react-native";
+import { Dimensions, View, ScrollView, StyleSheet } from "react-native";
 import { Card } from 'react-native-elements';
 import {
   BarChart,
 } from "react-native-chart-kit";
 import { useTheme } from '@react-navigation/native';
 import { COLOR_THEMES } from '../../ColorThemes' 
-const screenWidth = Dimensions.get("window").width;
+import GLOBAL_CONSTANTS from '../../GlobalConstants';
 
-const WeeklyBarChart = (props) => {
-  const { labels, data, activity, yAxisUnits } = props
-  const chartWidth = Math.max(.9 * screenWidth, data.length / 7 * screenWidth)
+interface WeeklyBarChartProps {
+  labels: Array<any>,
+  data: Array<any>,
+  activity: string,
+  yAxisUnits?: string,
+  yAxisMin?: number,
+}
+
+const WeeklyBarChart = (props: WeeklyBarChartProps) => {
+  const { labels, data, activity, yAxisUnits, yAxisMin } = props
   const { colors } = useTheme();
   const getColorTheme = () => {
     switch(activity.toLowerCase()) {
@@ -32,22 +39,18 @@ const WeeklyBarChart = (props) => {
       }
     ]
   };
-  chartConfig={
-    // backgroundColor: colors.background,
+  let chartConfig = {
     backgroundGradientFrom: colors.background,
     // backgroundGradientFrom: 'white',
     // backgroundGradientFromOpacity: 0,
     backgroundGradientTo: colors.background,
     // backgroundGradientTo: 'white',
     // backgroundGradientToOpacity: 0.5,
-    barPercentage: .8,
+    barPercentage: .80,
     useShadowColorFromDataset: false, // optional
     decimalPlaces: 0, // optional, defaults to 2dp
     color: (opacity = 1) => getColorTheme(), // controls bar colors
     labelColor: (opacity = 1) => colors.textColor,
-    style: {
-      borderRadius: 16,
-    },
     fillShadowGradientOpacity: .6,
     // barRadius: 10,
     // propsForDots: {
@@ -63,30 +66,28 @@ const WeeklyBarChart = (props) => {
   };
 
   return (
-    <View style={styles.cardContainer}>
-      <BarChart
-        style={styles.graphStyle}
-        data={chartData}
-        width={600}
-        height={300}
-        chartConfig={chartConfig}
-        verticalLabelRotation={25}
-        horizontalLabelRotation={0}
-        fromZero
-        yAxisSuffix={yAxisUnits ? yAxisUnits : ''}
-        withHorizontalLabels={data.length > 0}
-        // showBarTops={false}
-        // showValuesOnTopOfBars
-      />
-    </View>
+    <BarChart
+      style={{alignSelf: 'center', paddingRight: 10}}
+      data={chartData}
+      width={.95 * GLOBAL_CONSTANTS.SCREEN_WIDTH}
+      height={350}
+      chartConfig={chartConfig}
+      verticalLabelRotation={40}
+      horizontalLabelRotation={0}
+      fromZero
+      yAxisLabel="laps"
+      yAxisSuffix={yAxisUnits ? yAxisUnits : ''}
+      withHorizontalLabels={!data.every((el) => el === 0)}
+      // showBarTops={false}
+      showValuesOnTopOfBars
+    />
   )
 }
 const styles = StyleSheet.create({
-  cardContainer: {
+  container: {
     // backgroundColor: 'red',
     alignItems: 'center',
-    justifyContent: 'center',
-    width: '95%',
+    // justifyContent: 'center',
     padding: 5,
   },
   graphStyle: {
