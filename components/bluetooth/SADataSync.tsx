@@ -29,7 +29,6 @@ import ENDPOINTS from '../endpoints';
 import { Alert } from 'react-native';
 import { UserActivities } from '../fitness/data/UserActivities';
 import { updateSaInit } from './utils';
-import WeeklyBarChart from '../fitness/charts/WeeklyBarChart';
 Icon.loadFont();
 
 const { SYNC_PAGE, SYNC_HELP_PAGE } = BLUETOOTH_CONSTANTS;
@@ -262,7 +261,7 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
       setTransmitting(false);
       return;
     }
-    showSnackBar('Successfully synced with your Athlos earbuds :]');
+    showSnackBar('Successfully synced. Workout log and earbuds config both updated.');
     setTransmitting(false);
     // this could be an issue if updateSaInit fails FIX LATER
     try {
@@ -292,12 +291,6 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
             }}
             // onSwipeUp={async (gestureState) => await stopScan()}
           >
-            <WeeklyBarChart
-              labels={['test']}
-              data={[30]}
-              activity="test"
-              yAxisMin={0}
-            />
             <View style={styles.container}>
               {transmitting || syncProgress >= 0 ?
                 <View style={styles.topText}>

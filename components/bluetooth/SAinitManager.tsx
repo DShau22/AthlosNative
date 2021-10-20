@@ -108,7 +108,8 @@ class SAinit {
     userSwimEfforts: Array<number>,
     userReferenceTimes: RefTimesType,
     cadenceThresholds: Array<number>,
-    bestJump: number) {
+    bestJump: number
+  ) {
     this.deviceConfig = initialDeviceConfig; // an array of mode config objects
     this.settings = userSettings; // must be READ ONLY
     this.runEfforts = userRunEfforts;
@@ -216,25 +217,23 @@ class SAinit {
           this._setSwimWorkoutConfig(sainit, modeObject as SwimWorkoutInterface, idx);
           break;
         default:
-          // set it as unused
-          sainit[idx] = SAinit.ZERO;
-          break;
+          throw Error(`Unrecognized mode: ${modeObject.mode}`);
       }
     });
     for (let i = this.deviceConfig.length; i < 8; i++) {
       sainit[i] = SAinit.LOWER_X;
     }
     sainit[7] = SAinit.LOWER_X; // make sure 8th byte is always unused
-    for (let i = 0; i < 128; i++) {
-      console.log(`index ${i}: ${sainit[i].toString(16)}`);
-    }
+    // for (let i = 0; i < 128; i++) {
+    //   console.log(`index ${i}: ${sainit[i].toString(16)}`);
+    // }
     console.log("in utf8: ", sainit.toString('utf8'));
     return sainit;
   }
 
   _setMusicConfig(sainit: Buffer, musicObject: MusicInterface, idx: number) {
     sainit[idx] = SAinit.ZERO;
-    console.log("setting music config: ", musicObject);
+    // console.log("setting music config: ", musicObject);
     const { musicPlaySequence } = musicObject;
     sainit[8] = musicPlaySequence === ORDER_BY_DATE ? SAinit.ZERO : SAinit.THREE;
   }
@@ -247,7 +246,7 @@ class SAinit {
    * @param {int} idx 
    */
   _setRunConfig(sainit: Buffer, runObject: RunInterface, idx: number) {
-    console.log("setting run config: ", runObject);
+    // console.log("setting run config: ", runObject);
     const { trigger, numUntilTrigger, reportCalories, walking, disableEncouragements } = runObject;
     sainit[idx] = walking ? SAinit.W : SAinit.R;
     if (trigger === TRIGGER_STEPS) {
@@ -269,7 +268,7 @@ class SAinit {
     sainit[idx + 8] += SAinit.ZERO;
     sainit[idx + 16] = numUntilTrigger + SAinit.ZERO;
     // set cadence thresholds
-    console.log(`cadence thresholds: ${this.cadenceThresholds}`); // 30 65 80
+    // console.log(`cadence thresholds: ${this.cadenceThresholds}`); // 30 65 80
     sainit[idx + 24] = this.cadenceThresholds[0];
     sainit[idx + 40] = 100; // make the +2 almost impossible to obtain for now. Would needa do 200 steps per minute
     if (walking) {
@@ -278,12 +277,12 @@ class SAinit {
       sainit[idx + 32] = this.cadenceThresholds[2]; // running cadence
     }
     // set neffort thresholds
-    console.log(`run efforts: ${this.runEfforts}`); // 1 2 4 6 default
+    // console.log(`run efforts: ${this.runEfforts}`); // 1 2 4 6 default
     sainit[idx + 48] = parseInt(Math.round(this.runEfforts[0]));
     sainit[idx + 56] = parseInt(Math.round(this.runEfforts[1]));
     sainit[idx + 64] = parseInt(Math.round(this.runEfforts[2]));
     sainit[idx + 72] = parseInt(Math.round(this.runEfforts[3]));
-    console.log("set run config: ", sainit);
+    // console.log("set run config: ", sainit);
   }
 
   /**
@@ -323,15 +322,15 @@ class SAinit {
     }
     sainit[idx + 8] += bitmap[0] + SAinit.ZERO;
     // set swimming pool length
-    console.log("pool length: ", poolLength);
-    console.log(SAinit.POOL_LENGTH_MAP[poolLength]);
+    // console.log("pool length: ", poolLength);
+    // console.log(SAinit.POOL_LENGTH_MAP[poolLength]);
     sainit[idx + 16] = SAinit.POOL_LENGTH_MAP[poolLength];
     // set reference times here
     const dt = poolLength === OLYMPIC ? 0.8 : 0.4;
-    console.log(`Reftimes fly: ${this.refTimes.fly}`); // 22 20
-    console.log(`Reftimes back: ${this.refTimes.back}`); // 30 26
-    console.log(`Reftimes breast: ${this.refTimes.breast}`); // 32 28
-    console.log(`Reftimes free: ${this.refTimes.free}`); // 25 22
+    // console.log(`Reftimes fly: ${this.refTimes.fly}`); // 22 20
+    // console.log(`Reftimes back: ${this.refTimes.back}`); // 30 26
+    // console.log(`Reftimes breast: ${this.refTimes.breast}`); // 32 28
+    // console.log(`Reftimes free: ${this.refTimes.free}`); // 25 22
     sainit[idx + 32] = parseInt(Math.ceil(this.refTimes.fly[0] / dt));
     sainit[idx + 40] = parseInt(Math.ceil(this.refTimes.fly[1] / dt));
     sainit[idx + 48] = parseInt(Math.ceil(this.refTimes.back[0] / dt));
@@ -341,12 +340,12 @@ class SAinit {
     sainit[idx + 80] = parseInt(Math.ceil(this.refTimes.free[0] / dt));
     sainit[idx + 88] = parseInt(Math.ceil(this.refTimes.free[1] / dt));
     // set effort levels here
-    console.log(`Swim Efforts: ${this.swimEfforts}`); // 4 8 12 16
+    // console.log(`Swim Efforts: ${this.swimEfforts}`); // 4 8 12 16
     sainit[idx + 96]  = parseInt(Math.round(this.swimEfforts[0]));
     sainit[idx + 104] = parseInt(Math.round(this.swimEfforts[1]));
     sainit[idx + 112] = parseInt(Math.round(this.swimEfforts[2]));
     sainit[idx + 120] = parseInt(Math.round(this.swimEfforts[3]));
-    console.log('set swim config: ', sainit);
+    // console.log('set swim config: ', sainit);
   }
 
   /**
@@ -357,7 +356,7 @@ class SAinit {
    * @param {int} idx 
    */
   _setJumpConfig(sainit: Buffer, jumpObject: VerticalInterface, idx: number) {
-    console.log("setting jump config: ", jumpObject);
+    // console.log("setting jump config: ", jumpObject);
     if (jumpObject.metric === HANGTIME) {
       sainit[idx] = SAinit.FOUR;
     } else if (jumpObject.metric === BASKETBALL) {
@@ -367,8 +366,8 @@ class SAinit {
     }
     // Best jump is stored with 2 bytes. Stores number of .1 inches the user jumped
     const numberOfTenths = parseInt(Math.ceil(this.bestJump / 0.1));
-    console.log(`Current best jump: ${this.bestJump}`);
-    console.log(`Current best jump in tenths: ${numberOfTenths}`);
+    // console.log(`Current best jump: ${this.bestJump}`);
+    // console.log(`Current best jump in tenths: ${numberOfTenths}`);
     if (jumpObject.disableEncouragements) {
       sainit[idx + 8] |= 0x20 // set bit 7 to 1 if encouragements are disabled
     }
@@ -396,7 +395,7 @@ class SAinit {
       sainit[idx + 40] = level1 & 0xff;
       sainit[idx + 32] = (level1 & 0xff00) >> 8;
     }
-    console.log("set jump config: ", sainit);
+    // console.log("set jump config: ", sainit);
   }
 
   /**
@@ -407,7 +406,7 @@ class SAinit {
    * @param {int} idx 
    */
   _setSwimmingRaceConfig(sainit: Buffer, swimmingEventObject: RaceInterface, idx: number) {
-    console.log("setting race config: ", swimmingEventObject);
+    // console.log("setting race config: ", swimmingEventObject);
     // build the event lookup table only if we have a swimming event config
     if (!this.eventLookupTable) {
       this._buildEventLookupTable();
@@ -416,7 +415,6 @@ class SAinit {
     if (splits.length > 4)
       throw new Error(`split array must have less than 4 elements. Got:${splits.length}`);
     const metric = poolLength === OLYMPIC || poolLength === THIRD_M || poolLength === BRITISH ? METERS : YARDS;
-    console.log(distance, metric, stroke);
     sainit[idx] = this.eventLookupTable[metric][stroke][distance];
     var offset8 = Buffer.alloc(1);
     // bits 2-7 are number of laps for the race
@@ -443,7 +441,7 @@ class SAinit {
     var totalTimeInTenths = 0;
     for (let i = 0; i < splits.length; i++) {
       const timeInTenths = splits[i] * 10;
-      console.log(`time in tenths: ${timeInTenths.toString(16)} at index ${i}`);
+      // console.log(`time in tenths: ${timeInTenths.toString(16)} at index ${i}`);
       totalTimeInTenths += timeInTenths;
       sainit[idx + 32 + i*16] = (timeInTenths & 0xff00) >> 8; // second lsb
       sainit[idx + 32 + i*16+8] = timeInTenths & 0xff; // lsb
@@ -454,7 +452,7 @@ class SAinit {
     // set the personal best time (RN DOES NOT INCLUDE)
     sainit[idx + 112] = 0;
     sainit[idx + 120] = 2;
-    console.log('set swimming race config: ', sainit);
+    // console.log('set swimming race config: ', sainit);
   }
 
   /**
@@ -465,7 +463,7 @@ class SAinit {
    * @param {int} idx 
    */
   _setTimerConfig(sainit: Buffer, timerObject: TimerInterface, idx: number) {
-    console.log("setting timer config: ", timerObject);
+    // console.log("setting timer config: ", timerObject);
     const { splits, repetition, numRepetitions } = timerObject;
     sainit[idx] = 35;
     var offset8 = Buffer.alloc(1);
@@ -488,7 +486,7 @@ class SAinit {
       sainit[idx + 32 + i*16] = (timeInTenths & 0xff00) >> 8;
       sainit[idx + 32 + i*16+8] = timeInTenths & 0xff;
     });
-    console.log("set timer config: ", sainit);
+    // console.log("set timer config: ", sainit);
   }
 
   /**
@@ -499,7 +497,7 @@ class SAinit {
    * @param {int} idx 
    */
   _setIntervalConfig(sainit: Buffer, intervalObject: IntervalInterface, idx: number) {
-    console.log("setting interval config: ", intervalObject);
+    // console.log("setting interval config: ", intervalObject);
     const { intervals, numRounds } = intervalObject;
     sainit[idx] = 36;
     var offset8 = Buffer.alloc(1);
@@ -523,11 +521,11 @@ class SAinit {
       sainit[idx + 32 + i*16+8] = (time & 0x03) << 6; // bits 1:0 shifted 6 since 6 LSBs are for file selection
       sainit[idx + 32 + i*16+8] += MUSCLE_GROUP_LIST.indexOf(muscleGroup);
     });
-    console.log("set interval config: ", sainit);
+    // console.log("set interval config: ", sainit);
   }
 
   _setSwimWorkoutConfig(sainit: Buffer, workoutObject: SwimWorkoutInterface, idx: number) {
-    console.log("setting swim workout config: ", workoutObject);
+    // console.log("setting swim workout config: ", workoutObject);
     const { sets, numRounds } = workoutObject;
     sainit[idx] = 37;
     var offset8 = Buffer.alloc(1);
@@ -550,17 +548,13 @@ class SAinit {
     sets.forEach(({reps, distance, stroke, timeInSeconds}, i) => {
       let twoByteParameters = 0; // ints in javascript are 32 bits
       // 15:13 + 1 is # repeats
-      console.log("reps: ", reps);
       twoByteParameters |= ((parseInt(reps) - 1) << 13);
-      console.log("15:13", twoByteParameters.toString(2));
       // 12:10 is distance
       let distanceBitRep = DISTANCES_LIST.indexOf(parseInt(distance));
       twoByteParameters |= distanceBitRep >= 0 ? (distanceBitRep << 10) : (3 << 10);
-      console.log("12:10", twoByteParameters.toString(2));
       // 9:6 is stroke
       let strokeBitRep = STROKES_LIST.indexOf(stroke);
       twoByteParameters |= strokeBitRep >= 0 ? (strokeBitRep << 6) : (3 << 6);
-      console.log("9:6", twoByteParameters.toString(2));
       if (distance <= 200) {
         // lower 6 bits is time in 10 seconds
         let timeIn5Seconds = parseInt(Math.ceil(timeInSeconds / 5));
@@ -576,13 +570,10 @@ class SAinit {
         }
         twoByteParameters |= timeIn10Seconds;
       }
-      console.log("5:0", twoByteParameters.toString(2));
-      console.log("top 8 anded: ", ((twoByteParameters & 0x0000ff00) >> 8).toString(2));
-      console.log("top 8 anded: ", (twoByteParameters & 0x000000ff).toString(2));
       sainit[idx + 32 + i*16] = (twoByteParameters & 0x0000ff00) >> 8; // bits [15:8]
       sainit[idx + 32 + i*16+8] = twoByteParameters & 0x000000ff; // bits [7:0]
     });
-    console.log("set swim workout config: ", sainit);
+    // console.log("set swim workout config: ", sainit);
   }
 }
 export default SAinit;

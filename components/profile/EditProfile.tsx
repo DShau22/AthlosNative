@@ -4,20 +4,13 @@ import { Button } from 'react-native-elements'
 import { useHeaderHeight } from '@react-navigation/stack';
 import GLOBAL_CONSTANTS from '../GlobalConstants'
 import * as Yup from 'yup';
-import ImagePicker from 'react-native-image-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
 import axios from 'axios';
 
 import { UserDataContext, AppFunctionsContext } from "../../Context"
 import {
   getToken,
 } from '../utils/storage';
-const imagePickerOptions = {
-  title: 'Select a photo',
-  storageOptions: {
-    skipBackup: true,
-    path: 'images',
-  },
-};
 
 import {
   poundsToKg,
@@ -57,9 +50,9 @@ export default function EditProfile(props) {
   const { updateLocalUserInfo, setAppState } = React.useContext(AppFunctionsContext);
   const { unitSystem } = context.settings
   const [isLoading, setIsLoading] = React.useState(false);
-  const [uploadImageTitle, setUploadImageTitle] = React.useState('upload an image');
-  const [updateProfilePic, setUpdateProfilePic] = React.useState(null);
-  const [displayProfilePicUrl, setDisplayProfilePicUrl] = React.useState(context.profilePicture.profileURL)
+  const [uploadImageTitle, setUploadImageTitle] = React.useState<string>('upload an image');
+  const [updateProfilePic, setUpdateProfilePic] = React.useState<any>(null);
+  const [displayProfilePicUrl, setDisplayProfilePicUrl] = React.useState<>(context.profilePicture.profileURL)
   const [state, setState] = React.useState({
     updateFirstName: context.firstName,
     updateLastName: context.lastName,
@@ -367,34 +360,11 @@ export default function EditProfile(props) {
           console.log("uploading profile pic: ", updateProfilePic)
           var formData = new FormData();
           formData.append("profilePic", updateProfilePic)
-          // formData.append("currImgHash", profilePicture.etag)
-          // check for duplicate pic upload
-          // var verifyRes = await fetch(checkDuplicateURL, {
-          //   method: "POST",
-          //   body: formData,
-          // })
-          // var verifyJson = await verifyRes.json()
-          // if (!verifyJson.success) {
-          //   Alert.alert(`Oh No :(`, verifyJson.message, [{ text: "Okay" }]);
-          //   setIsLoading(false);
-          //   return
-          // }
-          // console.log(formData.getHeaders())
           const config = {
-            // headers: {'Content-Type': 'multipart/form-data'},
             headers: {'Authorization': `Bearer ${userToken}`},
             cancelToken: source.token
           }
           var res = await axios.post(uploadPicURL, {data: formData}, config)
-          // var uploadPicRes = await fetch(uploadPicURL, {
-          //   method: "POST",
-          //   headers: {
-          //     'Content-Type': 'multipart/form-data',
-          //     'Authorization': `Bearer ${userToken}`
-          //   },
-          //   body: formData
-          // })
-          // var uploadPicJson = await uploadPicRes.json()
           if (res.data.success) {
             console.log("successfully updated profile picture!")
           } else {
@@ -488,31 +458,30 @@ export default function EditProfile(props) {
           buttonStyle={[styles.uploadImageButton, {backgroundColor: colors.button}]}
           titleStyle={{color: colors.textColor}}
           onPress={() => {
-            ImagePicker.showImagePicker(imagePickerOptions, (response) => {
+            launchImageLibrary({ mediaType: 'photo'}, (response) => {
               if (response.didCancel) {
                 console.log('User cancelled image picker');
-              } else if (response.error) {
-                console.log('ImagePicker Error: ', response.error);
-              } else if (response.customButton) {
-                console.log('User tapped custom button: ', response.customButton);
+              } else if (response.errorCode) {
+                console.log('ImagePicker Error: ', response.errorCode);
+                Alert.alert(`Oh No :(`, `${response.errorCode}`, [{ text: "Okay" }]);
               } else {
-                // if (response.type !== 'image/jpeg') {
-                //   Alert.alert(`Oh No :(`, `Image must be`, [{ text: "Okay" }]);
-                //   return;
-                // }
+                const { assets } = response;
+                if (!assets) {
+                  Alert.alert(`Whoops`, `Looks like you didn't choose a photo. Please make sure to select a photo`, [{ text: "Okay" }]);
+                }
+                const asset = assets[0];
                 const photo = {
-                  uri:  Platform.OS === "android" ? response.uri : response.uri.replace("file://", ""),
-                  // uri: response.uri,
-                  name: response.fileName === null ? "newProfilePicture" : response.fileName,
-                  type: response.type
+                  // uri: asset.uri.replace("file://", ""),
+                  uri: asset.uri,
+                  name: asset.fileName === null ? "newProfilePicture" : asset.fileName,
+                  type: asset.type,
+                  data: asset.base64,
                 };
                 console.log(Object.keys(response))
                 console.log('uploaded photo: ', photo)
                 setUploadImageTitle(`uploaded a new photo`);
                 setUpdateProfilePic(photo);
                 setDisplayProfilePicUrl(photo.uri)
-                // You can also display the image using data:
-                // const source = { uri: 'data:image/jpeg;base64,' + response.data };
               }
             });
           }}

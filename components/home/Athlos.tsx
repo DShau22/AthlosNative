@@ -257,9 +257,13 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
           if (shouldAutoSync) {
             return GlobalBleHandler.readActivityData();
           }
+          return null;
         })
         .then((bytesRead) => {
           console.log("read activity data promise resolved. BytesRead: ", bytesRead);
+          if (bytesRead === null) {
+            return;
+          }
           if (bytesRead <= 8) {
             showSnackBar("Activities already updated.");
             // do this in case the previous sync failed and the data pointer was reset anyway

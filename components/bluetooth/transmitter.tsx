@@ -530,7 +530,7 @@ class BLEHandler {
    * So that I don't have to keep repeating those two above
    * @param {Buffer} packageInBytes 
    */
-  async _sendPackage(packageInBytes) {
+  async _sendPackage(packageInBytes: Buffer) {
     this.currItem = new DataItem(packageInBytes, 3);
     this.lastPkgId = this.writePkgId;
     this.writePkgId += 1;
@@ -605,14 +605,14 @@ class BLEHandler {
       try {
         if (this.totalNumSaDataBytes > 8) {
           await updateActivityData(DateTime.local(), concatentatedSadata);
-          // update sainit here so that user bests, nefforts, etc are updated
+          // send package to tell the earbuds to rewrite sadata. Shouldnt need to await
           await this._sendResetSaDataPkg();
+          // update sainit here so that user bests, nefforts, etc are updated
           // this.resCompleter should have been completed by now since the read package sent to the earbuds shouldve been completed
           // update sa init is after the reset data package so that the audio played will be "activities updated"
           // this should ideally happen before in case updateSaInit fails but oh well
           await this._updateSaInit();
         }
-        // send package to tell the earbuds to rewrite sadata. Shouldnt need to await
         console.log("resetting read state");
         let bytesRead = this.totalNumSaDataBytes
         this._resetReadState(); // totalNumSaDataBytes get reset here
@@ -630,15 +630,8 @@ class BLEHandler {
 
   async _updateSaInit() {
     const saInitConfig = await getSaInitConfig();
-    if (!saInitConfig) {
-      console.log("no sainit stored yet");
-      return;
-    }
     const userData = await getUserData(); // CANT USE CONTEXT CUZ SETSTATE IS ASYNC
     const { settings, cadenceThresholds, referenceTimes, runEfforts, swimEfforts, bests } = userData;
-    console.log(
-      bests.highestJump,
-    );
     const sainitManager = new SAinit(
       saInitConfig,
       settings,
@@ -675,7 +668,7 @@ class BLEHandler {
    * 2 byte response package of package id and package checksum (which amounts to the package id)
    * @param {Buffer} readValueInRawBytes 
    */
-  async _sendResponse(readValueInRawBytes) {
+  async _sendResponse(readValueInRawBytes: Buffer) {
     if (!this.device || !(await this.device.isConnected())) {
       throw new Error("device is not yet connected");
     }
@@ -733,7 +726,7 @@ class BLEHandler {
    * we receive a validated response
    * @param {Buffer} packageInBytes 
    */
-  async _sendAndWaitResponse(packageInBytes) {
+  async _sendAndWaitResponse(packageInBytes: Buffer) {
     if (!this.device || !(await this.device.isConnected())) {
       throw new Error("device is not yet connected");
     }
@@ -762,7 +755,7 @@ class BLEHandler {
    * @param {Buffer} bytes 
    */
   // have settings/getters for all the sainit indices that correspond to different settings
-  async sendByteArray(bytes) { // bytes should be a Buffer type already but no checksum or metadata yet
+  async sendByteArray(bytes: Buffer) { // bytes should be a Buffer type already but no checksum or metadata yet
     console.log("sending byte array...");
     const isBtEnabled = await BluetoothStatus.state();
     if (!isBtEnabled) {
@@ -794,7 +787,7 @@ class BLEHandler {
       pkg[packageSize - 2] = this.writePkgId;
       pkg[packageSize - 1] = calcChecksum(pkg, 0, pkg.length - 1);
       console.log("sending: ", pkg);
-      await this._sendAndWaitResponse(pkg); // keep trying until timeout? check about promise timeouts...
+      await this._sendAndWaitResponse(pkg);
     }
     this._resetAfterSendBytes();
   }

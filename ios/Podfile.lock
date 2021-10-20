@@ -73,7 +73,7 @@ PODS:
   - OpenSSL-Universal (1.0.2.20):
     - OpenSSL-Universal/Static (= 1.0.2.20)
   - OpenSSL-Universal/Static (1.0.2.20)
-  - Permission-BluetoothPeripheral (3.0.0):
+  - Permission-BluetoothPeripheral (3.0.5):
     - RNPermissions
   - RCTRequired (0.62.2)
   - RCTTypeSafety (0.62.2):
@@ -245,7 +245,7 @@ PODS:
     - React
   - react-native-image-picker (2.3.4):
     - React-Core
-  - react-native-safe-area-context (3.1.9):
+  - react-native-safe-area-context (3.2.0):
     - React-Core
   - React-RCTActionSheet (0.62.2):
     - React-Core/RCTActionSheetHeaders (= 0.62.2)
@@ -314,13 +314,13 @@ PODS:
     - React-Core
   - RNGestureHandler (1.10.3):
     - React-Core
-  - RNPermissions (3.0.0):
+  - RNPermissions (3.0.5):
     - React-Core
   - RNReanimated (1.13.2):
     - React-Core
-  - RNScreens (2.16.1):
+  - RNScreens (2.17.0):
     - React-Core
-  - RNSnackbar (2.3.1):
+  - RNSnackbar (2.3.2):
     - React-Core
   - RNSVG (12.1.0):
     - React
@@ -514,7 +514,7 @@ SPEC CHECKSUMS:
   glog: 1f3da668190260b06b429bb211bfbee5cd790c28
   MultiplatformBleAdapter: 975cfb2a333b2c42b7a11628bd100ccb61872da2
   OpenSSL-Universal: ff34003318d5e1163e9529b08470708e389ffcdd
-  Permission-BluetoothPeripheral: 8776d9cd2033f53857a750f40dfde280cb8470b7
+  Permission-BluetoothPeripheral: f0de3621968349a0419bac1228179a187b4c65db
   RCTRequired: cec6a34b3ac8a9915c37e7e4ad3aa74726ce4035
   RCTTypeSafety: 93006131180074cffa227a1075802c89a49dd4ce
   React: 29a8b1a02bd764fb7644ef04019270849b9a7ac3
@@ -527,7 +527,7 @@ SPEC CHECKSUMS:
   react-native-ble-plx: caac53ee98151ec81198239d591c203809a1ed6e
   react-native-bluetooth-status: b1fb68e6158b3ef3886187dbc108b585870ff9aa
   react-native-image-picker: 32d1ad2c0024ca36161ae0d5c2117e2d6c441f11
-  react-native-safe-area-context: 86612d2c9a9e94e288319262d10b5f93f0b395f5
+  react-native-safe-area-context: e471852c5ed67eea4b10c5d9d43c1cebae3b231d
   React-RCTActionSheet: f41ea8a811aac770e0cc6e0ad6b270c644ea8b7c
   React-RCTAnimation: 49ab98b1c1ff4445148b72a3d61554138565bad0
   React-RCTBlob: a332773f0ebc413a0ce85942a55b064471587a71
@@ -542,10 +542,10 @@ SPEC CHECKSUMS:
   RNCMaskedView: f5c7d14d6847b7b44853f7acb6284c1da30a3459
   RNCPicker: 914b557e20b3b8317b084aca9ff4b4edb95f61e4
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
-  RNPermissions: 350964d19150b183796a88180fb7ec62a1e41422
+  RNPermissions: 3e5bb8afd93c787681bbacbf54d586a6272ecc92
   RNReanimated: e03f7425cb7a38dcf1b644d680d1bfc91c3337ad
-  RNScreens: 45c457af3d2ee9e08fc01e70da87e653d46b1198
-  RNSnackbar: 43b2ac573962fefcd20718dcf4e6b204f347f4e5
+  RNScreens: 23c1fbf7797261321f6db93fdcbd9913573535e4
+  RNSnackbar: 2c5f131fe85b333ff497a34c3ba94a0c1e9ee1f0
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
   RNVectorIcons: bc69e6a278b14842063605de32bec61f0b251a59
   Yoga: 3ebccbdd559724312790e7742142d062476b698e

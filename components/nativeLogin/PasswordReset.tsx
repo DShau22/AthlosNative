@@ -1,7 +1,7 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
 import React from 'react';
-import { View, StyleSheet, Alert, TouchableOpacity, StatusBar } from 'react-native';
+import { View, StyleSheet, Alert, TouchableOpacity, StatusBar, Platform } from 'react-native';
 import { Text } from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
@@ -15,12 +15,14 @@ import { signUpValidationSchema } from "./validationSchema";
 import ENDPOINTS from '../endpoints';
 import ThemeText from '../generic/ThemeText';
 import LoginButton from './LoginButton';
-const PasswordReset = () => {
-  const [isLoading, setIsLoading] = React.useState(false);
+import LOGIN_CONSTANTS from './LoginConstants';
 
-  const [emailChange, setEmailChange] = React.useState(false);
-  const [emailMsg, setEmailMsg] = React.useState(false);
-  const [email, setEmail] = React.useState('');
+const PasswordReset = ({ navigation }) => {
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+
+  const [emailChange, setEmailChange] = React.useState<boolean>(false);
+  const [emailMsg, setEmailMsg] = React.useState<string | null>(null);
+  const [email, setEmail] = React.useState<string>('');
 
   const CancelToken = axios.CancelToken;
   const source = CancelToken.source();
@@ -29,16 +31,14 @@ const PasswordReset = () => {
     return () => source.cancel();
   }, [])
 
-  const handleEmailChange = (val) => {
-    console.log(val);
+  const handleEmailChange = (val: string) => {
     Yup.reach(signUpValidationSchema, "signUpEmail").validate(val)
-      .then(function(isValid) {
+      .then(function(isValid: boolean) {
         setEmailChange(val.length !== 0);
         setEmailMsg('');
         setEmail(val);
       })
-      .catch(function(e) {
-        console.log(e);
+      .catch(function(e: any) {
         setEmailMsg(e.errors[0])
       })
   }
@@ -59,7 +59,6 @@ const PasswordReset = () => {
         cancelToken: source.token
       })
       var json = res.data
-      console.log("json: ", json)
       if (!json.success) throw new Error(json.message)
       Alert.alert(
         'Almost there!',
@@ -113,6 +112,21 @@ const PasswordReset = () => {
           onPress={() => onPasswordResetRequest()}
           icon={null}
         />
+        <LoginButton
+          containerStyle={styles.buttonContainer}
+          style={[styles.button, {
+            borderColor: '#009387',
+            borderWidth: 1,
+            marginTop: 15
+          }]}
+          buttonTextStyle={[styles.buttonTextStyle, {
+            color: '#009387'
+          }]}
+          filled={false}
+          text='Back'
+          onPress={() => navigation.navigate(LOGIN_CONSTANTS.SIGNIN)}
+          icon={null}
+        />
       </Animatable.View>
     </LinearGradient>
   )
@@ -146,14 +160,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     paddingHorizontal: 20,
     paddingBottom: 50
-  },
-  footer: {
-    flex: Platform.OS === 'ios' ? 3 : 5,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    paddingHorizontal: 20,
-    paddingVertical: 30
   },
   text_header: {
     color: '#fff',

@@ -2,7 +2,7 @@ import {
   UserActivities
 } from '../UserActivities';
 
-describe('Lap swimming workouts are constructed correctly', () => {
+describe('Creating from server works', () => {
   it("something", () => {
 
   });

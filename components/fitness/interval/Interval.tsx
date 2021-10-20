@@ -47,7 +47,7 @@ const Interval: React.FC<IntervalProps> = (props) => {
     [weekIndex, setWeekIndex] = React.useState(0);
   }
   if (!dayIndex && !setDayIndex) {
-    [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday - 1); // 1 is monday 7 is sunday for .weekday
+    [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday % 7); // 1 is monday 7 is sunday for .weekday
   }
   var currentDay: IntervalSchema = activityJson.activityData.length > 0 ? activityJson.activityData[weekIndex][dayIndex] : EMPTY_DAY;
   const { colors } = useTheme();
