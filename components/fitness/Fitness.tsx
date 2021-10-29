@@ -4,13 +4,13 @@ import React from 'react'
 import Run from "./run/Run"
 import Jump from "./jump/Jump"
 import Swim from "./swim/Swim"
-import { UserDataContext, ProfileContext, AppFunctionsContext, AppFunctionsContextType } from "../../Context"
+import { UserDataContext, ProfileContext, AppFunctionsContext, AppFunctionsContextType, ProfileContextType } from "../../Context"
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoadingScreen from '../generic/LoadingScreen';
-import { View, StyleSheet, Alert, ScrollView, RefreshControl } from "react-native";
+import { StyleSheet, Alert, ScrollView, RefreshControl } from "react-native";
 
-import { useFocusEffect, useTheme } from '@react-navigation/native';
+import { useTheme } from '@react-navigation/native';
 
 import PROFILE_CONSTANTS from '../profile/ProfileConstants'
 import ENDPOINTS from '../endpoints'
@@ -22,20 +22,19 @@ import { UserDataInterface } from '../generic/UserTypes';
 import FineDataDisplay from './charts/FineDataDisplay';
 
 const Fitness = (props) => {
-  const userDataContext = React.useContext(UserDataContext);
-  const { runJson, swimJson, jumpJson, intervalJson } = userDataContext as UserDataInterface;
-  // console.log("Fitness context: ", userDataContext.runJson.activityData.length);
+  const userDataContext = React.useContext(UserDataContext) as UserDataInterface;
+  const { runJson, swimJson, jumpJson, intervalJson } = userDataContext;
   const appFunctionsContext = React.useContext(AppFunctionsContext) as AppFunctionsContextType;
-  const profileContext = React.useContext(ProfileContext);
+  const profileContext = React.useContext(ProfileContext) as ProfileContextType;
   const { colors } = useTheme()
   const [isLoading, setIsLoading] = React.useState(true);  
-  const [refreshing, setRefreshing] = React.useState<boolean>(false);
 
   const [weekIndex, setWeekIndex] = React.useState(0);
   const [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday - 1); // 1 is monday 7 is sunday for .weekday
   const { settings, relationshipStatus } = profileContext;
-  const { setAppState, updateLocalUserFitness } = appFunctionsContext;
+  const { updateLocalUserFitness, shouldRefreshFitness, setShouldRefreshFitness } = appFunctionsContext;
   const { _id } = props;
+
   // if this is another user, must get the fitness from the server. Otherwise can just use
   // local async storage (the defaults used in the state)
   const getFitness = React.useCallback(async () => {
@@ -56,7 +55,6 @@ const Fitness = (props) => {
       setIsLoading(false);
       return;
     }
-    console.log('getting fitness with user id: ', _id)
     // fetch jsons THIS SHOULD NOT BE RUN YET SINCE THERES NO COMMUNITY FEATURES
     // try {
     //   const [jumpsTracked, swimsTracked, runsTracked] = await Promise.all([
@@ -109,7 +107,14 @@ const Fitness = (props) => {
     //   console.log("finally")
     //   setIsLoading(false)
     // }
-  }, [])
+  }, []);
+
+  React.useEffect(() => {
+    if (shouldRefreshFitness) {
+      setShouldRefreshFitness(false);
+      getFitness();
+    }
+  }, [shouldRefreshFitness]);
 
   React.useEffect(() => {
     // console.log("using fitness effect")
@@ -178,7 +183,7 @@ const Fitness = (props) => {
                   style={{height: '100%', width: '100%', backgroundColor: colors.background}}
                   refreshControl={
                     <RefreshControl
-                      refreshing={refreshing}
+                      refreshing={isLoading}
                       onRefresh={getFitness}
                     />
                   }
@@ -202,7 +207,7 @@ const Fitness = (props) => {
                 <SwimDetails 
                   navigation={props.navigation}
                   swim={swimJson.activityData[weekIndex][dayIndex]}
-                  refreshing={refreshing}
+                  refreshing={isLoading}
                   onRefresh={getFitness} 
                 />
               )}
@@ -232,7 +237,7 @@ const Fitness = (props) => {
                   style={{height: '100%', width: '100%', backgroundColor: colors.background}}
                   refreshControl={
                     <RefreshControl
-                      refreshing={refreshing}
+                      refreshing={isLoading}
                       onRefresh={getFitness}
                     />
                   }
@@ -275,7 +280,7 @@ const Fitness = (props) => {
                   style={{height: '100%', width: '100%', backgroundColor: colors.background}}
                   refreshControl={
                     <RefreshControl
-                      refreshing={refreshing}
+                      refreshing={isLoading}
                       onRefresh={getFitness}
                     />
                   }
@@ -305,7 +310,7 @@ const Fitness = (props) => {
       >
         {props => (
           <Interval
-            refreshing={refreshing}
+            refreshing={isLoading}
             onRefresh={getFitness}
             // dayIndex={dayIndex}
             // setDayIndex={setDayIndex}

@@ -1,14 +1,10 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
-import { Divider } from 'react-native-elements'
-import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
 import { COLOR_THEMES } from '../../ColorThemes'
-import { UserDataContext } from '../../../Context'
 import WeeklyBarChart from "../charts/WeeklyBarChart"
 import withFitnessPage, { FitnessPageProps } from "../withFitnessPage"
-import { rawHeightConvert } from "../../utils/unitConverter" 
-import StatCard from '../StatCard';
 import ThemeText from '../../generic/ThemeText'
 import LineProgression from '../charts/LineProgression'
 import FITNESS_CONSTANTS from '../FitnessConstants';
@@ -16,52 +12,18 @@ import FITNESS_CONSTANTS from '../FitnessConstants';
 const Jump = (props: FitnessPageProps) => {
   const {
     makeProgressionData,
-    weekIndex,
-    dayIndex,
     currentDay,
     weeklyGraphData,
     weeklyGraphLabels,
-    calcAvgNum,
-    calcAvgCals,
     navigation,
     
-    activityJson,
     settings
   } = props;
   const { unitSystem } = settings;
-  const jumpJson = activityJson;
 
   const progressionData = React.useMemo(() => {
     return currentDay ? makeProgressionData(currentDay.heights) : [];
   }, [makeProgressionData, currentDay]);
-  console.log('awioefjaoijwef', progressionData);
-
-  // weekly basis
-  const calcAvgHeight = () => {
-    const { activityData } = jumpJson;
-    var avg = 0;
-    var count = 0;
-    activityData[weekIndex].forEach((session, i) => {
-      session.heights.forEach((height, j) => {
-        avg += height; count += 1;
-      })
-    })
-    // show only 2 decimal digits
-    return (count === 0) ? 0 : parseFloat(avg / count).toFixed(2);
-  }
-
-  const getWeekBestHeight = () => {
-    const { unitSystem } = settings;
-    const { activityData } = jumpJson;
-    const { weekIndex } = props;
-    if (activityData.length === 0) { return null };
-    const week = activityData[weekIndex];
-    var best = 0;
-    week.forEach((session, _) => {
-      best = Math.max(best, ...session.heights);
-    })
-    return unitSystem === GLOBAL_CONSTANTS.METRIC ? rawHeightConvert(unitSystem, best) : best;
-  }
 
   // daily basis
   const makeTimeLabels = (inc: number) => {

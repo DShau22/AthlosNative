@@ -360,7 +360,6 @@ class UserActivities {
         }
       }
     } else if (activity === 'interval') {
-      // TO DO: FILL OUT THIS LOGIC!!!!
       let latestWeek = this.intervals[0];
       for (let day = 0; day < 7; day++) {
         let sessionDate = DateTime.fromISO(latestWeek[day].uploadDate);

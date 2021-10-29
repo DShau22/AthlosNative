@@ -58,7 +58,7 @@ const ProfileHeader = (props) => {
 
     _id
   } = profileContext
-  const { profileURL } = profileContext.profilePicture
+  const { profileURL } = profilePicture;
   const { setAppState } = appFunctionsContext
   const { colors } = useTheme();
   const searchUserInfo = {

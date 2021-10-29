@@ -7,7 +7,7 @@ import * as Yup from 'yup';
 import { launchImageLibrary } from 'react-native-image-picker';
 import axios from 'axios';
 
-import { UserDataContext, AppFunctionsContext } from "../../Context"
+import { UserDataContext, AppFunctionsContext, AppFunctionsContextType } from "../../Context"
 import {
   getToken,
 } from '../utils/storage';
@@ -35,30 +35,31 @@ import Feather from 'react-native-vector-icons/dist/Feather';
 Feather.loadFont();
 import CustomIcon from '../../CustomIcons';
 import { Platform } from 'react-native'
+import { capitalize } from '../utils/strings';
+import { UserDataInterface } from '../generic/UserTypes';
 CustomIcon.loadFont();
 
+
 const updateProfileURL = ENDPOINTS.updateProfile
-const checkDuplicateURL = ENDPOINTS.checkDuplicatePic
 const uploadPicURL = ENDPOINTS.uploadProfilePic
-const imgAlt = "./profile.png"
 const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 
 export default function EditProfile(props) {
   const headerHeight = useHeaderHeight();
-  const context = React.useContext(UserDataContext);
+  const context = React.useContext(UserDataContext) as UserDataInterface;
   const { colors } = useTheme();
-  const { updateLocalUserInfo, setAppState } = React.useContext(AppFunctionsContext);
+  const { updateLocalUserInfo, setAppState } = React.useContext(AppFunctionsContext) as AppFunctionsContextType;
   const { unitSystem } = context.settings
   const [isLoading, setIsLoading] = React.useState(false);
   const [uploadImageTitle, setUploadImageTitle] = React.useState<string>('upload an image');
   const [updateProfilePic, setUpdateProfilePic] = React.useState<any>(null);
-  const [displayProfilePicUrl, setDisplayProfilePicUrl] = React.useState<>(context.profilePicture.profileURL)
+  const [displayProfilePicUrl, setDisplayProfilePicUrl] = React.useState<string>(context.profilePicture.profileURL)
   const [state, setState] = React.useState({
-    updateFirstName: context.firstName,
-    updateLastName: context.lastName,
-    updateBio: context.bio,
+    updateFirstName: capitalize(context.firstName),
+    updateLastName: capitalize(context.lastName),
+    updateBio: capitalize(context.bio),
     updateAge: context.age,
-    updateGender: context.gender,
+    updateGender: capitalize(context.gender),
     updateLocation: context.location,
     updateWeight: unitSystem === METRIC ? roundToDecimal(poundsToKg(context.weight), 1) : context.weight,
 
@@ -357,7 +358,6 @@ export default function EditProfile(props) {
       // turn this into a function that returns a promise later and await/.then it
       try {
         if (updateProfilePic) {
-          console.log("uploading profile pic: ", updateProfilePic)
           var formData = new FormData();
           formData.append("profilePic", updateProfilePic)
           const config = {
@@ -366,9 +366,10 @@ export default function EditProfile(props) {
           }
           var res = await axios.post(uploadPicURL, {data: formData}, config)
           if (res.data.success) {
-            console.log("successfully updated profile picture!")
+            console.log("successfully updated profile picture!");
+            // we call updateLocalUserInfo(true) after the second backend update to their text fields
+            // await updateLocalUserInfo(true);
           } else {
-            console.log(res.data)
             throw new Error(res.data.message)
           }
         }
@@ -404,30 +405,19 @@ export default function EditProfile(props) {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(reqBody),
-        })
-        var updateJson = await updateRes.json()
-        console.log("update json: ", updateJson)
+        });
+        var updateJson = await updateRes.json();
         if (updateJson.success) {
-          // make fetch to backend to update app context. Maybe consider just setting state
-          // instead of making an entire other fetch
-          await setAppState({
-            firstName: updateFirstName,
-            lastName: updateLastName,
-            bio: updateBio,
-            location: updateLocation,
-            gender: updateGender,
-            weight,
-            height,
-            age: updateAge,
-          });
-          Alert.alert(`All Done!`, "Successfully updated your profile!", [{ text: "Okay" }]);
+          await updateLocalUserInfo(true);
+          const picUpdateReminder = updateProfilePic ? " It may take some time for your picture to update. You can drag down to refresh you profile to get the most updated changes." : ""
+          Alert.alert(`All Done!`, "Successfully updated your profile!" + picUpdateReminder, [{ text: "Okay" }]);
           setIsLoading(false);
         } else {
           Alert.alert(`Oh No :(`, updateJson.message, [{ text: "Okay" }]);
           setIsLoading(false);
+          return;
         }
       } catch(e) {
-        console.error(e)
         Alert.alert(`Oh No :(`, "Something went wrong with the connection to the server. Please try again.", [{ text: "Okay" }]);
         setIsLoading(false);
         return;
@@ -458,7 +448,7 @@ export default function EditProfile(props) {
           buttonStyle={[styles.uploadImageButton, {backgroundColor: colors.button}]}
           titleStyle={{color: colors.textColor}}
           onPress={() => {
-            launchImageLibrary({ mediaType: 'photo'}, (response) => {
+            launchImageLibrary({ mediaType: 'photo', includeBase64: true }, (response) => {
               if (response.didCancel) {
                 console.log('User cancelled image picker');
               } else if (response.errorCode) {
@@ -475,10 +465,10 @@ export default function EditProfile(props) {
                   uri: asset.uri,
                   name: asset.fileName === null ? "newProfilePicture" : asset.fileName,
                   type: asset.type,
-                  data: asset.base64,
+                  base64: asset.base64,
+                  email: context.email,
                 };
                 console.log(Object.keys(response))
-                console.log('uploaded photo: ', photo)
                 setUploadImageTitle(`uploaded a new photo`);
                 setUpdateProfilePic(photo);
                 setDisplayProfilePicUrl(photo.uri)

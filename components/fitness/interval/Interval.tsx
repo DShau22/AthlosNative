@@ -4,7 +4,7 @@ import { Text, Button, ListItem } from 'react-native-elements';
 import { useTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { TextInput } from 'react-native-paper';
-import { FitnessPageProps } from '../withFitnessPage';
+import { Calendar } from 'react-native-calendars';
 import ThemeText from '../../generic/ThemeText';
 import { ActivityJson } from '../FitnessTypes';
 import { SettingsType } from '../../generic/UserTypes';
@@ -49,6 +49,7 @@ const Interval: React.FC<IntervalProps> = (props) => {
   if (!dayIndex && !setDayIndex) {
     [dayIndex, setDayIndex] = React.useState(DateTime.local().weekday % 7); // 1 is monday 7 is sunday for .weekday
   }
+  const [showCalendar, setShowCalendar] = React.useState<boolean>(false);
   var currentDay: IntervalSchema = activityJson.activityData.length > 0 ? activityJson.activityData[weekIndex][dayIndex] : EMPTY_DAY;
   const { colors } = useTheme();
 
@@ -119,6 +120,15 @@ const Interval: React.FC<IntervalProps> = (props) => {
   }
 
   const renderWorkouts = () => {
+    if (currentDay.workouts.length === 0) {
+      return (
+        <View>
+          <ThemeText style={{fontSize: 16, color: colors.backgroundOffset, margin: 10, alignSelf: 'center'}}>
+            {`No HIIT workouts for ${formatDateToDisplay(currentDay.uploadDate)}`}
+          </ThemeText>
+        </View>
+      )
+    }
     const workoutComponents = currentDay.workouts.map((workout, idx) => (
       <View style={{
         flex: 1,
@@ -146,6 +156,62 @@ const Interval: React.FC<IntervalProps> = (props) => {
     return workoutComponents;
   }
 
+  // CALENDAR STUFF BELOW
+  const getCurrDate = (): string => {
+    if (sessionDay) {
+      let dateString = DateTime.fromISO(sessionDay.uploadDate)
+      let monthString = dateString.month < 10 ? `0${dateString.month}` : `${dateString.month}`;
+      let dayString = dateString.day < 10 ? `0${dateString.day}` : `${dateString.day}`;
+      return `${dateString.year}-${monthString}-${dayString}`;
+    } else {
+      return Date();
+    }
+  }
+
+  // for calendar
+  var sessionDay: any;
+  if (activityJson.activityData.length > 0 && activityJson.activityData[weekIndex].length >= dayIndex) {
+    sessionDay = activityJson.activityData[weekIndex][dayIndex];
+  }
+  const getMarkedDates = () => {
+    let currDay: string = getCurrDate();
+    let res: Object = {};
+    res[currDay] = {selected: true};
+    return res;
+  }
+  // for calendar
+  const getMaxSelectableDate = () => {
+    const today = DateTime.local();
+    let monthString = today.month < 10 ? `0${today.month}` : `${today.month}`;
+    let dayString = today.day < 10 ? `0${today.day}` : `${today.day}`;
+    return `${today.year}-${monthString}-${dayString}`;
+  }
+
+  const onChangeCalendarDay = (day: number, month: number, year: number) => {
+    if (!sessionDay) {
+      return;
+    }
+    const today = DateTime.local();
+    const currDay = DateTime.fromISO(sessionDay.uploadDate, {zone: today.zone}).set({
+      hour: 0, minute: 0, second: 0, millisecond: 0
+    });
+    const selectedDay = DateTime.fromObject({day, month, year}, {zone: today.zone});
+    let diffInDays = currDay.diff(selectedDay, ['days']).toObject().days;
+    let absDiffInDays = Math.abs(diffInDays);
+    let dayOffset = absDiffInDays % 7;
+    if (diffInDays < 0) {
+      // we must be forwards in time
+      let weekOffset = Math.floor(absDiffInDays / 7) + Math.floor((dayIndex + dayOffset) / 7);
+      setWeekIndex(weekIndex - weekOffset);
+      setDayIndex((dayIndex + dayOffset) % 7);
+    } else if (diffInDays > 0) {
+      // we must go backwards in time
+      let weekOffset = Math.floor(absDiffInDays / 7) + ((dayIndex - dayOffset) < 0 ? 1 : 0);
+      setWeekIndex(weekIndex + weekOffset);
+      setDayIndex((dayIndex - dayOffset + 7) % 7);
+    }
+  }
+
   return (
     <>
       <ScrollView
@@ -154,32 +220,72 @@ const Interval: React.FC<IntervalProps> = (props) => {
         refreshControl={
           <RefreshControl
             refreshing={props.refreshing}
-            onRefresh={props.getFitness}
+            onRefresh={props.onRefresh}
           />
         }
       >
-        {currentDay.workouts.length === 0 ? 
-          <View>
-            <ThemeText style={{fontSize: 16, color: colors.backgroundOffset, margin: 10, alignSelf: 'center'}}>
-              {`No HIIT workouts for ${formatDateToDisplay(currentDay.uploadDate)}`}
-            </ThemeText>
-          </View>
+        <TouchableOpacity
+          style={{
+            alignItems: "center",
+            alignSelf: 'center',
+            width: '90%',
+            borderRadius: 10,
+            backgroundColor: colors.backgroundOffset,
+            padding: 10,
+            marginTop: 20,
+          }}
+          onPress={() => setShowCalendar(!showCalendar)}
+        >
+          <ThemeText>{`${showCalendar ? 'Escape' : 'Show'} Calendar View`}</ThemeText>
+        </TouchableOpacity>
+        {showCalendar ?
+          <Calendar
+            markedDates={getMarkedDates()}
+            maxDate={getMaxSelectableDate()}
+            current={getCurrDate()}
+            style={{
+              marginTop: 20,
+              alignSelf: 'center',
+              width: GLOBAL_CONSTANTS.SCREEN_WIDTH - 20,
+              // backgroundColor: 'red'
+            }}
+            onDayPress={(day) => {
+              onChangeCalendarDay(day.day, day.month, day.year);
+              setShowCalendar(false);
+            }}
+            theme={{
+              backgroundColor: colors.background,
+              calendarBackground: colors.backgroundOffset,
+              dayTextColor: '#ffffff',
+              todayTextColor: '#ffffff',
+              textDisabledColor: '#8c8d8f',
+              // dotColor: '#00adf5',
+              selectedDotColor: '#ffffff',
+              arrowColor: '#ffffff',
+              monthTextColor: '#ffffff',
+              // indicatorColor: 'blue',
+            }}
+          />
         : renderWorkouts()}
       </ScrollView>
-      <Arrow
-        style={{position: 'absolute', bottom: 10, left: 30}}
-        textStyle={{color: colors.textColor}}
-        direction='left'
-        clickFunction={previousDay}
-        glyph="&#8249;"
-      />
-      <Arrow
-        style={{position: 'absolute', bottom: 10, right: 30}}
-        textStyle={{color: colors.textColor}}
-        direction='right'
-        clickFunction={nextDay}
-        glyph="&#8250;"
-      />
+      {showCalendar ? null : 
+        <>
+          <Arrow
+            style={{position: 'absolute', bottom: 10, left: 30}}
+            textStyle={{color: colors.textColor}}
+            direction='left'
+            clickFunction={previousDay}
+            glyph="&#8249;"
+          />
+          <Arrow
+            style={{position: 'absolute', bottom: 10, right: 30}}
+            textStyle={{color: colors.textColor}}
+            direction='right'
+            clickFunction={nextDay}
+            glyph="&#8250;"
+          />
+        </>
+      }
     </>
   )
 }

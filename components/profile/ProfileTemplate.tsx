@@ -66,18 +66,17 @@ const ProfileTemplate = (props) => {
     followerRequests,
     followingPending,
     deviceID,
-  } = userDataContext
+    settings,
+  } = userDataContext;
   const {
     _id,
     // relationshipStatus,
-    profileContext,
     setId,
     refreshing,
     onRefresh,
     rootNav,
   } = props;
   const [isLoading, setIsLoading] = React.useState(false);
-  const { settings } = profileContext
   const { colors } = useTheme();
 
   const getRelationshipStatus = () => {
@@ -297,7 +296,7 @@ const ProfileTemplate = (props) => {
   const profileScreenName = relationshipStatus === IS_SELF ? USER_PROFILE : SEARCH_PROFILE
   return (
     // context for when fitness was part of profile
-    <ProfileContext.Provider value={{...profileContext, relationshipStatus, setId, _id}}> 
+    <ProfileContext.Provider value={{...userDataContext, relationshipStatus, setId, _id}}> 
       <Spinner
         visible={isLoading}
         textContent={'Saving...'}

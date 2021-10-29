@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, Alert, DeviceEventEmitter, Platform, } from 're
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import LocationServicesDialogBox from "react-native-android-location-services-dialog-box";
-
+import BLUETOOTH_CONSTANTS from '../bluetooth/BluetoothConstants';
 const { DateTime } = require('luxon');
 import {
   getToken,
@@ -14,6 +14,8 @@ import {
   getFirstTimeLogin,
   setFirstTimeLogin,
   getDeviceId,
+  getShouldShowAutoSyncWarningDialog,
+  setShouldShowAutoSyncWarningDialog,
 } from '../utils/storage';
 import ENDPOINTS from "../endpoints";
 import {
@@ -40,7 +42,6 @@ Feather.loadFont();
 import { showSnackBar } from '../utils/notifications';
 import LoadingSpin from '../generic/LoadingSpin';
 import { UserDataContext, AppFunctionsContext } from "../../Context";
-import Community from "../community/Community";
 import Profile from '../profile/Profile';
 import DeviceConfig from '../configure/DeviceConfig';
 import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
@@ -61,14 +62,8 @@ import FITNESS_CONTANTS from '../fitness/FitnessConstants';
 import ThemeText from '../generic/ThemeText';
 import { useTheme } from '@react-navigation/native';
 import Axios from 'axios';
-import {
-  RunSchema,
-  SwimSchema,
-  JumpSchema,
-  IntervalSchema
-} from '../fitness/data/UserActivities';
 import { UserDataInterface } from '../generic/UserTypes';
-import { updateSaInit } from '../bluetooth/utils';
+import AutoSyncWarningModal from './AutoSyncWarningModal';
 
 interface AthlosInterface {
   token: string,
@@ -90,7 +85,10 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
   // const [following, setFollowing] = React.useState([]);
   // const [followingPending, setFollowingPending] = React.useState([]);
   const [showWelcomeModal, setShowWelcomeModal] = React.useState<boolean>(false);
-  const [syncProgress, setSyncProgress] = React.useState<number>(-1);
+  const [showAutoSyncWarningModal, setShowAutoSyncWarningModal] = React.useState<boolean>(false);
+  const [syncProgress, setSyncProgress] = React.useState<number>(-1); // for global sync progress bar/wheel
+  // flag that triggers fitness components to update from local storage after sadata read
+  const [shouldRefreshFitness, setShouldRefreshFitness] = React.useState<boolean>(false); 
   const [state, setState] = React.useState<UserDataInterface>({
     _id: '',
     friends: [],
@@ -158,11 +156,58 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
     walkEfforts: DEFAULT_WALK_EFFORTS,
     swimEfforts: DEFAULT_SWIM_EFFORTS,
   });
+
+  const syncData = async (): Promise<number | null> => {
+    let tryCount = 3;
+    let success = false;
+    console.log("begin syncing....");
+    while (tryCount > 0 && !success) {
+      try {
+        var numBytesRead = await GlobalBleHandler.readActivityData(); // should take care of uploading to server in background
+        console.log("finished transferring activity data....");
+        success = true;
+      } catch(e) {
+        console.log("error with sync: ", e);
+        if (e === BLUETOOTH_CONSTANTS.STOP_SCAN_ERR) { // if we manually or programmatically stopped the scan, then stop the animation and don't try again.
+          return -1;
+        }
+        showSnackBar(`Error 108: ${e}. Trying again...`);
+        tryCount -= 1;
+      }
+    }
+    if (!success) {
+      showSnackBar(`Error 109: Something went wrong with syncing. Please try again.`);
+      return null;
+    } else {
+      return numBytesRead;
+    }
+  }
+
+  const continueSync = async () => {
+    const bytesRead = await syncData();
+    if (!bytesRead) {
+      showSnackBar(`Error 109: Something went wrong with syncing. Please try again.`);
+      return;
+    } else if (bytesRead < 0) { // this means user stopped the scan
+      showSnackBar("Stopped syncing");
+    } else if (bytesRead <= 8 && bytesRead > 0) {
+      showSnackBar("Activities already updated.");
+      return;
+    }
+    showSnackBar("Successfully synced!");
+    try {
+      await updateLocalUserInfo();
+    } catch(e) {
+      console.log("error updating local user fitness after continuing to sync: ", e);
+    }
+  }
+
   // setting up the Athlos app
   React.useEffect(() => {
     const setUpApp = async () => {
       GlobalBleHandler.addSetConnectedFunction(setAthlosConnected);
       GlobalBleHandler.addSetSyncProgressFunction(setSyncProgress);
+      GlobalBleHandler.addSetShouldRefreshFitnessFunction(setShouldRefreshFitness);
       if (Platform.OS === 'android') {
         await requestLocationServices();
         DeviceEventEmitter.addListener('locationProviderStatusChange', function(status) { // only trigger when "providerListener" is enabled
@@ -204,7 +249,12 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
       const firstTime = await getFirstTimeLogin();
       if (firstTime) {
         setShowWelcomeModal(true);
-        await Promise.all([setFirstTimeLogin(), setShouldAutoSync(false)]);
+         // autosync set to true after linking
+        await Promise.all([
+          setFirstTimeLogin('logged in'),
+          setShouldAutoSync(false),
+          setShouldShowAutoSyncWarningDialog(true)
+        ]);
         return;
       }
       const deviceID = await getDeviceId();
@@ -245,41 +295,35 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
 
   // responds based on whether or not earbuds are connected
   React.useEffect(() => {
-    if (firstUpdate.current) {
-      firstUpdate.current = false;
-      return;
-    }
-    if (athlosConnected) {
-      console.log("athlos is connected in use effect")
-      showSnackBar("Athlos device connected. Auto syncing...", "long");
-      getShouldAutoSync()
-        .then((shouldAutoSync) => {
-          if (shouldAutoSync) {
-            return GlobalBleHandler.readActivityData();
-          }
-          return null;
-        })
-        .then((bytesRead) => {
-          console.log("read activity data promise resolved. BytesRead: ", bytesRead);
-          if (bytesRead === null) {
+    const asyncConnectHandler = async () => {
+      if (firstUpdate.current) {
+        firstUpdate.current = false;
+        return;
+      }
+      if (!athlosConnected) {
+        showSnackBar("Athlos device disconnected. Trying to reconnect...", "long");
+        return;
+      }
+      // earbuds are connected at this point
+      try {
+        console.log("athlos is connected in use effect")
+        showSnackBar("Athlos device connected. Auto syncing...", "long");
+        const shouldAutoSync = await getShouldAutoSync();
+        const shouldShowAutoSyncWarningDialog = await getShouldShowAutoSyncWarningDialog();
+        if (shouldAutoSync) {
+          // let warning dialog box handle continuing to auto sync
+          if (shouldShowAutoSyncWarningDialog) {
+            setShowAutoSyncWarningModal(true);
             return;
           }
-          if (bytesRead <= 8) {
-            showSnackBar("Activities already updated.");
-            // do this in case the previous sync failed and the data pointer was reset anyway
-            // return updateSaInit(GlobalBleHandler);
-          } else if (bytesRead !== undefined) {
-            // return updateSaInit(GlobalBleHandler);
-            showSnackBar("Activities updated!");
-          }
-        })
-        .catch(e => {
-          console.log("error autosyncing: ", e);
-          showSnackBar("Something went wrong with autosyncing. Please go to the sync page and manually sync.");
-        });
-    } else {
-      showSnackBar("Athlos device disconnected. Trying to reconnect...", "long");
+          await continueSync();
+        }
+      } catch(e) {
+        console.log("error autosyncing: ", e);
+        showSnackBar("Something went wrong with autosyncing. Please go to the sync page and manually sync.");
+      }
     }
+    asyncConnectHandler();
   }, [athlosConnected]);
 
   React.useEffect(() => {
@@ -324,7 +368,7 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
   // to change. For example if the user changes their settings we want the new
   // settings to be applied automatically. 
   // DOES NOT UPDATE THE LOCAL USER FITNESS
-  const updateLocalUserInfo = async (field?: string, value?: any) => {
+  const updateLocalUserInfo = async (fromServer?: boolean, field?: string, value?: any) => {
     // get the user's information here from either local storage or database
     // make request to server to user information and set state
     var userToken = await getToken();
@@ -332,7 +376,7 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
     if (!userToken) { // this means it's probably right after a login
       userToken = props.token; 
     }
-    if (!userData) { // not in async storage so probably first time or new phone
+    if (!userData || fromServer) { // not in async storage so probably first time or new phone
       var headers = new Headers();
       headers.append("authorization", `Bearer ${userToken}`);
       var res = await fetch(ENDPOINTS.getUserInfo, { method: "GET", headers });
@@ -342,10 +386,13 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
         Alert.alert(`Oh No :(`, "Something went wrong with the request to the server. Please refresh.", [{ text: "Okay" }]);
         return;
       } else {
-        // console.log("successfully got all user info");
+        console.log("fetched user JSON!", userJson.profilePicture);
         const newState = {
           ...state,
           ...userJson,
+          profilePicture: {
+            ...userJson.profilePicture,
+          },
           jumpJson: {
             ...state.jumpJson,
           },
@@ -359,14 +406,18 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
             ...state.intervalJson,
           }
         }
+        console.log("new state: ", newState.profilePicture);
         setState(newState);
+        if (fromServer) {
+          await storeUserData(newState);
+        }
       }
     } else {
       if (field) {
         const newState = {
           ...state,
         }
-        newState[field] = userData[field];
+        newState[field] = value;
         setState(newState);
       }
     }
@@ -379,16 +430,23 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
       <UserDataContext.Provider value={state}>
         <AppFunctionsContext.Provider
           value={{
-            setAppState: async (newState: Object) => {
-              setState({
+            setAppState: async (newFields: Object) => {
+              // the state of the app might be stale if setState was called before this
+              // function and the state wasn't fully updated yet...
+              const newState = {
                 ...state,
-                ...newState
-              });
+                ...newFields,
+              }
               await storeUserData(newState);
+              setState(newState);
             },
             updateLocalUserInfo,
             updateLocalUserFitness,
             syncProgress,
+            shouldRefreshFitness,
+            setShouldRefreshFitness,
+            syncData,
+            setShowAutoSyncWarningModal
           }}
         >
         { isLoading ? <LoadingSpin/> :
@@ -397,13 +455,23 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
               isVisible={showWelcomeModal}
               setVisible={setShowWelcomeModal}
             />
+            <AutoSyncWarningModal
+              isVisible={showAutoSyncWarningModal}
+              // do not show this modal again if user checks this box
+              setOnCheck={async () => {
+                
+              }}
+              setVisible={setShowAutoSyncWarningModal}
+              continueSync={async (bool: boolean) => {
+                // close the modal
+                setShowAutoSyncWarningModal(bool);
+                // continue on with the syncing
+                await continueSync();
+              }}
+            />
             <BottomTab.Navigator barStyle={{
               // backgroundColor: colors.header,
             }}>
-              {/* <BottomTab.Screen name={HOME} component={Home} /> */}
-              {/* <BottomTab.Screen name={PROFILE}>
-                {props => <Profile {...props} initialId={state._id}/>}
-              </BottomTab.Screen> */}
               <BottomTab.Screen
                 name={PROFILE}
                 component={Profile}
@@ -424,12 +492,6 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
               >
                 {props => <SADataSync {...props} athlosConnected={athlosConnected}/>}
               </BottomTab.Screen>
-              {/* <BottomTab.Screen name={FITNESS} component={Fitness} initialParams={{_id: state._id,}} /> */}
-              {/* something like this for passing the navigation props and other props too */}
-              {/* <Stack.Screen name={COMMUNITY_CONSTANTS.COMMUNITY}>
-                {(props) => <CommunityNav {...props} />}
-              </Stack.Screen> */}
-              {/* <BottomTab.Screen name={SETTINGS} component={Settings} /> */}
               {/* <BottomTab.Screen name={COMMUNITY} component={Community} /> */}
               <BottomTab.Screen
                 name={DEVICE_CONFIG}

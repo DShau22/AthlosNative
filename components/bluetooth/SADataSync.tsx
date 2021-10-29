@@ -20,6 +20,7 @@ import {
   setDeviceId,
   getSaInitConfig,
   setShouldAutoSync,
+  getShouldShowAutoSyncWarningDialog,
 } from '../utils/storage';
 import { showSnackBar } from '../utils/notifications';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -29,6 +30,7 @@ import ENDPOINTS from '../endpoints';
 import { Alert } from 'react-native';
 import { UserActivities } from '../fitness/data/UserActivities';
 import { updateSaInit } from './utils';
+import { UserDataInterface } from '../generic/UserTypes';
 Icon.loadFont();
 
 const { SYNC_PAGE, SYNC_HELP_PAGE } = BLUETOOTH_CONSTANTS;
@@ -47,8 +49,7 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
   const { athlosConnected } = props;
   const { colors } = useTheme();
   const appFunctionsContext = React.useContext(AppFunctionsContext) as AppFunctionsContextType;
-  const { updateLocalUserInfo, updateLocalUserFitness, setAppState, syncProgress } = appFunctionsContext;
-  const userDataContext = React.useContext(UserDataContext);
+  const { updateLocalUserInfo, syncProgress, syncData, setShowAutoSyncWarningModal } = appFunctionsContext;
   const [transmitting, setTransmitting] = React.useState(false); // boolean flag for if the user is transmitting data/linking
   const [isLinked, setIsLinked] = React.useState(GlobalBleHandler.hasID());
 
@@ -229,47 +230,69 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
       showSnackBar("Error 107: Your device is not connected. Please make sure your earbuds are within range and are in Bluetooth mode");
       return;
     }
-    setTransmitting(true);
-    let tryCount = 3;
-    let success = false;
-    console.log("begin syncing....");
-    while (tryCount > 0 && !success) {
-      try {
-        var numBytesRead = await GlobalBleHandler.readActivityData(); // should take care of uploading to server in background
-        if (numBytesRead <= 8) {
-          // do this in case the previous sync failed and the data pointer was reset anyway
-          // await updateSaInit(GlobalBleHandler);
-          showSnackBar("Activities already updated.");
-          // await uploadToServer();
-          setTransmitting(false);
-          return;
-        }
-        console.log("finished transferring activity data....");
-        success = true;
-      } catch(e) {
-        console.log("error with sync: ", e);
-        if (e === STOP_SCAN_ERR) { // if we manually or programmatically stopped the scan, then stop the animation and don't try again.
-          setTransmitting(false);
-          return;
-        }
-        showSnackBar(`Error 108: ${e}. Trying again...`);
-        tryCount -= 1;
-      }
+    const shouldShowAutoSyncWarningDialog = await getShouldShowAutoSyncWarningDialog();
+    // BELOW MEANS SIGNAL ANIMATIONS WONT SHOW RIP
+    if (shouldShowAutoSyncWarningDialog) {
+      setShowAutoSyncWarningModal(true);
+      return;
     }
-    if (!success) {
+    // BELOW IS FOR ANIMATIONS. ITS TAKEN OUT FOR NOW BECAUSE OF DIALOG BOX CONTROL. KIND OF SAD RIP
+    setTransmitting(true);
+    const bytesRead = await syncData();
+    if (!bytesRead) {
       showSnackBar(`Error 109: Something went wrong with syncing. Please try again.`);
       setTransmitting(false);
       return;
+    } else if (bytesRead < 0) { // this means user stopped the scan
+      showSnackBar("Stopped syncing");
+      setTransmitting(false);
+    } else if (bytesRead <= 8 && bytesRead > 0) {
+      // do this in case the previous sync failed and the data pointer was reset anyway
+      // await updateSaInit(GlobalBleHandler);
+      showSnackBar("Activities already updated.");
+      // await uploadToServer();
+      setTransmitting(false);
+      return;
     }
+
+    // let tryCount = 3;
+    // let success = false;
+    // console.log("begin syncing....");
+    // while (tryCount > 0 && !success) {
+    //   try {
+    //     var numBytesRead = await GlobalBleHandler.readActivityData(); // should take care of uploading to server in background
+    //     if (numBytesRead <= 8) {
+    //       // do this in case the previous sync failed and the data pointer was reset anyway
+    //       // await updateSaInit(GlobalBleHandler);
+    //       showSnackBar("Activities already updated.");
+    //       // await uploadToServer();
+    //       setTransmitting(false);
+    //       return;
+    //     }
+    //     console.log("finished transferring activity data....");
+    //     success = true;
+    //   } catch(e) {
+    //     console.log("error with sync: ", e);
+    //     if (e === STOP_SCAN_ERR) { // if we manually or programmatically stopped the scan, then stop the animation and don't try again.
+    //       setTransmitting(false);
+    //       return;
+    //     }
+    //     showSnackBar(`Error 108: ${e}. Trying again...`);
+    //     tryCount -= 1;
+    //   }
+    // }
+    // if (!success) {
+    //   showSnackBar(`Error 109: Something went wrong with syncing. Please try again.`);
+    //   setTransmitting(false);
+    //   return;
+    // }
     showSnackBar('Successfully synced. Workout log and earbuds config both updated.');
     setTransmitting(false);
     // this could be an issue if updateSaInit fails FIX LATER
     try {
       await updateLocalUserInfo();
-      // await updateSaInit(GlobalBleHandler);
     } catch(e) {
       console.log("Error updating sainit or local user info:", e);
-      showSnackBar('Error 113: Your earbud configurations failed to update.', e);
     }
   }
 

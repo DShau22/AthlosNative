@@ -10,6 +10,7 @@ const AUTO_SYNC_KEY = 'should auto sync?'; // key for if the user wants to auto 
 const CONFIG_KEY = 'Config Key'; // key that stores saInit in human readable json form
 const FITNESS_DATA_KEY = "Fitness data key"; // key that stores the user's fitness data to display
 const OLD_FITNESS_RECORDS_KEY = "Old fitness records key";
+const AUTO_SYNC_WARNING_DIALOG_KEY = 'show warning dialog box for auto sync';
 import AsyncStorage from '@react-native-community/async-storage';
 import { getDefaultConfig } from '../configure/DeviceConfigConstants';
 import { OldRecords, RunSchema, SerializedActivities, SwimSchema, JumpSchema } from '../fitness/data/UserActivities';
@@ -47,7 +48,7 @@ const getFirstTimeLogin = async () => {
   return firstTime === null;
 }
 
-const setFirstTimeLogin = async () => {
+const setFirstTimeLogin = async (_: string) => {
   await AsyncStorage.setItem(FIRST_TIME_LOGIN_KEY, 'logged in');
 }
 
@@ -153,12 +154,12 @@ const getFitnessBytes = async () => {
   return byteQueueString === null ? null : JSON.parse(byteQueueString);
 }
 
-const removeFitnessBytes = async () => {
+const removeFitnessBytes = async (): Promise<void> => {
   await AsyncStorage.removeItem(FITNESS_KEY)
 }
 
 // removes the fitness records in the byte queue at these particular list of indicies
-const removeFitnessRecords = async (indicies) => {
+const removeFitnessRecords = async (indicies): Promise<void> => {
   console.log("removing fitness record at indicies: ", indicies);
   if (indicies.length === 0)
     return;
@@ -180,7 +181,7 @@ const removeFitnessRecords = async (indicies) => {
 
 // adds these new fields to the previous state and stores it in async storage
 // newFields should be an ojbect
-const storeNewState = async (prevState, newFields) => {
+const storeNewState = async (prevState, newFields): Promise<void> => {
   const newState = {
     ...prevState,
     ...newFields
@@ -189,11 +190,11 @@ const storeNewState = async (prevState, newFields) => {
   return newState
 }
 
-const storeSaInitConfig = async (deviceConfig) => {
+const storeSaInitConfig = async (deviceConfig): Promise<void> => {
   await AsyncStorage.setItem(CONFIG_KEY, JSON.stringify(deviceConfig));
 }
 
-const getSaInitConfig = async () => {
+const getSaInitConfig = async (): Promise<any> => {
   const config = await AsyncStorage.getItem(CONFIG_KEY);
   if (!config) {
     // return the default sainit config
@@ -208,7 +209,7 @@ const getUserFitnessData = async (): Promise<SerializedActivities> => {
   return data === null ? data : JSON.parse(data);
 }
 
-const setUserFitnessData = async (newData: SerializedActivities) => {
+const setUserFitnessData = async (newData: SerializedActivities): Promise<void> => {
   await AsyncStorage.setItem(FITNESS_DATA_KEY, JSON.stringify(newData));
 }
 
@@ -217,7 +218,7 @@ const getOldFitnessRecords = async (): Promise<OldRecords> => {
   return oldRecords === null ? oldRecords : JSON.parse(oldRecords);
 }
 
-const storeOldFitnessRecords = async (newRecords: OldRecords) => {
+const storeOldFitnessRecords = async (newRecords: OldRecords): Promise<void> => {
   console.log("storing old fitness records: ", newRecords)
   var oldFitnessRecords = await getOldFitnessRecords();
   if (oldFitnessRecords) {
@@ -231,8 +232,20 @@ const storeOldFitnessRecords = async (newRecords: OldRecords) => {
   }
 }
 
-const setOldFitnessRecords = async (newRecords: OldRecords) => {
+const setOldFitnessRecords = async (newRecords: OldRecords): Promise<void> => {
   await AsyncStorage.setItem(OLD_FITNESS_RECORDS_KEY, JSON.stringify(newRecords));
+}
+
+const getShouldShowAutoSyncWarningDialog = async (): Promise<string | null> => {
+  return await AsyncStorage.getItem(AUTO_SYNC_WARNING_DIALOG_KEY);
+}
+
+const setShouldShowAutoSyncWarningDialog = async (bool: boolean): Promise<void> => {
+  if (bool) {
+    await AsyncStorage.setItem(AUTO_SYNC_WARNING_DIALOG_KEY, JSON.stringify(true));
+  } else {
+    await AsyncStorage.removeItem(AUTO_SYNC_WARNING_DIALOG_KEY);
+  }
 }
 
 export {
@@ -262,5 +275,7 @@ export {
   setUserFitnessData,
   getOldFitnessRecords,
   storeOldFitnessRecords,
-  setOldFitnessRecords
+  setOldFitnessRecords,
+  getShouldShowAutoSyncWarningDialog,
+  setShouldShowAutoSyncWarningDialog,
 }

@@ -26,7 +26,7 @@ const UserProfile = (props) => {
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     try {
-      await updateLocalUserInfo();
+      await updateLocalUserInfo(true);
     } catch(e) {
       Alert.alert(
         "Oh no :(",
@@ -45,8 +45,6 @@ const UserProfile = (props) => {
       setId={props.setId}
       refreshing={refreshing}
       onRefresh={onRefresh}
-
-      profileContext={context}
     />
   )
 }

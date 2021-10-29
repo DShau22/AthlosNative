@@ -212,7 +212,6 @@ export default function withFitnessPage( WrappedComponent: any ) {
 
     // have a max of 30 data points in the chart
     const makeProgressionData = React.useCallback((timeseries: Array<number>): Array<number> => {
-      console.log("computing progression data", timeseries);
       let res: Array<number> = [];
       if (timeseries.length >= FITNESS_CONTANTS.MAX_PROGRESSION_DATA) {
         // condense every n s.t the new time series is at most 30 points

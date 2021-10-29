@@ -5,7 +5,7 @@ import { Button } from 'react-native-elements'
 import GLOBAL_CONSTANTS from '../GlobalConstants'
 import * as Yup from 'yup';
 import axios from 'axios';
-
+const { DateTime } = require('luxon');
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 FontAwesome.loadFont();
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -17,7 +17,7 @@ Feather.loadFont();
 import CustomIcon from '../../CustomIcons';
 CustomIcon.loadFont();
 
-import { UserDataContext, AppFunctionsContext } from "../../Context"
+import { UserDataContext, AppFunctionsContext, AppFunctionsContextType } from "../../Context"
 
 import {
   cmToInches, inchesToCm, roundToDecimal
@@ -30,14 +30,15 @@ import editGoalsSchema from "./EditGoalsSchema"
 import Textbox from "../nativeLogin/Textbox"
 import Spinner from 'react-native-loading-spinner-overlay';
 import { useTheme } from '@react-navigation/native'
+import { UserDataInterface } from '../generic/UserTypes';
 
 const { METRIC, ENGLISH } = GLOBAL_CONSTANTS
 
 export default function EditProfile() {
   const headerHeight = useHeaderHeight();
-  const context = React.useContext(UserDataContext);
+  const context = React.useContext(UserDataContext) as UserDataInterface;
   const { colors } = useTheme();
-  const { updateLocalUserFitness, setAppState } = React.useContext(AppFunctionsContext);
+  const { updateLocalUserFitness, setAppState } = React.useContext(AppFunctionsContext) as AppFunctionsContextType;
   const { unitSystem } = context.settings
   const { goals } = context;
   const [isLoading, setIsLoading] = React.useState(false);
@@ -188,15 +189,15 @@ export default function EditProfile() {
       try {
         var updateRes = await axios.post(ENDPOINTS.updateWeeklyGoals, {
           userID: context._id,
+          userToday: DateTime.local().toISO(),
           ...newGoals
         }, { cancelToken: source.token, timeout: 8000 });
         var updateJson = updateRes.data;
-        console.log("update json: ", updateJson);
         if (updateJson.success) {
           await setNeedsFitnessUpdate(true);
-          await setAppState({goals: newGoals});
+          setAppState({goals: newGoals});
           await updateLocalUserFitness();
-          Alert.alert(`All Done!`, "Successfully updated your profile!", [{ text: "Okay" }]);
+          Alert.alert(`All Done!`, "Successfully updated your goals!", [{ text: "Okay" }]);
           setIsLoading(false);
         } else {
           Alert.alert(`Oh No :(`, updateJson.message, [{ text: "Okay" }]);

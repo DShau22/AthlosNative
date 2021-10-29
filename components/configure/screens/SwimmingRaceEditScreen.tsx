@@ -21,7 +21,6 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 Icon.loadFont();
 import SplitInputs from '../popups/SplitInputs';
 import ThemeText from '../../generic/ThemeText';
-import { UserDataContext } from '../../../Context';
 import PoolLengthList from '../subcomponents/PoolLengthList';
 import SaveButton from './SaveButton';
 import Spinner from 'react-native-loading-spinner-overlay';

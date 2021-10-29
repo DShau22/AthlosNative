@@ -95,6 +95,7 @@ class BLEHandler {
   sendTimer: any;
   setConnected: Function;
   setUISyncProgress: Function;
+  setShouldRefreshFitness: Function;
   readSubscription: any;
   scanSubscription: any;
   disconnectSubscription: any;
@@ -118,8 +119,10 @@ class BLEHandler {
   constructor(manager: BleManager) {
     this.athlosResponses = [], // for JJ's debug purposes
     this.sendTimer = null;
+
     this.setConnected = () => {};
     this.setUISyncProgress = () => {};
+    this.setShouldRefreshFitness = () => {};
 
     this.readSubscription = null;
     this.scanSubscription = null;
@@ -137,14 +140,15 @@ class BLEHandler {
     this.registerCompleter = null;
     this.saDataCompleter = null // completer for when device is connected and sadata is read
     this.resCompleter = null; // completer for the next expected response
+
     this.currItem = null; // current item that we are trying to send
     this.isSendingData = false; // flag for if the phone is currently sending sainit
     this.isConnected = false; // public exposure to connected that isn't async
+    this.isReading = false;
 
     this.readBuffers = []; // list of Buffers/byte arrays to be concatenated once all of sadata is received
     this.totalNumSaDataBytes = 0; // number of sadata bytes to expect when sadata is being sent over
     this.numSaDataBytesRead = 0; // current number of bytes read in from earbuds for sadata. Stop reading when this hits totalNumSaDataBytes
-    this.isReading = false;
   }
 
   /**
@@ -159,6 +163,10 @@ class BLEHandler {
     this.setUISyncProgress = fn;
   }
 
+  addSetShouldRefreshFitnessFunction(fn: Function = () => {}) {
+    this.setShouldRefreshFitness = fn;
+  }
+
   /**
    * Destroys the manager. This handler should not be used anymore after this is called.
    * Issue if destroy while transmitting or reading?
@@ -170,35 +178,38 @@ class BLEHandler {
     if (this.scanSubscription) {
       this.scanSubscription.remove();
     }
+    await this.disconnect();
     if (this.manager) {
       this.manager.destroy();
     }
-    // this results in an error
-    // if (this.disconnectSubscription) {
-    //   this.disconnectSubscription.remove();
-    // }
-    await this.disconnect();
-    this.manager = null;
-    this.athlosResponses = [], // for JJ's debug purposes
+    this.athlosResponses = []; // for JJ's debug purposes
     this.sendTimer = null;
+
     this.readSubscription = null;
     this.scanSubscription = null;
-    this.userDeviceID = "";
     this.disconnectSubscription = null;
+    this.manager = null;
     this.device = null;
+    this.userDeviceID = "";
+    
     this.sainit = null;
+
     this.writePkgId = 0;
     this.lastPkgId = null;
+
     this.connectCompleter = null;
     this.saDataCompleter = null;
     this.resCompleter = null;
     this.registerCompleter = null;
+
     this.currItem = null;
     this.isSendingData = false;
+    this.isConnected = false;
+    this.isReading = false;
+
     this.readBuffers = [];
     this.totalNumSaDataBytes = 0;
     this.numSaDataBytesRead = 0;
-    this.isReading = false;
   }
 
   reinit(deviceID?: string) {
@@ -212,7 +223,7 @@ class BLEHandler {
   }
 
   hasID(): boolean {
-    return this.userDeviceID && this.userDeviceID.length > 0;
+    return this.userDeviceID?.length > 0;
   }
 
   /**
@@ -287,7 +298,6 @@ class BLEHandler {
     if (this.device && this.isConnected) { // THIS FOR SOME REASON DOESN'T WORK ON BATTERY OUT
       await this.device.cancelConnection(); // this is async
     }
-    
   }
 
   /**
@@ -605,6 +615,7 @@ class BLEHandler {
       try {
         if (this.totalNumSaDataBytes > 8) {
           await updateActivityData(DateTime.local(), concatentatedSadata);
+          this.setShouldRefreshFitness(true);
           // send package to tell the earbuds to rewrite sadata. Shouldnt need to await
           await this._sendResetSaDataPkg();
           // update sainit here so that user bests, nefforts, etc are updated
@@ -693,7 +704,7 @@ class BLEHandler {
    * package that was just sent by this device, and the response package's checksum should be correct as well.
    * @param {Buffer} readValueInRawBytes 
    */
-  async _validateResponse(readValueInRawBytes) {
+  async _validateResponse(readValueInRawBytes: Buffer) {
     if (!this.device || !(await this.device.isConnected())) {
       throw new Error("device is not yet connected");
     }
@@ -756,7 +767,7 @@ class BLEHandler {
    */
   // have settings/getters for all the sainit indices that correspond to different settings
   async sendByteArray(bytes: Buffer) { // bytes should be a Buffer type already but no checksum or metadata yet
-    console.log("sending byte array...");
+    console.log("sending byte array...", bytes.length);
     const isBtEnabled = await BluetoothStatus.state();
     if (!isBtEnabled) {
       showSnackBar("Bluetooth is not enabled. Please turn on Bluetooth to sync.");
