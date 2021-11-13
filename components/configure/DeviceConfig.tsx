@@ -1,7 +1,7 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import React from 'react';
-import { View, StyleSheet, Dimensions, Alert, Button } from 'react-native';
+import { View, StyleSheet, Dimensions, Alert, Button, ActivityIndicator } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Entypo';
@@ -179,14 +179,23 @@ const DeviceConfig = (props) => {
       >
         {props => 
           <View style={{ flex: 1 }}>
+            {isLoading ? 
+              <View style={{
+                height: GLOBAL_CONSTANTS.SCREEN_HEIGHT,
+                width: GLOBAL_CONSTANTS.SCREEN_WIDTH,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'black',
+                opacity: .7,
+                zIndex: 1000,
+                position: 'absolute',
+              }}>
+                <ActivityIndicator size='large'/>
+              </View> : null
+            }
             <DraggableFlatList
               ListHeaderComponent={() => (
                 <>
-                  <Spinner
-                    visible={isLoading}
-                    textContent='Updating...'
-                    textStyle={{color: colors.textColor}}
-                  />
                   <ThemeText style={{ marginTop: 20, marginLeft: 10, fontSize: 20, fontWeight: 'bold' }}>
                     Tailor your device to your preferences:
                   </ThemeText>

@@ -44,7 +44,7 @@ const AutoSyncWarningModal: React.FC<AutoSyncWarningModalProps> = (props) => {
               onPress={() => setVisible(false)}
               style={{
                 backgroundColor: colors.backgroundOffset,
-                width: 120,
+                width: '45%',
                 marginTop: 20,
                 height: 40,
                 borderRadius: 10,
@@ -58,10 +58,10 @@ const AutoSyncWarningModal: React.FC<AutoSyncWarningModalProps> = (props) => {
               <ThemeText>Cancel Sync</ThemeText>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => continueSync()}
+              onPress={() => continueSync(false)}
               style={{
                 backgroundColor: colors.backgroundOffset,
-                width: 120,
+                width: '45%',
                 marginTop: 20,
                 height: 40,
                 borderRadius: 10,

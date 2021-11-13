@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Image } from 'react-native'
+import { View, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Image, ActivityIndicator } from 'react-native'
 import { Button } from 'react-native-elements'
 import { useHeaderHeight } from '@react-navigation/stack';
 import GLOBAL_CONSTANTS from '../GlobalConstants'
@@ -22,7 +22,6 @@ import {
 import ENDPOINTS from "../endpoints"
 import editProfileSchema from "./EditProfileSchema"
 import Textbox from "../nativeLogin/Textbox"
-import Spinner from 'react-native-loading-spinner-overlay';
 import { useTheme } from '@react-navigation/native'
 
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -431,12 +430,21 @@ export default function EditProfile(props) {
       keyboardVerticalOffset = {headerHeight + 100} // adjust the value here if you need more padding
       style={styles.container}
     >
+      {isLoading ? 
+        <View style={{
+          height: GLOBAL_CONSTANTS.SCREEN_HEIGHT,
+          width: GLOBAL_CONSTANTS.SCREEN_WIDTH,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'black',
+          opacity: .4,
+          zIndex: 1000,
+          position: 'absolute',
+        }}>
+          <ActivityIndicator size='large'/>
+        </View> : null
+      }
       <ScrollView contentContainerStyle={styles.scrollView}>
-        <Spinner
-          visible={isLoading}
-          textContent={'Loading...'}
-          textStyle={{color: colors.textColor}}
-        />
         <View style={{alignItems: 'center', marginTop: 15}}>
           <Image 
             style={{width: 140, height: 140, borderRadius: 140}}

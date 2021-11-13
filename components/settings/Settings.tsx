@@ -1,14 +1,12 @@
 import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
 
 import React from 'react';
-import { View, ScrollView, StyleSheet, Alert, FlatList } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, FlatList, ActivityIndicator } from 'react-native';
 import { Tooltip, Text, ListItem } from 'react-native-elements';
 import { UserDataContext, SettingsContext, AppFunctionsContext, AppFunctionsContextType } from "../../Context";
 import LoadingScreen from "../generic/LoadingScreen";
 import { createStackNavigator } from '@react-navigation/stack';
 import axios from 'axios';
-
-import Spinner from 'react-native-loading-spinner-overlay';
 import {
   getToken,
   storeUserData,
@@ -188,6 +186,7 @@ const Settings = (props) => {
           text: 'Yes',
           onPress: async () => {
             const deviceID = await getDeviceId();
+            setIsLoading(true);
             if (deviceID.length === 0) {
               Alert.alert(
                 "Whoops",
@@ -195,7 +194,6 @@ const Settings = (props) => {
                 [{text: "Okay"}]);
                 return;
             }
-            setIsLoading(true);
             try {
               await GlobalBleHandler.disconnect();
               GlobalBleHandler.stopScan();
@@ -230,11 +228,20 @@ const Settings = (props) => {
       <SettingsContext.Provider value={{
         saveSettings,
       }}>
-        <Spinner
-          visible={isLoading}
-          textContent={'Saving...'}
-          textStyle={{color: colors.textColor}}
-        />
+        {isLoading ? 
+          <View style={{
+            height: GLOBAL_CONSTANTS.SCREEN_HEIGHT,
+            width: GLOBAL_CONSTANTS.SCREEN_WIDTH,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'black',
+            opacity: .4,
+            zIndex: 1000,
+            position: 'absolute',
+          }}>
+            <ActivityIndicator size='large'/>
+          </View> : null
+        }
         <Stack.Navigator
           headerMode='none'
         >

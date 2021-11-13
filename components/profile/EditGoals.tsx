@@ -1,5 +1,5 @@
 import React from 'react'
-import { Platform, View, StyleSheet, Alert, ScrollView, KeyboardAvoidingView } from 'react-native';
+import { Platform, View, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/stack';
 import { Button } from 'react-native-elements'
 import GLOBAL_CONSTANTS from '../GlobalConstants'
@@ -218,12 +218,21 @@ export default function EditProfile() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset = {headerHeight + 100} // adjust the value here if you need more padding
     >
+      {isLoading ? 
+        <View style={{
+          height: GLOBAL_CONSTANTS.SCREEN_HEIGHT,
+          width: GLOBAL_CONSTANTS.SCREEN_WIDTH,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'black',
+          opacity: .4,
+          zIndex: 1000,
+          position: 'absolute',
+        }}>
+          <ActivityIndicator size='large'/>
+        </View> : null
+      }
       <ScrollView contentContainerStyle={styles.scrollView}>
-        <Spinner
-          visible={isLoading}
-          textContent={'Loading...'}
-          textStyle={styles.spinnerTextStyle}
-        />
         <Textbox
           containerStyle={[styles.textContainer, {borderColor: colors.border}]}
           icon={<CustomIcon name='running' size={20} color={colors.textColor}/>}

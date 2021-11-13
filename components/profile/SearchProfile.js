@@ -5,9 +5,6 @@ import React from 'react'
 import { UserDataContext } from '../../Context';
 import { View, StyleSheet, FlatList, ScrollView, Alert, Button } from 'react-native'
 import { createStackNavigator } from '@react-navigation/stack';
-
-import { Text } from 'react-native-elements'
-import Spinner from 'react-native-loading-spinner-overlay';
 import { getToken } from "../utils/storage"
 import ENDPOINTS from '../endpoints'
 import GLOBAL_CONSTANTS from "../GlobalConstants"

@@ -4,6 +4,8 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import LocationServicesDialogBox from "react-native-android-location-services-dialog-box";
 import BLUETOOTH_CONSTANTS from '../bluetooth/BluetoothConstants';
+import Spinner from 'react-native-loading-spinner-overlay';
+
 const { DateTime } = require('luxon');
 import {
   getToken,
@@ -89,8 +91,6 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
   const [syncProgress, setSyncProgress] = React.useState<number>(-1); // for global sync progress bar/wheel
   // flag that triggers fitness components to update from local storage after sadata read
   const [shouldRefreshFitness, setShouldRefreshFitness] = React.useState<boolean>(false); 
-  // flag for spinner
-  const [showSpinner, setShowSpinner] = React.useState<boolean>(false);
   const [state, setState] = React.useState<UserDataInterface>({
     _id: '',
     friends: [],
@@ -448,9 +448,8 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
             shouldRefreshFitness,
             setShouldRefreshFitness,
             syncData,
+            showAutoSyncWarningModal,
             setShowAutoSyncWarningModal,
-            showSpinner,
-            setShowSpinner,
           }}
         >
         { isLoading ? <LoadingSpin/> :

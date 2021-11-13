@@ -115,7 +115,7 @@ const SignIn = ({ navigation }) => {
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: 'black',
-          opacity: .3,
+          opacity: .4,
           zIndex: 1000,
           position: 'absolute',
         }}>

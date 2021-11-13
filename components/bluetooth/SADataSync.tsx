@@ -49,7 +49,7 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
   const { athlosConnected } = props;
   const { colors } = useTheme();
   const appFunctionsContext = React.useContext(AppFunctionsContext) as AppFunctionsContextType;
-  const { updateLocalUserInfo, syncProgress, syncData, setShowAutoSyncWarningModal } = appFunctionsContext;
+  const { updateLocalUserInfo, syncProgress, syncData, setShowAutoSyncWarningModal, showAutoSyncWarningModal } = appFunctionsContext;
   const [transmitting, setTransmitting] = React.useState(false); // boolean flag for if the user is transmitting data/linking
   const [isLinked, setIsLinked] = React.useState(GlobalBleHandler.hasID());
 
@@ -193,19 +193,26 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
       Alert.alert(
         "All Set!",
         "Successfully linked your new Athlos earbuds with this device :). Hit the gear icon on your profile if you" +
-        " want to re-link with different earbuds.",
-        [{text: "Okay"}]
+        " want to re-link with different earbuds. Press okay to continue connecting your earbuds.",
+        [{
+          text: "Okay",
+          // only start scanning and connecting after pressing okay. 
+          // This is required since alert api is buggy with modals and will prevent the modal from showing
+          onPress: () => {
+            showSnackBar("connecting to your Athlos device...");
+            GlobalBleHandler.scanAndConnect()
+              .then(() => {
+                console.log("connected after linking: ", newDeviceID);
+                showSnackBar("Successfully connected to your Athlos device!");
+              })
+              .catch(e => {
+                console.log("failed to connect after linking", e);
+                showSnackBar("Failed to connect to your Athlos device. Trying again...");
+              });
+          }
+        }]
       );
-      showSnackBar("connecting to your Athlos device...");
-      GlobalBleHandler.scanAndConnect()
-        .then(() => {
-          console.log("connected after linking: ", newDeviceID);
-          showSnackBar("Successfully connected to your Athlos device!");
-        })
-        .catch(e => {
-          console.log("failed to connect after linking", e);
-          showSnackBar("Failed to connect to your Athlos device. Trying again...");
-        });
+
     } catch(e) {
       console.log(e);
       GlobalBleHandler.setID("");
@@ -222,6 +229,7 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
       return;
     }
     console.log("******* swiped down to read **********");
+    console.log("aoiwjdoaijdw", showAutoSyncWarningModal);
     if (transmitting || GlobalBleHandler.isSendingData || GlobalBleHandler.isReading) {
       showSnackBar("Your earbuds are hard at work transfering info. Please wait a bit.");
       return;
@@ -254,38 +262,6 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
       setTransmitting(false);
       return;
     }
-
-    // let tryCount = 3;
-    // let success = false;
-    // console.log("begin syncing....");
-    // while (tryCount > 0 && !success) {
-    //   try {
-    //     var numBytesRead = await GlobalBleHandler.readActivityData(); // should take care of uploading to server in background
-    //     if (numBytesRead <= 8) {
-    //       // do this in case the previous sync failed and the data pointer was reset anyway
-    //       // await updateSaInit(GlobalBleHandler);
-    //       showSnackBar("Activities already updated.");
-    //       // await uploadToServer();
-    //       setTransmitting(false);
-    //       return;
-    //     }
-    //     console.log("finished transferring activity data....");
-    //     success = true;
-    //   } catch(e) {
-    //     console.log("error with sync: ", e);
-    //     if (e === STOP_SCAN_ERR) { // if we manually or programmatically stopped the scan, then stop the animation and don't try again.
-    //       setTransmitting(false);
-    //       return;
-    //     }
-    //     showSnackBar(`Error 108: ${e}. Trying again...`);
-    //     tryCount -= 1;
-    //   }
-    // }
-    // if (!success) {
-    //   showSnackBar(`Error 109: Something went wrong with syncing. Please try again.`);
-    //   setTransmitting(false);
-    //   return;
-    // }
     showSnackBar('Successfully synced. Workout log and earbuds config both updated.');
     setTransmitting(false);
     // this could be an issue if updateSaInit fails FIX LATER
