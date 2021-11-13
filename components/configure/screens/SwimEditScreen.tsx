@@ -147,7 +147,6 @@ export default function SwimEditScreen(props) {
     setDeviceConfig(prevConfig => {
       const newModeSettings = {
         mode: SWIM,
-        subtitle: SWIM_SUBTITLE,
         poolLength: poolLength,
         trigger: reportTrigger,
         numUntilTrigger: lapNumber,
@@ -191,18 +190,19 @@ export default function SwimEditScreen(props) {
         setter: setCalChecked,
         isChecked: calChecked,
       },
-      {
-        title: 'Stroke',
-        subtitle: 'For dev purposes',
-        setter: setStrokeChecked,
-        isChecked: strokeChecked,
-      },
+      // {
+      //   title: 'Stroke',
+      //   subtitle: 'For dev purposes',
+      //   setter: setStrokeChecked,
+      //   isChecked: strokeChecked,
+      // },
     ];
     return swimStatList.map(({title, subtitle, setter, isChecked}, _) => (
       <ListItem
         containerStyle={{backgroundColor: colors.background}}
         key={title}
         bottomDivider
+        topDivider
         onPress={() => {
           setter(prev => !prev);
         }}

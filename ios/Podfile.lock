@@ -243,7 +243,7 @@ PODS:
     - React
   - react-native-bluetooth-status (1.5.1):
     - React
-  - react-native-image-picker (2.3.4):
+  - react-native-image-picker (4.1.2):
     - React-Core
   - react-native-safe-area-context (3.2.0):
     - React-Core
@@ -526,7 +526,7 @@ SPEC CHECKSUMS:
   React-jsinspector: 512e560d0e985d0e8c479a54a4e5c147a9c83493
   react-native-ble-plx: caac53ee98151ec81198239d591c203809a1ed6e
   react-native-bluetooth-status: b1fb68e6158b3ef3886187dbc108b585870ff9aa
-  react-native-image-picker: 32d1ad2c0024ca36161ae0d5c2117e2d6c441f11
+  react-native-image-picker: f45729c43d4f854508ab25c0d0f0f711a2a8a267
   react-native-safe-area-context: e471852c5ed67eea4b10c5d9d43c1cebae3b231d
   React-RCTActionSheet: f41ea8a811aac770e0cc6e0ad6b270c644ea8b7c
   React-RCTAnimation: 49ab98b1c1ff4445148b72a3d61554138565bad0
@@ -551,6 +551,6 @@ SPEC CHECKSUMS:
   Yoga: 3ebccbdd559724312790e7742142d062476b698e
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 7fb41ac00795c47c3982e70e57f3c237eb761d24
+PODFILE CHECKSUM: 38fa4419b606bc9c596de892815dcb59657c6b08
 
 COCOAPODS: 1.9.3

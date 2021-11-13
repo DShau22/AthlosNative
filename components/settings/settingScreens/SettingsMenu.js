@@ -30,7 +30,7 @@ const {
 } = SETTINGS_CONSTANTS
 
 const SettingsMenu = (props) => {
-  const setToken = React.useContext(AppContext);
+  const { setToken } = React.useContext(AppContext);
   const [isLoading, setIsLoading] = React.useState(false);
   const { colors } = useTheme();
   const settingsList = [

@@ -18,10 +18,10 @@
 		2D02E4BF1E0B4AB3006451C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		2DCD954D1E0B4F2C00145EB5 /* athlosNativeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* athlosNativeTests.m */; };
 		4CE9C845DA15BC9E24E4642A /* libPods-athlosNative-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE69CE8A0591100B1E86B612 /* libPods-athlosNative-tvOS.a */; };
+		6311867D273FD0E7005E9E10 /* icomoon.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4395F78CB0644F92BB994A86 /* icomoon.ttf */; };
 		6390D293270AE2D300271486 /* libreact-native-image-picker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6390D292270AE2D300271486 /* libreact-native-image-picker.a */; };
 		C3AD70271DB7615822E79D00 /* libPods-athlosNative-athlosNativeTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2FDAD100E4A0911574642B04 /* libPods-athlosNative-athlosNativeTests.a */; };
 		D502584FC1DE89B38A398920 /* libPods-athlosNative-tvOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F4BB7CC8BA53A4404D87C02C /* libPods-athlosNative-tvOSTests.a */; };
-		D9A6B512EDF94B02BC706FDA /* icomoon.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4395F78CB0644F92BB994A86 /* icomoon.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +46,8 @@
 		00E356EE1AD99517003FC87E /* athlosNativeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = athlosNativeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* athlosNativeTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = athlosNativeTests.m; sourceTree = "<group>"; };
+		0A7897E08EB8491F96882603 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
+		0B6C930EA7614623BF7733E6 /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Athlos Live.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Athlos Live.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = athlosNative/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = athlosNative/AppDelegate.m; sourceTree = "<group>"; };
@@ -53,20 +55,34 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = athlosNative/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = athlosNative/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = athlosNative/main.m; sourceTree = "<group>"; };
+		1E80724161AA4A0996BAB870 /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
 		214C66D0DE045025A165A66D /* libPods-athlosNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-athlosNative.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24674CA1D660E0A1E2462ABE /* Pods-athlosNative.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-athlosNative.debug.xcconfig"; path = "Target Support Files/Pods-athlosNative/Pods-athlosNative.debug.xcconfig"; sourceTree = "<group>"; };
 		2D02E47B1E0B4A5D006451C7 /* athlosNative-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "athlosNative-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E4901E0B4A5D006451C7 /* athlosNative-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "athlosNative-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E6C8647F3ED4895A12D8CE9 /* FontAwesome5_Brands.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Brands.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf"; sourceTree = "<group>"; };
 		2FDAD100E4A0911574642B04 /* libPods-athlosNative-athlosNativeTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-athlosNative-athlosNativeTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B8FAFD49C67374E4601C668 /* Pods-athlosNative-tvOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-athlosNative-tvOSTests.release.xcconfig"; path = "Target Support Files/Pods-athlosNative-tvOSTests/Pods-athlosNative-tvOSTests.release.xcconfig"; sourceTree = "<group>"; };
+		41A866BD45594689A48ACFB8 /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		4395F78CB0644F92BB994A86 /* icomoon.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = icomoon.ttf; path = ../assets/fonts/icomoon.ttf; sourceTree = "<group>"; };
 		5F58B56325FD84CB928D31F1 /* Pods-athlosNative-tvOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-athlosNative-tvOSTests.debug.xcconfig"; path = "Target Support Files/Pods-athlosNative-tvOSTests/Pods-athlosNative-tvOSTests.debug.xcconfig"; sourceTree = "<group>"; };
+		626A178AD18C4A97AA0BE90C /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
 		6390D28C270AE22800271486 /* libreact-native-image-picker.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libreact-native-image-picker.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6390D292270AE2D300271486 /* libreact-native-image-picker.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libreact-native-image-picker.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6D8EABA7C1D5442A8CC6FD5F /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
+		77AEF3D64CA24B0D87AAD0D7 /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
+		7D2472B7281B4A75A5D33CD1 /* AntDesign.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
 		7E229543B193DEB9254251E2 /* Pods-athlosNative.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-athlosNative.release.xcconfig"; path = "Target Support Files/Pods-athlosNative/Pods-athlosNative.release.xcconfig"; sourceTree = "<group>"; };
+		9E2030CE4C4E490BA9B00F3A /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
 		A930B7469568DD8867B5D5E4 /* Pods-athlosNative-athlosNativeTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-athlosNative-athlosNativeTests.debug.xcconfig"; path = "Target Support Files/Pods-athlosNative-athlosNativeTests/Pods-athlosNative-athlosNativeTests.debug.xcconfig"; sourceTree = "<group>"; };
+		B57545163B4E4F52B565DB23 /* FontAwesome.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome.ttf"; sourceTree = "<group>"; };
+		BA0E930AEAB84ED4BB2D0541 /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
 		C0241FE5F565D6D46638CE6E /* Pods-athlosNative-tvOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-athlosNative-tvOS.debug.xcconfig"; path = "Target Support Files/Pods-athlosNative-tvOS/Pods-athlosNative-tvOS.debug.xcconfig"; sourceTree = "<group>"; };
 		CE69CE8A0591100B1E86B612 /* libPods-athlosNative-tvOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-athlosNative-tvOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D926B25C08ED41C2BC868DFC /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
+		E6D7F28E76734C2785077445 /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
+		E7AD2E3FA0274A30B4908FF1 /* Entypo.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Entypo.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
+		E90BDE05885846FB9A6BE974 /* Fontisto.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Fontisto.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Fontisto.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 		F242C0571FF8C23FCC417583 /* Pods-athlosNative-tvOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-athlosNative-tvOS.release.xcconfig"; path = "Target Support Files/Pods-athlosNative-tvOS/Pods-athlosNative-tvOS.release.xcconfig"; sourceTree = "<group>"; };
@@ -210,6 +226,22 @@
 			isa = PBXGroup;
 			children = (
 				4395F78CB0644F92BB994A86 /* icomoon.ttf */,
+				7D2472B7281B4A75A5D33CD1 /* AntDesign.ttf */,
+				E7AD2E3FA0274A30B4908FF1 /* Entypo.ttf */,
+				0A7897E08EB8491F96882603 /* EvilIcons.ttf */,
+				0B6C930EA7614623BF7733E6 /* Feather.ttf */,
+				B57545163B4E4F52B565DB23 /* FontAwesome.ttf */,
+				2E6C8647F3ED4895A12D8CE9 /* FontAwesome5_Brands.ttf */,
+				77AEF3D64CA24B0D87AAD0D7 /* FontAwesome5_Regular.ttf */,
+				BA0E930AEAB84ED4BB2D0541 /* FontAwesome5_Solid.ttf */,
+				E90BDE05885846FB9A6BE974 /* Fontisto.ttf */,
+				9E2030CE4C4E490BA9B00F3A /* Foundation.ttf */,
+				41A866BD45594689A48ACFB8 /* Ionicons.ttf */,
+				6D8EABA7C1D5442A8CC6FD5F /* MaterialCommunityIcons.ttf */,
+				E6D7F28E76734C2785077445 /* MaterialIcons.ttf */,
+				1E80724161AA4A0996BAB870 /* Octicons.ttf */,
+				626A178AD18C4A97AA0BE90C /* SimpleLineIcons.ttf */,
+				D926B25C08ED41C2BC868DFC /* Zocial.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -358,9 +390,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6311867D273FD0E7005E9E10 /* icomoon.ttf in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				13B07FBD1A68108700A75B9A /* LaunchScreen.xib in Resources */,
-				D9A6B512EDF94B02BC706FDA /* icomoon.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -394,7 +426,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh";
+			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/scripts/react-native-xcode.sh\n";
 		};
 		0D0CF47BF649B6F18C99D374 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -750,7 +782,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = Z9628N23JF;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -779,8 +811,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = Z9628N23JF;
+				ENABLE_BITCODE = YES;
 				INFOPLIST_FILE = athlosNative/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0.2;
@@ -1029,7 +1062,7 @@
 				00E356F71AD99517003FC87E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "athlosNative" */ = {
 			isa = XCConfigurationList;
@@ -1038,7 +1071,7 @@
 				13B07F951A680F5B00A75B9A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		2D02E4BA1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "athlosNative-tvOS" */ = {
 			isa = XCConfigurationList;
@@ -1047,7 +1080,7 @@
 				2D02E4981E0B4A5E006451C7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		2D02E4BB1E0B4A5E006451C7 /* Build configuration list for PBXNativeTarget "athlosNative-tvOSTests" */ = {
 			isa = XCConfigurationList;
@@ -1056,7 +1089,7 @@
 				2D02E49A1E0B4A5E006451C7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "athlosNative" */ = {
 			isa = XCConfigurationList;
@@ -1065,7 +1098,7 @@
 				83CBBA211A601CBA00E9B192 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};

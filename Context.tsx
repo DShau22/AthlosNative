@@ -9,6 +9,8 @@ export type AppFunctionsContextType = {
   setShouldRefreshFitness: Function,
   syncData: Function,
   setShowAutoSyncWarningModal: Function,
+  showSpinner: boolean,
+  setShowSpinner: Function,
 }
 export interface ProfileContextType extends UserDataInterface {
   settings: Object,

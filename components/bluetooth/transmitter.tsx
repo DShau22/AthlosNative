@@ -797,7 +797,7 @@ class BLEHandler {
       }
       pkg[packageSize - 2] = this.writePkgId;
       pkg[packageSize - 1] = calcChecksum(pkg, 0, pkg.length - 1);
-      console.log("sending: ", pkg);
+      console.log("sending: ", pkg, pkg.length);
       await this._sendAndWaitResponse(pkg);
     }
     this._resetAfterSendBytes();

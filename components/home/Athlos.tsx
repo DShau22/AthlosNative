@@ -89,6 +89,8 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
   const [syncProgress, setSyncProgress] = React.useState<number>(-1); // for global sync progress bar/wheel
   // flag that triggers fitness components to update from local storage after sadata read
   const [shouldRefreshFitness, setShouldRefreshFitness] = React.useState<boolean>(false); 
+  // flag for spinner
+  const [showSpinner, setShowSpinner] = React.useState<boolean>(false);
   const [state, setState] = React.useState<UserDataInterface>({
     _id: '',
     friends: [],
@@ -307,7 +309,7 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
       // earbuds are connected at this point
       try {
         console.log("athlos is connected in use effect")
-        showSnackBar("Athlos device connected. Auto syncing...", "long");
+        showSnackBar("Athlos device connected", "long");
         const shouldAutoSync = await getShouldAutoSync();
         const shouldShowAutoSyncWarningDialog = await getShouldShowAutoSyncWarningDialog();
         if (shouldAutoSync) {
@@ -446,7 +448,9 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
             shouldRefreshFitness,
             setShouldRefreshFitness,
             syncData,
-            setShowAutoSyncWarningModal
+            setShowAutoSyncWarningModal,
+            showSpinner,
+            setShowSpinner,
           }}
         >
         { isLoading ? <LoadingSpin/> :

@@ -9,16 +9,16 @@ import {
   Platform,
   StyleSheet,
   StatusBar,
-  Alert
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {
   storeToken
 } from '../utils/storage';
 import Axios from 'axios';
-
 import * as Animatable from 'react-native-animatable';
 import LinearGradient from 'react-native-linear-gradient';
-import Spinner from 'react-native-loading-spinner-overlay';
+import GLOBAL_CONSTANTS from '../GlobalConstants';
 
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
@@ -38,13 +38,14 @@ const SignIn = ({ navigation }) => {
     username: '',
     password: '',
     secureTextEntry: true,
-    isSignInLoading: false,
   });
+
+  const [isSignInLoading, setIsSignInLoading] = React.useState<boolean>(false);
 
   const source = Axios.CancelToken.source();
 
   const { colors } = useTheme();
-  const setToken = React.useContext(AppContext);
+  const { setToken } = React.useContext(AppContext);
 
   const textInputChange = (val: string) => {
     setData({
@@ -69,17 +70,12 @@ const SignIn = ({ navigation }) => {
 
   const loginHandle = (email: string, password: string) => {
     console.log("signing in...");
-    setData({
-      ...data,
-      isSignInLoading: true
-    })
+    setIsSignInLoading(true);
     const login = async () => {
       // for android
       // const url = 'https://127.0.0.1:8080/api/account/signin'
       // otherwise apple
       const url = signInURL;
-      console.log(url);
-      
       try {
         const timeout = setTimeout(() => {
           source.cancel("Connection to the server timed out. Please try again and make sure your internet connection is strong");
@@ -98,22 +94,13 @@ const SignIn = ({ navigation }) => {
           // by setting the token and changing the App.js state
           setToken(json.token);
         } else {
-          console.log("alerting!")
-          Alert.alert('Login Failed :(', json.messages[0], [{ text: 'Okay' }]);
-          setData({
-            ...data,
-            isSignInLoading: false,
-          });
+          setIsSignInLoading(false);
+          Alert.alert('Login Failed :(', json.messages[0], [{text: 'Okay'}]);
         }
       } catch(e) {
         console.log(e);
-        Alert.alert('Oops!', `Something went wrong with the connection to the server: \n\n${e.message}`, [
-          { text: 'Okay' }
-        ]);
-        setData({
-          ...data,
-          isSignInLoading: false,
-        });
+        setIsSignInLoading(false);
+        Alert.alert('Login Failed :(', `Something went wrong with the connection to the server: \n\n${e.message}`, [{text: 'Okay'}]);
       }
     }
     login();
@@ -121,11 +108,20 @@ const SignIn = ({ navigation }) => {
 
   return (
     <LinearGradient style={styles.container} colors={['#000046', '#1CB5E0']}>
-      <Spinner
-        visible={data.isSignInLoading}
-        textContent={'Loading...'}
-        textStyle={styles.spinnerTextStyle}
-      />
+      {isSignInLoading ? 
+        <View style={{
+          height: GLOBAL_CONSTANTS.SCREEN_HEIGHT,
+          width: GLOBAL_CONSTANTS.SCREEN_WIDTH,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'black',
+          opacity: .3,
+          zIndex: 1000,
+          position: 'absolute',
+        }}>
+          <ActivityIndicator size='large'/>
+        </View> : null
+      }
       <StatusBar backgroundColor='#009387' barStyle="light-content"/>
       <View style={styles.header}>
         <Text style={styles.text_header}>Sign In</Text>

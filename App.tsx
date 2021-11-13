@@ -5,7 +5,6 @@ import 'react-native-gesture-handler';
 import { MenuProvider } from 'react-native-popup-menu';
 
 import * as React from 'react';
-import { Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 Ionicons.loadFont();
@@ -25,6 +24,15 @@ import { LIGHT_THEME, DARK_THEME } from './components/ColorThemes'
 
 console.disableYellowBox = true;
 
+// disable all console functions if not in dev environment
+if (!__DEV__) {
+  console.log = () => {};
+  console.info = () => {};
+  console.warn = () => {};
+  console.error = () => {};
+  console.debug = () => {};
+}
+
 function App() {
   
   const [isLoading, setIsLoading] = React.useState(true);
@@ -43,8 +51,11 @@ function App() {
   }
   return (
     <MenuProvider>
-      <AppContext.Provider value={setToken}>
+      <AppContext.Provider value={{
+        setToken,
+      }}>
         <NavigationContainer theme={DARK_THEME}>
+          
           { token ? <Athlos token={token} /> : <RootStackScreen /> }
         </NavigationContainer>
       </AppContext.Provider>

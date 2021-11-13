@@ -4,7 +4,7 @@
 import React from 'react'
 import { getToken, storeUserData } from '../utils/storage';
 import { View, ScrollView, StyleSheet, RefreshControl, Alert } from 'react-native'
-import { Text, Button, Divider, ListItem } from 'react-native-elements'
+import { Button, Divider } from 'react-native-elements'
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from '@react-navigation/native';
 import axios from 'axios';
@@ -30,32 +30,19 @@ const {
 } = PROFILE_CONSTANTS;
 import {
   getShouldAutoSync,
-  setShouldAutoSync,
 } from '../utils/storage';
-import {
-  showSnackBar
-} from '../utils/notifications'
 import GLOBAL_CONSTANTS from '../GlobalConstants'
 const { METRIC, ENGLISH, EVERYONE, FOLLOWERS, ONLY_ME } = GLOBAL_CONSTANTS
-import Community from '../community/Community'
 import Fitness from '../fitness/Fitness'
 import ProfileHeader from './sections/ProfileHeader'
 import ProfileBests from './sections/ProfileBests'
 import ProfileGoals from './sections/ProfileGoals'
-import ProfileAggregates from './sections/ProfileAggregates'
 import EditProfile from './EditProfile'
 import EditGoals from './EditGoals'
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import StatCard from '../fitness/StatCard';
-import ThemeText from '../generic/ThemeText';
 import ProfileAboutYou from './sections/ProfileAboutYou';
-
-import GeneralSetting from '../settings/settingScreens/GeneralSetting';
-import SettingsMenu from '../settings/settingScreens/SettingsMenu';
 import Spinner from 'react-native-loading-spinner-overlay';
 import GlobalBleHandler from '../bluetooth/GlobalBleHandler';
 import Settings from '../settings/Settings';
-import SyncProgressCircle from '../bluetooth/SyncProgressCircle';
 import SyncProgressCircleHeader from '../bluetooth/SyncProgressCircleHeader';
 
 const ProfileTemplate = (props) => {
@@ -366,15 +353,13 @@ const ProfileTemplate = (props) => {
         </Stack.Screen>
         <Stack.Screen
           name={GLOBAL_CONSTANTS.SETTINGS}
-          options={{ title: 'App Settings' }}
+          options={{ headerTitle: _ => <SyncProgressCircleHeader
+            headerText={'App Settings'}
+            syncProgress={syncProgress}/>
+          }}
         >
           {props => (
             <Settings />
-            // <SettingsMenu
-            //   {...props}
-            //   navigation={props.navigation}
-            //   saveSettings={saveSettings}
-            // />
           )}
         </Stack.Screen>
         <Stack.Screen

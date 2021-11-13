@@ -209,13 +209,13 @@ const STROKES_LIST = [
 const getDefaultConfig = (): Array<Mode> => {
   return [
     getDefaultMusicOnlyMode(),
-    getDefaultRunMode(),
     getDefaultJumpMode(),
+    getDefaultRunMode(),
     getDefaultSwimMode(),
-    getDefaultSwimWorkoutMode(),
+    // getDefaultSwimWorkoutMode(),
     // getDefaultRaceMode(),
-    getDefaultTimerMode(),
-    getDefaultIntervalMode(),
+    // getDefaultTimerMode(),
+    // getDefaultIntervalMode(),
   ];
 };
 
@@ -253,8 +253,8 @@ const getDefaultSwimMode = (): SwimInterface => {
     // number of laps until the report is given. Number doesn't matter if 
     // trigger is set to TRIGGER_ON_FINISH
     numUntilTrigger: 1,
-    metrics: [ LAP_COUNT, LAPTIME ],
-    resetLapCountAfterFinish: false,
+    metrics: [ LAP_COUNT, LAPTIME, CALORIES ],
+    resetLapCountAfterFinish: true,
   }
 };
 
