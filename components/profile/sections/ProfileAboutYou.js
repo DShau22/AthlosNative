@@ -13,7 +13,7 @@ CustomIcon.loadFont();
 
 import { UserDataContext, ProfileContext } from '../../../Context';
 import GLOBAL_CONSTANTS from '../../GlobalConstants'
-import { inchesToCm, poundsToKg, englishHeight } from '../../utils/unitConverter'
+import { inchesToCm, poundsToKg, englishHeight, roundToDecimal } from '../../utils/unitConverter'
 import ProfileSectionGrid from './ProfileSectionGrid';
 import { capitalize } from '../../utils/strings';
 
@@ -29,7 +29,7 @@ const ProfileAboutYou = (props) => {
   const displayHeight = unitSystem === METRIC ?
     `${Math.round(inchesToCm(height))} cm` : englishHeight(height);
   const displayWeight = unitSystem === METRIC ?
-    `${Math.round(poundsToKg(weight) * 10) / 10} kg` : `${weight} lbs`;
+    `${roundToDecimal((poundsToKg(weight) * 10) / 10, 1)} kg` : `${Math.round(weight)} lbs`;
   
   const gridElements = [
     {

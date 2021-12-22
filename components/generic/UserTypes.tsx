@@ -14,7 +14,7 @@ export type SettingsType = {
   seeBasicInfo: CommunityPrivacyEnum,
   seeBests: CommunityPrivacyEnum,
   seeTotals: CommunityPrivacyEnum
-  unitSystem: UNIT_SYSTEM_ENUM,
+  unitSystem: string,
 }
 
 export enum UNIT_SYSTEM_ENUM {
@@ -53,7 +53,7 @@ export interface UserDataInterface {
   weight: string,
   age: string,
   profilePicture: string,
-  settings: Object,
+  settings: any,
   numFriendsDisplay: number,
   goals: GoalsSchema,
   bests: bestsSchema,

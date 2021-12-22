@@ -101,8 +101,9 @@ const Settings = (props) => {
       console.log('saving settings...')
       setIsLoading(true);
       // get user token
+      var token;
       try {
-        var token = await getToken()
+        token = await getToken();
         if (!token) {
           // send them back to the login page
           console.log("WOT they have no token hmmmm")
@@ -114,61 +115,47 @@ const Settings = (props) => {
       }
   
       // update settings with the backend
-      try {
-        const config = {
-          headers: { 'Content-Type': 'application/json' },
-          cancelToken: source.token
-        }
-        var res = await axios.post(ENDPOINTS.updateSettings, {
-          userToken: token,
-          // seeCommunity: communityChoice,
-          // seeFitness: fitnessChoice,
-          // seeBests: bestsChoice,
-          // seeTotals: totalsChoice,
-          // seeBasicInfo: basicInfoChoice,
-          // poolLength: swimLengthChoice,
-          unitSystem: unitDisplayChoice,
-        }, config)
-        var json = res.data
-        console.log("axios response: ", json)
-        if (json.success) {
-          // props.updateUserInfo()
-          Alert.alert('All Done!', "Your settings have been successfully updated :)", [{ text: "Okay" }]);
-          setIsLoading(false);
-        } else {
-          throw new Error(json.message)
-        }
-      } catch(e) {
-        console.log(e)
-        Alert.alert('Oh No :(', e.toString(), [{ text: "Okay" }]);
-        setIsLoading(false);
-        return;
+      // MAKE THIS ASYNC WITH NO AWAIT
+      const config = {
+        headers: { 'Content-Type': 'application/json' },
+        cancelToken: source.token
       }
+      axios.post(ENDPOINTS.updateSettings, {
+        userToken: token,
+        // seeCommunity: communityChoice,
+        // seeFitness: fitnessChoice,
+        // seeBests: bestsChoice,
+        // seeTotals: totalsChoice,
+        // seeBasicInfo: basicInfoChoice,
+        // poolLength: swimLengthChoice,
+        unitSystem: unitDisplayChoice,
+      }, config);
       // update Athlos state
-      const newState = {
-        ...context,
-        settings: {
-          seeBasicInfo: basicInfoChoice,
-          seeFitness: fitnessChoice,
-          seeBests: bestsChoice,
-          seeTotals: totalsChoice,
-          seeCommunity: communityChoice,
-          poolLength: swimLengthChoice,
-          unitSystem: unitDisplayChoice
-        }
-      }
-      setAppState(newState)
-      console.log("app state updated")
-  
       // update async storage
       try {
-        // THIS DOESN'T ACTUALLY WORK DOESNT SEEM LIKE CONTEXT DOESNT GET UPDATED FUCK
-        console.log("storing data object: ", newState)
-        await storeUserData(newState)
-        console.log("async storage updated")
+        const newState = {
+          ...context,
+          settings: {
+            // seeBasicInfo: basicInfoChoice,
+            // seeFitness: fitnessChoice,
+            // seeBests: bestsChoice,
+            // seeTotals: totalsChoice,
+            // seeCommunity: communityChoice,
+            poolLength: swimLengthChoice,
+            unitSystem: unitDisplayChoice
+          }
+        }
+        await setAppState(newState);
+        console.log("app state updated");
+        console.log("storing data object: ", newState);
+        await storeUserData(newState);
+        console.log("async storage updated");
+        Alert.alert('All Done!', "Your settings have been successfully updated :)", [{ text: "Okay" }]);
       } catch(e) {
         console.error(e)
         Alert.alert('Oh No :(', "Something went wrong with trying to save your settings. Please try again.", [{ text: "Okay" }]);
+      } finally {
+        setIsLoading(false);
       }
     }
     asyncSaveSettings();

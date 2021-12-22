@@ -17,7 +17,8 @@ import {
   roundToDecimal,
   toEnglishHeight,
   toInches,
-  inchesToCm
+  inchesToCm,
+  toEnglishWeight
 } from "../utils/unitConverter"
 import ENDPOINTS from "../endpoints"
 import editProfileSchema from "./EditProfileSchema"
@@ -352,6 +353,7 @@ export default function EditProfile(props) {
       var { updateHeightFt, updateHeightIn, updateHeightCm, updateWeight, updateAge } = state;
       var { unitSystem } = context.settings;
       unitSystem = unitSystem.toLowerCase();
+      console.log("unit system: ", unitSystem);
       var userToken = await getToken();
 
       // turn this into a function that returns a promise later and await/.then it
@@ -380,9 +382,9 @@ export default function EditProfile(props) {
       }
 
       // convert height to pure inches
-      var height = unitSystem === METRIC ? toEnglishHeight(updateHeightCm) : toInches(updateHeightFt, updateHeightIn)
+      var height = unitSystem === METRIC ? Math.round(toEnglishHeight(updateHeightCm)) : Math.round(toInches(updateHeightFt, updateHeightIn));
       // if unit system is metric, convert weight to lbs
-      var weight = unitSystem === METRIC ? toEnglishWeight(updateWeight) : updateWeight
+      var weight = unitSystem === METRIC ? Math.round(toEnglishWeight(updateWeight)) : roundToDecimal(updateWeight, 1);
 
       var reqBody = {
         firstName: updateFirstName,
@@ -407,7 +409,8 @@ export default function EditProfile(props) {
         });
         var updateJson = await updateRes.json();
         if (updateJson.success) {
-          await updateLocalUserInfo(true);
+          await setAppState(reqBody);
+          // await updateLocalUserInfo(true);
           const picUpdateReminder = updateProfilePic ? " It may take some time for your picture to update. You can drag down to refresh you profile to get the most updated changes." : ""
           Alert.alert(`All Done!`, "Successfully updated your profile!" + picUpdateReminder, [{ text: "Okay" }]);
           setIsLoading(false);

@@ -32,7 +32,6 @@ const editProfileSchema = Yup.object({
     .integer("Must be a whole number"),
   updateWeight: Yup.number()
     .typeError('Weight must be a number')
-    .positive("Must be greater than 0")
-    .integer("Must be a whole number"),
-})
+    .positive("Must be greater than 0"),
+});
 export default editProfileSchema

@@ -10,10 +10,12 @@ import Duration from './Duration';
 import FITNESS_CONTANTS from './FitnessConstants';
 import { SettingsType } from '../generic/UserTypes';
 import { ActivityJson } from './FitnessTypes';
-import { JumpSchema, RunSchema, SwimSchema } from './data/UserActivities';
+import { JumpSchema, RunSchema, SwimSchema, UserActivities } from './data/UserActivities';
 import { useTheme } from '@react-navigation/native';
 import ThemeText from '../generic/ThemeText';
 import GLOBAL_CONSTANTS from '../GlobalConstants';
+import { inchesToCm, roundToDecimal } from '../utils/unitConverter';
+import { getLastSunday } from '../utils/dates';
 
 interface fitnessPageHOCProps {
   refreshing?: boolean,
@@ -34,6 +36,7 @@ export default function withFitnessPage( WrappedComponent: any ) {
     const [weeklyGraphData, setWeeklyGraphData] = React.useState<Array<number>>([]);
     const [showCalendar, setShowCalendar] = React.useState<boolean>(false);
     const { activityJson, settings } = props;
+    const { unitSystem } = settings;
     let { dayIndex, weekIndex, setDayIndex, setWeekIndex } = props;
     if (!weekIndex && !setWeekIndex) {
       [weekIndex, setWeekIndex] = React.useState(0);
@@ -75,13 +78,15 @@ export default function withFitnessPage( WrappedComponent: any ) {
 
     // Once the user selects a date, then get the week containing that day for this graph
     const makeWeeklyGraphData = () => {
-      const weeklyGraphData = [];
+      const weeklyGraphData: any[] = [];
       const week = activityJson.activityData[weekIndex];
       // for Jump data, people probably only really care about how high they jumped
       if (activityJson.action === FITNESS_CONTANTS.JUMP) {
         week.forEach((session, idx) => {
           const { heights } = session;
-          weeklyGraphData.push(Math.max(0, ...heights));
+          var maxHeight = Math.max(0, ...heights);
+          maxHeight = unitSystem === GLOBAL_CONSTANTS.METRIC ? roundToDecimal(inchesToCm(maxHeight), 1) : maxHeight;
+          weeklyGraphData.push(maxHeight);
         })
       } else {
         week.forEach((session, idx) => {
@@ -184,6 +189,14 @@ export default function withFitnessPage( WrappedComponent: any ) {
       let dayString = today.day < 10 ? `0${today.day}` : `${today.day}`;
       return `${today.year}-${monthString}-${dayString}`;
     }
+    // for calendar
+    const getMinSelectableDate = () => {
+      var lastSunday = getLastSunday();
+      var dateToStartFrom = lastSunday.minus({days: (UserActivities.WEEKS_BACK - 1) * 7});
+      let monthString = dateToStartFrom.month < 10 ? `0${dateToStartFrom.month}` : `${dateToStartFrom.month}`;
+      let dayString = dateToStartFrom.day < 10 ? `0${dateToStartFrom.day}` : `${dateToStartFrom.day}`;
+      return `${dateToStartFrom.year}-${monthString}-${dayString}`;
+    }
 
     const onChangeCalendarDay = (day: number, month: number, year: number) => {
       if (!sessionDay) {
@@ -259,6 +272,7 @@ export default function withFitnessPage( WrappedComponent: any ) {
           <Calendar
             markedDates={getMarkedDates()}
             maxDate={getMaxSelectableDate()}
+            minDate={getMinSelectableDate()}
             current={getCurrDate()}
             style={{
               marginTop: 20,

@@ -37,10 +37,10 @@ const SettingsMenu = (props) => {
     {
       title: "Settings",
       data: [
-        // {
-        //   title: UNIT_SYSTEM_SETTINGS,
-        //   subtitle: 'Unit system to display',
-        // },
+        {
+          title: UNIT_SYSTEM_SETTINGS,
+          subtitle: 'Unit system to display',
+        },
         {
           title: DEVICE_SETTINGS,
           subtitle: 'Unlink your earbuds or change auto-syncing',

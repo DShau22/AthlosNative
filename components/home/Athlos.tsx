@@ -116,7 +116,9 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
     weight: "",
     age: "",
     profilePicture: "",
-    settings: {},
+    settings: {
+      unitSystem: GLOBAL_CONSTANTS.ENGLISH
+    },
     numFriendsDisplay: 25,
     goals: {
       goalSteps: 1,

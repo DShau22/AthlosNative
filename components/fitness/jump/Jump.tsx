@@ -8,6 +8,7 @@ import withFitnessPage, { FitnessPageProps } from "../withFitnessPage"
 import ThemeText from '../../generic/ThemeText'
 import LineProgression from '../charts/LineProgression'
 import FITNESS_CONSTANTS from '../FitnessConstants';
+import { inchesToCm, roundToDecimal } from '../../utils/unitConverter';
 
 const Jump = (props: FitnessPageProps) => {
   const {
@@ -22,7 +23,12 @@ const Jump = (props: FitnessPageProps) => {
   const { unitSystem } = settings;
 
   const progressionData = React.useMemo(() => {
-    return currentDay ? makeProgressionData(currentDay.heights) : [];
+    if (unitSystem === GLOBAL_CONSTANTS.METRIC) {
+      var heights = currentDay.heights.map((height: number) => roundToDecimal(inchesToCm(height), 1));
+    } else {
+      heights = currentDay.heights;
+    }
+    return currentDay ? makeProgressionData(heights) : [];
   }, [makeProgressionData, currentDay]);
 
   // daily basis
