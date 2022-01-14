@@ -341,21 +341,23 @@ const ProfileTemplate = (props) => {
         </Stack.Screen>
         <Stack.Screen
           name={PROFILE_CONSTANTS.EDIT_PROFILE}
-          options={{ title: 'About You' }}
+          options={{ title: 'About You', headerBackTitle: "" }}
         >
           {props => ( <EditProfile navigation={props.navigation}/> )}
         </Stack.Screen>
         <Stack.Screen
           name={PROFILE_CONSTANTS.GOALS}
-          options={{ title: 'Weekly Goals' }}
+          options={{ title: 'Weekly Goals', headerBackTitle: "" }}
         >
           {props => ( <EditGoals navigation={props.navigation} /> )}
         </Stack.Screen>
         <Stack.Screen
           name={GLOBAL_CONSTANTS.SETTINGS}
-          options={{ headerTitle: _ => <SyncProgressCircleHeader
-            headerText={'App Settings'}
-            syncProgress={syncProgress}/>
+          options={{
+            headerTitle: _ => <SyncProgressCircleHeader
+              headerText={'App Settings'}
+              syncProgress={syncProgress}/>,
+            headerBackTitle: "",
           }}
         >
           {props => (
@@ -364,9 +366,11 @@ const ProfileTemplate = (props) => {
         </Stack.Screen>
         <Stack.Screen
           name={GLOBAL_CONSTANTS.FITNESS}
-          options={{ headerTitle: _ => <SyncProgressCircleHeader
-            headerText={relationshipStatus === IS_SELF ? 'Workout Log' : `${profileContext.firstName}'s Activities`}
-            syncProgress={syncProgress}/>
+          options={{ 
+            headerTitle: _ => <SyncProgressCircleHeader
+              headerText={relationshipStatus === IS_SELF ? 'Workout Log' : `${profileContext.firstName}'s Activities`}
+              syncProgress={syncProgress}/>,
+            headerBackTitle: "",
           }}
         >
           {props => (

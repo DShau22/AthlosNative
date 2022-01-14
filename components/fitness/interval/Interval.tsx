@@ -135,7 +135,7 @@ const Interval: React.FC<IntervalProps> = (props) => {
         padding: 10,
         marginBottom: 40,
       }}>
-        <ThemeText h4>Workout name</ThemeText>
+        <ThemeText h4>Workout Date</ThemeText>
         <TextInput
           mode='outlined'
           value={workout.workoutName} // should be workoutName

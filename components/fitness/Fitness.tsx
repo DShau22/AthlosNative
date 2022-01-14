@@ -20,6 +20,7 @@ import Interval from './interval/Interval';
 import SwimDetails from './swim/SwimDetails';
 import { UserDataInterface } from '../generic/UserTypes';
 import FineDataDisplay from './charts/FineDataDisplay';
+import { COLOR_THEMES } from '../ColorThemes';
 
 const Fitness = (props) => {
   const userDataContext = React.useContext(UserDataContext) as UserDataInterface;
@@ -218,6 +219,8 @@ const Fitness = (props) => {
               {props => (
                 <FineDataDisplay 
                   {...props}
+                  title={'Lap Times'}
+                  lineColor={COLOR_THEMES.SWIM_THEME}
                   backNavScreen={FITNESS_CONSTANTS.SWIM}
                 />
               )}
@@ -257,6 +260,8 @@ const Fitness = (props) => {
             <RunStack.Screen name={FITNESS_CONSTANTS.RUN_FINE_DATA_SCREEN}>
               {props => <FineDataDisplay 
                 {...props}
+                title={'Cadence Progression'}
+                lineColor={COLOR_THEMES.RUN_THEME}
                 backNavScreen={FITNESS_CONSTANTS.RUN}
               />}
             </RunStack.Screen>
@@ -299,6 +304,8 @@ const Fitness = (props) => {
             <JumpStack.Screen name={FITNESS_CONSTANTS.JUMP_FINE_DATA_SCREEN}>
               {props => <FineDataDisplay 
                 {...props}
+                title={'Vertical Jump Heights'}
+                lineColor={COLOR_THEMES.JUMP_THEME}
                 backNavScreen={FITNESS_CONSTANTS.JUMP}
               />}
             </JumpStack.Screen>

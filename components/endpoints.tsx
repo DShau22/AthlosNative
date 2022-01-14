@@ -1,7 +1,8 @@
 
 const devServerURL = "http://localhost:8080";
 // const devServerURL = "http://10.0.2.2:8080"
-const prodServerURL = "https://us-central1-athlos-live.cloudfunctions.net/athlos-server";
+// const prodServerURL = "https://us-central1-athlos-live.cloudfunctions.net/athlos-server";
+const prodServerURL = "https://us-central1-athlos-live-backend.cloudfunctions.net/athlos-backend";
 // toggle on/off for if working with dev env or prod
 const dev = false;
 const serverURL = dev ? devServerURL : prodServerURL;

@@ -4,9 +4,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import LocationServicesDialogBox from "react-native-android-location-services-dialog-box";
 import BLUETOOTH_CONSTANTS from '../bluetooth/BluetoothConstants';
-import Spinner from 'react-native-loading-spinner-overlay';
-
-const { DateTime } = require('luxon');
+import { BluetoothStatus } from 'react-native-bluetooth-status';
 import {
   getToken,
   getShouldAutoSync,
@@ -74,6 +72,7 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
   const { colors } = useTheme();
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const [athlosConnected, setAthlosConnected] = React.useState<boolean>(false);
+  const [bluetoothOn, setBluetoothOn] = React.useState<boolean>(true);
 
   const firstUpdate = React.useRef(true);
 
@@ -165,6 +164,11 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
     let tryCount = 3;
     let success = false;
     console.log("begin syncing....");
+    const isBtEnabled = await BluetoothStatus.state();
+    if (!isBtEnabled) {
+      Alert.alert("Bluetooth is not on", "Please turn on your phone's Bluetooth to sync", [{text: "Okay"}]);
+      return null;
+    }
     while (tryCount > 0 && !success) {
       try {
         var numBytesRead = await GlobalBleHandler.readActivityData(); // should take care of uploading to server in background
@@ -175,12 +179,12 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
         if (e === BLUETOOTH_CONSTANTS.STOP_SCAN_ERR) { // if we manually or programmatically stopped the scan, then stop the animation and don't try again.
           return -1;
         }
-        showSnackBar(`Error 108: ${e}. Trying again...`);
+        showSnackBar(`${e}. Trying again...`);
         tryCount -= 1;
       }
     }
     if (!success) {
-      showSnackBar(`Error 109: Something went wrong with syncing. Please try again.`);
+      showSnackBar(`Something went wrong with syncing. Please make sure bluetooth is on and try again.`);
       return null;
     } else {
       return numBytesRead;
@@ -190,7 +194,7 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
   const continueSync = async () => {
     const bytesRead = await syncData();
     if (!bytesRead) {
-      showSnackBar(`Error 109: Something went wrong with syncing. Please try again.`);
+      showSnackBar(`Something went wrong with syncing. Please make sure bluetooth is on and try again.`);
       return;
     } else if (bytesRead < 0) { // this means user stopped the scan
       showSnackBar("Stopped syncing");
@@ -206,12 +210,36 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
     }
   }
 
+  // react to user changing phone's bt status
+  const onBluetoothStatusChange = (isEnabled: boolean) => {
+    if (isEnabled) {
+      setBluetoothOn(true);
+      console.log("ONNNNN")
+      if (GlobalBleHandler.hasID()) {
+        GlobalBleHandler.scanAndConnect()
+        .then((connected) => {
+          setAthlosConnected(connected ? true : false);
+        })
+        .catch((e) => {
+          console.log("error connecting to device: ", e);
+          showSnackBar(`Error connecting to device. ${e.toString()}`);
+        });
+      }
+    } else {
+      console.log("offffff")
+      setBluetoothOn(false);
+    }
+  }
+
   // setting up the Athlos app
   React.useEffect(() => {
     const setUpApp = async () => {
       GlobalBleHandler.addSetConnectedFunction(setAthlosConnected);
       GlobalBleHandler.addSetSyncProgressFunction(setSyncProgress);
       GlobalBleHandler.addSetShouldRefreshFitnessFunction(setShouldRefreshFitness);
+      BluetoothStatus.addListener(onBluetoothStatusChange);
+      const isBtOn = await BluetoothStatus.state();
+      setBluetoothOn(isBtOn);
       if (Platform.OS === 'android') {
         await requestLocationServices();
         DeviceEventEmitter.addListener('locationProviderStatusChange', function(status) { // only trigger when "providerListener" is enabled
@@ -271,6 +299,7 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
           })
           .catch((e) => {
             console.log("error connecting to device: ", e);
+            showSnackBar(`Error connecting to device. ${e.toString()}`);
           });
       }
       try {
@@ -290,6 +319,7 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
     return () => {
       console.log("unmounting");
       LocationServicesDialogBox?.stopListener();
+      BluetoothStatus.removeListener();
       GlobalBleHandler.destroy().then(() => {
         console.log("BLE manager destroyed. Reiniting...");
         GlobalBleHandler.reinit();
@@ -474,6 +504,12 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
                 await continueSync();
               }}
             />
+            { !bluetoothOn ?
+              <View style={{backgroundColor: 'red', height: 45, width: '100%', justifyContent: 'center', alignItems: 'center'}}>
+                <Text style={{color: 'white', fontSize: 18}}>Bluetooth is off!</Text>
+              </View>
+              : null
+            }
             <BottomTab.Navigator barStyle={{
               // backgroundColor: colors.header,
             }}>

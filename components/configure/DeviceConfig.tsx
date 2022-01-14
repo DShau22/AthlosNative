@@ -277,7 +277,6 @@ const DeviceConfig = (props) => {
                   title: "Mode",
                   width: SCREEN_WIDTH,
                   array: [
-                    MUSIC_ONLY,
                     RUN,
                     SWIM,
                     SWIM_WORKOUT,

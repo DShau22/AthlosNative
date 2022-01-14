@@ -10,31 +10,25 @@ interface FineDataDisplayProps {
   route: any,
   navigation: any,
   backNavScreen: string,
+  title: string,
+  lineColor: string,
 };
 
-const FineDataDisplay: React.FC<FineDataDisplayProps> = ({ route, navigation, backNavScreen }) => {
+const FineDataDisplay: React.FC<FineDataDisplayProps> = ({ route, navigation, backNavScreen, title, lineColor }) => {
   const { progressionData, progressionLabels } = route.params;
   const { colors } = useTheme();
-  const makeCadenceLabels = () => {
-    let timeSeries = [];
-    // cadences are in 30 second intervals
-    for (let i = 0; i < currentDay.cadences.length + 1; i+=10) {
-      timeSeries.push(`${i/2} min`);
-    }
-    return timeSeries;
-  }
 
   return (
     <View style={styles.container}>
       <View style={{alignItems: 'center', marginBottom: 25}}>
-        <ThemeText h4>Cadence Progression</ThemeText>
+        <ThemeText h4>{title}</ThemeText>
           <ScrollView
             horizontal
             style={{marginTop: 20}}
             contentContainerStyle={[styles.sideScrollContent, {marginLeft: progressionData.length === 0 ? -20 : 0}]}
           >
           <LineProgression
-            activityColor={COLOR_THEMES.RUN_THEME}
+            activityColor={lineColor}
             yAxisInterval={5}
             data={progressionData}
             labels={progressionLabels}

@@ -233,8 +233,7 @@ class BLEHandler {
   async scanAndRegister() {
     const isBtEnabled = await BluetoothStatus.state();
     if (!isBtEnabled) {
-      showSnackBar("Bluetooth is not enabled. Please turn on Bluetooth to search for earbuds.");
-      return;
+      throw new Error("Bluetooth is not enabled. Please turn on your phone's Bluetooth to link.");
     }
     this.stopScan();
     await this.disconnect();
@@ -340,12 +339,7 @@ class BLEHandler {
    * with a resolve value of the session bytes Buffer
    */
   async scanAndConnect() {
-    const isBtEnabled = await BluetoothStatus.state();
-    if (!isBtEnabled) {
-      showSnackBar("Bluetooth is not enabled. Please turn on Bluetooth to search for earbuds.");
-      return;
-    }
-    showSnackBar("Searching for your Athlos device...", "long");
+    showSnackBar("Searching for your Athlos device. Make sure your phone's bluetooth is on!", "long");
     if (!this.userDeviceID || this.userDeviceID.length === 0) {
       throw new Error("Athlos device has not been linked yet");
     }
@@ -494,8 +488,7 @@ class BLEHandler {
   async readActivityData() {
     const isBtEnabled = await BluetoothStatus.state();
     if (!isBtEnabled) {
-      showSnackBar("Bluetooth is not enabled. Please turn on Bluetooth to sync.");
-      return;
+      throw new Error("Bluetooth is not enabled. Please turn on your phone's Bluetooth to link.");
     }
     if (!this.device || !(await this.device.isConnected())) {
       console.log("device is not connected: ", this.device);
@@ -770,8 +763,7 @@ class BLEHandler {
     console.log("sending byte array...", bytes.length);
     const isBtEnabled = await BluetoothStatus.state();
     if (!isBtEnabled) {
-      showSnackBar("Bluetooth is not enabled. Please turn on Bluetooth to sync.");
-      return;
+      throw new Error("Bluetooth is not enabled. Please turn on your phone's Bluetooth to link.");
     }
     if (!this.device || !(await this.device.isConnected())) {
       throw new Error("device is not yet connected");

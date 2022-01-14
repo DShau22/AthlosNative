@@ -10,11 +10,11 @@ import ThemeText from '../generic/ThemeText';
 import { useFocusEffect } from '@react-navigation/native';
 import BLUETOOTH_CONSTANTS from './BluetoothConstants';
 const {STOP_SCAN_ERR} = BLUETOOTH_CONSTANTS;
+import { BluetoothStatus } from 'react-native-bluetooth-status';
 import {
   requestLocationPermission,
   hasLocationPermission
 } from '../utils/permissions';
-import SAinit from './SAinitManager';
 import {
   getUserData,
   setDeviceId,
@@ -25,12 +25,7 @@ import {
 import { showSnackBar } from '../utils/notifications';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import GlobalBleHandler from './GlobalBleHandler';
-import Axios from 'axios';
-import ENDPOINTS from '../endpoints';
 import { Alert } from 'react-native';
-import { UserActivities } from '../fitness/data/UserActivities';
-import { updateSaInit } from './utils';
-import { UserDataInterface } from '../generic/UserTypes';
 Icon.loadFont();
 
 const { SYNC_PAGE, SYNC_HELP_PAGE } = BLUETOOTH_CONSTANTS;
@@ -207,17 +202,20 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
               })
               .catch(e => {
                 console.log("failed to connect after linking", e);
-                showSnackBar("Failed to connect to your Athlos device. Trying again...");
+                showSnackBar(`Failed to connect to your Athlos device. Make sure bluetooth is on for both devices.`);
               });
           }
         }]
       );
-
     } catch(e) {
       console.log(e);
       GlobalBleHandler.setID("");
       GlobalBleHandler.stopScan();
-      showSnackBar(`Error 106: Something went wrong with the linking process. Please try again later. ${e.toString()}`);
+      Alert.alert(
+        "Something went wrong",
+        `${e.message}`,
+        [{text: "Okay"}]
+      );
     } finally {
       setTransmitting(false);
     }
@@ -234,8 +232,13 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
       showSnackBar("Your earbuds are hard at work transfering info. Please wait a bit.");
       return;
     }
+    const isBtEnabled = await BluetoothStatus.state();
+    if (!isBtEnabled) {
+      Alert.alert("Bluetooth is not enabled", "Please turn on your phone's Bluetooth to sync", [{text: "Okay"}]);
+      return;
+    }
     if (!GlobalBleHandler.isConnected) {
-      showSnackBar("Error 107: Your device is not connected. Please make sure your earbuds are within range and are in Bluetooth mode");
+      showSnackBar("Your earbuds are not connected. Please make sure your earbuds are within range and are in Bluetooth mode");
       return;
     }
     const shouldShowAutoSyncWarningDialog = await getShouldShowAutoSyncWarningDialog();
@@ -248,7 +251,7 @@ const SADataSync: React.FC<SADataSyncInterface> = (props) => {
     setTransmitting(true);
     const bytesRead = await syncData();
     if (!bytesRead) {
-      showSnackBar(`Error 109: Something went wrong with syncing. Please try again.`);
+      showSnackBar(`Something went wrong with syncing. Please make sure bluetooth is on and try again.`);
       setTransmitting(false);
       return;
     } else if (bytesRead < 0) { // this means user stopped the scan
