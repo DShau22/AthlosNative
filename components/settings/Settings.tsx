@@ -178,8 +178,10 @@ const Settings = (props) => {
               Alert.alert(
                 "Whoops",
                 "Looks like you don't actually have any Athlos earbuds linked to this device",
-                [{text: "Okay"}]);
-                return;
+                [{text: "Okay"}]
+              );
+              setIsLoading(false);
+              return;
             }
             try {
               await GlobalBleHandler.disconnect();

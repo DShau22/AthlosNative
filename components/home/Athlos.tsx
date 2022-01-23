@@ -293,7 +293,9 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
       GlobalBleHandler.setID(deviceID);
       // keep trying connect to athlos device
       if (deviceID.length > 0) {
-        GlobalBleHandler.scanAndConnect()
+        const isBtEnabled = await BluetoothStatus.state();
+        if (isBtEnabled) {
+          GlobalBleHandler.scanAndConnect()
           .then((connected) => {
             setAthlosConnected(connected ? true : false);
           })
@@ -301,6 +303,9 @@ const Athlos: React.FC<AthlosInterface> = (props) => {
             console.log("error connecting to device: ", e);
             showSnackBar(`Error connecting to device. ${e.toString()}`);
           });
+        } else {
+          showSnackBar("Bluetooth must be on if you want to sync with your earbuds.");
+        }
       }
       try {
         await updateLocalUserFitness(); // need both cuz of thresholds and nefforts 
