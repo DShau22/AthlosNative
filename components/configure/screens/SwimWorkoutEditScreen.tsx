@@ -195,6 +195,7 @@ export default function SwimWorkoutEditScreen(props) {
       let set = sets[i];
       totalTimeInSeconds += set.reps * set.timeInSeconds;
     }
+    totalTimeInSeconds = totalTimeInSeconds * numRounds;
     var hours = Math.floor(totalTimeInSeconds / (60 * 60));
     var minutes = Math.floor((totalTimeInSeconds % 3600) / 60);
     var seconds = totalTimeInSeconds % 60;

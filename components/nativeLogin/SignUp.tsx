@@ -354,7 +354,7 @@ const SignUp = ({navigation}) => {
             <Textbox
               containerStyle={{marginBottom: 30}}
               headerText={"Password"}
-              placeholder="Confirm your password..."
+              placeholder="You password..."
               icon={<Feather name='lock' color="#05375a" size={20}/>}
               handleChange={handlePasswordChange}
               didChange={data.passwordChange}
@@ -366,7 +366,7 @@ const SignUp = ({navigation}) => {
 
             <Textbox
               headerText={"Confirm Password"}
-              placeholder="Same password..."
+              placeholder="Confirm your password..."
               icon={<Feather name='lock' color="#05375a" size={20}/>}
               handleChange={handleConfirmPasswordChange}
               didChange={data.passwordConfChange}
@@ -378,11 +378,8 @@ const SignUp = ({navigation}) => {
 
             <View style={styles.textPrivate}>
               <Text style={styles.color_textPrivate}>
-                By signing up you agree to our
+                By signing up you agree to our terms of service and privacy policy
               </Text>
-              <Text style={[styles.color_textPrivate, {fontWeight: 'bold'}]}>{" "}Terms of service</Text>
-              <Text style={styles.color_textPrivate}>{" "}and</Text>
-              <Text style={[styles.color_textPrivate, {fontWeight: 'bold'}]}>{" "}Privacy policy</Text>
             </View>
             <LoginButton
               containerStyle={[styles.buttonContainer, {marginTop: 20}]}

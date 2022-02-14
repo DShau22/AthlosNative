@@ -212,10 +212,10 @@ const getDefaultConfig = (): Array<Mode> => {
     getDefaultJumpMode(),
     getDefaultRunMode(),
     getDefaultSwimMode(),
-    // getDefaultSwimWorkoutMode(),
+    getDefaultIntervalMode(),
+    getDefaultSwimWorkoutMode(),
     // getDefaultRaceMode(),
     // getDefaultTimerMode(),
-    // getDefaultIntervalMode(),
   ];
 };
 

@@ -4,7 +4,7 @@ import React from 'react'
 import {
   View, 
   Text, 
-  TouchableOpacity, 
+  ScrollView, 
   Dimensions,
   StyleSheet,
   StatusBar,
@@ -28,11 +28,10 @@ const Background = ({ navigation }) => {
   const { colors } = useTheme();
   return (
     <LinearGradient style={styles.container} colors={['#000046', '#1CB5E0']}>
-      <StatusBar backgroundColor='#009387' barStyle="light-content"/>
       <View style={[styles.header]}>
         <Animatable.Image 
           animation="bounceIn"
-          duraton="1500"
+          duration={1500}
           source={require('../assets/AthlosLogo.png')}
           style={styles.logo}
           resizeMode="stretch"
@@ -54,16 +53,27 @@ const Background = ({ navigation }) => {
           borderTopLeftRadius: 30,
           borderTopRightRadius: 30,
         }}>
-          <Text style={[styles.title, {color: colors.header}]}>Track your fitness and customize your device!</Text>
-          <LoginButton
-            containerStyle={styles.button}
-            style={styles.signIn}
-            buttonTextStyle={styles.buttonTextStyle}
-            filled={true}
-            text='Get Started'
-            onPress={() => navigation.navigate(SIGNIN)}
-            icon={<MaterialIcons name="navigate-next" color="#fff" size={20}/>}
-          />
+          <ScrollView style={{
+            backgroundColor: '#F4F5FC',
+            borderTopLeftRadius: 30,
+            borderTopRightRadius: 30,
+          }}>
+            <Text style={[styles.title, {color: colors.header}]}>
+              Welcome to the Athlos Live app! 
+            </Text>
+            <Text style={[styles.title, {color: colors.header}]}>
+              Here you can track your fitness and customize your device!
+            </Text>
+            <LoginButton
+              containerStyle={styles.startButton}
+              style={styles.signIn}
+              buttonTextStyle={styles.buttonTextStyle}
+              filled={true}
+              text='Get Started'
+              onPress={() => navigation.navigate(SIGNIN)}
+              icon={<MaterialIcons name="navigate-next" color="#fff" size={20}/>}
+            />
+          </ScrollView>
         </LinearGradient>
       </Animatable.View>
     </LinearGradient>
@@ -91,6 +101,7 @@ const styles = StyleSheet.create({
   },
   title: {
     marginLeft: 30,
+    marginRight: 30,
     marginTop: 30,
     fontSize: 30,
     // color: 'black',
@@ -100,10 +111,11 @@ const styles = StyleSheet.create({
     color: 'grey',
     marginTop:5
   },
-  button: {
+  startButton: {
     alignItems: 'flex-end',
-    marginRight: 20,
+    marginRight: 25,
     marginTop: 20,
+    marginBottom: 30,
   },
   signIn: {
     width: 150,
@@ -115,7 +127,7 @@ const styles = StyleSheet.create({
   },
   buttonTextStyle: {
     fontWeight: 'bold',
-    fontSize: 14
+    fontSize: 16
   },
   textSign: {
     color: 'white',

@@ -142,7 +142,7 @@ const SignIn = ({ navigation }) => {
             size={20}
           />
           <TextInput 
-            placeholder="Your Username"
+            placeholder="Your email"
             placeholderTextColor="#666666"
             style={[styles.textInput, {
               color: colors.text

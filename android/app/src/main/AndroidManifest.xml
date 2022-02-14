@@ -22,8 +22,8 @@
 
       android:name=".MainApplication"
       android:label="@string/app_name"
-      android:icon="@mipmap/ic_launcher"
-      android:roundIcon="@mipmap/ic_launcher_round"
+      android:icon="@mipmap/athlos_logo"
+      android:roundIcon="@mipmap/athlos_logo_round"
       android:allowBackup="false"
       android:theme="@style/AppTheme"
     >

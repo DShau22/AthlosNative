@@ -202,6 +202,7 @@ export default function withFitnessPage( WrappedComponent: any ) {
       if (!sessionDay) {
         return;
       }
+      console.log(day, month, year);
       const today = DateTime.local();
       const currDay = DateTime.fromISO(sessionDay.uploadDate, {zone: today.zone}).set({
         hour: 0, minute: 0, second: 0, millisecond: 0
@@ -210,16 +211,20 @@ export default function withFitnessPage( WrappedComponent: any ) {
       let diffInDays = currDay.diff(selectedDay, ['days']).toObject().days;
       let absDiffInDays = Math.abs(diffInDays);
       let dayOffset = absDiffInDays % 7;
+      console.log("day index: ", dayIndex);
       if (diffInDays < 0) {
         // we must be forwards in time
         let weekOffset = Math.floor(absDiffInDays / 7) + Math.floor((dayIndex + dayOffset) / 7);
+        console.log(diffInDays, absDiffInDays, dayOffset, weekOffset, dayIndex);
         setWeekIndex(weekIndex - weekOffset);
         setDayIndex((dayIndex + dayOffset) % 7);
       } else if (diffInDays > 0) {
         // we must go backwards in time
         let weekOffset = Math.floor(absDiffInDays / 7) + ((dayIndex - dayOffset) < 0 ? 1 : 0);
+        console.log(diffInDays, absDiffInDays, dayOffset, weekOffset, (dayIndex - dayOffset + 7) % 7);
         setWeekIndex(weekIndex + weekOffset);
         setDayIndex((dayIndex - dayOffset + 7) % 7);
+        console.log(activityJson.activityData[weekIndex + weekOffset]);
       }
     }
 

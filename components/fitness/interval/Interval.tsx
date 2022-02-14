@@ -8,10 +8,10 @@ import { Calendar } from 'react-native-calendars';
 import ThemeText from '../../generic/ThemeText';
 import { ActivityJson } from '../FitnessTypes';
 import { SettingsType } from '../../generic/UserTypes';
-import { IntervalWorkoutSchema, IntervalType, IntervalSchema } from '../data/UserActivities';
+import { IntervalWorkoutSchema, IntervalType, IntervalSchema, UserActivities } from '../data/UserActivities';
 import Arrow from '../carousel/Arrow';
 import GLOBAL_CONSTANTS from '../../GlobalConstants';
-import { formatDateToDisplay } from '../../utils/dates';
+import { formatDateToDisplay, getLastSunday } from '../../utils/dates';
 const { DateTime } = require("luxon");
 
 type IntervalProps = {
@@ -135,8 +135,8 @@ const Interval: React.FC<IntervalProps> = (props) => {
         padding: 10,
         marginBottom: 40,
       }}>
-        <ThemeText h4>Workout Date</ThemeText>
-        <TextInput
+        <ThemeText h4>{`${workout.workoutName}:`}</ThemeText>
+        {/* <TextInput
           mode='outlined'
           value={workout.workoutName} // should be workoutName
           outlineColor={colors.backgroundOffset}
@@ -145,7 +145,7 @@ const Interval: React.FC<IntervalProps> = (props) => {
           style={{ backgroundColor: colors.backgroundOffset }}
           theme={{ colors: { primary: colors.textColor, text: colors.textColor }}}
           disabled // TODO: ALLOW USERS TO EDIT THE NAMES OF THEIR WORKOUTS PER DAY
-        />
+        /> */}
         {/* Progress Bar */}
         <ThemeText h4>{`Rounds completed: ${Math.floor(workout.intervalsCompleted.length / workout.intervalsPerRoundPlanned)}/${workout.totalRoundsPlanned}`}</ThemeText>
         <ThemeText h4>Intervals</ThemeText>
@@ -185,6 +185,14 @@ const Interval: React.FC<IntervalProps> = (props) => {
     let monthString = today.month < 10 ? `0${today.month}` : `${today.month}`;
     let dayString = today.day < 10 ? `0${today.day}` : `${today.day}`;
     return `${today.year}-${monthString}-${dayString}`;
+  }
+  // for calendar
+  const getMinSelectableDate = () => {
+    var lastSunday = getLastSunday();
+    var dateToStartFrom = lastSunday.minus({days: (UserActivities.WEEKS_BACK - 1) * 7});
+    let monthString = dateToStartFrom.month < 10 ? `0${dateToStartFrom.month}` : `${dateToStartFrom.month}`;
+    let dayString = dateToStartFrom.day < 10 ? `0${dateToStartFrom.day}` : `${dateToStartFrom.day}`;
+    return `${dateToStartFrom.year}-${monthString}-${dayString}`;
   }
 
   const onChangeCalendarDay = (day: number, month: number, year: number) => {
@@ -242,6 +250,7 @@ const Interval: React.FC<IntervalProps> = (props) => {
           <Calendar
             markedDates={getMarkedDates()}
             maxDate={getMaxSelectableDate()}
+            minDate={getMinSelectableDate()}
             current={getCurrDate()}
             style={{
               marginTop: 20,
