@@ -29,9 +29,10 @@ const AutoSyncWarningModal: React.FC<AutoSyncWarningModalProps> = (props) => {
           flexDirection: 'column'
         }}>
           <Text style={{color: 'grey'}}>
-            Make sure your earbuds are NOT on a smart mode. Syncing while your earbuds 
-            are on smart mode can result in inconsistencies and unwanted behavior. Make sure 
-            you only ever sync when your earbuds are NOT on a smart mode.
+            Make sure your earbuds are NOT in a smart mode AND that you have turned off your earbuds
+             since they were last in a smart mode. Not doing so can result in inconsistencies and unwanted behavior.
+             If this happens, reset your device configs by heading to the config tab and hitting
+             the "save and update device" button.
           </Text>
           <View style={{
             alignSelf: 'center',
